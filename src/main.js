@@ -9,6 +9,7 @@ const state = {
   fsRatio: 0.62,
   bend: 1,
   showGrid: false,
+  uniformSubtractionLines: false,
   resultMode: 'decimal',
   maxDecimalDigits: 24,
   divisor: '25',
@@ -26,6 +27,7 @@ const elements = {
   fsInput: document.querySelector('#fs-input'),
   bendInput: document.querySelector('#bend-input'),
   gridInput: document.querySelector('#grid-input'),
+  uniformSubtractionInput: document.querySelector('#uniform-subtraction-input'),
   resultModeInputs: document.querySelectorAll('input[name="result-mode"]'),
   cwOutput: document.querySelector('#cw-output'),
   rhOutput: document.querySelector('#rh-output'),
@@ -210,6 +212,9 @@ const createLayout = (division) => {
   const digitCount = Math.max(division.digitCount, division.dividendDigits.length)
   const rightBoundary = baseX + digitCount * state.cw
   const visibleSteps = division.steps.filter((step) => step.showSubtract)
+  const longestSubtractionLeft = visibleSteps.length > 0
+    ? Math.min(...visibleSteps.map((step) => step.currentLeft))
+    : 0
   const operationRowCount = Math.max(
     visibleSteps.length === 0 ? 3 : visibleSteps.length * 2 + 2,
     4,
@@ -236,6 +241,7 @@ const createLayout = (division) => {
     operationRowCount,
     rightBoundary,
     visibleSteps,
+    longestSubtractionLeft,
     gridColumns,
     stageHeight: operationRowCount * state.rh + 12,
   }
@@ -251,6 +257,7 @@ const renderDivision = (division) => {
     operationRowCount,
     rightBoundary,
     visibleSteps,
+    longestSubtractionLeft,
     gridColumns,
     stageHeight,
   } = layout
@@ -333,7 +340,9 @@ const renderDivision = (division) => {
     const productRow = isFirstStep ? row : row + 1
     addNumber(mathLayer, operation.productText, operation.position, productRow, 'product-digit', baseX, state.cw)
     const lineY = (productRow + 1) * state.rh
-    const lineStart = baseX + operation.currentLeft * state.cw
+    const lineStart = baseX + (state.uniformSubtractionLines
+      ? longestSubtractionLeft
+      : operation.currentLeft) * state.cw
     drawLine(lineLayer, lineStart, lineY, rightBoundary, lineY, 'subtraction-line')
   })
 
@@ -360,6 +369,7 @@ const renderDomDivision = (division, layout) => {
     operationRowCount,
     rightBoundary,
     visibleSteps,
+    longestSubtractionLeft,
     gridColumns,
   } = layout
   const dividendRow = 1
@@ -406,7 +416,9 @@ const renderDomDivision = (division, layout) => {
     const productRow = isFirstStep ? row : row + 1
     addDomNumber(elements.mathLayer, operation.productText, operation.position, productRow, 'product-digit', baseX, state.cw)
     const lineY = (productRow + 1) * state.rh
-    const lineStart = baseX + operation.currentLeft * state.cw
+    const lineStart = baseX + (state.uniformSubtractionLines
+      ? longestSubtractionLeft
+      : operation.currentLeft) * state.cw
     drawDomLine(elements.lineLayer, lineStart, lineY, rightBoundary, lineY, 'subtraction-line')
   })
 
@@ -506,6 +518,11 @@ const bindControls = () => {
 
   elements.gridInput.addEventListener('change', (event) => {
     state.showGrid = event.target.checked
+    render()
+  })
+
+  elements.uniformSubtractionInput.addEventListener('change', (event) => {
+    state.uniformSubtractionLines = event.target.checked
     render()
   })
 

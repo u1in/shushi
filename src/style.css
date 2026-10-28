@@ -328,7 +328,6 @@ button:hover {
 
 .switch-field {
   display: flex;
-  grid-column: 1 / -1;
   align-items: center;
   gap: 10px;
   color: #63718b;
