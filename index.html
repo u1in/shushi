@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="按小学除法竖式规则生成竖式计算过程。" />
+    <title>小学除法竖式生成器</title>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <p class="eyebrow">STRING MATH · CSS · DOM</p>
+        <h1>小学除法竖式生成器</h1>
+        <p class="intro">按“被除数 ÷ 除数”输入整数，生成可缩放的长除法竖式。</p>
+      </section>
+
+      <section class="workspace" aria-label="除法竖式工作区">
+        <form class="control-panel" id="division-form">
+          <div class="input-grid">
+            <label class="field">
+              <span>被除数</span>
+              <input id="dividend-input" name="dividend" inputmode="numeric" value="12345" autocomplete="off" />
+            </label>
+            <span class="division-operator" aria-hidden="true">÷</span>
+            <label class="field">
+              <span>除数</span>
+              <input id="divisor-input" name="divisor" inputmode="numeric" value="25" autocomplete="off" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary-button" type="submit">生成竖式</button>
+            <button class="ghost-button" type="button" id="sample-button">试试 12345 ÷ 25</button>
+          </div>
+          <div class="result-mode-row">
+            <select id="result-mode-input" name="result-mode" aria-label="结果模式">
+              <option value="remainder">余数模式</option>
+              <option value="decimal" selected>小数模式（除不尽自动余数）</option>
+            </select>
+          </div>
+          <p class="error-message" id="error-message" role="alert" aria-live="polite"></p>
+          <div class="settings-panel" role="group" aria-label="渲染设置">
+            <button
+              class="settings-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="settings-controls"
+            >
+              <span class="panel-heading">
+                <span>
+                  <span class="panel-kicker">RENDER STATE</span>
+                  <span class="settings-title">样式调整</span>
+                </span>
+                <span class="settings-toggle-icon" aria-hidden="true"></span>
+              </span>
+            </button>
+            <div class="settings-controls" id="settings-controls">
+              <label class="range-field">
+                <span>方格宽度 <output id="cw-output">44px</output></span>
+                <input id="cw-input" type="range" min="32" max="64" value="44" />
+              </label>
+              <label class="range-field">
+                <span>行高 <output id="rh-output">46px</output></span>
+                <input id="rh-input" type="range" min="36" max="68" value="46" />
+              </label>
+              <label class="range-field">
+                <span>字号比例 <output id="fs-output">0.62</output></span>
+                <input id="fs-input" type="range" min="0.48" max="0.82" value="0.62" step="0.01" />
+              </label>
+              <label class="range-field">
+                <span>弧线弯曲度 <output id="bend-output">1.00</output></span>
+                <input id="bend-input" type="range" min="0.35" max="1.2" value="1" step="0.05" />
+              </label>
+              <label class="switch-field">
+                <input id="grid-input" type="checkbox" />
+                <span class="switch-ui" aria-hidden="true"></span>
+                <span>显示辅助网格</span>
+              </label>
+            </div>
+          </div>
+        </form>
+
+      <section class="result-card" aria-live="polite">
+        <div class="result-heading">
+          <div>
+            <p class="panel-kicker">CALCULATION</p>
+            <h2 id="result-title">12345 ÷ 25</h2>
+          </div>
+          <output class="answer" id="answer-output">493.8</output>
+        </div>
+        <p class="normalization" id="normalization-output">小数模式：12345 ÷ 25 = 493.8</p>
+        <div class="stage-scroll">
+          <div class="division-stage" id="division-stage">
+            <div class="math-lines" id="math-lines" aria-hidden="true"></div>
+            <div class="math-layer" id="math-layer"></div>
+          </div>
+        </div>
+        <p class="legend"><span class="legend-line"></span>弧线、横线与减法线由 CSS 绘制，数字由 DOM 定位。</p>
+      </section>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
