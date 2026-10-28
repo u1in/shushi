@@ -1,6 +1,8 @@
 import './style.css'
 import { computeDivision } from './division.js'
 
+const svgNamespace = 'http://www.w3.org/2000/svg'
+
 const state = {
   cw: 44,
   rh: 46,
@@ -10,13 +12,11 @@ const state = {
   resultMode: 'decimal',
   maxDecimalDigits: 24,
   divisor: '25',
-  dividend: '12345',
+  dividend: '10230',
 }
 
 const elements = {
   form: document.querySelector('#division-form'),
-  settingsPanel: document.querySelector('.settings-panel'),
-  settingsToggle: document.querySelector('.settings-toggle'),
   divisorInput: document.querySelector('#divisor-input'),
   dividendInput: document.querySelector('#dividend-input'),
   sampleButton: document.querySelector('#sample-button'),
@@ -26,7 +26,7 @@ const elements = {
   fsInput: document.querySelector('#fs-input'),
   bendInput: document.querySelector('#bend-input'),
   gridInput: document.querySelector('#grid-input'),
-  resultModeInput: document.querySelector('#result-mode-input'),
+  resultModeInputs: document.querySelectorAll('input[name="result-mode"]'),
   cwOutput: document.querySelector('#cw-output'),
   rhOutput: document.querySelector('#rh-output'),
   fsOutput: document.querySelector('#fs-output'),
@@ -34,21 +34,33 @@ const elements = {
   resultTitle: document.querySelector('#result-title'),
   answer: document.querySelector('#answer-output'),
   normalization: document.querySelector('#normalization-output'),
-  stage: document.querySelector('#division-stage'),
+  svgStage: document.querySelector('#svg-stage'),
+  domStage: document.querySelector('#dom-stage'),
+  svg: document.querySelector('#division-svg'),
+  dom: document.querySelector('#division-dom'),
   lineLayer: document.querySelector('#math-lines'),
   mathLayer: document.querySelector('#math-layer'),
 }
 
-const createText = (text, className, left, top, size, extra = {}) => {
-  const node = document.createElement('span')
-  node.className = className
+const createSvgNode = (name, attributes = {}) => {
+  const node = document.createElementNS(svgNamespace, name)
+
+  Object.entries(attributes).forEach(([property, value]) => {
+    node.setAttribute(property, String(value))
+  })
+
+  return node
+}
+
+const createText = (text, className, left, row, size, extra = {}) => {
+  const node = createSvgNode('text', {
+    class: `math-text ${className}`,
+    x: left + size / 2,
+    y: row * state.rh + state.rh / 2,
+  })
   node.textContent = text
-  node.style.left = `${left}px`
-  node.style.top = `${top}px`
-  node.style.width = `${size}px`
-  node.style.height = `${state.rh}px`
   Object.entries(extra).forEach(([property, value]) => {
-    node.style.setProperty(property, value)
+    node.setAttribute(property, value)
   })
   return node
 }
@@ -61,7 +73,7 @@ const addNumber = (parent, text, position, row, className, baseX, width, extra =
       digit,
       `math-digit ${className}`,
       baseX + (start + index) * width,
-      row * state.rh,
+      row,
       width,
       extra,
     ))
@@ -73,7 +85,7 @@ const addDigitAt = (parent, digit, position, row, className, baseX, width, extra
     digit,
     `math-digit ${className}`,
     baseX + position * width,
-    row * state.rh,
+    row,
     width,
     extra,
   ))
@@ -81,24 +93,19 @@ const addDigitAt = (parent, digit, position, row, className, baseX, width, extra
 
 const addDecimalPoint = (parent, position, row, baseX, width) => {
   const dotWidth = width / 3
-  parent.appendChild(createText(
-    '.',
-    'math-dot',
-    baseX + position * width - dotWidth / 2,
-    row * state.rh + state.rh * 0.12,
-    dotWidth,
-  ))
+  const dot = createText('.', 'math-dot', baseX + position * width - dotWidth / 2, row, dotWidth)
+  dot.setAttribute('y', String(row * state.rh + state.rh * 0.68))
+  parent.appendChild(dot)
 }
 
 const drawLine = (layer, x1, y1, x2, y2, className) => {
-  const line = document.createElement('div')
-  const isVertical = x1 === x2
-  line.className = `${className} ${isVertical ? 'line-vertical' : 'line-horizontal'}`
-  line.style.left = `${Math.min(x1, x2)}px`
-  line.style.top = `${Math.min(y1, y2)}px`
-  line.style.width = `${Math.max(Math.abs(x2 - x1), 1)}px`
-  line.style.height = `${Math.max(Math.abs(y2 - y1), 1)}px`
-  layer.appendChild(line)
+  layer.appendChild(createSvgNode('line', {
+    class: className,
+    x1,
+    y1,
+    x2,
+    y2,
+  }))
 }
 
 const drawGrid = (layer, columnBoundaries, rowCount) => {
@@ -116,7 +123,84 @@ const drawGrid = (layer, columnBoundaries, rowCount) => {
   })
 }
 
-const renderDivision = (division) => {
+const createDomText = (text, className, left, top, size, extra = {}) => {
+  const node = document.createElement('span')
+  node.className = className
+  node.textContent = text
+  node.style.left = `${left}px`
+  node.style.top = `${top}px`
+  node.style.width = `${size}px`
+  node.style.height = `${state.rh}px`
+  Object.entries(extra).forEach(([property, value]) => {
+    node.style.setProperty(property, value)
+  })
+  return node
+}
+
+const addDomNumber = (parent, text, position, row, className, baseX, width, extra = {}) => {
+  const start = position - text.length + 1
+
+  ;[...text].forEach((digit, index) => {
+    parent.appendChild(createDomText(
+      digit,
+      `math-digit ${className}`,
+      baseX + (start + index) * width,
+      row * state.rh,
+      width,
+      extra,
+    ))
+  })
+}
+
+const addDomDigitAt = (parent, digit, position, row, className, baseX, width, extra = {}) => {
+  parent.appendChild(createDomText(
+    digit,
+    `math-digit ${className}`,
+    baseX + position * width,
+    row * state.rh,
+    width,
+    extra,
+  ))
+}
+
+const addDomDecimalPoint = (parent, position, row, baseX, width) => {
+  const dotWidth = width / 3
+  parent.appendChild(createDomText(
+    '.',
+    'math-dot',
+    baseX + position * width - dotWidth / 2,
+    row * state.rh + state.rh * 0.12,
+    dotWidth,
+  ))
+}
+
+const drawDomLine = (layer, x1, y1, x2, y2, className) => {
+  const line = document.createElement('div')
+  const isVertical = x1 === x2
+  line.className = `${className} ${isVertical ? 'line-vertical' : 'line-horizontal'}`
+  line.style.left = `${Math.min(x1, x2)}px`
+  line.style.top = `${Math.min(y1, y2)}px`
+  line.style.width = `${Math.max(Math.abs(x2 - x1), 1)}px`
+  line.style.height = `${Math.max(Math.abs(y2 - y1), 1)}px`
+  layer.appendChild(line)
+}
+
+const drawDomGrid = (layer, columnBoundaries, rowCount) => {
+  if (!state.showGrid) return
+
+  const gridLeft = columnBoundaries[0]
+  const gridRight = columnBoundaries[columnBoundaries.length - 1]
+
+  for (let row = 0; row <= rowCount; row += 1) {
+    drawDomLine(layer, gridLeft, row * state.rh, gridRight, row * state.rh, 'grid-line')
+  }
+
+  columnBoundaries.forEach((column) => {
+    drawDomLine(layer, column, 0, column, rowCount * state.rh, 'grid-line')
+  })
+}
+
+const createLayout = (division) => {
   const divisorWidth = division.divisorDigits.length * state.cw
   const arcWidth = state.cw / 2
   const divisorLeft = 20
@@ -130,19 +214,7 @@ const renderDivision = (division) => {
     visibleSteps.length === 0 ? 3 : visibleSteps.length * 2 + 2,
     4,
   )
-  const stageHeight = operationRowCount * state.rh + 12
 
-  elements.stage.style.setProperty('--digit-size', `${state.cw * state.fsRatio}px`)
-  elements.stage.style.width = `${rightBoundary + 26}px`
-  elements.stage.style.height = `${stageHeight}px`
-  elements.lineLayer.style.width = `${rightBoundary + 26}px`
-  elements.lineLayer.style.height = `${stageHeight}px`
-  elements.lineLayer.replaceChildren()
-  elements.mathLayer.replaceChildren()
-
-  const dividendRow = 1
-  const quotientRow = 0
-  const mathLayer = elements.mathLayer
   const gridColumns = []
 
   for (let index = 0; index <= division.divisorDigits.length; index += 1) {
@@ -155,21 +227,66 @@ const renderDivision = (division) => {
     gridColumns.push(baseX + index * state.cw)
   }
 
-  drawGrid(elements.lineLayer, gridColumns, operationRowCount)
+  return {
+    arcLeft,
+    arcWidth,
+    baseX,
+    digitCount,
+    divisorLeft,
+    operationRowCount,
+    rightBoundary,
+    visibleSteps,
+    gridColumns,
+    stageHeight: operationRowCount * state.rh + 12,
+  }
+}
+
+const renderDivision = (division) => {
+  const layout = createLayout(division)
+  const {
+    arcLeft,
+    arcWidth,
+    baseX,
+    divisorLeft,
+    operationRowCount,
+    rightBoundary,
+    visibleSteps,
+    gridColumns,
+    stageHeight,
+  } = layout
+
+  ;[elements.svgStage, elements.domStage].forEach((stage) => {
+    stage.style.setProperty('--digit-size', `${state.cw * state.fsRatio}px`)
+    stage.style.width = `${rightBoundary + 26}px`
+    stage.style.height = `${stageHeight}px`
+  })
+  elements.dom.style.width = `${rightBoundary + 26}px`
+  elements.dom.style.height = `${stageHeight}px`
+  elements.svg.setAttribute('viewBox', `0 0 ${rightBoundary + 26} ${stageHeight}`)
+  elements.svg.setAttribute('width', String(rightBoundary + 26))
+  elements.svg.setAttribute('height', String(stageHeight))
+  elements.svg.setAttribute('aria-label', `${division.dividendDigits} 除以 ${division.divisorDigits} 的竖式`)
+  elements.svg.replaceChildren()
+  elements.lineLayer.replaceChildren()
+  elements.mathLayer.replaceChildren()
+
+  const dividendRow = 1
+  const quotientRow = 0
+  const mathLayer = createSvgNode('g', { class: 'svg-text-layer' })
+  const lineLayer = createSvgNode('g', { class: 'svg-line-layer', 'aria-hidden': 'true' })
+
+  drawGrid(lineLayer, gridColumns, operationRowCount)
 
   const arcStartX = arcLeft
   const arcEndX = arcLeft + arcWidth
   const arcStartY = dividendRow * state.rh + state.rh
   const arcEndY = dividendRow * state.rh
-  const curve = document.createElement('div')
-  curve.className = 'division-arc'
-  curve.style.left = `${arcStartX}px`
-  curve.style.top = `${arcEndY}px`
-  curve.style.width = `${arcWidth}px`
-  curve.style.height = `${state.rh}px`
-  curve.style.setProperty('--arc-radius', `${state.bend * 100}%`)
-  elements.lineLayer.appendChild(curve)
-  drawLine(elements.lineLayer, arcEndX, arcEndY, rightBoundary, arcEndY, 'division-top-line')
+  const curveRadius = Math.min(arcWidth, state.rh) * Math.min(Math.max(state.bend, 0.35), 1)
+  lineLayer.appendChild(createSvgNode('path', {
+    class: 'division-arc',
+    d: `M ${arcStartX} ${arcStartY} H ${arcEndX - curveRadius} Q ${arcEndX} ${arcStartY} ${arcEndX} ${arcStartY - curveRadius} V ${arcEndY}`,
+  }))
+  drawLine(lineLayer, arcEndX, arcEndY, rightBoundary, arcEndY, 'division-top-line')
 
   addNumber(
     mathLayer,
@@ -217,11 +334,84 @@ const renderDivision = (division) => {
     addNumber(mathLayer, operation.productText, operation.position, productRow, 'product-digit', baseX, state.cw)
     const lineY = (productRow + 1) * state.rh
     const lineStart = baseX + operation.currentLeft * state.cw
-    drawLine(elements.lineLayer, lineStart, lineY, rightBoundary, lineY, 'subtraction-line')
+    drawLine(lineLayer, lineStart, lineY, rightBoundary, lineY, 'subtraction-line')
   })
 
   addNumber(
     mathLayer,
+    division.remainder,
+    division.digitCount - 1,
+    visibleSteps.length === 0 ? 2 : 1 + visibleSteps.length * 2,
+    'minuend-digit',
+    baseX,
+    state.cw,
+  )
+
+  elements.svg.append(lineLayer, mathLayer)
+  renderDomDivision(division, layout)
+}
+
+const renderDomDivision = (division, layout) => {
+  const {
+    arcLeft,
+    arcWidth,
+    baseX,
+    divisorLeft,
+    operationRowCount,
+    rightBoundary,
+    visibleSteps,
+    gridColumns,
+  } = layout
+  const dividendRow = 1
+  const quotientRow = 0
+
+  drawDomGrid(elements.lineLayer, gridColumns, operationRowCount)
+
+  const curve = document.createElement('div')
+  curve.className = 'division-arc'
+  curve.style.left = `${arcLeft}px`
+  curve.style.top = `${dividendRow * state.rh}px`
+  curve.style.width = `${arcWidth}px`
+  curve.style.height = `${state.rh}px`
+  curve.style.setProperty('--arc-radius', `${state.bend * 100}%`)
+  elements.lineLayer.appendChild(curve)
+  drawDomLine(elements.lineLayer, arcLeft + arcWidth, dividendRow * state.rh, rightBoundary, dividendRow * state.rh, 'division-top-line')
+
+  addDomNumber(elements.mathLayer, division.divisorDigits, division.divisorDigits.length - 1, dividendRow, 'divisor-digit', divisorLeft, state.cw)
+
+  ;[...division.dividendDigits].forEach((digit, index) => {
+    addDomDigitAt(elements.mathLayer, digit, index, dividendRow, 'dividend-digit', baseX, state.cw)
+  })
+
+  for (let index = 0; index < division.fractionalDigitCount; index += 1) {
+    addDomDigitAt(elements.mathLayer, '0', division.dividendDigits.length + index, dividendRow, 'appended-zero', baseX, state.cw)
+  }
+
+  division.quotientByPosition.forEach((digit, position) => {
+    addDomDigitAt(elements.mathLayer, digit, position, quotientRow, 'quotient-digit', baseX, state.cw)
+  })
+
+  if (division.hasFraction) {
+    addDomDecimalPoint(elements.mathLayer, division.dividendDigits.length, quotientRow, baseX, state.cw)
+  }
+
+  visibleSteps.forEach((operation, index) => {
+    const isFirstStep = index === 0
+    const row = isFirstStep ? 2 : 1 + index * 2
+
+    if (!isFirstStep) {
+      addDomNumber(elements.mathLayer, operation.currentText, operation.position, row, 'minuend-digit', baseX, state.cw)
+    }
+
+    const productRow = isFirstStep ? row : row + 1
+    addDomNumber(elements.mathLayer, operation.productText, operation.position, productRow, 'product-digit', baseX, state.cw)
+    const lineY = (productRow + 1) * state.rh
+    const lineStart = baseX + operation.currentLeft * state.cw
+    drawDomLine(elements.lineLayer, lineStart, lineY, rightBoundary, lineY, 'subtraction-line')
+  })
+
+  addDomNumber(
+    elements.mathLayer,
     division.remainder,
     division.digitCount - 1,
     visibleSteps.length === 0 ? 2 : 1 + visibleSteps.length * 2,
@@ -258,18 +448,13 @@ const render = () => {
   } catch (error) {
     elements.error.textContent = error instanceof Error ? error.message : '输入无法计算，请检查格式。'
     elements.answer.textContent = '—'
-    elements.mathLayer.replaceChildren()
+    elements.svg.replaceChildren()
     elements.lineLayer.replaceChildren()
+    elements.mathLayer.replaceChildren()
   }
 }
 
 const bindControls = () => {
-  elements.settingsToggle.addEventListener('click', () => {
-    const isExpanded = elements.settingsToggle.getAttribute('aria-expanded') === 'true'
-    elements.settingsToggle.setAttribute('aria-expanded', String(!isExpanded))
-    elements.settingsPanel.classList.toggle('is-expanded', !isExpanded)
-  })
-
   elements.form.addEventListener('submit', (event) => {
     event.preventDefault()
     state.divisor = elements.divisorInput.value
@@ -279,9 +464,9 @@ const bindControls = () => {
 
   elements.sampleButton.addEventListener('click', () => {
     elements.divisorInput.value = '25'
-    elements.dividendInput.value = '12345'
+    elements.dividendInput.value = '10230'
     state.divisor = '25'
-    state.dividend = '12345'
+    state.dividend = '10230'
     render()
   })
 
@@ -324,10 +509,13 @@ const bindControls = () => {
     render()
   })
 
-  elements.resultModeInput.addEventListener('change', (event) => {
-    state.resultMode = event.target.value
-    render()
+  elements.resultModeInputs.forEach((input) => {
+    input.addEventListener('change', (event) => {
+      state.resultMode = event.target.value
+      render()
+    })
   })
+
 }
 
 updateRangeOutputs()

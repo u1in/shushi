@@ -91,6 +91,22 @@ describe('computeDivision', () => {
   expect(result.steps[0].showSubtract).toBe(false)
   })
 
+  test('示例同时覆盖省略商前缀零、商中间补零和有限小数', () => {
+    const result = computeDivision('25', '10230', { resultMode: 'decimal' })
+
+    expect(result.quotientText).toBe('409.2')
+    expect(result.remainder).toBe('0')
+    expect(result.integerStart).toBe(2)
+    expect([...result.quotientByPosition.entries()]).toEqual([
+      [2, '4'],
+      [3, '0'],
+      [4, '9'],
+      [5, '2'],
+    ])
+    expect(result.steps[1].showSubtract).toBe(false)
+    expect(result.fractionalDigitCount).toBe(1)
+  })
+
   test('循环小数和达到位数上限时回退到余数模式', () => {
   const repeating = computeDivision('3', '1', { resultMode: 'decimal' })
   expect(repeating.quotientText).toBe('0')
