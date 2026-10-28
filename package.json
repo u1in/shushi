@@ -7,10 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "typescript": "^5.9.3",
     "vite": "latest",
     "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "json-formatter-js": "^2.5.23"
   }
 }

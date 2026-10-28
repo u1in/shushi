@@ -12,6 +12,7 @@
         <p class="eyebrow">STRING MATH · SVG · DOM</p>
         <h1>小学除法竖式生成器</h1>
         <p class="intro">按“被除数 ÷ 除数”输入整数，生成可缩放的长除法竖式。</p>
+        <p class="naming-map-link"><a href="/docs/vertical-division-elements.html" target="_blank" rel="noreferrer">查看竖式物件命名图谱 →</a></p>
       </section>
 
       <section class="workspace" aria-label="除法竖式工作区">
@@ -98,17 +99,27 @@
             <div class="stage-scroll">
               <div class="division-stage" id="dom-stage">
                 <div class="division-dom" id="division-dom" aria-label="div 加 CSS 除法竖式">
-                  <div class="math-lines" id="math-lines" aria-hidden="true"></div>
-                  <div class="math-layer" id="math-layer"></div>
+                  <div class="division-line-layer" id="division-line-layer" aria-hidden="true"></div>
+                  <div class="division-digit-layer" id="division-digit-layer"></div>
                 </div>
               </div>
             </div>
           </section>
         </div>
         <p class="legend"><span class="legend-line"></span>SVG 与 div + CSS 使用相同坐标并列展示，便于比较。</p>
+        <section class="calculation-json" aria-labelledby="calculation-json-title">
+          <div class="calculation-json-heading">
+            <div>
+              <p class="panel-kicker">CALCULATION JSON</p>
+              <h3 id="calculation-json-title">除法器计算结果 JSON</h3>
+            </div>
+            <span class="calculation-json-note">随当前输入实时更新</span>
+          </div>
+          <div class="calculation-json-view" id="calculation-json-output" aria-label="当前除法器计算结果 JSON"></div>
+        </section>
       </section>
       </section>
     </main>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

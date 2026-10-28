@@ -50,6 +50,26 @@ h1 {
   line-height: 1.7;
 }
 
+.naming-map-link {
+  margin: 14px 0 0;
+}
+
+.naming-map-link a {
+  color: #4166b6;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.naming-map-link a:hover {
+  text-decoration: underline;
+}
+
+.naming-map-link a:focus-visible {
+  outline: 3px solid rgba(110, 143, 210, 0.35);
+  outline-offset: 3px;
+}
+
 .hero {
   margin-bottom: 38px;
 }
@@ -476,22 +496,23 @@ h2 {
   inset: 0;
 }
 
-.math-lines,
-.math-layer {
+.division-line-layer,
+.division-digit-layer {
   position: absolute;
   inset: 0;
 }
 
-.math-lines {
+.division-line-layer {
   z-index: 1;
   pointer-events: none;
 }
 
-.math-layer {
+.division-digit-layer {
   z-index: 2;
 }
 
-.math-text {
+.division-svg .division-digit,
+.division-svg .division-decimal-point {
   font-size: var(--digit-size, 27px);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -499,8 +520,8 @@ h2 {
   text-anchor: middle;
 }
 
-.math-digit,
-.math-dot {
+.division-dom .division-digit,
+.division-dom .division-decimal-point {
   position: absolute;
   display: grid;
   place-items: center;
@@ -509,92 +530,95 @@ h2 {
   line-height: 1;
 }
 
-.divisor-digit {
+.division-digit--divisor {
   color: #4166b6;
   font-weight: 800;
 }
 
-.division-svg .divisor-digit {
+.division-svg .division-digit--divisor {
   fill: #4166b6;
 }
 
-.quotient-digit {
+.division-digit--quotient {
   color: #213c77;
   font-weight: 800;
 }
 
-.division-svg .quotient-digit {
+.division-svg .division-digit--quotient {
   fill: #213c77;
 }
 
-.dividend-digit {
+.division-digit--dividend {
   color: #192642;
   font-weight: 700;
 }
 
-.division-svg .dividend-digit {
+.division-svg .division-digit--dividend {
   fill: #192642;
 }
 
-.appended-zero {
+.division-digit--appendedZero {
   color: #a1aec4;
   font-weight: 700;
 }
 
-.division-svg .appended-zero {
+.division-svg .division-digit--appendedZero {
   fill: #a1aec4;
 }
 
-.minuend-digit {
+.division-digit--partialDividend,
+.division-digit--remainder {
   color: #5a709f;
   font-weight: 600;
 }
 
-.division-svg .minuend-digit {
+.division-svg .division-digit--partialDividend,
+.division-svg .division-digit--remainder {
   fill: #5a709f;
 }
 
-.product-digit {
+.division-digit--product {
   color: #1e8b83;
   font-weight: 700;
 }
 
-.division-svg .product-digit {
+.division-svg .division-digit--product {
   fill: #1e8b83;
 }
 
-.math-dot {
+.division-decimal-point {
   color: #4166b6;
   font-weight: 800;
 }
 
-.division-svg .math-dot {
+.division-svg .division-decimal-point {
   fill: #4166b6;
 }
 
-.division-svg .division-arc {
+.division-svg .division-bracket-arc {
   fill: none;
   stroke: #4166b6;
   stroke-linecap: round;
   stroke-width: var(--division-stroke, 3px);
 }
 
-.division-svg .division-top-line,
-.division-svg .subtraction-line {
+.division-svg .division-line--divisionBracketTopLine,
+.division-svg .division-line--subtractionBar {
   fill: none;
   stroke-linecap: round;
   stroke-width: var(--division-stroke, 3px);
 }
 
-.division-svg .division-top-line {
+.division-svg .division-line--divisionBracketTopLine {
   stroke: #4166b6;
 }
 
-.division-svg .subtraction-line {
+.division-svg .division-line--subtractionBar {
   stroke: #6d83ae;
 }
 
-.division-svg .grid-line {
+.division-svg .division-line--guideGridHorizontal,
+.division-svg .division-line--guideGridVertical {
   fill: none;
   opacity: 0.68;
   stroke: #a7bbdd;
@@ -602,42 +626,43 @@ h2 {
   stroke-width: 1px;
 }
 
-.math-lines > div {
+.division-line-layer > div {
   position: absolute;
 }
 
-.division-dom .division-arc {
+.division-dom .division-bracket-arc {
   border: var(--division-stroke, 3px) solid transparent;
   border-top-color: #4166b6;
   border-right-color: #4166b6;
-  border-radius: 0 var(--arc-radius) 0 0;
+  border-radius: 0 var(--bracket-arc-radius) 0 0;
   transform: scaleY(-1);
   transform-origin: center;
 }
 
-.division-dom .division-top-line {
+.division-dom .division-line--divisionBracketTopLine {
   height: var(--division-stroke, 3px) !important;
   border-radius: 999px;
   background: #4166b6;
 }
 
-.division-dom .subtraction-line {
+.division-dom .division-line--subtractionBar {
   height: var(--division-stroke, 3px) !important;
   border-radius: 999px;
   background: #6d83ae;
 }
 
-.division-dom .grid-line {
+.division-dom .division-line--guideGridHorizontal,
+.division-dom .division-line--guideGridVertical {
   background: repeating-linear-gradient(90deg, #a7bbdd 0 2px, transparent 2px 7px);
   opacity: 0.68;
 }
 
-.division-dom .grid-line.line-vertical {
+.division-dom .division-line--guideGridVertical {
   width: 1px !important;
   background: repeating-linear-gradient(0deg, #a7bbdd 0 2px, transparent 2px 7px);
 }
 
-.division-dom .grid-line.line-horizontal {
+.division-dom .division-line--guideGridHorizontal {
   height: 1px !important;
 }
 
@@ -654,6 +679,45 @@ h2 {
   width: 18px;
   height: var(--division-stroke, 3px);
   background: #4166b6;
+}
+
+.calculation-json {
+  margin-top: 24px;
+  border-top: 1px solid #e3eaf5;
+  padding-top: 22px;
+}
+
+.calculation-json-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.calculation-json h3 {
+  margin: 8px 0 0;
+  color: #18233c;
+  font-size: 1.15rem;
+}
+
+.calculation-json-note {
+  color: #8794ab;
+  font-size: .78rem;
+}
+
+.calculation-json-view {
+  max-height: 420px;
+  margin-top: 14px;
+  overflow: auto;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8faff;
+}
+
+.calculation-json-view .json-formatter-row {
+  font-family: "Noto Sans SC", "PingFang SC", Inter, ui-sans-serif, system-ui, sans-serif !important;
+  font-size: .78rem;
 }
 
 @media (max-width: 800px) {
