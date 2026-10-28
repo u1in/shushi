@@ -8,7 +8,7 @@ import { renderSvgBoard } from '../renderers/svg-board-renderer'
 import { resolveBoardMetrics } from '../scene/geometry'
 import type { BoardTextHorizontalAlign, BoardTextVerticalAlign } from '../scene/types'
 
-type RendererMode = 'svg' | 'dom'
+type RendererMode = 'svg' | 'dom' | 'both'
 
 const state = {
   cellWidth: 30,
@@ -19,7 +19,8 @@ const state = {
   textVerticalAlign: 'center' as BoardTextVerticalAlign,
   uniformMultiplicationBars: false,
   showCarrySteps: true,
-  rendererMode: 'svg' as RendererMode,
+  showDataFlow: false,
+  rendererMode: 'both' as RendererMode,
   multiplicand: '145',
   multiplier: '12',
 }
@@ -51,8 +52,12 @@ const elements = {
   resultTitle: requiredElement<HTMLElement>('#multiplication-result-title'),
   answer: requiredElement<HTMLOutputElement>('#multiplication-answer-output'),
   normalization: requiredElement<HTMLElement>('#multiplication-normalization-output'),
+  dataFlowVisibilityInputs: document.querySelectorAll<HTMLInputElement>('input[name="multiplication-data-flow-visibility"]'),
+  resultContentGrid: requiredElement<HTMLElement>('#multiplication-result-content-grid'),
   calculationJson: requiredElement<HTMLElement>('#multiplication-calculation-json-output'),
   rendererInputJson: requiredElement<HTMLElement>('#multiplication-renderer-input-output'),
+  dataFlowPanel: requiredElement<HTMLElement>('#multiplication-data-flow-panel'),
+  rendererComparison: requiredElement<HTMLElement>('#multiplication-renderer-comparison'),
   svgRendererPanel: requiredElement<HTMLElement>('#multiplication-svg-renderer-panel'),
   domRendererPanel: requiredElement<HTMLElement>('#multiplication-dom-renderer-panel'),
   svgStage: requiredElement<HTMLElement>('#multiplication-svg-stage'),
@@ -64,15 +69,34 @@ const elements = {
 }
 
 const updateRendererMode = (): void => {
-  const showsSvg = state.rendererMode === 'svg'
-  elements.svgRendererPanel.hidden = !showsSvg
-  elements.domRendererPanel.hidden = showsSvg
+  elements.svgRendererPanel.hidden = state.rendererMode === 'dom'
+  elements.domRendererPanel.hidden = state.rendererMode === 'svg'
+  elements.rendererComparison.classList.toggle('renderer-comparison--both', state.rendererMode === 'both')
+  updateDataFlowVisibility()
 }
 
 const updateRangeOutputs = (): void => {
   elements.cellWidthOutput.textContent = `${state.cellWidth}px`
   elements.rowHeightOutput.textContent = `${state.rowHeight}px`
   elements.fontSizeOutput.textContent = state.fontSizeRatio.toFixed(2)
+}
+
+const updateDataFlowVisibility = (): void => {
+  const isLockedByBothRenderers = state.rendererMode === 'both'
+  if (isLockedByBothRenderers) state.showDataFlow = false
+  const shouldShowDataFlow = !isLockedByBothRenderers && state.showDataFlow
+  elements.dataFlowPanel.hidden = !shouldShowDataFlow
+  elements.resultContentGrid.classList.toggle('result-content-grid--data-flow-hidden', !shouldShowDataFlow)
+  elements.dataFlowVisibilityInputs.forEach((input) => {
+    input.disabled = isLockedByBothRenderers
+    input.checked = input.value === (shouldShowDataFlow ? 'show' : 'hide')
+  })
+}
+
+const setDataFlowVisibility = (showDataFlow: boolean): void => {
+  if (state.rendererMode === 'both') return
+  state.showDataFlow = showDataFlow
+  updateDataFlowVisibility()
 }
 
 const render = (): void => {
@@ -174,6 +198,12 @@ const bindControls = (): void => {
     state.showCarrySteps = elements.carryStepsInput.checked
     render()
   })
+  elements.dataFlowVisibilityInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!input.checked) return
+      setDataFlowVisibility(input.value === 'show')
+    })
+  })
   elements.textHorizontalAlignInput.addEventListener('change', () => {
     state.textHorizontalAlign = elements.textHorizontalAlignInput.value as BoardTextHorizontalAlign
     render()
@@ -192,5 +222,6 @@ const bindControls = (): void => {
 }
 
 updateRangeOutputs()
+updateDataFlowVisibility()
 bindControls()
 render()

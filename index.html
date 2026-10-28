@@ -99,7 +99,7 @@
         </form>
 
         <section class="result-card" aria-live="polite">
-          <div class="result-content-grid">
+          <div class="result-content-grid" id="division-result-content-grid">
             <section class="calculation-result" aria-label="竖式计算结果">
               <div class="result-heading">
                 <div>
@@ -109,18 +109,35 @@
                 <output class="answer" id="answer-output">409.2</output>
               </div>
               <p class="normalization" id="normalization-output">小数模式：10230 ÷ 25 = 409.2</p>
-              <fieldset class="renderer-mode-group" aria-label="渲染模式">
-                <legend>渲染模式</legend>
-                <label class="render-mode-option">
-                  <input type="radio" name="renderer-mode" value="svg" checked />
-                  <span>SVG</span>
-                </label>
-                <label class="render-mode-option">
-                  <input type="radio" name="renderer-mode" value="dom" />
-                  <span>div + CSS</span>
-                </label>
-              </fieldset>
-              <div class="renderer-comparison">
+              <div class="calculation-mode-controls">
+                <fieldset class="renderer-mode-group" aria-label="渲染模式">
+                  <legend>渲染模式</legend>
+                  <label class="render-mode-option">
+                    <input type="radio" name="renderer-mode" value="svg" />
+                    <span>SVG</span>
+                  </label>
+                  <label class="render-mode-option">
+                    <input type="radio" name="renderer-mode" value="dom" />
+                    <span>div + CSS</span>
+                  </label>
+                  <label class="render-mode-option">
+                    <input type="radio" name="renderer-mode" value="both" checked />
+                    <span>两者</span>
+                  </label>
+                </fieldset>
+                <fieldset class="renderer-mode-group data-flow-visibility-group" aria-label="查看数据">
+                  <legend>查看数据</legend>
+                  <label class="render-mode-option">
+                  <input type="radio" name="division-data-flow-visibility" value="show" />
+                    <span>是</span>
+                  </label>
+                  <label class="render-mode-option">
+                  <input type="radio" name="division-data-flow-visibility" value="hide" checked />
+                    <span>否</span>
+                  </label>
+                </fieldset>
+              </div>
+              <div class="renderer-comparison" id="division-renderer-comparison">
                 <section class="renderer-panel" id="svg-renderer-panel" aria-labelledby="svg-renderer-title">
                   <h3 id="svg-renderer-title">SVG</h3>
                   <div class="stage-scroll">
@@ -143,7 +160,7 @@
               </div>
               <p class="legend"><span class="legend-line"></span>选择渲染模式查看竖式。</p>
             </section>
-            <aside class="data-flow-panel" aria-label="数据流转">
+            <aside class="data-flow-panel" id="division-data-flow-panel" aria-label="数据流转">
               <section class="data-flow-section" aria-labelledby="calculation-json-title">
                 <div class="data-flow-heading">
                   <div>
@@ -242,7 +259,7 @@
           </form>
 
           <section class="result-card" aria-live="polite">
-            <div class="result-content-grid">
+            <div class="result-content-grid" id="multiplication-result-content-grid">
               <section class="calculation-result" aria-label="乘法竖式计算结果">
                 <div class="result-heading">
                   <div>
@@ -252,18 +269,35 @@
                   <output class="answer" id="multiplication-answer-output">1740</output>
                 </div>
                 <p class="normalization" id="multiplication-normalization-output">逐位乘法：145 × 12 = 1740</p>
-                <fieldset class="renderer-mode-group" aria-label="乘法渲染模式">
-                  <legend>渲染模式</legend>
-                  <label class="render-mode-option">
-                    <input type="radio" name="multiplication-renderer-mode" value="svg" checked />
-                    <span>SVG</span>
-                  </label>
-                  <label class="render-mode-option">
-                    <input type="radio" name="multiplication-renderer-mode" value="dom" />
-                    <span>div + CSS</span>
-                  </label>
-                </fieldset>
-                <div class="renderer-comparison">
+                <div class="calculation-mode-controls">
+                  <fieldset class="renderer-mode-group" aria-label="乘法渲染模式">
+                    <legend>渲染模式</legend>
+                    <label class="render-mode-option">
+                      <input type="radio" name="multiplication-renderer-mode" value="svg" />
+                      <span>SVG</span>
+                    </label>
+                    <label class="render-mode-option">
+                      <input type="radio" name="multiplication-renderer-mode" value="dom" />
+                      <span>div + CSS</span>
+                    </label>
+                    <label class="render-mode-option">
+                      <input type="radio" name="multiplication-renderer-mode" value="both" checked />
+                      <span>两者</span>
+                    </label>
+                  </fieldset>
+                  <fieldset class="renderer-mode-group data-flow-visibility-group" aria-label="查看数据">
+                    <legend>查看数据</legend>
+                    <label class="render-mode-option">
+                    <input type="radio" name="multiplication-data-flow-visibility" value="show" />
+                      <span>是</span>
+                    </label>
+                    <label class="render-mode-option">
+                    <input type="radio" name="multiplication-data-flow-visibility" value="hide" checked />
+                      <span>否</span>
+                    </label>
+                  </fieldset>
+                </div>
+                <div class="renderer-comparison" id="multiplication-renderer-comparison">
                   <section class="renderer-panel" id="multiplication-svg-renderer-panel" aria-labelledby="multiplication-svg-renderer-title">
                     <h3 id="multiplication-svg-renderer-title">SVG</h3>
                     <div class="stage-scroll">
@@ -286,7 +320,7 @@
                 </div>
                 <p class="legend"><span class="legend-line"></span>选择渲染模式查看竖式。</p>
               </section>
-              <aside class="data-flow-panel" aria-label="乘法数据流转">
+              <aside class="data-flow-panel" id="multiplication-data-flow-panel" aria-label="乘法数据流转">
                 <section class="data-flow-section" aria-labelledby="multiplication-calculation-json-title">
                   <div class="data-flow-heading">
                     <div>

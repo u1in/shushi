@@ -225,6 +225,16 @@ h1 {
   outline-offset: 2px;
 }
 
+.render-mode-option:has(input:disabled) {
+  cursor: not-allowed;
+}
+
+.render-mode-option input:disabled + span {
+  color: #9eabc1;
+  background: #eef2f8;
+  box-shadow: none;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -494,6 +504,8 @@ button:hover {
 
 .result-heading {
   align-items: end;
+  justify-content: flex-start;
+  gap: 18px;
 }
 
 h2 {
@@ -535,11 +547,31 @@ h2 {
   padding: 0;
 }
 
+.calculation-mode-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 18px;
+}
+
+.calculation-mode-controls .renderer-mode-group {
+  margin: 0;
+}
+
+.data-flow-visibility-group legend {
+  margin-right: 0;
+}
+
 .renderer-comparison {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-top: 22px;
+}
+
+.renderer-comparison--both {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .renderer-panel {
@@ -901,6 +933,14 @@ h2 {
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
   min-width: 0;
+}
+
+.data-flow-panel[hidden] {
+  display: none;
+}
+
+.result-content-grid--data-flow-hidden {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .data-flow-section {
