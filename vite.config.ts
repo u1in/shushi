@@ -9,7 +9,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         app: resolve(projectRoot, 'index.html'),
-        elementNamingMap: resolve(projectRoot, 'docs/vertical-division-elements.html'),
+        elementNamingMap: resolve(projectRoot, 'vertical-division-elements.html'),
       },
     },
   },

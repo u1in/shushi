@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="小学除法竖式的中英元素命名图谱。" />
     <title>小学除法竖式：元素命名图谱</title>
-    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/styles/main.css" />
     <style>
       .naming-map-page { width: min(1660px, calc(100% - 40px)); margin: 0 auto; padding: 52px 0 72px; }
       .naming-map-page h1 { font-size: clamp(2rem, 4vw, 3.6rem); }
@@ -65,35 +65,36 @@
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="01" checked /><strong>商 · Quotient</strong><p>除法计算得到的结果，逐位写在被除数上方。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="02" checked /><strong>小数点 · Decimal point</strong><p>整数部分和小数部分之间的分隔点。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="03" checked /><strong>除数 · Divisor</strong><p>用来进行除法的数。</p></label>
-          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="04" checked /><strong>厂圆弧 · Division bracket arc</strong><p>连接除数和被除数的弯曲部分。</p></label>
-          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="05" checked /><strong>厂横线 · Division bracket top line</strong><p>从厂圆弧右上方延伸的横线。</p></label>
+          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="04" checked /><strong>厂字弯 · Division bracket bend</strong><p>连接除数和被除数、从左下收至右上方的弯曲部分。</p></label>
+          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="05" checked /><strong>厂字横 · Division bracket top bar</strong><p>从厂字弯右上端向右延伸的横线。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="06" checked /><strong>被除数 · Dividend</strong><p>要被分解、相除的数。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="07" checked /><strong>补零列 · Appended zero</strong><p>计算小数时，在被除数末尾补上的零。</p></label>
-          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="08" checked /><strong>乘积 · Product</strong><p>除数和当前商位相乘得到的数。</p></label>
-          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="09" checked /><strong>部分被除数 · Partial dividend</strong><p>每一步继续落下并参与计算的部分。</p></label>
-          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="10" checked /><strong>减法线 · Subtraction bar</strong><p>乘积下方表示减法的横线。</p></label>
+          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="08" checked /><strong>部分减数 · Partial subtrahend</strong><p>除数和当前商位相乘得到的乘积；它是本轮减法中的减数。</p></label>
+          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="09" checked /><strong>部分被减数 · Partial minuend</strong><p>继续落下并参与本轮减法的数；它在本轮减法中充当被减数。</p></label>
+          <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="10" checked /><strong>减法线 · Subtraction bar</strong><p>部分减数下方表示减法的横线；线框只围绕横线本身。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="11" checked /><strong>余数 · Remainder</strong><p>全部计算完成后剩下的数。</p></label>
           <label class="naming-map-item"><input class="naming-map-visibility" type="checkbox" data-highlight-key="12" checked /><strong>辅助网格 · Guide grid</strong><p>帮助观察数字列和行位置的参考网格。</p></label>
         </div>
       </section>
       <section class="naming-map-card naming-map-json-card" aria-labelledby="json-title">
-        <h2 id="json-title">除法器结果 JSON</h2>
-        <p class="naming-map-caption">这里直接展示 10230 ÷ 25 的除法器 JSON 结果，默认展开全部内容；下方附有字段注释。</p>
-        <div class="naming-map-json-view" id="division-json" aria-label="除法器结果 JSON"></div>
+        <h2 id="json-title">除法器结果</h2>
+        <p class="naming-map-caption">这里展示 10230 ÷ 25 的除法器结果。字段注释在上方，JSON 默认展开于下方。</p>
         <details class="naming-map-json-notes" open>
           <summary>字段注释</summary>
           <dl>
             <dt>divisorDigits</dt><dd>规范化后的除数。</dd>
             <dt>dividendDigits</dt><dd>规范化后的被除数。</dd>
             <dt>quotientText</dt><dd>最终显示的商。</dd>
-            <dt>decimalPointColumn</dt><dd>小数点所在的列边界；没有有限小数时为 null。</dd>
-            <dt>quotientDigits</dt><dd>商的每一位及对应的被除数列。</dd>
+            <dt>quotientTokens</dt><dd>商的语义 token 数组；数字和小数点都作为独立显示列输出。</dd>
+            <dt>quotientTokens.kind</dt><dd><code>digit</code> 表示商数字，<code>decimalSeparator</code> 表示小数点。</dd>
+            <dt>quotientTokens.digit</dt><dd>该列显示的字符；小数分隔符固定为 <code>.</code>。</dd>
+            <dt>quotientTokens.column</dt><dd>该 token 的显示列。小数点自身占一列，后续小数位继续使用后续列。</dd>
             <dt>steps</dt><dd>从左到右的逐步除法过程。</dd>
             <dt>steps.dividendColumn</dt><dd>本轮商位对应的被除数列。</dd>
             <dt>steps.divisor</dt><dd>本轮使用的除数。</dd>
             <dt>steps.quotientDigit</dt><dd>本轮得到的商位。</dd>
-            <dt>steps.partialDividend</dt><dd>本轮参与计算的部分被除数。</dd>
-            <dt>steps.product</dt><dd>除数乘以本轮商位得到的乘积。</dd>
+            <dt>steps.partialDividend</dt><dd>本轮参与计算的部分被除数；在竖式减法中显示为部分被减数。</dd>
+            <dt>steps.product</dt><dd>除数乘以本轮商位得到的乘积；在竖式减法中显示为部分减数。</dd>
             <dt>steps.remainder</dt><dd>本轮相减后的余数。</dd>
             <dt>remainder</dt><dd>全部计算完成后的最终余数。</dd>
             <dt>hasFraction</dt><dd>是否得到有限小数。</dd>
@@ -103,9 +104,10 @@
             <dt>integerStartColumn</dt><dd>第一位有效整数商所在的列。</dd>
           </dl>
         </details>
+        <div class="naming-map-json-view" id="division-json" aria-label="除法器结果 JSON"></div>
       </section>
       </div>
     </main>
-    <script type="module" src="/src/naming-map.ts"></script>
+    <script type="module" src="/src/app/naming-map.ts"></script>
   </body>
 </html>

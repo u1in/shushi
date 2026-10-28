@@ -1,9 +1,14 @@
+/** Division calculator: validates inputs and produces the renderer-independent long-division process. */
 import type {
   DivisionComputation,
   DivisionOptions,
   LongDivisionStep,
-  QuotientDigit,
-} from './types'
+} from '../scene/types'
+
+interface PositionedQuotientDigit {
+  column: number
+  digit: string
+}
 
 const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
 
@@ -102,7 +107,7 @@ const createStep = (
 
 interface DecimalExpansion {
   fractionalDigits: string[]
-  quotientDigits: QuotientDigit[]
+  quotientDigits: PositionedQuotientDigit[]
   steps: LongDivisionStep[]
 }
 
@@ -121,7 +126,7 @@ const calculateFiniteDecimalExpansion = ({
 }: {
   divisorDigits: string
   dividendDigits: string
-  quotientDigits: QuotientDigit[]
+  quotientDigits: PositionedQuotientDigit[]
   steps: LongDivisionStep[]
   remainder: string
   maxDecimalDigits: number
@@ -164,7 +169,7 @@ const normalizeOptions = ({ resultMode = 'remainder', maxDecimalDigits = 24 }: D
 /**
  * Calculates a primary-school long division using decimal strings only.
  *
- * It follows `docs/division-rules.md`: skipped leading quotient zeroes are not
+ * It follows `docs/除法计算规则.md`: skipped leading quotient zeroes are not
  * steps, while every trial after the quotient starts is recorded, including
  * quotient digit `0`. An all-zero quotient keeps one final `partialDividend - 0`
  * step. A finite decimal expansion is committed only after its remainder reaches
@@ -184,7 +189,7 @@ export const computeDivision = (
     throw new Error('除数不能为 0。')
   }
 
-  const quotientDigits: QuotientDigit[] = []
+  const quotientDigits: PositionedQuotientDigit[] = []
   const steps: LongDivisionStep[] = []
   const integerQuotientDigits: string[] = []
   let remainder = '0'
@@ -230,12 +235,20 @@ export const computeDivision = (
   const hasFraction = decimalExpansion !== null
   const fractionalDigitCount = decimalExpansion?.fractionalDigits.length ?? 0
 
+  const finalQuotientDigits = decimalExpansion?.quotientDigits ?? quotientDigits
+  const quotientTokens = finalQuotientDigits.flatMap(({ column, digit }) => {
+    const displayColumn = column + (hasFraction && column >= dividendDigits.length ? 1 : 0)
+    const token = { kind: 'digit' as const, digit, column: displayColumn }
+    return hasFraction && column === dividendDigits.length
+      ? [{ kind: 'decimalSeparator' as const, digit: '.' as const, column }, token]
+      : [token]
+  })
+
   return {
     divisorDigits,
     dividendDigits,
     quotientText: hasFraction ? `${integerText}.${decimalExpansion.fractionalDigits.join('')}` : integerText,
-    decimalPointColumn: hasFraction ? dividendDigits.length : null,
-    quotientDigits: decimalExpansion?.quotientDigits ?? quotientDigits,
+    quotientTokens,
     steps: decimalExpansion?.steps ?? steps,
     remainder: hasFraction ? '0' : remainder,
     hasFraction,

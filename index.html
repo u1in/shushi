@@ -3,19 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="按小学除法竖式规则生成竖式计算过程。" />
-    <title>小学除法竖式生成器</title>
+    <meta name="description" content="用于展示小学四则运算计算过程与竖式的可扩展项目；当前提供除法器。" />
+    <title>小学竖式项目</title>
   </head>
   <body>
     <main class="page-shell">
       <section class="hero">
-        <p class="eyebrow">STRING MATH · SVG · DOM</p>
-        <h1>小学除法竖式生成器</h1>
-        <p class="intro">按“被除数 ÷ 除数”输入整数，生成可缩放的长除法竖式。</p>
-        <p class="naming-map-link"><a href="/docs/vertical-division-elements.html" target="_blank" rel="noreferrer">查看竖式物件命名图谱 →</a></p>
+        <p class="eyebrow">VERTICAL ARITHMETIC · SVG · DOM</p>
+        <h1>小学竖式项目</h1>
+        <p class="intro">用于展示小学四则运算的计算过程与竖式；当前提供可缩放的长除法竖式。</p>
       </section>
 
-      <section class="workspace" aria-label="除法竖式工作区">
+      <!-- 运算法则展示模板：后续运算器以同级 operation-demo 容器扩展。 -->
+      <div class="operation-demo operation-demo--division" data-operation="division">
+        <p class="naming-map-link"><a href="/vertical-division-elements.html" target="_blank" rel="noreferrer">查看除法竖式物件命名图谱 →</a></p>
+        <section class="workspace" aria-label="除法竖式工作区">
         <form class="control-panel" id="division-form">
           <div class="input-grid">
             <label class="field">
@@ -47,21 +49,36 @@
           <div class="settings-panel" role="group" aria-label="渲染设置">
             <div class="settings-controls">
               <label class="range-field">
-                <span>方格宽度 <output id="cw-output">32px</output></span>
-                <input id="cw-input" type="range" min="28" max="56" value="32" />
+                <span>方格宽度 <output id="cw-output">30px</output></span>
+                <input id="cw-input" type="range" min="28" max="56" value="30" />
               </label>
               <label class="range-field">
                 <span>行高 <output id="rh-output">46px</output></span>
                 <input id="rh-input" type="range" min="36" max="64" value="46" />
               </label>
               <label class="range-field">
-                <span>字号比例 <output id="fs-output">0.82</output></span>
-                <input id="fs-input" type="range" min="0.60" max="0.95" value="0.82" step="0.01" />
+                <span>字号比例 <output id="fs-output">1.00</output></span>
+                <input id="fs-input" type="range" min="0.5" max="1.5" value="1" step="0.01" />
               </label>
-              <label class="range-field">
-                <span>弧线弯曲度 <output id="bend-output">1.00</output></span>
-                <input id="bend-input" type="range" min="0.5" max="1.5" value="1" step="0.05" />
-              </label>
+              <fieldset class="text-alignment-field">
+                <legend>文字对齐</legend>
+                <label>
+                  <span>水平</span>
+                  <select id="text-horizontal-align-input">
+                    <option value="left">左对齐</option>
+                    <option value="center" selected>居中</option>
+                    <option value="right">右对齐</option>
+                  </select>
+                </label>
+                <label>
+                  <span>垂直</span>
+                  <select id="text-vertical-align-input">
+                    <option value="top">上对齐</option>
+                    <option value="center" selected>居中</option>
+                    <option value="bottom">下对齐</option>
+                  </select>
+                </label>
+              </fieldset>
               <label class="switch-field">
                 <input id="grid-input" type="checkbox" />
                 <span class="switch-ui" aria-hidden="true"></span>
@@ -81,50 +98,78 @@
           </div>
         </form>
 
-      <section class="result-card" aria-live="polite">
-        <div class="result-heading">
-          <div>
-            <p class="panel-kicker">CALCULATION</p>
-            <h2 id="result-title">10230 ÷ 25</h2>
-          </div>
-          <output class="answer" id="answer-output">409.2</output>
-        </div>
-        <p class="normalization" id="normalization-output">小数模式：10230 ÷ 25 = 409.2</p>
-        <div class="renderer-comparison">
-          <section class="renderer-panel" aria-labelledby="svg-renderer-title">
-            <h3 id="svg-renderer-title">SVG</h3>
-            <div class="stage-scroll">
-              <div class="division-stage" id="svg-stage">
-                <svg class="division-svg" id="division-svg" aria-label="SVG 除法竖式" role="img"></svg>
-              </div>
-            </div>
-          </section>
-          <section class="renderer-panel" aria-labelledby="dom-renderer-title">
-            <h3 id="dom-renderer-title">div + CSS</h3>
-            <div class="stage-scroll">
-              <div class="division-stage" id="dom-stage">
-                <div class="division-dom" id="division-dom" aria-label="div 加 CSS 除法竖式">
-                  <div class="division-line-layer" id="division-line-layer" aria-hidden="true"></div>
-                  <div class="division-digit-layer" id="division-digit-layer"></div>
+        <section class="result-card" aria-live="polite">
+          <div class="result-content-grid">
+            <section class="calculation-result" aria-label="竖式计算结果">
+              <div class="result-heading">
+                <div>
+                  <p class="panel-kicker">CALCULATION</p>
+                  <h2 id="result-title">10230 ÷ 25</h2>
                 </div>
+                <output class="answer" id="answer-output">409.2</output>
               </div>
-            </div>
-          </section>
-        </div>
-        <p class="legend"><span class="legend-line"></span>SVG 与 div + CSS 使用相同坐标并列展示，便于比较。</p>
-        <section class="calculation-json" aria-labelledby="calculation-json-title">
-          <div class="calculation-json-heading">
-            <div>
-              <p class="panel-kicker">CALCULATION JSON</p>
-              <h3 id="calculation-json-title">除法器计算结果 JSON</h3>
-            </div>
-            <span class="calculation-json-note">随当前输入实时更新</span>
+              <p class="normalization" id="normalization-output">小数模式：10230 ÷ 25 = 409.2</p>
+              <fieldset class="renderer-mode-group" aria-label="渲染模式">
+                <legend>渲染模式</legend>
+                <label class="render-mode-option">
+                  <input type="radio" name="renderer-mode" value="svg" checked />
+                  <span>SVG</span>
+                </label>
+                <label class="render-mode-option">
+                  <input type="radio" name="renderer-mode" value="dom" />
+                  <span>div + CSS</span>
+                </label>
+              </fieldset>
+              <div class="renderer-comparison">
+                <section class="renderer-panel" id="svg-renderer-panel" aria-labelledby="svg-renderer-title">
+                  <h3 id="svg-renderer-title">SVG</h3>
+                  <div class="stage-scroll">
+                    <div class="division-stage" id="svg-stage">
+                      <svg class="division-svg" id="division-svg" aria-label="SVG 除法竖式" role="img"></svg>
+                    </div>
+                  </div>
+                </section>
+                <section class="renderer-panel" id="dom-renderer-panel" aria-labelledby="dom-renderer-title" hidden>
+                  <h3 id="dom-renderer-title">div + CSS</h3>
+                  <div class="stage-scroll">
+                    <div class="division-stage" id="dom-stage">
+                      <div class="division-dom" id="division-dom" aria-label="div 加 CSS 除法竖式">
+                        <div class="division-line-layer" id="division-line-layer" aria-hidden="true"></div>
+                        <div class="division-digit-layer" id="division-digit-layer"></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <p class="legend"><span class="legend-line"></span>选择渲染模式查看竖式。</p>
+            </section>
+            <aside class="data-flow-panel" aria-label="数据流转">
+              <section class="data-flow-section" aria-labelledby="calculation-json-title">
+                <div class="data-flow-heading">
+                  <div>
+                    <p class="panel-kicker">CALCULATOR OUTPUT</p>
+                    <h3 id="calculation-json-title">除法器计算结果 JSON</h3>
+                  </div>
+                  <span class="data-flow-note">计算器返回</span>
+                </div>
+                <div class="data-flow-json-view" id="calculation-json-output" aria-label="当前除法器计算结果 JSON"></div>
+              </section>
+              <section class="data-flow-section" aria-labelledby="renderer-input-title">
+                <div class="data-flow-heading">
+                  <div>
+                    <p class="panel-kicker">RENDERER INPUT</p>
+                    <h3 id="renderer-input-title">渲染器参数配置</h3>
+                  </div>
+                  <span class="data-flow-note">棋盘场景</span>
+                </div>
+                <div class="data-flow-json-view" id="renderer-input-output" aria-label="当前渲染器参数配置 JSON"></div>
+              </section>
+            </aside>
           </div>
-          <div class="calculation-json-view" id="calculation-json-output" aria-label="当前除法器计算结果 JSON"></div>
         </section>
-      </section>
-      </section>
+        </section>
+      </div>
     </main>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/app/main.ts"></script>
   </body>
 </html>

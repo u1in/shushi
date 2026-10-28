@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
-import { computeDivision } from '../src/division'
-import { createVerticalDivisionRenderModel } from '../src/vertical-division-layout'
+import { resolveBoardMetrics } from '../src/scene/geometry'
+import { computeDivision } from '../src/calculators/division'
+import { createDivisionBoardScene } from '../src/layouts/division-layout'
 
 const exactDivisionCases = [
   ['0', '5', '0', '0'],
@@ -33,10 +34,10 @@ describe('computeDivision', () => {
     expect(leadingZeroResult.quotientText).toBe('208')
 
     const middleZeroResult = computeDivision('2', '608')
-    expect(middleZeroResult.quotientDigits).toEqual([
-      { column: 0, digit: '3' },
-      { column: 1, digit: '0' },
-      { column: 2, digit: '4' },
+    expect(middleZeroResult.quotientTokens).toEqual([
+      { kind: 'digit', column: 0, digit: '3' },
+      { kind: 'digit', column: 1, digit: '0' },
+      { kind: 'digit', column: 2, digit: '4' },
     ])
     expect(middleZeroResult.steps.map(({ dividendColumn, quotientDigit }) => ({ dividendColumn, quotientDigit }))).toEqual([
       { dividendColumn: 0, quotientDigit: '3' },
@@ -49,7 +50,7 @@ describe('computeDivision', () => {
     const result = computeDivision('12', '4')
     expect(result.quotientText).toBe('0')
     expect(result.remainder).toBe('4')
-    expect(result.quotientDigits).toEqual([{ column: 0, digit: '0' }])
+    expect(result.quotientTokens).toEqual([{ kind: 'digit', column: 0, digit: '0' }])
     expect(result.steps).toEqual([{
       dividendColumn: 0,
       divisor: '12',
@@ -63,17 +64,17 @@ describe('computeDivision', () => {
   test('有限小数导出补零列；循环和达到上限时不提交试算步骤', () => {
     const finite = computeDivision('8', '1', { resultMode: 'decimal' })
     expect(finite.quotientText).toBe('0.125')
-    expect(finite.decimalPointColumn).toBe(1)
     expect(finite.fractionalDigitCount).toBe(3)
-    expect(finite.quotientDigits).toEqual([
-      { column: 0, digit: '0' },
-      { column: 1, digit: '1' },
-      { column: 2, digit: '2' },
-      { column: 3, digit: '5' },
+    expect(finite.quotientTokens).toEqual([
+      { kind: 'digit', column: 0, digit: '0' },
+      { kind: 'decimalSeparator', column: 1, digit: '.' },
+      { kind: 'digit', column: 2, digit: '1' },
+      { kind: 'digit', column: 3, digit: '2' },
+      { kind: 'digit', column: 4, digit: '5' },
     ])
 
     const repeating = computeDivision('3', '1', { resultMode: 'decimal' })
-    expect(repeating).toMatchObject({ quotientText: '0', remainder: '1', decimalFallback: true, decimalPointColumn: null })
+    expect(repeating).toMatchObject({ quotientText: '0', remainder: '1', decimalFallback: true })
     expect(repeating.steps).toHaveLength(1)
 
     const limited = computeDivision('8', '1', { resultMode: 'decimal', maxDecimalDigits: 2 })
@@ -81,31 +82,34 @@ describe('computeDivision', () => {
     expect(limited.steps).toHaveLength(1)
   })
 
-  test('竖式布局层仅消费计算中间过程，并输出具名视觉元素', () => {
+  test('竖式布局层仅消费计算中间过程，并输出通用的可变轨道棋盘', () => {
     const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
-    const model = createVerticalDivisionRenderModel(computation, {
+    const scene = createDivisionBoardScene(computation, {
       cellWidth: 32,
       rowHeight: 46,
       fontSizeRatio: 0.82,
       bracketBend: 1,
       showGuideGrid: true,
+      textHorizontalAlign: 'left',
+      textVerticalAlign: 'top',
       uniformSubtractionBars: false,
       showZeroQuotientSteps: false,
     })
 
-    expect(model.bracketArc.kind).toBe('divisionBracketArc')
-    expect(model.lines.some(({ kind }) => kind === 'divisionBracketTopLine')).toBe(true)
-    expect(model.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(
+    expect(scene.columns.some(({ id }) => id === 'division-bracket')).toBe(true)
+    expect(scene.columns.find(({ id }) => id === 'decimal-separator')).toMatchObject({ size: 0.34 })
+    expect(scene.cells.some(({ styleToken }) => styleToken === 'division.bracket-top-line')).toBe(true)
+    expect(scene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(
       computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0').length,
     )
-    expect(model.lines.some(({ kind }) => kind === 'guideGridHorizontal')).toBe(true)
-    expect(model.digits.some(({ role }) => role === 'partialDividend')).toBe(true)
-    expect(model.digits.some(({ role }) => role === 'appendedZero')).toBe(true)
-    expect(model.decimalPoint).toMatchObject({
-      kind: 'decimalPoint',
-      boundaryColumn: 5,
-      x: 260,
-    })
+    expect(scene.showGuideGrid).toBe(true)
+    expect(scene.textHorizontalAlign).toBe('left')
+    expect(scene.textVerticalAlign).toBe('top')
+    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-minuend')).toBe(true)
+    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-subtrahend')).toBe(true)
+    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.appended-zero')).toBe(true)
+    expect(scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'division.decimal-separator')?.content).toMatchObject({ text: '.' })
+    expect(resolveBoardMetrics(scene).width).toBeGreaterThan(0)
   })
 
   test('竖式可切换是否渲染试商为 0 的步骤', () => {
@@ -118,32 +122,32 @@ describe('computeDivision', () => {
       showGuideGrid: false,
       uniformSubtractionBars: false,
     }
-    const hiddenModel = createVerticalDivisionRenderModel(computation, {
+    const hiddenScene = createDivisionBoardScene(computation, {
       ...baseSettings,
       showZeroQuotientSteps: false,
     })
-    const shownModel = createVerticalDivisionRenderModel(computation, {
+    const shownScene = createDivisionBoardScene(computation, {
       ...baseSettings,
       showZeroQuotientSteps: true,
     })
 
     expect(computation.steps).toHaveLength(3)
-    expect(hiddenModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(2)
-    expect(shownModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(3)
-    expect(shownModel.height).toBeGreaterThan(hiddenModel.height)
+    expect(hiddenScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(2)
+    expect(shownScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(3)
+    expect(resolveBoardMetrics(shownScene).height).toBeGreaterThan(resolveBoardMetrics(hiddenScene).height)
 
     const zeroQuotient = computeDivision('12', '4')
-    const zeroHiddenModel = createVerticalDivisionRenderModel(zeroQuotient, {
+    const zeroHiddenScene = createDivisionBoardScene(zeroQuotient, {
       ...baseSettings,
       showZeroQuotientSteps: false,
     })
-    const zeroShownModel = createVerticalDivisionRenderModel(zeroQuotient, {
+    const zeroShownScene = createDivisionBoardScene(zeroQuotient, {
       ...baseSettings,
       showZeroQuotientSteps: true,
     })
     expect(zeroQuotient.steps).toHaveLength(1)
-    expect(zeroHiddenModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(0)
-    expect(zeroShownModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(1)
+    expect(zeroHiddenScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(0)
+    expect(zeroShownScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(1)
   })
 
 
