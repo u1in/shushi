@@ -48,6 +48,7 @@ export interface RenderSettings {
   bracketBend: number
   showGuideGrid: boolean
   uniformSubtractionBars: boolean
+  showZeroQuotientSteps: boolean
 }
 
 export type DigitRole =

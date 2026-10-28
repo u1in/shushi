@@ -166,6 +166,7 @@ const model = createVerticalDivisionRenderModel(computation, {
   bracketBend: 1,
   showGuideGrid: true,
   uniformSubtractionBars: false,
+  showZeroQuotientSteps: false,
 })
 
 stage.style.width = `${model.width}px`

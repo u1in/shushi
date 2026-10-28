@@ -26,7 +26,7 @@ describe('computeDivision', () => {
     })
   })
 
-  test('输入前导零会被规范化，商中的中间零会保留但省略步骤', () => {
+  test('输入前导零会被规范化，商中的中间零会保留并记录试商步骤', () => {
     const leadingZeroResult = computeDivision('0005', '0001040')
     expect(leadingZeroResult.divisorDigits).toBe('5')
     expect(leadingZeroResult.dividendDigits).toBe('1040')
@@ -40,6 +40,7 @@ describe('computeDivision', () => {
     ])
     expect(middleZeroResult.steps.map(({ dividendColumn, quotientDigit }) => ({ dividendColumn, quotientDigit }))).toEqual([
       { dividendColumn: 0, quotientDigit: '3' },
+      { dividendColumn: 1, quotientDigit: '0' },
       { dividendColumn: 2, quotientDigit: '4' },
     ])
   })
@@ -89,11 +90,14 @@ describe('computeDivision', () => {
       bracketBend: 1,
       showGuideGrid: true,
       uniformSubtractionBars: false,
+      showZeroQuotientSteps: false,
     })
 
     expect(model.bracketArc.kind).toBe('divisionBracketArc')
     expect(model.lines.some(({ kind }) => kind === 'divisionBracketTopLine')).toBe(true)
-    expect(model.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(computation.steps.length)
+    expect(model.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(
+      computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0').length,
+    )
     expect(model.lines.some(({ kind }) => kind === 'guideGridHorizontal')).toBe(true)
     expect(model.digits.some(({ role }) => role === 'partialDividend')).toBe(true)
     expect(model.digits.some(({ role }) => role === 'appendedZero')).toBe(true)
@@ -102,6 +106,44 @@ describe('computeDivision', () => {
       boundaryColumn: 5,
       x: 260,
     })
+  })
+
+  test('竖式可切换是否渲染试商为 0 的步骤', () => {
+    const computation = computeDivision('2', '608')
+    const baseSettings = {
+      cellWidth: 32,
+      rowHeight: 46,
+      fontSizeRatio: 0.82,
+      bracketBend: 1,
+      showGuideGrid: false,
+      uniformSubtractionBars: false,
+    }
+    const hiddenModel = createVerticalDivisionRenderModel(computation, {
+      ...baseSettings,
+      showZeroQuotientSteps: false,
+    })
+    const shownModel = createVerticalDivisionRenderModel(computation, {
+      ...baseSettings,
+      showZeroQuotientSteps: true,
+    })
+
+    expect(computation.steps).toHaveLength(3)
+    expect(hiddenModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(2)
+    expect(shownModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(3)
+    expect(shownModel.height).toBeGreaterThan(hiddenModel.height)
+
+    const zeroQuotient = computeDivision('12', '4')
+    const zeroHiddenModel = createVerticalDivisionRenderModel(zeroQuotient, {
+      ...baseSettings,
+      showZeroQuotientSteps: false,
+    })
+    const zeroShownModel = createVerticalDivisionRenderModel(zeroQuotient, {
+      ...baseSettings,
+      showZeroQuotientSteps: true,
+    })
+    expect(zeroQuotient.steps).toHaveLength(1)
+    expect(zeroHiddenModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(0)
+    expect(zeroShownModel.lines.filter(({ kind }) => kind === 'subtractionBar')).toHaveLength(1)
   })
 
 

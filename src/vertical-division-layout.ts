@@ -44,7 +44,11 @@ export const createVerticalDivisionRenderModel = (
     bracketBend,
     showGuideGrid,
     uniformSubtractionBars,
+    showZeroQuotientSteps,
   } = settings
+  const visibleSteps = showZeroQuotientSteps
+    ? computation.steps
+    : computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0')
   const divisorWidth = computation.divisorDigits.length * cellWidth
   const bracketArcWidth = cellWidth / 2
   const divisorLeft = DIVISOR_LEFT_PADDING
@@ -54,13 +58,13 @@ export const createVerticalDivisionRenderModel = (
   const digitAreaRight = dividendLeft + digitColumnCount * cellWidth
   const dividendRow = 1
   const quotientRow = 0
-  const finalRemainderRow = 1 + computation.steps.length * 2
+  const finalRemainderRow = visibleSteps.length > 0 ? 1 + visibleSteps.length * 2 : 2
   const rowCount = Math.max(finalRemainderRow + 1, MINIMUM_ROW_COUNT)
   const width = digitAreaRight + STAGE_RIGHT_PADDING
   const height = rowCount * rowHeight + STAGE_BOTTOM_PADDING
   const digits: PlacedDigit[] = []
   const lines: StraightLine[] = []
-  const subtractionStartColumns = computation.steps.map((step) => (
+  const subtractionStartColumns = visibleSteps.map((step) => (
     step.dividendColumn - step.partialDividend.length + 1
   ))
   const uniformSubtractionStartColumn = subtractionStartColumns.length > 0
@@ -89,7 +93,7 @@ export const createVerticalDivisionRenderModel = (
     digits.push({ role: 'quotient', digit, column, row: quotientRow })
   })
 
-  computation.steps.forEach((step, stepIndex) => {
+  visibleSteps.forEach((step, stepIndex) => {
     const isFirstSubtraction = stepIndex === 0
     const partialDividendRow = isFirstSubtraction ? dividendRow : 1 + stepIndex * 2
     const productRow = isFirstSubtraction ? 2 : partialDividendRow + 1

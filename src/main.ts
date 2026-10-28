@@ -13,6 +13,7 @@ const state = {
   bracketBend: 1,
   showGuideGrid: false,
   uniformSubtractionBars: false,
+  showZeroQuotientSteps: false,
   resultMode: 'decimal' as DivisionResultMode,
   maxDecimalDigits: 24,
   divisor: '25',
@@ -37,6 +38,7 @@ const elements = {
   bracketBendInput: requiredElement<HTMLInputElement>('#bend-input'),
   guideGridInput: requiredElement<HTMLInputElement>('#grid-input'),
   uniformSubtractionInput: requiredElement<HTMLInputElement>('#uniform-subtraction-input'),
+  zeroQuotientStepsInput: requiredElement<HTMLInputElement>('#zero-quotient-steps-input'),
   resultModeInputs: document.querySelectorAll<HTMLInputElement>('input[name="result-mode"]'),
   cellWidthOutput: requiredElement<HTMLOutputElement>('#cw-output'),
   rowHeightOutput: requiredElement<HTMLOutputElement>('#rh-output'),
@@ -74,6 +76,7 @@ const render = (): void => {
       bracketBend: state.bracketBend,
       showGuideGrid: state.showGuideGrid,
       uniformSubtractionBars: state.uniformSubtractionBars,
+      showZeroQuotientSteps: state.showZeroQuotientSteps,
     })
 
     elements.error.textContent = ''
@@ -163,6 +166,10 @@ const bindControls = (): void => {
   })
   elements.uniformSubtractionInput.addEventListener('change', () => {
     state.uniformSubtractionBars = elements.uniformSubtractionInput.checked
+    render()
+  })
+  elements.zeroQuotientStepsInput.addEventListener('change', () => {
+    state.showZeroQuotientSteps = elements.zeroQuotientStepsInput.checked
     render()
   })
   elements.resultModeInputs.forEach((input) => {

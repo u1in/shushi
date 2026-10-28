@@ -143,9 +143,7 @@ const calculateFiniteDecimalExpansion = ({
     workingRemainder = subtractDigitStrings(partialDividend, product)
     fractionalDigits.push(String(digit))
     decimalQuotientDigits.push({ column: dividendColumn, digit: String(digit) })
-    if (digit > 0) {
-      decimalSteps.push(createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder))
-    }
+    decimalSteps.push(createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder))
 
     if (workingRemainder === '0') {
       return { fractionalDigits, quotientDigits: decimalQuotientDigits, steps: decimalSteps }
@@ -166,11 +164,12 @@ const normalizeOptions = ({ resultMode = 'remainder', maxDecimalDigits = 24 }: D
 /**
  * Calculates a primary-school long division using decimal strings only.
  *
- * It follows `docs/division-rules.md`: skipped leading quotient zeroes and
- * later zero quotient digits do not create steps, except that an all-zero
- * quotient keeps one final `partialDividend - 0` step. A finite decimal
- * expansion is committed only after its remainder reaches zero. The returned process is
- * layout-free so any renderer can turn it into a vertical-division diagram.
+ * It follows `docs/division-rules.md`: skipped leading quotient zeroes are not
+ * steps, while every trial after the quotient starts is recorded, including
+ * quotient digit `0`. An all-zero quotient keeps one final `partialDividend - 0`
+ * step. A finite decimal expansion is committed only after its remainder reaches
+ * zero. The returned process is layout-free so any renderer can turn it into a
+ * vertical-division diagram.
  */
 export const computeDivision = (
   divisorValue: unknown,
@@ -207,9 +206,7 @@ export const computeDivision = (
     remainder = subtractDigitStrings(partialDividend, product)
     quotientDigits.push({ column: dividendColumn, digit: quotientDigit })
     integerQuotientDigits.push(quotientDigit)
-    if (digit > 0) {
-      steps.push(createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, product, remainder))
-    }
+    steps.push(createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, product, remainder))
   }
 
   // R5/R6: a zero integer quotient still has one visible `partialDividend - 0` step.
