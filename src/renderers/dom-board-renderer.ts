@@ -1,14 +1,20 @@
 /** DOM + CSS board renderer: draws a BoardScene without knowing any operation rules. */
-import { getBoardCellRect, resolveBoardMetrics } from '../scene/geometry'
+import {
+  getBoardCellRect,
+  getBoardTextAnchor,
+  getDistinctOffsets,
+  resolveBoardMetrics,
+} from '../scene/geometry'
+import type { BoardMetrics } from '../scene/geometry'
 import type { BoardCell, BoardScene } from '../scene/types'
 
 const setStyleToken = (node: HTMLElement, styleToken: string | undefined): void => {
   if (styleToken) node.dataset.styleToken = styleToken
 }
 
-const renderDomEdge = (parent: HTMLElement, cell: BoardCell, scene: BoardScene): void => {
+const renderDomEdge = (parent: HTMLElement, cell: BoardCell, metrics: BoardMetrics): void => {
   if (!cell.edges) return
-  const rect = getBoardCellRect(cell, resolveBoardMetrics(scene))
+  const rect = getBoardCellRect(cell, metrics)
   ;(['top', 'right', 'bottom', 'left'] as const).forEach((edge) => {
     if (!cell.edges?.[edge]) return
     const node = document.createElement('div')
@@ -22,27 +28,30 @@ const renderDomEdge = (parent: HTMLElement, cell: BoardCell, scene: BoardScene):
   })
 }
 
-const renderDomContent = (parent: HTMLElement, cell: BoardCell, scene: BoardScene): void => {
+const renderDomContent = (
+  parent: HTMLElement,
+  cell: BoardCell,
+  scene: BoardScene,
+  metrics: BoardMetrics,
+): void => {
   if (!cell.content) return
-  const rect = getBoardCellRect(cell, resolveBoardMetrics(scene))
+  const rect = getBoardCellRect(cell, metrics)
   if (cell.content.kind === 'text') {
+    const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
+    const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
+    const anchor = getBoardTextAnchor(rect, horizontalAlign, verticalAlign)
     const node = document.createElement('span')
     node.className = 'board-text'
     node.textContent = cell.content.text
     setStyleToken(node, cell.content.styleToken ?? scene.defaultTextStyleToken)
-    node.style.left = `${rect.left}px`
-    node.style.top = `${rect.top}px`
-    node.style.width = `${rect.width}px`
-    node.style.height = `${rect.height}px`
+    node.style.left = `${anchor.x}px`
+    node.style.top = `${anchor.y}px`
+    const translateX = horizontalAlign === 'center' ? '-50%' : horizontalAlign === 'right' ? '-100%' : '0'
+    const translateY = verticalAlign === 'center' ? '-50%' : verticalAlign === 'bottom' ? '-100%' : '0'
+    node.style.transform = `translate(${translateX}, ${translateY})`
     if (cell.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
     }
-    const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
-    const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
-    node.style.justifyItems = horizontalAlign
-    node.style.alignItems = verticalAlign === 'top'
-      ? 'start'
-      : verticalAlign === 'bottom' ? 'end' : 'center'
     parent.appendChild(node)
     return
   }
@@ -60,24 +69,25 @@ const renderDomContent = (parent: HTMLElement, cell: BoardCell, scene: BoardScen
   parent.appendChild(node)
 }
 
-const renderGuideGrid = (parent: HTMLElement, scene: BoardScene): void => {
+const renderGuideGrid = (parent: HTMLElement, scene: BoardScene, metrics: BoardMetrics): void => {
   if (!scene.showGuideGrid) return
-  const metrics = resolveBoardMetrics(scene)
-  metrics.columnOffsets.forEach((left) => {
+  const columnOffsets = getDistinctOffsets(metrics.columnOffsets)
+  const rowOffsets = getDistinctOffsets(metrics.rowOffsets)
+  columnOffsets.forEach((left) => {
     const node = document.createElement('div')
     node.className = 'board-guide-line board-guide-line--vertical'
     node.style.left = `${left}px`
-    node.style.top = `${metrics.rowOffsets[0]}px`
+    node.style.top = `${rowOffsets[0]}px`
     node.style.width = '1px'
-    node.style.height = `${metrics.rowOffsets[metrics.rowOffsets.length - 1] - metrics.rowOffsets[0]}px`
+    node.style.height = `${rowOffsets[rowOffsets.length - 1] - rowOffsets[0]}px`
     parent.appendChild(node)
   })
-  metrics.rowOffsets.forEach((top) => {
+  rowOffsets.forEach((top) => {
     const node = document.createElement('div')
     node.className = 'board-guide-line board-guide-line--horizontal'
-    node.style.left = `${metrics.columnOffsets[0]}px`
+    node.style.left = `${columnOffsets[0]}px`
     node.style.top = `${top}px`
-    node.style.width = `${metrics.columnOffsets[metrics.columnOffsets.length - 1] - metrics.columnOffsets[0]}px`
+    node.style.width = `${columnOffsets[columnOffsets.length - 1] - columnOffsets[0]}px`
     node.style.height = '1px'
     parent.appendChild(node)
   })
@@ -94,7 +104,7 @@ export const renderDomBoard = (
   board?.style.setProperty('--board-font-size', `${scene.fontSize}px`)
   board?.style.setProperty('width', `${metrics.width}px`)
   board?.style.setProperty('height', `${metrics.height}px`)
-  renderGuideGrid(lineLayer, scene)
-  scene.cells.forEach((cell) => renderDomEdge(lineLayer, cell, scene))
-  scene.cells.forEach((cell) => renderDomContent(contentLayer, cell, scene))
+  renderGuideGrid(lineLayer, scene, metrics)
+  scene.cells.forEach((cell) => renderDomEdge(lineLayer, cell, metrics))
+  scene.cells.forEach((cell) => renderDomContent(contentLayer, cell, scene, metrics))
 }

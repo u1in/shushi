@@ -3,6 +3,7 @@ import type {
   BoardCell,
   BoardScene,
   BoardTextContent,
+  BoardTrack,
   MultiplicationAdditionStep,
   MultiplicationComputation,
   MultiplicationPartialProduct,
@@ -12,8 +13,6 @@ import type {
 const OPERATOR_TRACK_SIZE = 0.72
 const STAGE_HORIZONTAL_PADDING = 20
 const STAGE_VERTICAL_PADDING = 12
-/** Compact track above a partial product for carry annotations. */
-const CARRY_ROW_SIZE = 0.36
 const CARRY_FONT_SIZE_RATIO = 0.42
 
 const createTextCell = (
@@ -29,14 +28,18 @@ const createTextCell = (
   content: { kind: 'text', text, styleToken, ...textOptions },
 })
 
-const hasCarry = ({ digitSteps }: MultiplicationPartialProduct): boolean => (
-  digitSteps.some(({ carryOut }) => carryOut > 0)
-)
-
 /**
  * Maps multiplication process data into a right-aligned vertical board. The
  * calculator's shifts and carries are interpreted here; the renderers receive
  * only tracks, text cells, and horizontal edges.
+ *
+ * The carry skeleton is pre-built: every pair of adjacent number columns gets a
+ * zero-width carry column, and every partial product gets a zero-height carry
+ * row. These slots exist even when the current computation has no carry, so
+ * the track indices stay stable; `showCarrySteps` only controls whether the
+ * carry text cells are written. Carries that do exist straddle the boundary
+ * between the column that produced them and the column that consumes them, and
+ * grow upward from the zero-height row by using `verticalAlign: "bottom"`.
  */
 export const createMultiplicationBoardScene = (
   computation: MultiplicationComputation,
@@ -50,17 +53,33 @@ export const createMultiplicationBoardScene = (
     partialWidth,
   )
   const operatorColumn = 0
-  const numberStartColumn = 1
-  const rightmostNumberColumn = numberStartColumn + numberColumnCount - 1
+  const rightmostNumberIndex = numberColumnCount - 1
   const isMultiDigitMultiplier = computation.multiplierDigits.length > 1
-  const rows = [{ id: 'multiplicand-row', size: 1 }, { id: 'multiplier-row', size: 1 }]
-  const cells: BoardCell[] = []
-  let nextRow = 2
+  const numberColumnIndex = (numberIndex: number): number => 1 + 2 * numberIndex
+  const carryColumnIndex = (targetNumberIndex: number): number => {
+    if (targetNumberIndex < 0 || targetNumberIndex >= numberColumnCount - 1) {
+      throw new Error(`乘法进位目标列 ${targetNumberIndex} 没有对应的零宽进位列。`)
+    }
+    return 2 + 2 * targetNumberIndex
+  }
+  const columns: BoardTrack[] = [{ id: 'multiplication-operator', size: OPERATOR_TRACK_SIZE }]
+  for (let index = 0; index < numberColumnCount; index += 1) {
+    columns.push({ id: `number-${index}`, size: 1 })
+    if (index < numberColumnCount - 1) {
+      columns.push({ id: `carry-boundary-${index}`, size: 0 })
+    }
+  }
 
+  const rows: BoardTrack[] = []
+  const cells: BoardCell[] = []
+  const appendRow = (id: string, size = 1): number => {
+    rows.push({ id, size })
+    return rows.length - 1
+  }
   const placeNumber = (
     idPrefix: string,
     value: string,
-    rightColumn: number,
+    rightNumberIndex: number,
     row: number,
     styleToken: string,
   ): void => {
@@ -68,36 +87,41 @@ export const createMultiplicationBoardScene = (
       cells.push(createTextCell(
         `${idPrefix}-${index}`,
         digit,
-        rightColumn - value.length + 1 + index,
+        numberColumnIndex(rightNumberIndex - value.length + 1 + index),
         row,
         styleToken,
       ))
     })
   }
 
-  const appendRow = (id: string, size = 1): number => {
-    const row = rows.length
-    rows.push({ id, size })
-    return row
-  }
+  const multiplicandRow = appendRow('multiplicand-row')
+  const multiplierRow = appendRow('multiplier-row')
+  const inputBarRow = appendRow('input-bar-row', 0)
 
-  placeNumber('multiplicand', computation.multiplicandDigits, rightmostNumberColumn, 0, 'multiplication.multiplicand')
-  placeNumber('multiplier', computation.multiplierDigits, rightmostNumberColumn, 1, 'multiplication.multiplier')
-  cells.push(createTextCell('multiplication-operator', '×', operatorColumn, 1, 'multiplication.operator'))
-  let inputBarRow = 1
+  placeNumber('multiplicand', computation.multiplicandDigits, rightmostNumberIndex, multiplicandRow, 'multiplication.multiplicand')
+  placeNumber('multiplier', computation.multiplierDigits, rightmostNumberIndex, multiplierRow, 'multiplication.multiplier')
+  cells.push(createTextCell('multiplication-operator', '×', operatorColumn, multiplierRow, 'multiplication.operator'))
+  cells.push({
+    id: 'multiplication-input-bar',
+    position: { column: operatorColumn, row: inputBarRow, columnSpan: columns.length },
+    edges: { bottom: true },
+    styleToken: 'multiplication.input-bar',
+  })
 
   const placeCarries = (partialProduct: MultiplicationPartialProduct, row: number): void => {
     partialProduct.digitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {
-      if (carryOut === 0) return
+      // The leftmost multiplication is final: its carry becomes the partial
+      // product's leading digit and is not shown as a separate carry mark.
+      if (carryOut === 0 || multiplicandDigitIndex === 0) return
       const targetColumnFromRight = computation.multiplicandDigits.length - multiplicandDigitIndex
-      const column = rightmostNumberColumn - partialProduct.shift - targetColumnFromRight
+      const targetNumberIndex = rightmostNumberIndex - partialProduct.shift - targetColumnFromRight
       cells.push(createTextCell(
         `carry-${partialProduct.multiplierDigitIndex}-${multiplicandDigitIndex}`,
         String(carryOut),
-        column,
+        carryColumnIndex(targetNumberIndex),
         row,
         'multiplication.carry',
-        { fontSizeRatio: CARRY_FONT_SIZE_RATIO, verticalAlign: 'bottom' },
+        { fontSizeRatio: CARRY_FONT_SIZE_RATIO, horizontalAlign: 'center', verticalAlign: 'bottom' },
       ))
     })
   }
@@ -105,70 +129,59 @@ export const createMultiplicationBoardScene = (
   /** Places carries produced while adding the shifted partial products. */
   const placeAdditionCarries = (row: number): void => {
     computation.additionSteps.forEach((step: MultiplicationAdditionStep) => {
-      if (step.carryOut === 0) return
       const targetColumnFromRight = step.columnFromRight + 1
-      const column = rightmostNumberColumn - targetColumnFromRight
+      // A carry into the product's highest digit is still shown on the sum
+      // line: it explains how that leading digit was formed.
+      if (step.carryOut === 0 || targetColumnFromRight >= computation.productDigits.length) return
+      const targetNumberIndex = rightmostNumberIndex - targetColumnFromRight
       cells.push(createTextCell(
         `addition-carry-${step.columnFromRight}`,
         String(step.carryOut),
-        column,
+        carryColumnIndex(targetNumberIndex),
         row,
         'multiplication.addition-carry',
-        { fontSizeRatio: CARRY_FONT_SIZE_RATIO, verticalAlign: 'bottom' },
+        { fontSizeRatio: CARRY_FONT_SIZE_RATIO, horizontalAlign: 'center', verticalAlign: 'bottom' },
       ))
     })
   }
 
   computation.partialProducts.forEach((partialProduct, index) => {
-    if (settings.showCarrySteps && hasCarry(partialProduct)) {
-      const carryRow = appendRow(`carry-row-${index}`, CARRY_ROW_SIZE)
+    const carryRow = appendRow(`carry-row-${index}`, 0)
+    if (settings.showCarrySteps) {
       placeCarries(partialProduct, carryRow)
-      if (index === 0) inputBarRow = carryRow
-      nextRow = carryRow + 1
     }
     const partialRow = appendRow(`partial-product-row-${index}`)
     placeNumber(
       `partial-product-${index}`,
       partialProduct.value,
-      rightmostNumberColumn - partialProduct.shift,
+      rightmostNumberIndex - partialProduct.shift,
       partialRow,
       isMultiDigitMultiplier ? 'multiplication.partial-product' : 'multiplication.product',
     )
-    nextRow = partialRow + 1
-  })
-
-  cells.push({
-    id: 'multiplication-input-bar',
-    position: { column: operatorColumn, row: inputBarRow, columnSpan: numberColumnCount + 1 },
-    edges: { bottom: true },
-    styleToken: 'multiplication.input-bar',
   })
 
   if (isMultiDigitMultiplier) {
-    let sumBarRow = nextRow - 1
-    if (settings.showCarrySteps && computation.additionSteps.some(({ carryOut }) => carryOut > 0)) {
-      sumBarRow = appendRow('addition-carry-row', CARRY_ROW_SIZE)
-      placeAdditionCarries(sumBarRow)
+    const additionCarryRow = appendRow('addition-carry-row', 0)
+    if (settings.showCarrySteps) {
+      placeAdditionCarries(additionCarryRow)
     }
+    const sumBarRow = appendRow('sum-bar-row', 0)
     cells.push({
       id: 'multiplication-sum-bar',
       position: {
-        column: settings.uniformMultiplicationBars ? operatorColumn : numberStartColumn,
+        column: settings.uniformMultiplicationBars ? operatorColumn : numberColumnIndex(0),
         row: sumBarRow,
-        columnSpan: settings.uniformMultiplicationBars ? numberColumnCount + 1 : numberColumnCount,
+        columnSpan: settings.uniformMultiplicationBars ? columns.length : columns.length - 1,
       },
       edges: { bottom: true },
       styleToken: 'multiplication.sum-bar',
     })
     const productRow = appendRow('product-row')
-    placeNumber('product', computation.productDigits, rightmostNumberColumn, productRow, 'multiplication.product')
+    placeNumber('product', computation.productDigits, rightmostNumberIndex, productRow, 'multiplication.product')
   }
 
   return {
-    columns: [
-      { id: 'multiplication-operator', size: OPERATOR_TRACK_SIZE },
-      ...Array.from({ length: numberColumnCount }, (_, index) => ({ id: `number-${index}`, size: 1 })),
-    ],
+    columns,
     rows,
     padding: { top: STAGE_VERTICAL_PADDING, right: STAGE_HORIZONTAL_PADDING, bottom: STAGE_VERTICAL_PADDING, left: STAGE_HORIZONTAL_PADDING },
     unitWidth: settings.cellWidth,

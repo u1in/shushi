@@ -19,6 +19,13 @@ const parseIntegerDigits = (value: unknown, label: string): string => {
   return trimLeadingZeros(raw)
 }
 
+/** Compares canonical non-negative decimal strings without numeric conversion. */
+const compareDigitStrings = (left: string, right: string): number => {
+  if (left.length !== right.length) return left.length > right.length ? 1 : -1
+  if (left === right) return 0
+  return left > right ? 1 : -1
+}
+
 const calculatePartialProduct = (
   multiplicandDigits: string,
   multiplierDigit: string,
@@ -92,8 +99,11 @@ export const computeMultiplication = (
   multiplicandValue: unknown,
   multiplierValue: unknown,
 ): MultiplicationComputation => {
-  const multiplicandDigits = parseIntegerDigits(multiplicandValue, '被乘数')
-  const multiplierDigits = parseIntegerDigits(multiplierValue, '乘数')
+  const firstOperandDigits = parseIntegerDigits(multiplicandValue, '被乘数')
+  const secondOperandDigits = parseIntegerDigits(multiplierValue, '乘数')
+  const operandsSwapped = compareDigitStrings(firstOperandDigits, secondOperandDigits) < 0
+  const multiplicandDigits = operandsSwapped ? secondOperandDigits : firstOperandDigits
+  const multiplierDigits = operandsSwapped ? firstOperandDigits : secondOperandDigits
   const partialProducts: MultiplicationPartialProduct[] = []
 
   for (let index = multiplierDigits.length - 1; index >= 0; index -= 1) {
@@ -107,5 +117,5 @@ export const computeMultiplication = (
 
   const { productDigits, additionSteps } = calculateAddition(partialProducts)
 
-  return { multiplicandDigits, multiplierDigits, productDigits, partialProducts, additionSteps }
+  return { multiplicandDigits, multiplierDigits, operandsSwapped, productDigits, partialProducts, additionSteps }
 }

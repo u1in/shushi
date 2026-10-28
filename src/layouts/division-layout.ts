@@ -1,28 +1,39 @@
 /** Division layout adapter: converts DivisionComputation into a general BoardScene. */
-import type { BoardCell, BoardScene, DivisionComputation, RenderSettings } from '../scene/types'
+import type {
+  BoardCell,
+  BoardScene,
+  BoardTextContent,
+  BoardTrack,
+  DivisionComputation,
+  RenderSettings,
+} from '../scene/types'
 
 const DIVISOR_LEFT_PADDING = 20
 const STAGE_RIGHT_PADDING = 26
 const STAGE_BOTTOM_PADDING = 12
 const MINIMUM_ROW_COUNT = 4
 const BRACKET_TRACK_SIZE = 0.5
-const DECIMAL_TRACK_SIZE = 0.34
+/** Zero-width anchor column: the decimal point sits exactly on the column boundary. */
+const DECIMAL_TRACK_SIZE = 0
 
 const createTextCell = (
   id: string,
   text: string,
   column: number,
   row: number,
-  styleToken?: string,
+  styleToken: string,
+  textOptions: Pick<BoardTextContent, 'fontSizeRatio' | 'horizontalAlign' | 'verticalAlign'> = {},
 ): BoardCell => ({
   id,
   position: { column, row },
-  content: { kind: 'text', text, styleToken },
+  content: { kind: 'text', text, styleToken, ...textOptions },
 })
 
 /**
  * Converts long-division data to a general variable-track board. The division
  * rules remain here; renderers only receive cells, tracks, and semantic tokens.
+ * Horizontal rules live on their own zero-height rows, so a rule keeps the same
+ * boundary no matter which content row sits above it.
  */
 export const createDivisionBoardScene = (
   computation: DivisionComputation,
@@ -31,16 +42,9 @@ export const createDivisionBoardScene = (
   const visibleSteps = settings.showZeroQuotientSteps
     ? computation.steps
     : computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0')
-  const dividendRow = 1
-  const quotientRow = 0
-  const finalRemainderRow = visibleSteps.length > 0 ? 1 + visibleSteps.length * 2 : 2
-  const rowCount = Math.max(finalRemainderRow + 1, MINIMUM_ROW_COUNT)
   const divisorColumnCount = computation.divisorDigits.length
   const bracketColumn = divisorColumnCount
   const dividendStartColumn = bracketColumn + 1
-  const decimalColumn = computation.hasFraction
-    ? dividendStartColumn + computation.dividendDigits.length
-    : null
   const sourceColumnToBoardColumn = (sourceColumn: number): number => (
     dividendStartColumn + sourceColumn + (
       computation.hasFraction && sourceColumn >= computation.dividendDigits.length ? 1 : 0
@@ -55,8 +59,12 @@ export const createDivisionBoardScene = (
     ...(computation.hasFraction ? [{ id: 'decimal-separator', size: DECIMAL_TRACK_SIZE }] : []),
     ...Array.from({ length: computation.fractionalDigitCount }, (_, index) => ({ id: `appended-zero-${index}`, size: 1 })),
   ]
-  const rows = Array.from({ length: rowCount }, (_, index) => ({ id: `row-${index}`, size: 1 }))
+  const rows: BoardTrack[] = []
   const cells: BoardCell[] = []
+  const appendRow = (id: string, size = 1): number => {
+    rows.push({ id, size })
+    return rows.length - 1
+  }
   const placeNumber = (
     idPrefix: string,
     text: string,
@@ -75,6 +83,10 @@ export const createDivisionBoardScene = (
       ))
     })
   }
+
+  const quotientRow = appendRow('quotient-row')
+  const bracketTopLineRow = appendRow('bracket-top-line-row', 0)
+  const dividendRow = appendRow('dividend-row')
 
   ;[...computation.divisorDigits].forEach((digit, index) => {
     cells.push(createTextCell(`divisor-${index}`, digit, index, dividendRow, 'division.divisor'))
@@ -105,34 +117,48 @@ export const createDivisionBoardScene = (
       return
     }
 
-    if (decimalColumn === null) {
+    if (!computation.hasFraction) {
       throw new Error('小数分隔符只能出现在有限小数的棋盘中。')
     }
-    cells.push(createTextCell(`decimal-separator-${index}`, token.digit, dividendStartColumn + token.column, quotientRow, 'division.decimal-separator'))
+    cells.push(createTextCell(
+      `decimal-separator-${index}`,
+      token.digit,
+      dividendStartColumn + token.column,
+      quotientRow,
+      'division.decimal-separator',
+      { horizontalAlign: 'center' },
+    ))
   })
 
   visibleSteps.forEach((step, stepIndex) => {
     const isFirstSubtraction = stepIndex === 0
-    const partialDividendRow = isFirstSubtraction ? dividendRow : 1 + stepIndex * 2
-    const productRow = isFirstSubtraction ? 2 : partialDividendRow + 1
     const sourceStartColumn = settings.uniformSubtractionBars
       ? Math.min(...visibleSteps.map(({ dividendColumn, partialDividend }) => dividendColumn - partialDividend.length + 1))
       : step.dividendColumn - step.partialDividend.length + 1
 
     if (!isFirstSubtraction) {
+      const partialDividendRow = appendRow(`partial-minuend-row-${stepIndex}`)
       placeNumber(`partial-minuend-${stepIndex}`, step.partialDividend, step.dividendColumn, partialDividendRow, 'division.partial-minuend')
     }
+    const productRow = appendRow(`product-row-${stepIndex}`)
     placeNumber(`partial-subtrahend-${stepIndex}`, step.product, step.dividendColumn, productRow, 'division.partial-subtrahend')
+    const subtractionBarRow = appendRow(`subtraction-bar-row-${stepIndex}`, 0)
     const subtractionStartColumn = sourceColumnToBoardColumn(sourceStartColumn)
     cells.push({
       id: `subtraction-bar-${stepIndex}`,
-      position: { column: subtractionStartColumn, row: productRow, columnSpan: numberAreaEndColumn - subtractionStartColumn },
+      position: {
+        column: subtractionStartColumn,
+        row: subtractionBarRow,
+        columnSpan: numberAreaEndColumn - subtractionStartColumn,
+      },
       edges: { bottom: true },
       styleToken: 'division.subtraction-bar',
     })
   })
 
-  placeNumber('remainder', computation.remainder, computation.digitColumnCount - 1, finalRemainderRow, 'division.remainder')
+  const remainderRow = appendRow('remainder-row')
+  placeNumber('remainder', computation.remainder, computation.digitColumnCount - 1, remainderRow, 'division.remainder')
+
   cells.push({
     id: 'division-bracket',
     position: { column: bracketColumn, row: dividendRow },
@@ -145,10 +171,18 @@ export const createDivisionBoardScene = (
   })
   cells.push({
     id: 'division-bracket-top-line',
-    position: { column: dividendStartColumn, row: dividendRow, columnSpan: numberAreaEndColumn - dividendStartColumn },
-    edges: { top: true },
+    position: {
+      column: dividendStartColumn,
+      row: bracketTopLineRow,
+      columnSpan: numberAreaEndColumn - dividendStartColumn,
+    },
+    edges: { bottom: true },
     styleToken: 'division.bracket-top-line',
   })
+
+  while (rows.filter(({ size }) => size > 0).length < MINIMUM_ROW_COUNT) {
+    appendRow(`spacer-row-${rows.length}`)
+  }
 
   return {
     columns,

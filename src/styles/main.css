@@ -799,8 +799,9 @@ h2 {
 
 .division-dom .board-text {
   position: absolute;
-  display: grid;
-  place-items: center;
+  display: block;
+  width: max-content;
+  white-space: nowrap;
   color: #172033;
   font-weight: 700;
 }

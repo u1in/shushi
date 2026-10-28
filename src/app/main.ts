@@ -121,9 +121,9 @@ const render = (): void => {
     })
 
     elements.error.textContent = ''
-    elements.resultTitle.textContent = `${state.dividend} ÷ ${state.divisor}`
+    elements.resultTitle.textContent = `${state.dividend} ÷ ${state.divisor} =`
     elements.answer.textContent = computation.remainder === '0'
-      ? computation.quotientText
+      ? `${computation.quotientText}`
       : `${computation.quotientText} …… ${computation.remainder}`
     elements.normalization.textContent = computation.decimalFallback
       ? `小数模式未能在 ${state.maxDecimalDigits} 位内算尽，已切换为余数：${computation.remainder}`

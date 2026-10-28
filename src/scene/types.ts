@@ -74,6 +74,8 @@ export interface MultiplicationAdditionStep {
 export interface MultiplicationComputation {
   multiplicandDigits: string
   multiplierDigits: string
+  /** Whether the input operands were swapped to keep the larger one on top. */
+  operandsSwapped: boolean
   productDigits: string
   partialProducts: MultiplicationPartialProduct[]
   additionSteps: MultiplicationAdditionStep[]
@@ -107,7 +109,13 @@ export interface MultiplicationRenderSettings extends BoardRenderSettings {
 export type BoardTextHorizontalAlign = 'left' | 'center' | 'right'
 export type BoardTextVerticalAlign = 'top' | 'center' | 'bottom'
 
-/** A variable-sized row or column expressed in normal-cell units. */
+/**
+ * A variable-sized row or column expressed in normal-cell units.
+ *
+ * `size === 0` creates a zero-size anchor track: it consumes no board space,
+ * keeps its index in `columns` / `rows`, and lets text placed on it extend into
+ * neighbouring tracks by using its alignment as the extension direction.
+ */
 export interface BoardTrack {
   id: string
   size: number
@@ -120,6 +128,11 @@ export interface BoardCellPosition {
   rowSpan?: number
 }
 
+/**
+ * An anchored, non-wrapping text box. The box keeps its natural size and is
+ * never clipped to the cell rect, so text on a zero-size track can deliberately
+ * overlap the surrounding rows and columns.
+ */
 export interface BoardTextContent {
   kind: 'text'
   text: string
@@ -127,7 +140,12 @@ export interface BoardTextContent {
   styleToken?: string
   /** Optional multiplier of the scene font size for compact annotations such as carries. */
   fontSizeRatio?: number
-  /** Optional per-cell override. Omitted values inherit the board configuration. */
+  /**
+   * Optional per-cell override. Omitted values inherit the board configuration.
+   * On a zero-width or zero-height track the value chooses the extension side:
+   * `left` / `top` extend right / down, `center` straddles the track line, and
+   * `right` / `bottom` extend left / up.
+   */
   horizontalAlign?: BoardTextHorizontalAlign
   verticalAlign?: BoardTextVerticalAlign
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { resolveBoardMetrics } from '../src/scene/geometry'
+import { getBoardCellRect, resolveBoardMetrics } from '../src/scene/geometry'
 import { computeDivision } from '../src/calculators/division'
 import { createDivisionBoardScene } from '../src/layouts/division-layout'
 
@@ -97,18 +97,29 @@ describe('computeDivision', () => {
     })
 
     expect(scene.columns.some(({ id }) => id === 'division-bracket')).toBe(true)
-    expect(scene.columns.find(({ id }) => id === 'decimal-separator')).toMatchObject({ size: 0.34 })
+    expect(scene.columns.find(({ id }) => id === 'decimal-separator')).toMatchObject({ size: 0 })
     expect(scene.cells.some(({ styleToken }) => styleToken === 'division.bracket-top-line')).toBe(true)
     expect(scene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(
       computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0').length,
     )
+    scene.cells
+      .filter(({ styleToken }) => styleToken === 'division.subtraction-bar')
+      .forEach((cell) => {
+        expect(scene.rows[cell.position.row].size).toBe(0)
+      })
+    const topLine = scene.cells.find(({ styleToken }) => styleToken === 'division.bracket-top-line')
+    expect(topLine).toBeDefined()
+    expect(scene.rows[topLine!.position.row]).toMatchObject({ id: 'bracket-top-line-row', size: 0 })
     expect(scene.showGuideGrid).toBe(true)
     expect(scene.textHorizontalAlign).toBe('left')
     expect(scene.textVerticalAlign).toBe('top')
     expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-minuend')).toBe(true)
     expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-subtrahend')).toBe(true)
     expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.appended-zero')).toBe(true)
-    expect(scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'division.decimal-separator')?.content).toMatchObject({ text: '.' })
+    const decimalCell = scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'division.decimal-separator')
+    expect(decimalCell?.content).toMatchObject({ text: '.', horizontalAlign: 'center' })
+    expect(decimalCell).toBeDefined()
+    expect(getBoardCellRect(decimalCell!, resolveBoardMetrics(scene))).toMatchObject({ width: 0 })
     expect(resolveBoardMetrics(scene).width).toBeGreaterThan(0)
   })
 

@@ -1,5 +1,11 @@
 /** SVG board renderer: draws the same BoardScene contract as the DOM renderer. */
-import { getBoardCellRect, resolveBoardMetrics } from '../scene/geometry'
+import {
+  getBoardCellRect,
+  getBoardTextAnchor,
+  getDistinctOffsets,
+  resolveBoardMetrics,
+} from '../scene/geometry'
+import type { BoardMetrics } from '../scene/geometry'
 import type { BoardCell, BoardScene } from '../scene/types'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
@@ -14,8 +20,14 @@ const applyStyleToken = (node: SVGElement, styleToken: string | undefined): void
   if (styleToken) node.setAttribute('data-style-token', styleToken)
 }
 
-const renderSvgCell = (lineLayer: SVGElement, contentLayer: SVGElement, cell: BoardCell, scene: BoardScene): void => {
-  const rect = getBoardCellRect(cell, resolveBoardMetrics(scene))
+const renderSvgCell = (
+  lineLayer: SVGElement,
+  contentLayer: SVGElement,
+  cell: BoardCell,
+  scene: BoardScene,
+  metrics: BoardMetrics,
+): void => {
+  const rect = getBoardCellRect(cell, metrics)
   if (cell.edges) {
     ;(['top', 'right', 'bottom', 'left'] as const).forEach((edge) => {
       if (!cell.edges?.[edge]) return
@@ -34,23 +46,22 @@ const renderSvgCell = (lineLayer: SVGElement, contentLayer: SVGElement, cell: Bo
   if (cell.content.kind === 'text') {
     const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
     const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
-    const textAnchor = horizontalAlign === 'left'
-      ? 'start'
-      : horizontalAlign === 'right' ? 'end' : 'middle'
-    const dominantBaseline = verticalAlign === 'top'
-      ? 'hanging'
-      : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'
+    const anchor = getBoardTextAnchor(rect, horizontalAlign, verticalAlign)
     const node = createSvgNode('text', {
       class: 'board-text',
-      x: horizontalAlign === 'left' ? rect.left : horizontalAlign === 'right' ? rect.left + rect.width : rect.left + rect.width / 2,
-      y: verticalAlign === 'top' ? rect.top : verticalAlign === 'bottom' ? rect.top + rect.height : rect.top + rect.height / 2,
+      x: anchor.x,
+      y: anchor.y,
     })
     node.textContent = cell.content.text
     if (cell.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
     }
-    node.style.textAnchor = textAnchor
-    node.style.dominantBaseline = dominantBaseline
+    node.style.textAnchor = horizontalAlign === 'left'
+      ? 'start'
+      : horizontalAlign === 'right' ? 'end' : 'middle'
+    node.style.dominantBaseline = verticalAlign === 'top'
+      ? 'hanging'
+      : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'
     applyStyleToken(node, cell.content.styleToken ?? scene.defaultTextStyleToken)
     contentLayer.appendChild(node)
     return
@@ -67,17 +78,18 @@ const renderSvgCell = (lineLayer: SVGElement, contentLayer: SVGElement, cell: Bo
   lineLayer.appendChild(node)
 }
 
-const renderGuideGrid = (parent: SVGElement, scene: BoardScene): void => {
+const renderGuideGrid = (parent: SVGElement, scene: BoardScene, metrics: BoardMetrics): void => {
   if (!scene.showGuideGrid) return
-  const metrics = resolveBoardMetrics(scene)
-  const top = metrics.rowOffsets[0]
-  const bottom = metrics.rowOffsets[metrics.rowOffsets.length - 1]
-  const left = metrics.columnOffsets[0]
-  const right = metrics.columnOffsets[metrics.columnOffsets.length - 1]
-  metrics.columnOffsets.forEach((x) => parent.appendChild(createSvgNode('line', {
+  const columnOffsets = getDistinctOffsets(metrics.columnOffsets)
+  const rowOffsets = getDistinctOffsets(metrics.rowOffsets)
+  const top = rowOffsets[0]
+  const bottom = rowOffsets[rowOffsets.length - 1]
+  const left = columnOffsets[0]
+  const right = columnOffsets[columnOffsets.length - 1]
+  columnOffsets.forEach((x) => parent.appendChild(createSvgNode('line', {
     class: 'board-guide-line board-guide-line--vertical', x1: x, y1: top, x2: x, y2: bottom,
   })))
-  metrics.rowOffsets.forEach((y) => parent.appendChild(createSvgNode('line', {
+  rowOffsets.forEach((y) => parent.appendChild(createSvgNode('line', {
     class: 'board-guide-line board-guide-line--horizontal', x1: left, y1: y, x2: right, y2: y,
   })))
 }
@@ -92,7 +104,7 @@ export const renderSvgBoard = (svg: SVGSVGElement, scene: BoardScene): void => {
   svg.setAttribute('aria-label', scene.ariaLabel)
   const lineLayer = createSvgNode('g', { class: 'board-line-layer', 'aria-hidden': 'true' })
   const contentLayer = createSvgNode('g', { class: 'board-content-layer' })
-  renderGuideGrid(lineLayer, scene)
-  scene.cells.forEach((cell) => renderSvgCell(lineLayer, contentLayer, cell, scene))
+  renderGuideGrid(lineLayer, scene, metrics)
+  scene.cells.forEach((cell) => renderSvgCell(lineLayer, contentLayer, cell, scene, metrics))
   svg.replaceChildren(lineLayer, contentLayer)
 }

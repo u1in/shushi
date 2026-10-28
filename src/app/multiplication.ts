@@ -115,9 +115,11 @@ const render = (): void => {
     const boardMetrics = resolveBoardMetrics(boardScene)
 
     elements.error.textContent = ''
-    elements.resultTitle.textContent = `${state.multiplicand} × ${state.multiplier}`
+    elements.resultTitle.textContent = `${computation.multiplicandDigits} × ${computation.multiplierDigits} =`
     elements.answer.textContent = computation.productDigits
-    elements.normalization.textContent = `逐位乘法：${computation.multiplicandDigits} × ${computation.multiplierDigits} = ${computation.productDigits}`
+    elements.normalization.textContent = computation.operandsSwapped
+      ? `已按大数在上整理：${computation.multiplicandDigits} × ${computation.multiplierDigits} = ${computation.productDigits}`
+      : `逐位乘法：${computation.multiplicandDigits} × ${computation.multiplierDigits} = ${computation.productDigits}`
     ;[elements.svgStage, elements.domStage].forEach((stage) => {
       stage.style.width = `${boardMetrics.width}px`
       stage.style.height = `${boardMetrics.height}px`
