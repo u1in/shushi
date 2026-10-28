@@ -173,7 +173,7 @@ stage.style.width = `${model.width}px`
 stage.style.height = `${model.height}px`
 dom.style.width = `${model.width}px`
 dom.style.height = `${model.height}px`
-renderDomDivision(lineLayer, digitLayer, model, 1)
+renderDomDivision(lineLayer, digitLayer, model)
 renderHighlights(model)
 
 const jsonFormatter = new JSONFormatter(computation, Infinity, {

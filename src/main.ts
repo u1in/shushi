@@ -99,7 +99,7 @@ const render = (): void => {
     elements.domLineLayer.replaceChildren()
     elements.domDigitLayer.replaceChildren()
     renderSvgDivision(elements.svg, renderModel)
-    renderDomDivision(elements.domLineLayer, elements.domDigitLayer, renderModel, state.bracketBend)
+    renderDomDivision(elements.domLineLayer, elements.domDigitLayer, renderModel)
 
     const jsonFormatter = new JSONFormatter(computation, Infinity, {
       animateOpen: false,

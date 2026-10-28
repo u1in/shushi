@@ -1,6 +1,6 @@
 # 小学除法竖式排版规则
 
-> 版本：V16.0<br>
+> 版本：V16.1<br>
 > 适用范围：`vertical-division-demo` 的坐标、SVG / div + CSS 渲染、线条和交互状态
 
 本文件以 `deepseek_html_20261028_7a4ad6.html` 为规则来源，描述项目当前可切换的 SVG 与 `div + CSS` 视觉实现。整数逐位长除法规则和计算中间过程见 [`division-rules.md`](./division-rules.md)。
@@ -64,7 +64,7 @@ Row 2：首轮乘积；减法线贴在该行下边界（首轮部分被除数已
 
 - `.division-svg` 与 `.division-dom` 分别使用独立的绝对定位画布；两者以同一 `VerticalDivisionRenderModel` 绘制命名的厂圆弧、厂横线、减法线、网格和数字。
 - 两个渲染器必须在结果区并列、同时显示，并复用相同的坐标与计算结果，供直接比较。
-- SVG 必须使用与页面相同的绝对坐标系，并以 `viewBox`、`width`、`height` 同步当前竖式范围。线条图形在数字图形之前插入，保持其位于数字底层；`div + CSS` 模式使用 `.division-line-layer` 和 `.division-digit-layer` 的相同层级关系。
+- SVG 必须使用与页面相同的绝对坐标系，并以 `viewBox`、`width`、`height` 同步当前竖式范围。线条图形在数字图形之前插入，保持其位于数字底层；`div + CSS` 模式使用 `.division-line-layer` 和 `.division-digit-layer` 的相同层级关系，且线条以坐标中心对齐描边宽度。
 - 厂字弧线必须在弧线单元格内**从左下角起笔、到右上角收笔**；右上终点与顶部横线左端连接。
 - SVG 使用底部短横、右下圆角和右侧上收组成的路径，方向必须与 `div + CSS` 模式一致；`state.bracketBend` 仅改变圆角半径，不得平移端点。`div + CSS` 使用右边框、下边框和右下圆角，并按半个线宽补偿画布盒子，使弧线端点和 SVG 描边中心线对齐。
 - 顶部横线延伸至数字区域最右边界，不得遮挡商或被除数；与厂弧线连接的一端使用平端，不能因线帽向弧线左侧或上方溢出形成十字。

@@ -610,6 +610,7 @@ h2 {
 }
 
 .division-svg .division-line--divisionBracketTopLine {
+  stroke-linecap: butt;
   stroke: #4166b6;
 }
 
@@ -631,17 +632,14 @@ h2 {
 }
 
 .division-dom .division-bracket-arc {
-  border: var(--division-stroke, 3px) solid transparent;
-  border-top-color: #4166b6;
-  border-right-color: #4166b6;
-  border-radius: 0 var(--bracket-arc-radius) 0 0;
-  transform: scaleY(-1);
-  transform-origin: center;
+  border-right: var(--division-stroke, 3px) solid #4166b6;
+  border-bottom: var(--division-stroke, 3px) solid #4166b6;
+  border-bottom-right-radius: var(--bracket-arc-radius);
 }
 
 .division-dom .division-line--divisionBracketTopLine {
   height: var(--division-stroke, 3px) !important;
-  border-radius: 999px;
+  border-radius: 0;
   background: #4166b6;
 }
 

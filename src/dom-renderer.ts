@@ -15,11 +15,14 @@ const renderDomDigit = (parent: HTMLElement, digit: PlacedDigit, model: Vertical
 const renderDomLine = (parent: HTMLElement, line: StraightLine): void => {
   const node = document.createElement('div')
   const isVertical = line.x1 === line.x2
+  const isStructuralLine = line.kind === 'divisionBracketTopLine' || line.kind === 'subtractionBar'
+  const strokeWidth = isStructuralLine ? 3 : 1
+  const lineLength = isVertical ? Math.abs(line.y2 - line.y1) : Math.abs(line.x2 - line.x1)
   node.className = `division-line division-line--${line.kind} ${isVertical ? 'division-line--vertical' : 'division-line--horizontal'}`
-  node.style.left = `${Math.min(line.x1, line.x2)}px`
-  node.style.top = `${Math.min(line.y1, line.y2)}px`
-  node.style.width = `${Math.max(Math.abs(line.x2 - line.x1), 1)}px`
-  node.style.height = `${Math.max(Math.abs(line.y2 - line.y1), 1)}px`
+  node.style.left = `${isVertical ? line.x1 - strokeWidth / 2 : Math.min(line.x1, line.x2)}px`
+  node.style.top = `${isVertical ? Math.min(line.y1, line.y2) : line.y1 - strokeWidth / 2}px`
+  node.style.width = `${isVertical ? strokeWidth : Math.max(lineLength, 1)}px`
+  node.style.height = `${isVertical ? Math.max(lineLength, 1) : strokeWidth}px`
   parent.appendChild(node)
 }
 
@@ -28,7 +31,6 @@ export const renderDomDivision = (
   lineLayer: HTMLElement,
   digitLayer: HTMLElement,
   model: VerticalDivisionRenderModel,
-  bracketBend: number,
 ): void => {
   lineLayer.parentElement?.style.setProperty('--digit-size', `${model.digitSize}px`)
   lineLayer.parentElement?.style.setProperty('width', `${model.width}px`)
@@ -44,11 +46,13 @@ export const renderDomDivision = (
 
   const arc = document.createElement('div')
   arc.className = 'division-bracket-arc'
-  arc.style.left = `${model.bracketArc.left}px`
-  arc.style.top = `${model.bracketArc.top}px`
-  arc.style.width = `${model.bracketArc.width}px`
-  arc.style.height = `${model.bracketArc.height}px`
-  arc.style.setProperty('--bracket-arc-radius', `${bracketBend * 100}%`)
+  const strokeWidth = 3
+  const halfStroke = strokeWidth / 2
+  arc.style.left = `${model.bracketArc.left - halfStroke}px`
+  arc.style.top = `${model.bracketArc.top - halfStroke}px`
+  arc.style.width = `${model.bracketArc.width + strokeWidth}px`
+  arc.style.height = `${model.bracketArc.height + strokeWidth}px`
+  arc.style.setProperty('--bracket-arc-radius', `${model.bracketArc.cornerRadius + halfStroke}px`)
   lineLayer.appendChild(arc)
   structuralLines.forEach((line) => renderDomLine(lineLayer, line))
   model.digits.forEach((digit) => renderDomDigit(digitLayer, digit, model))
