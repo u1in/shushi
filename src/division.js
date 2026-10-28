@@ -113,7 +113,7 @@ const calculateDecimalExpansion = ({
     decimalSteps.push({
       ...createOperation({ position, current, product }),
       remainder: workingRemainder,
-      showSubtract: quotientDigit > 0,
+      showSubtract: true,
     })
 
     if (workingRemainder === '0') {
@@ -164,12 +164,18 @@ export const computeDivision = (
     steps.push({
       ...createOperation({ position, current, product }),
       remainder,
-      showSubtract: quotientDigit > 0,
+      showSubtract: true,
     })
   }
 
   if (!started) {
-    quotientByPosition.set(dividendDigits.length - 1, '0')
+    const position = dividendDigits.length - 1
+    quotientByPosition.set(position, '0')
+    steps.push({
+      ...createOperation({ position, current: remainder, product: '0' }),
+      remainder,
+      showSubtract: true,
+    })
   }
 
   const integerText = started ? integerQuotientDigits.join('') : '0'

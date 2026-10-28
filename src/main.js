@@ -4,9 +4,9 @@ import { computeDivision } from './division.js'
 const svgNamespace = 'http://www.w3.org/2000/svg'
 
 const state = {
-  cw: 44,
+  cw: 32,
   rh: 46,
-  fsRatio: 0.62,
+  fsRatio: 0.82,
   bend: 1,
   showGrid: false,
   uniformSubtractionLines: false,

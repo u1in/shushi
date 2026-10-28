@@ -25,7 +25,7 @@ describe('computeDivision', () => {
   })
   })
 
-  test('输入前导零会被规范化，商中的中间零会被保留', () => {
+  test('输入前导零会被规范化，商中的中间零会保留并绘制减法', () => {
   const leadingZeroResult = computeDivision('0005', '0001040')
   expect(leadingZeroResult.divisorDigits).toBe('5')
   expect(leadingZeroResult.dividendDigits).toBe('1040')
@@ -35,20 +35,30 @@ describe('computeDivision', () => {
   const middleZeroResult = computeDivision('2', '608')
   expect(middleZeroResult.quotientText).toBe('304')
   expect(middleZeroResult.quotientByPosition.get(1)).toBe('0')
-  expect(middleZeroResult.steps[1].showSubtract).toBe(false)
+  expect(middleZeroResult.steps[1].showSubtract).toBe(true)
   expect(middleZeroResult.steps[1].productText).toBe('0')
   })
 
-  test('商尚未开始时不写前导零，除数大于被除数时商为零', () => {
+  test('商尚未开始时不写前导零，整商为零时仍绘制零乘积', () => {
   const result = computeDivision('12', '4')
 
   expect(result.quotientText).toBe('0')
   expect(result.remainder).toBe('4')
   expect([...result.quotientByPosition.entries()]).toEqual([[0, '0']])
-  expect(result.steps).toEqual([])
+  expect(
+    result.steps.map(({ position, currentText, productText, remainder, showSubtract }) => ({
+      position,
+      currentText,
+      productText,
+      remainder,
+      showSubtract,
+    })),
+  ).toEqual([
+    { position: 0, currentText: '4', productText: '0', remainder: '4', showSubtract: true },
+  ])
   })
 
-  test('每个商位与产生它的被除数位置对齐，商位为零的步骤不显示减法', () => {
+  test('每个商位与产生它的被除数位置对齐，商位为零的步骤绘制零乘积', () => {
   const result = computeDivision('2', '608')
 
   expect([...result.quotientByPosition.entries()]).toEqual([[0, '3'], [1, '0'], [2, '4']])
@@ -61,7 +71,7 @@ describe('computeDivision', () => {
     })),
   ).toEqual([
     { position: 0, currentText: '6', productText: '6', showSubtract: true },
-    { position: 1, currentText: '0', productText: '0', showSubtract: false },
+    { position: 1, currentText: '0', productText: '0', showSubtract: true },
     { position: 2, currentText: '8', productText: '8', showSubtract: true },
   ])
   })
@@ -82,13 +92,13 @@ describe('computeDivision', () => {
   ])
   })
 
-  test('小数模式保留小数部分的零位', () => {
+  test('小数模式保留小数部分的零位并绘制零乘积', () => {
   const result = computeDivision('20', '1', { resultMode: 'decimal' })
 
   expect(result.quotientText).toBe('0.05')
   expect(result.remainder).toBe('0')
   expect(result.quotientByPosition.get(1)).toBe('0')
-  expect(result.steps[0].showSubtract).toBe(false)
+  expect(result.steps[0].showSubtract).toBe(true)
   })
 
   test('示例同时覆盖省略商前缀零、商中间补零和有限小数', () => {
@@ -103,8 +113,24 @@ describe('computeDivision', () => {
       [4, '9'],
       [5, '2'],
     ])
-    expect(result.steps[1].showSubtract).toBe(false)
+    expect(result.steps[1].showSubtract).toBe(true)
     expect(result.fractionalDigitCount).toBe(1)
+  })
+
+  test('零被除数绘制 0 − 0 步骤与最终余数', () => {
+    const result = computeDivision('2', '0')
+
+    expect(result.quotientText).toBe('0')
+    expect(result.remainder).toBe('0')
+    expect(result.steps).toEqual([
+      expect.objectContaining({
+        position: 0,
+        currentText: '0',
+        productText: '0',
+        remainder: '0',
+        showSubtract: true,
+      }),
+    ])
   })
 
   test('循环小数和达到位数上限时回退到余数模式', () => {
