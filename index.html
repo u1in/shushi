@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="用于展示小学四则运算计算过程与竖式的可扩展项目；当前提供除法器。" />
+    <meta name="description" content="用于展示小学四则运算计算过程与竖式的可扩展项目；当前提供除法器和乘法器。" />
     <title>小学竖式项目</title>
   </head>
   <body>
@@ -11,7 +11,7 @@
       <section class="hero">
         <p class="eyebrow">VERTICAL ARITHMETIC · SVG · DOM</p>
         <h1>小学竖式项目</h1>
-        <p class="intro">用于展示小学四则运算的计算过程与竖式；当前提供可缩放的长除法竖式。</p>
+        <p class="intro">用于展示小学四则运算的计算过程与竖式；当前提供可缩放的长除法和乘法竖式。</p>
       </section>
 
       <!-- 运算法则展示模板：后续运算器以同级 operation-demo 容器扩展。 -->
@@ -169,7 +169,151 @@
         </section>
         </section>
       </div>
+
+      <div class="operation-demo operation-demo--multiplication" data-operation="multiplication">
+        <section class="workspace" aria-label="乘法竖式工作区">
+          <form class="control-panel" id="multiplication-form">
+            <div class="input-grid">
+              <label class="field">
+                <span>被乘数</span>
+                <input id="multiplicand-input" name="multiplicand" inputmode="numeric" value="145" autocomplete="off" />
+              </label>
+              <span class="division-operator" aria-hidden="true">×</span>
+              <label class="field">
+                <span>乘数</span>
+                <input id="multiplier-input" name="multiplier" inputmode="numeric" value="12" autocomplete="off" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">生成竖式</button>
+              <button class="ghost-button" type="button" id="multiplication-sample-button">试试 145 × 12</button>
+            </div>
+            <p class="error-message" id="multiplication-error-message" role="alert" aria-live="polite"></p>
+            <div class="settings-panel" role="group" aria-label="乘法渲染设置">
+              <div class="settings-controls">
+                <label class="range-field">
+                  <span>方格宽度 <output id="multiplication-cw-output">30px</output></span>
+                  <input id="multiplication-cw-input" type="range" min="28" max="56" value="30" />
+                </label>
+                <label class="range-field">
+                  <span>行高 <output id="multiplication-rh-output">46px</output></span>
+                  <input id="multiplication-rh-input" type="range" min="36" max="64" value="46" />
+                </label>
+                <label class="range-field">
+                  <span>字号比例 <output id="multiplication-fs-output">1.00</output></span>
+                  <input id="multiplication-fs-input" type="range" min="0.5" max="1.5" value="1" step="0.01" />
+                </label>
+                <fieldset class="text-alignment-field">
+                  <legend>文字对齐</legend>
+                  <label>
+                    <span>水平</span>
+                    <select id="multiplication-text-horizontal-align-input">
+                      <option value="left">左对齐</option>
+                      <option value="center" selected>居中</option>
+                      <option value="right">右对齐</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>垂直</span>
+                    <select id="multiplication-text-vertical-align-input">
+                      <option value="top">上对齐</option>
+                      <option value="center" selected>居中</option>
+                      <option value="bottom">下对齐</option>
+                    </select>
+                  </label>
+                </fieldset>
+                <label class="switch-field">
+                  <input id="multiplication-grid-input" type="checkbox" />
+                  <span class="switch-ui" aria-hidden="true"></span>
+                  <span>显示辅助网格</span>
+                </label>
+                <label class="switch-field">
+                  <input id="multiplication-uniform-bars-input" type="checkbox" />
+                  <span class="switch-ui" aria-hidden="true"></span>
+                  <span>乘法／加法横线等宽</span>
+                </label>
+                <label class="switch-field">
+                  <input id="multiplication-carry-steps-input" type="checkbox" checked />
+                  <span class="switch-ui" aria-hidden="true"></span>
+                  <span>显示进位符号</span>
+                </label>
+              </div>
+            </div>
+          </form>
+
+          <section class="result-card" aria-live="polite">
+            <div class="result-content-grid">
+              <section class="calculation-result" aria-label="乘法竖式计算结果">
+                <div class="result-heading">
+                  <div>
+                    <p class="panel-kicker">CALCULATION</p>
+                    <h2 id="multiplication-result-title">145 × 12</h2>
+                  </div>
+                  <output class="answer" id="multiplication-answer-output">1740</output>
+                </div>
+                <p class="normalization" id="multiplication-normalization-output">逐位乘法：145 × 12 = 1740</p>
+                <fieldset class="renderer-mode-group" aria-label="乘法渲染模式">
+                  <legend>渲染模式</legend>
+                  <label class="render-mode-option">
+                    <input type="radio" name="multiplication-renderer-mode" value="svg" checked />
+                    <span>SVG</span>
+                  </label>
+                  <label class="render-mode-option">
+                    <input type="radio" name="multiplication-renderer-mode" value="dom" />
+                    <span>div + CSS</span>
+                  </label>
+                </fieldset>
+                <div class="renderer-comparison">
+                  <section class="renderer-panel" id="multiplication-svg-renderer-panel" aria-labelledby="multiplication-svg-renderer-title">
+                    <h3 id="multiplication-svg-renderer-title">SVG</h3>
+                    <div class="stage-scroll">
+                      <div class="division-stage" id="multiplication-svg-stage">
+                        <svg class="division-svg" id="multiplication-svg" aria-label="SVG 乘法竖式" role="img"></svg>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="renderer-panel" id="multiplication-dom-renderer-panel" aria-labelledby="multiplication-dom-renderer-title" hidden>
+                    <h3 id="multiplication-dom-renderer-title">div + CSS</h3>
+                    <div class="stage-scroll">
+                      <div class="division-stage" id="multiplication-dom-stage">
+                        <div class="division-dom" id="multiplication-dom" aria-label="div 加 CSS 乘法竖式">
+                          <div class="division-line-layer" id="multiplication-line-layer" aria-hidden="true"></div>
+                          <div class="division-digit-layer" id="multiplication-digit-layer"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <p class="legend"><span class="legend-line"></span>选择渲染模式查看竖式。</p>
+              </section>
+              <aside class="data-flow-panel" aria-label="乘法数据流转">
+                <section class="data-flow-section" aria-labelledby="multiplication-calculation-json-title">
+                  <div class="data-flow-heading">
+                    <div>
+                      <p class="panel-kicker">CALCULATOR OUTPUT</p>
+                      <h3 id="multiplication-calculation-json-title">乘法器计算结果 JSON</h3>
+                    </div>
+                    <span class="data-flow-note">计算器返回</span>
+                  </div>
+                  <div class="data-flow-json-view" id="multiplication-calculation-json-output" aria-label="当前乘法器计算结果 JSON"></div>
+                </section>
+                <section class="data-flow-section" aria-labelledby="multiplication-renderer-input-title">
+                  <div class="data-flow-heading">
+                    <div>
+                      <p class="panel-kicker">RENDERER INPUT</p>
+                      <h3 id="multiplication-renderer-input-title">渲染器参数配置</h3>
+                    </div>
+                    <span class="data-flow-note">棋盘场景</span>
+                  </div>
+                  <div class="data-flow-json-view" id="multiplication-renderer-input-output" aria-label="当前乘法渲染器参数配置 JSON"></div>
+                </section>
+              </aside>
+            </div>
+          </section>
+        </section>
+      </div>
     </main>
     <script type="module" src="/src/app/main.ts"></script>
+    <script type="module" src="/src/app/multiplication.ts"></script>
   </body>
 </html>

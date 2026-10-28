@@ -46,6 +46,9 @@ const renderSvgCell = (lineLayer: SVGElement, contentLayer: SVGElement, cell: Bo
       y: verticalAlign === 'top' ? rect.top : verticalAlign === 'bottom' ? rect.top + rect.height : rect.top + rect.height / 2,
     })
     node.textContent = cell.content.text
+    if (cell.content.fontSizeRatio !== undefined) {
+      node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
+    }
     node.style.textAnchor = textAnchor
     node.style.dominantBaseline = dominantBaseline
     applyStyleToken(node, cell.content.styleToken ?? scene.defaultTextStyleToken)

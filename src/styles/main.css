@@ -81,6 +81,10 @@ h1 {
   gap: 16px;
 }
 
+.operation-demo + .operation-demo {
+  margin-top: 54px;
+}
+
 .operation-demo .naming-map-link {
   margin: 0;
 }
@@ -785,6 +789,20 @@ h2 {
 .division-svg .board-text[data-style-token="division.partial-subtrahend"] { fill: #1e8b83; }
 .board-text[data-style-token="division.decimal-separator"] { color: #4166b6; font-weight: 800; }
 .division-svg .board-text[data-style-token="division.decimal-separator"] { fill: #4166b6; }
+.board-text[data-style-token="multiplication.multiplicand"] { color: #192642; font-weight: 700; }
+.division-svg .board-text[data-style-token="multiplication.multiplicand"] { fill: #192642; }
+.board-text[data-style-token="multiplication.multiplier"],
+.board-text[data-style-token="multiplication.operator"] { color: #4166b6; font-weight: 800; }
+.division-svg .board-text[data-style-token="multiplication.multiplier"],
+.division-svg .board-text[data-style-token="multiplication.operator"] { fill: #4166b6; }
+.board-text[data-style-token="multiplication.carry"] { color: #c58031; font-weight: 800; }
+.division-svg .board-text[data-style-token="multiplication.carry"] { fill: #c58031; }
+.board-text[data-style-token="multiplication.addition-carry"] { color: #9a5a9b; font-weight: 800; }
+.division-svg .board-text[data-style-token="multiplication.addition-carry"] { fill: #9a5a9b; }
+.board-text[data-style-token="multiplication.partial-product"] { color: #1e8b83; font-weight: 700; }
+.division-svg .board-text[data-style-token="multiplication.partial-product"] { fill: #1e8b83; }
+.board-text[data-style-token="multiplication.product"] { color: #213c77; font-weight: 800; }
+.division-svg .board-text[data-style-token="multiplication.product"] { fill: #213c77; }
 
 .division-dom .board-edge,
 .division-dom .board-corner,
@@ -813,6 +831,8 @@ h2 {
 
 .division-dom .board-edge[data-style-token="division.bracket-top-line"] { background: #4166b6; }
 .division-dom .board-edge[data-style-token="division.subtraction-bar"] { border-radius: 999px; background: #6d83ae; }
+.division-dom .board-edge[data-style-token="multiplication.input-bar"] { background: #4166b6; }
+.division-dom .board-edge[data-style-token="multiplication.sum-bar"] { border-radius: 999px; background: #6d83ae; }
 .division-dom .board-corner[data-style-token="division.bracket"] {
   border-right: var(--division-stroke, 3px) solid #4166b6;
   border-bottom: var(--division-stroke, 3px) solid #4166b6;
@@ -835,6 +855,8 @@ h2 {
 
 .division-svg .board-edge[data-style-token="division.bracket-top-line"] { stroke: #4166b6; stroke-linecap: butt; }
 .division-svg .board-edge[data-style-token="division.subtraction-bar"] { stroke: #6d83ae; }
+.division-svg .board-edge[data-style-token="multiplication.input-bar"] { stroke: #4166b6; stroke-linecap: butt; }
+.division-svg .board-edge[data-style-token="multiplication.sum-bar"] { stroke: #6d83ae; }
 .division-svg .board-corner[data-style-token="division.bracket"] {
   fill: none;
   stroke: #4166b6;

@@ -37,16 +37,71 @@ export interface DivisionOptions {
   maxDecimalDigits?: number
 }
 
-export interface RenderSettings {
+/** One digit-level multiplication operation, before any board coordinates are assigned. */
+export interface MultiplicationDigitStep {
+  /** Zero-based index in the multiplicand, counted from the left. */
+  multiplicandDigitIndex: number
+  multiplicandDigit: string
+  multiplierDigit: string
+  carryIn: number
+  total: number
+  resultDigit: string
+  carryOut: number
+}
+
+/** One unshifted partial product; `shift` states its decimal-place offset. */
+export interface MultiplicationPartialProduct {
+  multiplierDigitIndex: number
+  multiplierDigit: string
+  /** Decimal places to shift left, where the multiplier's ones digit is 0. */
+  shift: number
+  value: string
+  digitSteps: MultiplicationDigitStep[]
+}
+
+/** A right-to-left column addition used to obtain the final product. */
+export interface MultiplicationAdditionStep {
+  /** Zero-based decimal position counted from the right. */
+  columnFromRight: number
+  addendDigits: string[]
+  carryIn: number
+  total: number
+  resultDigit: string
+  carryOut: number
+}
+
+/** Renderer-independent result of a non-negative-integer long multiplication. */
+export interface MultiplicationComputation {
+  multiplicandDigits: string
+  multiplierDigits: string
+  productDigits: string
+  partialProducts: MultiplicationPartialProduct[]
+  additionSteps: MultiplicationAdditionStep[]
+}
+
+/** Board configuration shared by every operation-specific layout adapter. */
+export interface BoardRenderSettings {
   cellWidth: number
   rowHeight: number
   fontSizeRatio: number
-  bracketBend: number
   showGuideGrid: boolean
   textHorizontalAlign?: BoardTextHorizontalAlign
   textVerticalAlign?: BoardTextVerticalAlign
+}
+
+/** Division-only additions to the shared board configuration. */
+export interface RenderSettings extends BoardRenderSettings {
+  bracketBend: number
   uniformSubtractionBars: boolean
   showZeroQuotientSteps: boolean
+}
+
+/** Multiplication-only additions to the shared board configuration. */
+export interface MultiplicationRenderSettings extends BoardRenderSettings {
+  /** Makes the input and partial-product-sum horizontal bars share one width. */
+  uniformMultiplicationBars: boolean
+  /** Controls both digit-multiplication and partial-product-addition carry annotations. */
+  showCarrySteps: boolean
 }
 
 export type BoardTextHorizontalAlign = 'left' | 'center' | 'right'
@@ -70,6 +125,8 @@ export interface BoardTextContent {
   text: string
   /** Optional override. Omitted text inherits the renderer's default text style. */
   styleToken?: string
+  /** Optional multiplier of the scene font size for compact annotations such as carries. */
+  fontSizeRatio?: number
   /** Optional per-cell override. Omitted values inherit the board configuration. */
   horizontalAlign?: BoardTextHorizontalAlign
   verticalAlign?: BoardTextVerticalAlign

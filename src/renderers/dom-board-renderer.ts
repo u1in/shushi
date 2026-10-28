@@ -34,6 +34,9 @@ const renderDomContent = (parent: HTMLElement, cell: BoardCell, scene: BoardScen
     node.style.top = `${rect.top}px`
     node.style.width = `${rect.width}px`
     node.style.height = `${rect.height}px`
+    if (cell.content.fontSizeRatio !== undefined) {
+      node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
+    }
     const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
     const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
     node.style.justifyItems = horizontalAlign
