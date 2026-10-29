@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         app: resolve(projectRoot, 'index.html'),
         elementNamingMap: resolve(projectRoot, 'vertical-division-elements.html'),
+        multiplicationElementNamingMap: resolve(projectRoot, 'vertical-multiplication-elements.html'),
       },
     },
   },
