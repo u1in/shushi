@@ -6,6 +6,7 @@ import type { ShortDivisionRenderSettings } from './types'
 const STAGE_PADDING = 20
 const DIVISOR_TRACK_SIZE = 1.1
 const OPERAND_GAP_TRACK_SIZE = 0.34
+const REMAINDER_LABEL_FONT_SIZE_RATIO = 0.72
 
 const createTextCell = (
   id: string,
@@ -83,7 +84,15 @@ export const createShortDivisionGridScene = (
     cells.push(createTextCell(`short-division-divisor-${stepIndex}`, step.divisor, divisorColumn, row, 'short-division.divisor'))
     step.dividends.forEach((value, index) => placeValue(`short-division-dividend-${stepIndex}`, value, index, row, 'short-division.dividend'))
     if (showRemainders) {
-      cells.push(createTextCell(`short-division-remainder-label-${stepIndex}`, '余', remainderLabelColumn, row, 'short-division.remainder-label'))
+      // “余”是辅助标签，字号略小于余数数字，避免抢占主要计算过程的视觉层级。
+      cells.push(createTextCell(
+        `short-division-remainder-label-${stepIndex}`,
+        '余',
+        remainderLabelColumn,
+        row,
+        'short-division.remainder-label',
+        { fontSizeRatio: REMAINDER_LABEL_FONT_SIZE_RATIO },
+      ))
       cells.push(createTextCell(`short-division-remainder-${stepIndex}`, step.remainders[0], remainderLabelColumn + 1, row, 'short-division.remainder'))
     }
     // 每一轮数字起点不同，竖线要贴在本轮第一个数字左边界，而非固定在首列。

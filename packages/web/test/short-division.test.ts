@@ -78,6 +78,9 @@ describe('computeShortDivision', () => {
     expect(barRect.left + barRect.width).toBe(metrics.columnOffsets[firstBar!.position.column + firstBar!.position.columnSpan!])
     expect(scene.cells.filter(({ styleToken }) => styleToken === 'short-division.bar')).toHaveLength(computation.steps.length)
     expect(scene.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder')).toHaveLength(computation.steps.length)
+    expect(scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder-label')?.content).toMatchObject({
+      kind: 'text', text: '余', fontSizeRatio: 0.72,
+    })
     scene.cells.filter(({ styleToken }) => styleToken === 'short-division.bar').forEach((cell) => {
       expect(scene.rows[cell.position.row].size).toBe(0)
     })

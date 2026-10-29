@@ -14,7 +14,7 @@ const scene = createShortDivisionGridScene(computation, {
 })
 
 const items: NamingMapItem[] = [
-  { key: '01', name: '除数 / 进制', description: '短除法左侧的质数、公共质数或目标进制数。', token: 'short-division.divisor', tone: 'tone-blue', source: 'text' },
+  { key: '01', name: '除数 / 进制', description: '短除法左侧的质数、公共质数或目标进制数。', token: 'short-division.divisor', tone: 'tone-blue', source: 'text', rows: true },
   { key: '02', name: '短除竖线', description: '分隔左侧除数和右侧被除数或商的连续竖线。', token: 'short-division.separator', tone: 'tone-blue', source: 'edge' },
   { key: '03', name: '被除数 / 当前商', description: '每一轮右侧参与相除的数。', token: 'short-division.dividend', tone: 'tone-ink', source: 'text', rows: true },
   { key: '04', name: '短除横线', description: '每轮除法后、通向下一行商的横线。', token: 'short-division.bar', tone: 'tone-subtraction', source: 'edge', rows: true },
