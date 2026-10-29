@@ -8,7 +8,8 @@
 - `createSubtractionGridScene`：创建减法竖式网格场景。
 - `createDivisionGridScene`：创建除法竖式网格场景。
 - `createMultiplicationGridScene`：创建乘法竖式网格场景。
-- `GridRenderSettings` 和四则运算各自的布局设置类型。
+- `createShortDivisionGridScene`：创建短除法网格场景。
+- `GridRenderSettings` 和各运算的布局设置类型。
 
 布局引擎解释具体运算的过程字段，但不创建 DOM、CSS 或 SVG。渲染器不应判断商、部分积、进位等运算规则；需要改变视觉结构时，应先在这里调整编排逻辑，再由渲染器统一绘制。
 
@@ -18,6 +19,7 @@
 - [减法竖式排版规则](./docs/减法竖式排版规则.md)
 - [除法竖式排版规则](./docs/除法竖式排版规则.md)
 - [乘法竖式排版规则](./docs/乘法竖式排版规则.md)
+- [短除法竖式排版规则](./docs/短除法竖式排版规则.md)
 
 ## Bug 反馈与作者
 

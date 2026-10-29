@@ -32,3 +32,8 @@ export interface AdditionRenderSettings extends GridRenderSettings {
 export interface SubtractionRenderSettings extends GridRenderSettings {
   showBorrowSteps: boolean
 }
+
+/** 短除法专项配置；竖线和横线均由布局层转为通用边框单元格。 */
+export interface ShortDivisionRenderSettings extends GridRenderSettings {
+  showRemainders: boolean
+}
