@@ -1,21 +1,36 @@
 {
-  "name": "vertical-arithmetic-project",
+  "name": "@vertical-arithmetic/project",
+  "description": "小学四则运算计算器、竖式布局引擎与行列网格渲染的多包工作区。",
+  "author": "u1in <u1in@qq.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/u1in/vertical-arithmetic-project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/u1in/vertical-arithmetic-project/issues"
+  },
+  "homepage": "https://github.com/u1in/vertical-arithmetic-project#readme",
+  "keywords": ["vertical-arithmetic", "小学竖式", "long-division", "long-multiplication", "vue", "typescript"],
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "dev": "cd packages/web && npm run dev",
+    "build": "cd packages/web && npm run build",
+    "preview": "cd packages/web && npm run preview",
+    "test": "cd packages/web && npm run test",
+    "typecheck": "cd packages/web && npm run typecheck"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "latest",
-    "vitest": "^5.0.5"
-  },
-  "dependencies": {
-    "json-formatter-js": "^2.5.23"
+    "vitest": "^5.0.5",
+    "vue-tsc": "^3.3.13"
   }
 }

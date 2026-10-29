@@ -1,0 +1,195 @@
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { getGridCellRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
+import { renderDomGrid } from '@vertical-arithmetic/renderers'
+import type { GridCell, GridScene } from '@vertical-arithmetic/grid'
+
+type Bounds = { left: number, top: number, width: number, height: number }
+type HighlightSource = 'text' | 'cell' | 'edge' | 'rendered-text' | 'scene'
+
+export interface NamingMapItem {
+  key: string
+  name: string
+  description: string
+  token: string
+  tone: string
+  source: HighlightSource
+  rows?: boolean
+  badgeClass?: string
+}
+
+const props = defineProps<{
+  scene: GridScene
+  items: NamingMapItem[]
+}>()
+
+const grid = ref<HTMLElement>()
+const lineLayer = ref<HTMLElement>()
+const contentLayer = ref<HTMLElement>()
+const highlightLayer = ref<HTMLElement>()
+const selected = ref<Record<string, boolean>>({})
+
+const metrics = computed(() => resolveGridMetrics(props.scene))
+const allSelected = computed(() => props.items.every(({ key }) => selected.value[key]))
+const someSelected = computed(() => props.items.some(({ key }) => selected.value[key]))
+
+const expandBounds = (bounds: Bounds, padding = 5): Bounds => ({
+  left: bounds.left - padding,
+  top: bounds.top - padding,
+  width: bounds.width + padding * 2,
+  height: bounds.height + padding * 2,
+})
+
+const isTextToken = (cell: GridCell, token: string): boolean => (
+  cell.content?.kind === 'text' && cell.content.styleToken === token
+)
+
+const getCellBounds = (cells: GridCell[]): Bounds | null => {
+  if (cells.length === 0) return null
+  const rects = cells.map((cell) => getGridCellRect(cell, metrics.value))
+  const left = Math.min(...rects.map((rect) => rect.left))
+  const top = Math.min(...rects.map((rect) => rect.top))
+  const right = Math.max(...rects.map((rect) => rect.left + rect.width))
+  const bottom = Math.max(...rects.map((rect) => rect.top + rect.height))
+  return { left, top, width: right - left, height: bottom - top }
+}
+
+const getBottomEdgeBounds = (cell: GridCell): Bounds => {
+  const rect = getGridCellRect(cell, metrics.value)
+  return { left: rect.left, top: rect.top + rect.height - 1.5, width: rect.width, height: 3 }
+}
+
+const addHighlight = (bounds: Bounds, item: NamingMapItem, showBadge = true): void => {
+  if (!highlightLayer.value) return
+  const highlight = document.createElement('span')
+  highlight.className = `naming-map-highlight ${item.tone}${showBadge ? '' : ' naming-map-highlight--repeat'}${item.badgeClass ? ` ${item.badgeClass}` : ''}`
+  highlight.style.left = `${bounds.left}px`
+  highlight.style.top = `${bounds.top}px`
+  highlight.style.width = `${bounds.width}px`
+  highlight.style.height = `${bounds.height}px`
+  highlight.dataset.highlightKey = item.key
+  if (showBadge) highlight.dataset.name = item.name
+  highlightLayer.value.appendChild(highlight)
+}
+
+const addCellHighlights = (item: NamingMapItem, cells: GridCell[]): void => {
+  if (item.rows) {
+    const rows = [...new Set(cells.map(({ position }) => position.row))]
+    rows.forEach((row, index) => {
+      const bounds = getCellBounds(cells.filter((cell) => cell.position.row === row))
+      if (bounds) addHighlight(expandBounds(bounds), item, index === 0)
+    })
+    return
+  }
+  const bounds = getCellBounds(cells)
+  if (bounds) addHighlight(expandBounds(bounds), item)
+}
+
+const addRenderedTextHighlights = (item: NamingMapItem): void => {
+  if (!grid.value || !contentLayer.value) return
+  const gridRect = grid.value.getBoundingClientRect()
+  contentLayer.value.querySelectorAll<HTMLElement>(`.grid-text[data-style-token="${item.token}"]`).forEach((node, index) => {
+    const rect = node.getBoundingClientRect()
+    addHighlight(expandBounds({
+      left: rect.left - gridRect.left,
+      top: rect.top - gridRect.top,
+      width: rect.width,
+      height: rect.height,
+    }, 4), item, index === 0)
+  })
+}
+
+const renderHighlights = (): void => {
+  if (!highlightLayer.value) return
+  highlightLayer.value.replaceChildren()
+  props.items.forEach((item) => {
+    if (item.source === 'scene') {
+      addHighlight({ left: 0, top: 0, width: metrics.value.width, height: metrics.value.height }, item)
+      return
+    }
+    if (item.source === 'rendered-text') {
+      addRenderedTextHighlights(item)
+      return
+    }
+    if (item.source === 'edge') {
+      props.scene.cells.filter((cell) => cell.styleToken === item.token).forEach((cell, index) => {
+        addHighlight(expandBounds(getBottomEdgeBounds(cell)), item, index === 0)
+      })
+      return
+    }
+    const cells = item.source === 'text'
+      ? props.scene.cells.filter((cell) => isTextToken(cell, item.token))
+      : props.scene.cells.filter((cell) => cell.styleToken === item.token)
+    addCellHighlights(item, cells)
+  })
+  syncHighlightVisibility()
+}
+
+const syncHighlightVisibility = (): void => {
+  if (!highlightLayer.value) return
+  highlightLayer.value.querySelectorAll<HTMLElement>('[data-highlight-key]').forEach((highlight) => {
+    highlight.classList.toggle('naming-map-highlight--hidden', !selected.value[highlight.dataset.highlightKey ?? ''])
+  })
+}
+
+const renderGrid = async (): Promise<void> => {
+  props.items.forEach(({ key }) => { if (selected.value[key] === undefined) selected.value[key] = true })
+  await nextTick()
+  if (!lineLayer.value || !contentLayer.value) return
+  lineLayer.value.replaceChildren()
+  contentLayer.value.replaceChildren()
+  renderDomGrid(lineLayer.value, contentLayer.value, props.scene)
+  renderHighlights()
+}
+
+const setAll = (visible: boolean): void => {
+  props.items.forEach(({ key }) => { selected.value[key] = visible })
+  syncHighlightVisibility()
+}
+
+onMounted(renderGrid)
+watch(() => props.scene, renderGrid)
+watch(selected, syncHighlightVisibility, { deep: true })
+</script>
+
+<template>
+  <div class="grid gap-5 xl:grid-cols-[minmax(430px,1.15fr)_minmax(330px,.9fr)]">
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
+      <h2 class="text-xl font-bold text-slate-800">图中物件</h2>
+      <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 p-2">
+        <div class="min-w-[600px]">
+          <div ref="stage" class="naming-map-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
+            <div ref="grid" class="division-dom" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
+              <div ref="lineLayer" class="division-line-layer" aria-hidden="true"></div>
+              <div ref="contentLayer" class="division-digit-layer"></div>
+              <div ref="highlightLayer" class="naming-map-highlight-layer" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mt-4 text-sm leading-6 text-slate-500">彩色框围绕真实网格元素；通过右侧目录控制每类标注的可见性。</p>
+    </section>
+
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-xl font-bold text-slate-800">完整名称目录</h2>
+        <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-slate-600">
+          <input
+            type="checkbox"
+            :checked="allSelected"
+            :indeterminate.prop="someSelected && !allSelected"
+            class="size-4 accent-blue-700"
+            @change="setAll(($event.target as HTMLInputElement).checked)"
+          />
+          全部显示
+        </label>
+      </div>
+      <div class="mt-4 grid gap-2">
+        <label v-for="item in items" :key="item.key" class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-blue-300 hover:bg-slate-50">
+          <input v-model="selected[item.key]" type="checkbox" class="mt-1 size-4 shrink-0 accent-blue-700" />
+          <span><strong class="text-sm text-slate-800">{{ item.name }}</strong><span class="ml-2 text-xs leading-5 text-slate-500">{{ item.description }}</span></span>
+        </label>
+      </div>
+    </section>
+  </div>
+</template>

@@ -2,45 +2,48 @@
 
 ## 项目说明
 
-这是一个基于 Vite 的原生静态网站项目，项目名称为“**小学竖式项目**”（包名：`vertical-arithmetic-project`）。它旨在承载多种小学四则运算的计算器与竖式展示；当前已实现除法器，后续可扩展加法、减法、乘法等。
+这是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的静态网站项目，项目名称为“**小学竖式项目**”（根工作区包名：`@vertical-arithmetic/project`）。它旨在承载多种小学四则运算的计算器与竖式展示；当前已实现除法器，后续可扩展加法、减法、乘法等。
 
-通用架构、棋盘场景与渲染职责见：
+通用架构、网格场景与渲染职责见：
 
-- [`docs/竖式项目通用架构.md`](./docs/竖式项目通用架构.md)
-- [`docs/除法竖式排版规则.md`](./docs/除法竖式排版规则.md)（当前除法的专项排版规则）
+- [`docs/项目文档索引.md`](./docs/项目文档索引.md)
+- [`packages/grid/docs/网格架构.md`](./packages/grid/docs/网格架构.md)
+- [`packages/layout/docs/除法竖式排版规则.md`](./packages/layout/docs/除法竖式排版规则.md)（当前除法的专项排版规则）
 
-当前除法计算规则见 [`docs/除法计算规则.md`](./docs/除法计算规则.md)。
+当前除法计算规则见 [`packages/calculators/docs/除法计算规则.md`](./packages/calculators/docs/除法计算规则.md)。
 
 ## 必须遵守的规则文档同步
 
-- **任何运算器都必须有计算规则文档。**新增或修改加、减、乘、除等任一计算器的输入约束、逐位算法、进位/借位、补零、终止条件、过程数据、结果或异常处理时，必须同步创建或更新中文命名的 `docs/<运算名称>计算规则.md`；不能只为除法维护规则。
-- **任何运算器都必须有竖式排版规则。**修改某运算的行列结构、对齐、过程数字、运算线、符号、进位/借位标记、辅助网格或教学标注时，必须更新其专项排版文档；若规则由所有运算共享，则更新通用架构文档。
-- 修改 `BoardScene`、轨道、单元格、默认或单元格级对齐、样式 token、DOM/CSS/SVG 渲染器、数据流转面板或渲染器配置时，必须同步更新 `docs/竖式项目通用架构.md`；除法行为受影响时也必须同步更新 `docs/除法竖式排版规则.md`。
+- **任何运算器都必须有计算规则文档。**新增或修改加、减、乘、除等任一计算器的输入约束、逐位算法、进位/借位、补零、终止条件、过程数据、结果或异常处理时，必须同步创建或更新所属计算器包中中文命名的 `docs/<运算名称>计算规则.md`；不能只为除法维护规则。
+- **任何运算器都必须有竖式布局规则。**修改某运算的行列结构、对齐、过程数字、运算线、符号、进位/借位标记、辅助网格或教学标注时，必须更新 `layout` 包中的专项布局文档；若规则由所有运算共享，则更新网格包的架构文档。
+- 修改 `GridScene`、轨道、单元格、默认或单元格级对齐、样式 token、DOM/CSS/SVG 渲染器、数据流转面板或渲染器配置时，必须同步更新 `packages/grid/docs/网格架构.md`；除法行为受影响时也必须同步更新 `packages/layout/docs/除法竖式排版规则.md`。
 - 如果任一规则文档发生变化，必须检查并同步实现和测试；不能只更新文档而让页面行为过期。
-- 为新运算器添加命名图谱或修改已有图谱时，术语、线框范围、JSON 字段注释和实际棋盘单元格必须一致。
-- 修改除法计算器返回的 JSON 契约、字段名称、字段含义或示例数据时，必须同步更新根目录 [`vertical-division-elements.html`](./vertical-division-elements.html) 中的 JSON 字段注释与展示说明。
-- `docs/` 内的文档文件名必须使用中文，并准确说明其内容；面向用户独立访问的图谱、演示页等 HTML 文件应放在项目根目录，不混入 `docs/`。
+- 为新运算器添加命名图谱或修改已有图谱时，术语、线框范围、JSON 字段注释和实际网格单元格必须一致。
+- 修改除法计算器返回的 JSON 契约、字段名称、字段含义或示例数据时，必须同步更新 `packages/web/src/pages/DivisionNamingMapPage.vue` 中的 JSON 字段注释与展示说明。
+- 根目录 `docs/` 只保留中文文档索引；具体文档放在所属子包的 `docs/` 中，文件名必须使用中文并准确说明其内容。Vite HTML 壳、路由页与 Vue 组件都放在 `packages/web/`，不混入 `docs/`。
 - Git 提交说明使用 Conventional Commits 格式：`<type>(<scope>): <中文说明>`。`type` 使用英文约定（如 `feat`、`fix`、`refactor`、`docs`、`test`、`chore`），`scope` 使用英文文件、模块或功能名，冒号后的说明使用中文，例如 `fix(index): 修复主页渲染问题`。
 - 完成规则或实现修改后，至少执行 `npm run typecheck`、`npm run test` 与 `npm run build`。
 
 ## 架构边界
 
 - 计算层只输出运算过程和语义 token，不能输出 DOM、CSS 或像素坐标。
-- 每种运算都有独立的“计算结果 → `BoardScene`”版式编排器；不要在通用渲染器中判断商、进位、借位、部分减数等运算规则。
-- `BoardScene` 是所有渲染器的通用输入。文本单元格可拥有自己的对齐覆盖值；未设置时继承场景的全局对齐配置。
-- DOM/CSS 与 SVG 均为当前支持的渲染模式，必须保持对同一 `BoardScene` 契约的支持；修改其中之一时必须考虑另一个。
+- 每种运算都有独立的“计算结果 → `GridScene`”版式编排器；不要在通用渲染器中判断商、进位、借位、部分减数等运算规则。
+- `GridScene` 是所有渲染器的通用输入。文本单元格可拥有自己的对齐覆盖值；未设置时继承场景的全局对齐配置。
+- DOM/CSS 与 SVG 均为当前支持的渲染模式，必须保持对同一 `GridScene` 契约的支持；修改其中之一时必须考虑另一个。
 
 ## 源码目录
 
-- `src/app/`：页面入口、控件绑定和图谱页入口；
-- `src/calculators/`：各运算的输入校验、计算过程和结果契约；
-- `src/layouts/`：各运算的计算过程到 `BoardScene` 的排版适配；
-- `src/scene/`：跨运算的场景类型和轨道几何中间层；
-- `src/renderers/`：只消费 `BoardScene` 的 DOM/CSS、SVG 渲染器；
-- `src/styles/`：页面和渲染器共享主题。
+- `packages/calculators/src/`：各运算的输入校验、计算过程和结果契约；
+- `packages/grid/src/`：跨运算的场景类型和轨道几何中间层；
+- `packages/layout/src/`：各运算的计算过程到 `GridScene` 的排版适配；
+- `packages/renderers/src/`：只消费 `GridScene` 的 DOM/CSS、SVG 渲染器；
+- `packages/web/src/`：Vue 应用入口、路由、页面、可复用组件和样式；
+- `packages/web/src/styles/`：Tailwind 入口、页面和渲染器共享主题；
+- `packages/web/index.html` 与 `packages/web/vite.config.ts`：唯一 Vite 应用壳与构建配置；根目录 npm 脚本进入该包执行前端命令。
 
 ## 编码偏好
 
 - 新写的 JavaScript 和 TypeScript 函数默认使用箭头函数；只有需要独立 `this` 绑定时才使用普通函数。
+- 新增或修改的代码必须补充必要的**中文注释**，说明模块职责、关键状态、算法步骤、边界条件或不直观的实现原因；不得为显而易见的逐行赋值添加无信息量注释。
 - 在 WSL 中运行 Node.js、npm 或 npx 命令前，先执行 `source ~/.zshrc`，加载 fnm 管理的 Node.js 环境。
-- 页面棋盘采用绝对定位。新增视觉图元优先扩展 `BoardCell`、轨道和语义样式 token，不要把运算专属坐标计算散落到渲染器中。
+- 页面网格采用绝对定位。新增视觉图元优先扩展 `GridCell`、轨道和语义样式 token，不要把运算专属坐标计算散落到渲染器中。

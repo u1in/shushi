@@ -1,0 +1,19 @@
+{
+  "name": "@vertical-arithmetic/calculators",
+  "description": "以十进制字符串计算小学除法、乘法过程并输出语义化结果。",
+  "author": "u1in <u1in@qq.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/u1in/vertical-arithmetic-project.git",
+    "directory": "packages/calculators"
+  },
+  "bugs": { "url": "https://github.com/u1in/vertical-arithmetic-project/issues" },
+  "homepage": "https://github.com/u1in/vertical-arithmetic-project/tree/main/packages/calculators#readme",
+  "keywords": ["vertical-arithmetic", "calculator", "long-division", "long-multiplication", "typescript"],
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
