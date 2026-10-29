@@ -4,13 +4,13 @@
 
 ## 导出内容
 
-- `GridScene`、`GridCell`、`GridTrack` 等网格场景类型。
+- `GridScene`、`GridElement`、`GridPosition`、`GridTrack` 等网格场景类型。
 - `GridTextContent`、对齐类型和样式 token 字段。
-- `resolveGridMetrics`、`getGridCellRect`、`getGridTextAnchor` 与 `getDistinctOffsets`。
+- `resolveGridMetrics`、`getGridPositionRect`、`getGridElementRect` 与 `getGridTextAnchor`。
 
 ## 设计约束
 
-网格以轨道和单元格描述结构，而不是直接输出 DOM 或像素坐标。轨道尺寸允许为 `0`，用于放置进位、辅助文字和其他不占据可见空间的锚点；文字单元格可以覆盖自身对齐方式，未设置时继承场景配置。
+网格以正尺寸轨道和预定义位置描述结构，而不是直接输出 DOM 或像素坐标。元素可定位在单元区域、行列交点、单元格边或边中点，因此进位、辅助文字和横线无需依赖零尺寸轨道；文字元素可以覆盖自身对齐方式，未设置时继承场景配置。
 
 详见[网格架构与子包关系](./docs/网格架构.md)。
 

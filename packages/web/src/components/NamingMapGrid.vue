@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { getGridCellRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
+import { getGridElementRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
 import { renderDomGrid } from '@vertical-arithmetic/renderers'
-import type { GridCell, GridScene } from '@vertical-arithmetic/grid'
+import type { GridElement, GridScene } from '@vertical-arithmetic/grid'
 
 type Bounds = { left: number, top: number, width: number, height: number }
 type HighlightSource = 'text' | 'cell' | 'edge' | 'rendered-text' | 'scene'
@@ -40,13 +40,13 @@ const expandBounds = (bounds: Bounds, padding = 5): Bounds => ({
   height: bounds.height + padding * 2,
 })
 
-const isTextToken = (cell: GridCell, token: string): boolean => (
-  cell.content?.kind === 'text' && cell.content.styleToken === token
+const isTextToken = (element: GridElement, token: string): boolean => (
+  element.content.kind === 'text' && element.content.styleToken === token
 )
 
-const getCellBounds = (cells: GridCell[]): Bounds | null => {
-  if (cells.length === 0) return null
-  const rects = cells.map((cell) => getGridCellRect(cell, metrics.value))
+const getElementBounds = (elements: GridElement[]): Bounds | null => {
+  if (elements.length === 0) return null
+  const rects = elements.map((element) => getGridElementRect(element, metrics.value))
   const left = Math.min(...rects.map((rect) => rect.left))
   const top = Math.min(...rects.map((rect) => rect.top))
   const right = Math.max(...rects.map((rect) => rect.left + rect.width))
@@ -54,9 +54,12 @@ const getCellBounds = (cells: GridCell[]): Bounds | null => {
   return { left, top, width: right - left, height: bottom - top }
 }
 
-const getBottomEdgeBounds = (cell: GridCell): Bounds => {
-  const rect = getGridCellRect(cell, metrics.value)
-  return { left: rect.left, top: rect.top + rect.height - 1.5, width: rect.width, height: 3 }
+const getLineBounds = (element: GridElement): Bounds => {
+  const rect = getGridElementRect(element, metrics.value)
+  const isHorizontal = element.position.kind === 'edge' && (element.position.edge === 'top' || element.position.edge === 'bottom')
+  return isHorizontal
+    ? { left: rect.left, top: rect.top - 1.5, width: rect.width, height: 3 }
+    : { left: rect.left - 1.5, top: rect.top, width: 3, height: rect.height }
 }
 
 const addHighlight = (bounds: Bounds, item: NamingMapItem, showBadge = true): void => {
@@ -72,16 +75,18 @@ const addHighlight = (bounds: Bounds, item: NamingMapItem, showBadge = true): vo
   highlightLayer.value.appendChild(highlight)
 }
 
-const addCellHighlights = (item: NamingMapItem, cells: GridCell[]): void => {
+const addElementHighlights = (item: NamingMapItem, elements: GridElement[]): void => {
   if (item.rows) {
-    const rows = [...new Set(cells.map(({ position }) => position.row))]
+    const rows = [...new Set(elements.flatMap(({ position }) => (
+      'row' in position ? [position.row] : []
+    )))]
     rows.forEach((row, index) => {
-      const bounds = getCellBounds(cells.filter((cell) => cell.position.row === row))
+      const bounds = getElementBounds(elements.filter((element) => 'row' in element.position && element.position.row === row))
       if (bounds) addHighlight(expandBounds(bounds), item, index === 0)
     })
     return
   }
-  const bounds = getCellBounds(cells)
+  const bounds = getElementBounds(elements)
   if (bounds) addHighlight(expandBounds(bounds), item)
 }
 
@@ -112,15 +117,15 @@ const renderHighlights = (): void => {
       return
     }
     if (item.source === 'edge') {
-      props.scene.cells.filter((cell) => cell.styleToken === item.token).forEach((cell, index) => {
-        addHighlight(expandBounds(getBottomEdgeBounds(cell)), item, index === 0)
+      props.scene.elements.filter((element) => element.styleToken === item.token).forEach((element, index) => {
+        addHighlight(expandBounds(getLineBounds(element)), item, index === 0)
       })
       return
     }
-    const cells = item.source === 'text'
-      ? props.scene.cells.filter((cell) => isTextToken(cell, item.token))
-      : props.scene.cells.filter((cell) => cell.styleToken === item.token)
-    addCellHighlights(item, cells)
+    const elements = item.source === 'text'
+      ? props.scene.elements.filter((element) => isTextToken(element, item.token))
+      : props.scene.elements.filter((element) => element.styleToken === item.token)
+    addElementHighlights(item, elements)
   })
   syncHighlightVisibility()
 }

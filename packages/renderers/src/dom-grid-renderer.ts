@@ -1,55 +1,51 @@
 /** DOM + CSS grid renderer: draws a GridScene without knowing any operation rules. */
 import {
-  getGridCellRect,
+  getGridElementRect,
   getGridTextAnchor,
-  getDistinctOffsets,
   resolveGridMetrics,
 } from '@vertical-arithmetic/grid'
-import type { GridMetrics, GridCell, GridScene } from '@vertical-arithmetic/grid'
+import type { GridElement, GridMetrics, GridScene } from '@vertical-arithmetic/grid'
 
 const setStyleToken = (node: HTMLElement, styleToken: string | undefined): void => {
   if (styleToken) node.dataset.styleToken = styleToken
 }
 
-const renderDomEdge = (parent: HTMLElement, cell: GridCell, metrics: GridMetrics): void => {
-  if (!cell.edges) return
-  const rect = getGridCellRect(cell, metrics)
-  ;(['top', 'right', 'bottom', 'left'] as const).forEach((edge) => {
-    if (!cell.edges?.[edge]) return
-    const node = document.createElement('div')
-    node.className = `grid-edge grid-edge--${edge}`
-    setStyleToken(node, cell.styleToken)
-    node.style.left = `${edge === 'right' ? rect.left + rect.width : rect.left}px`
-    node.style.top = `${edge === 'bottom' ? rect.top + rect.height : rect.top}px`
-    node.style.width = `${edge === 'top' || edge === 'bottom' ? rect.width : 3}px`
-    node.style.height = `${edge === 'left' || edge === 'right' ? rect.height : 3}px`
-    parent.appendChild(node)
-  })
-}
-
-const renderDomContent = (
+const renderDomElement = (
   parent: HTMLElement,
-  cell: GridCell,
+  element: GridElement,
   scene: GridScene,
   metrics: GridMetrics,
 ): void => {
-  if (!cell.content) return
-  const rect = getGridCellRect(cell, metrics)
-  if (cell.content.kind === 'text') {
-    const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
-    const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
+  const rect = getGridElementRect(element, metrics)
+  if (element.content.kind === 'line') {
+    if (element.position.kind !== 'edge') {
+      throw new Error(`线元素 ${element.id} 必须定位在单元格边上。`)
+    }
+    const node = document.createElement('div')
+    node.className = `grid-edge grid-edge--${element.position.edge}`
+    setStyleToken(node, element.styleToken)
+    node.style.left = `${rect.left}px`
+    node.style.top = `${rect.top}px`
+    node.style.width = `${rect.width || 3}px`
+    node.style.height = `${rect.height || 3}px`
+    parent.appendChild(node)
+    return
+  }
+  if (element.content.kind === 'text') {
+    const horizontalAlign = element.content.horizontalAlign ?? scene.textHorizontalAlign
+    const verticalAlign = element.content.verticalAlign ?? scene.textVerticalAlign
     const anchor = getGridTextAnchor(rect, horizontalAlign, verticalAlign)
     const node = document.createElement('span')
     node.className = 'grid-text'
-    node.textContent = cell.content.text
-    setStyleToken(node, cell.content.styleToken ?? scene.defaultTextStyleToken)
+    node.textContent = element.content.text
+    setStyleToken(node, element.content.styleToken ?? scene.defaultTextStyleToken)
     node.style.left = `${anchor.x}px`
     node.style.top = `${anchor.y}px`
     const translateX = horizontalAlign === 'center' ? '-50%' : horizontalAlign === 'right' ? '-100%' : '0'
     const translateY = verticalAlign === 'center' ? '-50%' : verticalAlign === 'bottom' ? '-100%' : '0'
     node.style.transform = `translate(${translateX}, ${translateY})`
-    if (cell.content.fontSizeRatio !== undefined) {
-      node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
+    if (element.content.fontSizeRatio !== undefined) {
+      node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
     parent.appendChild(node)
     return
@@ -58,20 +54,23 @@ const renderDomContent = (
   const strokeWidth = 3
   const halfStroke = strokeWidth / 2
   const node = document.createElement('div')
-  node.className = `grid-corner grid-corner--${cell.content.corner}`
-  setStyleToken(node, cell.styleToken)
+  if (element.position.kind !== 'cell') {
+    throw new Error(`圆角元素 ${element.id} 必须定位在单元格区域。`)
+  }
+  node.className = `grid-corner grid-corner--${element.content.corner}`
+  setStyleToken(node, element.styleToken)
   node.style.left = `${rect.left - halfStroke}px`
   node.style.top = `${rect.top - halfStroke}px`
   node.style.width = `${rect.width + strokeWidth}px`
   node.style.height = `${rect.height + strokeWidth}px`
-  node.style.setProperty('--grid-corner-radius', `${Math.min(rect.width, rect.height) * cell.content.radiusRatio + halfStroke}px`)
+  node.style.setProperty('--grid-corner-radius', `${Math.min(rect.width, rect.height) * element.content.radiusRatio + halfStroke}px`)
   parent.appendChild(node)
 }
 
 const renderGuideGrid = (parent: HTMLElement, scene: GridScene, metrics: GridMetrics): void => {
   if (!scene.showGuideGrid) return
-  const columnOffsets = getDistinctOffsets(metrics.columnOffsets)
-  const rowOffsets = getDistinctOffsets(metrics.rowOffsets)
+  const columnOffsets = metrics.columnOffsets
+  const rowOffsets = metrics.rowOffsets
   columnOffsets.forEach((left) => {
     const node = document.createElement('div')
     node.className = 'grid-guide-line grid-guide-line--vertical'
@@ -104,6 +103,8 @@ export const renderDomGrid = (
   grid?.style.setProperty('width', `${metrics.width}px`)
   grid?.style.setProperty('height', `${metrics.height}px`)
   renderGuideGrid(lineLayer, scene, metrics)
-  scene.cells.forEach((cell) => renderDomEdge(lineLayer, cell, metrics))
-  scene.cells.forEach((cell) => renderDomContent(contentLayer, cell, scene, metrics))
+  scene.elements.forEach((element) => {
+    const layer = element.content.kind === 'line' || element.content.kind === 'corner' ? lineLayer : contentLayer
+    renderDomElement(layer, element, scene, metrics)
+  })
 }

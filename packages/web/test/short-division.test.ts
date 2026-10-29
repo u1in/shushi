@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import { computeShortDivision } from '@vertical-arithmetic/calculators'
 import { createShortDivisionGridScene } from '@vertical-arithmetic/layout'
-import { getGridCellRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
+import { getGridElementRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
 
 describe('computeShortDivision', () => {
   test('分解质因数时保留最后的质数底行，并导出约数信息', () => {
@@ -49,42 +49,50 @@ describe('computeShortDivision', () => {
     expect(() => computeShortDivision({ mode: 'factorization', values: ['1000000001'] })).toThrow(/不能超过/)
   })
 
-  test('短除法布局只消费过程数据，以边框单元格生成竖线与横线', () => {
+  test('短除法布局只消费过程数据，以显式边位置生成竖线与横线', () => {
     const computation = computeShortDivision({ mode: 'baseConversion', values: ['13'], targetBase: 2 })
     const scene = createShortDivisionGridScene(computation, {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, showGuideGrid: true, showRemainders: true,
     })
-    const separators = scene.cells.filter(({ styleToken }) => styleToken === 'short-division.separator')
+    const separators = scene.elements.filter(({ styleToken }) => styleToken === 'short-division.separator')
     const separator = separators[0]
-    const firstBar = scene.cells.find(({ styleToken }) => styleToken === 'short-division.bar')
+    const firstBar = scene.elements.find(({ styleToken }) => styleToken === 'short-division.bar')
     const metrics = resolveGridMetrics(scene)
-    expect(separator?.edges).toEqual({ left: true })
+    expect(separator).toMatchObject({ position: { kind: 'edge', edge: 'left' }, content: { kind: 'line' } })
     expect(separators).toHaveLength(computation.steps.length)
-    expect(getGridCellRect(separator!, metrics).width).toBe(0)
-    const firstStepDigit = scene.cells.find(({ id }) => id === 'short-division-dividend-0-0-0')
-    const secondStepDigit = scene.cells.find(({ id }) => id === 'short-division-dividend-1-0-0')
-    const firstDivisor = scene.cells.find(({ id }) => id === 'short-division-divisor-0')
-    const secondDivisor = scene.cells.find(({ id }) => id === 'short-division-divisor-1')
-    // 数字保持右对齐；位数变少时，本轮零宽竖线移动到该数字的左边框。
-    expect(secondStepDigit!.position.column).toBeGreaterThan(firstStepDigit!.position.column)
-    expect(separators[0].position.column).toBe(firstStepDigit!.position.column - 1)
-    expect(separators[1].position.column).toBe(secondStepDigit!.position.column - 1)
+    expect(getGridElementRect(separator!, metrics).width).toBe(0)
+    const firstStepDigit = scene.elements.find(({ id }) => id === 'short-division-dividend-0-0-0')
+    const secondStepDigit = scene.elements.find(({ id }) => id === 'short-division-dividend-1-0-0')
+    const firstDivisor = scene.elements.find(({ id }) => id === 'short-division-divisor-0')
+    const secondDivisor = scene.elements.find(({ id }) => id === 'short-division-divisor-1')
+    // 数字保持右对齐；位数变少时，竖线锚定到该数字格的真实左边。
+    expect(getGridElementRect(secondStepDigit!, metrics).left).toBeGreaterThan(getGridElementRect(firstStepDigit!, metrics).left)
+    expect(getGridElementRect(separators[0], metrics).left).toBe(getGridElementRect(firstStepDigit!, metrics).left)
+    expect(getGridElementRect(separators[1], metrics).left).toBe(getGridElementRect(secondStepDigit!, metrics).left)
     // 除数随竖线移动，始终写在本轮竖线左侧紧邻的一格。
-    expect(firstDivisor!.position.column + 1).toBe(separators[0].position.column)
-    expect(secondDivisor!.position.column + 1).toBe(separators[1].position.column)
+    expect(getGridElementRect(firstDivisor!, metrics).left + getGridElementRect(firstDivisor!, metrics).width).toBe(getGridElementRect(separators[0], metrics).left)
+    expect(getGridElementRect(secondDivisor!, metrics).left + getGridElementRect(secondDivisor!, metrics).width).toBe(getGridElementRect(separators[1], metrics).left)
     // 横线从数值区右边界完整回延，左端精确落在本轮竖线锚点。
-    const barRect = getGridCellRect(firstBar!, metrics)
-    expect(barRect.left).toBe(getGridCellRect(separator!, metrics).left)
-    expect(barRect.left + barRect.width).toBe(metrics.columnOffsets[firstBar!.position.column + firstBar!.position.columnSpan!])
-    expect(scene.cells.filter(({ styleToken }) => styleToken === 'short-division.bar')).toHaveLength(computation.steps.length)
-    expect(scene.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder')).toHaveLength(computation.steps.length)
-    expect(scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder-label')?.content).toMatchObject({
+    const barRect = getGridElementRect(firstBar!, metrics)
+    expect(barRect.left).toBe(getGridElementRect(separator!, metrics).left)
+    expect(barRect.left + barRect.width).toBeLessThan(metrics.width)
+    expect(scene.elements.filter(({ styleToken }) => styleToken === 'short-division.bar')).toHaveLength(computation.steps.length)
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder')).toHaveLength(computation.steps.length)
+    expect(scene.elements.find(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.remainder-label')?.content).toMatchObject({
       kind: 'text', text: '余', fontSizeRatio: 0.72,
     })
-    scene.cells.filter(({ styleToken }) => styleToken === 'short-division.bar').forEach((cell) => {
-      expect(scene.rows[cell.position.row].size).toBe(0)
-    })
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.final')).toBe(true)
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.final')).toBe(true)
     expect(metrics).toMatchObject({ width: expect.any(Number), height: expect.any(Number) })
+  })
+
+  test('播放步骤时显示当前商作为临时结果', () => {
+    const computation = computeShortDivision({ mode: 'baseConversion', values: ['13'], targetBase: 2 })
+    const scene = createShortDivisionGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, showGuideGrid: false, showRemainders: true,
+      visibleStepCount: 1,
+    })
+    expect(scene.elements.filter(({ styleToken }) => styleToken === 'short-division.bar')).toHaveLength(1)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.final' && content.text === '6')).toBe(true)
   })
 })

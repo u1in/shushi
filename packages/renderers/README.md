@@ -7,7 +7,7 @@
 - `renderDomGrid(lineLayer, contentLayer, scene)`：使用绝对定位的 DOM/CSS 图层绘制网格。
 - `renderSvgGrid(svg, scene)`：使用 SVG 图元绘制同一网格。
 
-两种渲染器共享轨道解析、单元格矩形和文字锚点计算，因此零尺寸轨道、局部对齐和辅助网格在两种模式下保持一致。样式通过 `styleToken` 和 `data-style-token` 交给应用主题处理。
+两种渲染器共享轨道解析、元素位置矩形和文字锚点计算，因此单元区域、交点、边、边中点、局部对齐和辅助网格在两种模式下保持一致。样式通过 `styleToken` 和 `data-style-token` 交给应用主题处理。
 
 ## Bug 反馈与作者
 

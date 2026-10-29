@@ -1,11 +1,10 @@
 /** SVG grid renderer: draws the same GridScene contract as the DOM renderer. */
 import {
-  getGridCellRect,
+  getGridElementRect,
   getGridTextAnchor,
-  getDistinctOffsets,
   resolveGridMetrics,
 } from '@vertical-arithmetic/grid'
-import type { GridMetrics, GridCell, GridScene } from '@vertical-arithmetic/grid'
+import type { GridElement, GridMetrics, GridScene } from '@vertical-arithmetic/grid'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
@@ -19,41 +18,41 @@ const applyStyleToken = (node: SVGElement, styleToken: string | undefined): void
   if (styleToken) node.setAttribute('data-style-token', styleToken)
 }
 
-const renderSvgCell = (
+const renderSvgElement = (
   lineLayer: SVGElement,
   contentLayer: SVGElement,
-  cell: GridCell,
+  element: GridElement,
   scene: GridScene,
   metrics: GridMetrics,
 ): void => {
-  const rect = getGridCellRect(cell, metrics)
-  if (cell.edges) {
-    ;(['top', 'right', 'bottom', 'left'] as const).forEach((edge) => {
-      if (!cell.edges?.[edge]) return
-      const node = createSvgNode('line', {
-        class: `grid-edge grid-edge--${edge}`,
-        x1: edge === 'right' ? rect.left + rect.width : rect.left,
-        y1: edge === 'bottom' ? rect.top + rect.height : rect.top,
-        x2: edge === 'left' ? rect.left : rect.left + rect.width,
-        y2: edge === 'top' ? rect.top : rect.top + rect.height,
-      })
-      applyStyleToken(node, cell.styleToken)
-      lineLayer.appendChild(node)
+  const rect = getGridElementRect(element, metrics)
+  if (element.content.kind === 'line') {
+    if (element.position.kind !== 'edge') {
+      throw new Error(`线元素 ${element.id} 必须定位在单元格边上。`)
+    }
+    const node = createSvgNode('line', {
+      class: `grid-edge grid-edge--${element.position.edge}`,
+      x1: rect.left,
+      y1: rect.top,
+      x2: rect.left + rect.width,
+      y2: rect.top + rect.height,
     })
+    applyStyleToken(node, element.styleToken)
+    lineLayer.appendChild(node)
+    return
   }
-  if (!cell.content) return
-  if (cell.content.kind === 'text') {
-    const horizontalAlign = cell.content.horizontalAlign ?? scene.textHorizontalAlign
-    const verticalAlign = cell.content.verticalAlign ?? scene.textVerticalAlign
+  if (element.content.kind === 'text') {
+    const horizontalAlign = element.content.horizontalAlign ?? scene.textHorizontalAlign
+    const verticalAlign = element.content.verticalAlign ?? scene.textVerticalAlign
     const anchor = getGridTextAnchor(rect, horizontalAlign, verticalAlign)
     const node = createSvgNode('text', {
       class: 'grid-text',
       x: anchor.x,
       y: anchor.y,
     })
-    node.textContent = cell.content.text
-    if (cell.content.fontSizeRatio !== undefined) {
-      node.style.fontSize = `${scene.fontSize * cell.content.fontSizeRatio}px`
+    node.textContent = element.content.text
+    if (element.content.fontSizeRatio !== undefined) {
+      node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
     node.style.textAnchor = horizontalAlign === 'left'
       ? 'start'
@@ -61,26 +60,29 @@ const renderSvgCell = (
     node.style.dominantBaseline = verticalAlign === 'top'
       ? 'hanging'
       : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'
-    applyStyleToken(node, cell.content.styleToken ?? scene.defaultTextStyleToken)
+    applyStyleToken(node, element.content.styleToken ?? scene.defaultTextStyleToken)
     contentLayer.appendChild(node)
     return
   }
 
+  if (element.position.kind !== 'cell') {
+    throw new Error(`圆角元素 ${element.id} 必须定位在单元格区域。`)
+  }
   const right = rect.left + rect.width
   const bottom = rect.top + rect.height
-  const radius = Math.min(rect.width, rect.height) * cell.content.radiusRatio
+  const radius = Math.min(rect.width, rect.height) * element.content.radiusRatio
   const node = createSvgNode('path', {
-    class: `grid-corner grid-corner--${cell.content.corner}`,
+    class: `grid-corner grid-corner--${element.content.corner}`,
     d: `M ${rect.left} ${bottom} H ${right - radius} Q ${right} ${bottom} ${right} ${bottom - radius} V ${rect.top}`,
   })
-  applyStyleToken(node, cell.styleToken)
+  applyStyleToken(node, element.styleToken)
   lineLayer.appendChild(node)
 }
 
 const renderGuideGrid = (parent: SVGElement, scene: GridScene, metrics: GridMetrics): void => {
   if (!scene.showGuideGrid) return
-  const columnOffsets = getDistinctOffsets(metrics.columnOffsets)
-  const rowOffsets = getDistinctOffsets(metrics.rowOffsets)
+  const columnOffsets = metrics.columnOffsets
+  const rowOffsets = metrics.rowOffsets
   const top = rowOffsets[0]
   const bottom = rowOffsets[rowOffsets.length - 1]
   const left = columnOffsets[0]
@@ -104,6 +106,6 @@ export const renderSvgGrid = (svg: SVGSVGElement, scene: GridScene): void => {
   const lineLayer = createSvgNode('g', { class: 'grid-line-layer', 'aria-hidden': 'true' })
   const contentLayer = createSvgNode('g', { class: 'grid-content-layer' })
   renderGuideGrid(lineLayer, scene, metrics)
-  scene.cells.forEach((cell) => renderSvgCell(lineLayer, contentLayer, cell, scene, metrics))
+  scene.elements.forEach((element) => renderSvgElement(lineLayer, contentLayer, element, scene, metrics))
   svg.replaceChildren(lineLayer, contentLayer)
 }

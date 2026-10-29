@@ -91,22 +91,21 @@ describe('createMultiplicationGridScene', () => {
     })
 
     expect(scene.columns[0]).toMatchObject({ id: 'multiplication-operator', size: 0.72 })
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.operator' && content.text === '×')).toBe(true)
-    expect(scene.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.partial-product')).toHaveLength(6)
-    const carryCell = scene.cells.find(({ content }) => (
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.operator' && content.text === '×')).toBe(true)
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.partial-product')).toHaveLength(6)
+    const carryCell = scene.elements.find(({ content }) => (
       content?.kind === 'text' && content.styleToken === 'multiplication.carry' && content.text === '1'
     ))
     expect(carryCell?.content).toMatchObject({ fontSizeRatio: 0.42, horizontalAlign: 'center', verticalAlign: 'bottom' })
     expect(carryCell).toBeDefined()
-    expect(scene.rows[carryCell!.position.row]).toMatchObject({ id: 'carry-row-0', size: 0 })
-    expect(scene.columns[carryCell!.position.column]).toMatchObject({ id: 'carry-boundary-2', size: 0 })
-    const inputBar = scene.cells.find(({ id }) => id === 'multiplication-input-bar')
+    expect(carryCell).toMatchObject({ position: { kind: 'intersection', columnLine: 4, rowLine: 2 } })
+    const inputBar = scene.elements.find(({ id }) => id === 'multiplication-input-bar')
     expect(inputBar).toBeDefined()
-    expect(scene.rows[inputBar!.position.row]).toMatchObject({ id: 'input-bar-row', size: 0 })
-    expect(scene.cells.find(({ id }) => id === 'multiplier-0')?.content).not.toHaveProperty('verticalAlign')
-    const additionCarry = scene.cells.find(({ id }) => id === 'addition-carry-1')
+    expect(inputBar).toMatchObject({ position: { kind: 'edge', row: 1, edge: 'bottom' } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-0')?.content).not.toHaveProperty('verticalAlign')
+    const additionCarry = scene.elements.find(({ id }) => id === 'addition-carry-1')
     expect(additionCarry).toMatchObject({
-      position: { column: 4 },
+      position: { kind: 'intersection', columnLine: 3, rowLine: 4 },
       content: {
         text: '1',
         styleToken: 'multiplication.addition-carry',
@@ -115,16 +114,16 @@ describe('createMultiplicationGridScene', () => {
         verticalAlign: 'bottom',
       },
     })
-    expect(scene.rows[additionCarry!.position.row]).toMatchObject({ id: 'addition-carry-row', size: 0 })
-    expect(scene.columns[additionCarry!.position.column]).toMatchObject({ id: 'carry-boundary-1', size: 0 })
-    const sumBar = scene.cells.find(({ id }) => id === 'multiplication-sum-bar')
+    const sumBar = scene.elements.find(({ id }) => id === 'multiplication-sum-bar')
     expect(sumBar).toBeDefined()
-    expect(scene.rows[sumBar!.position.row]).toMatchObject({ id: 'sum-bar-row', size: 0 })
-    expect(scene.cells.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { column: 0, columnSpan: 8 } })
-    expect(scene.cells.find(({ id }) => id === 'multiplication-sum-bar')).toMatchObject({ position: { column: 1, columnSpan: 7 } })
-    expect(scene.cells.some(({ styleToken }) => styleToken === 'multiplication.input-bar')).toBe(true)
-    expect(scene.cells.some(({ styleToken }) => styleToken === 'multiplication.sum-bar')).toBe(true)
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product' && content.text === '1')).toBe(true)
+    expect(sumBar).toMatchObject({ position: { kind: 'edge', row: 4, edge: 'top' } })
+    expect(scene.elements.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { column: 0, columnSpan: 5 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplication-sum-bar')).toMatchObject({ position: { column: 1, columnSpan: 4 } })
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.columns.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.some(({ styleToken }) => styleToken === 'multiplication.input-bar')).toBe(true)
+    expect(scene.elements.some(({ styleToken }) => styleToken === 'multiplication.sum-bar')).toBe(true)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product' && content.text === '1')).toBe(true)
     expect(scene.showGuideGrid).toBe(true)
     expect(scene.textHorizontalAlign).toBe('right')
     expect(scene.textVerticalAlign).toBe('top')
@@ -136,14 +135,18 @@ describe('createMultiplicationGridScene', () => {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       uniformMultiplicationBars: false, showCarrySteps: true,
     })
-    expect(singleDigit.cells.some(({ styleToken }) => styleToken === 'multiplication.sum-bar')).toBe(false)
-    expect(singleDigit.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product')).toHaveLength(3)
+    expect(singleDigit.elements.some(({ styleToken }) => styleToken === 'multiplication.sum-bar')).toBe(false)
+    expect(singleDigit.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product')).toHaveLength(3)
 
     const zero = createMultiplicationGridScene(computeMultiplication('145', '0'), {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       uniformMultiplicationBars: false, showCarrySteps: true,
     })
-    expect(zero.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product')?.content).toMatchObject({ text: '0' })
+    const zeroProductCells = zero.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.product'
+    ))
+    expect(zeroProductCells).toHaveLength(1)
+    expect(zeroProductCells[0].content).toMatchObject({ text: '0' })
   })
 
   test('最后一步产生的最高位进位只进入部分积，不单独显示进位符号', () => {
@@ -154,11 +157,11 @@ describe('createMultiplicationGridScene', () => {
     })
 
     expect(computation.partialProducts[0].value).toBe('891')
-    expect(scene.cells.filter(({ content }) => (
+    expect(scene.elements.filter(({ content }) => (
       content?.kind === 'text' && content.styleToken === 'multiplication.carry'
     ))).toHaveLength(1)
-    expect(scene.cells.find(({ id }) => id === 'carry-0-1')?.content).toMatchObject({ text: '8' })
-    expect(scene.cells.some(({ id }) => id === 'carry-0-0')).toBe(false)
+    expect(scene.elements.find(({ id }) => id === 'carry-0-1')?.content).toMatchObject({ text: '8' })
+    expect(scene.elements.some(({ id }) => id === 'carry-0-0')).toBe(false)
   })
 
   test('部分积相加的最高位进位也会显示在求和横线上', () => {
@@ -169,16 +172,15 @@ describe('createMultiplicationGridScene', () => {
     })
 
     expect(computation.productDigits).toBe('9801')
-    expect(scene.cells.filter(({ content }) => (
+    expect(scene.elements.filter(({ content }) => (
       content?.kind === 'text' && content.styleToken === 'multiplication.addition-carry'
     ))).toHaveLength(2)
-    expect(scene.cells.some(({ id }) => id === 'addition-carry-1')).toBe(true)
-    const highestCarry = scene.cells.find(({ id }) => id === 'addition-carry-2')
+    expect(scene.elements.some(({ id }) => id === 'addition-carry-1')).toBe(true)
+    const highestCarry = scene.elements.find(({ id }) => id === 'addition-carry-2')
     expect(highestCarry).toMatchObject({
-      position: { column: 2 },
+      position: { kind: 'intersection', columnLine: 2 },
       content: { text: '1', horizontalAlign: 'center', verticalAlign: 'bottom' },
     })
-    expect(scene.columns[highestCarry!.position.column]).toMatchObject({ id: 'carry-boundary-0', size: 0 })
   })
 
   test('145 × 24 的最高位相加进位落在 2 与 9 之间的求和横线上', () => {
@@ -186,9 +188,9 @@ describe('createMultiplicationGridScene', () => {
       cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       uniformMultiplicationBars: false, showCarrySteps: true,
     })
-    const carry = scene.cells.find(({ id }) => id === 'addition-carry-2')
+    const carry = scene.elements.find(({ id }) => id === 'addition-carry-2')
     expect(carry).toMatchObject({
-      position: { column: 2 },
+      position: { kind: 'intersection', columnLine: 2 },
       content: {
         text: '1',
         styleToken: 'multiplication.addition-carry',
@@ -196,8 +198,6 @@ describe('createMultiplicationGridScene', () => {
         verticalAlign: 'bottom',
       },
     })
-    expect(scene.columns[carry!.position.column]).toMatchObject({ id: 'carry-boundary-0', size: 0 })
-    expect(scene.rows[carry!.position.row]).toMatchObject({ id: 'addition-carry-row', size: 0 })
   })
 
   test('可隐藏乘法与加法进位，并让两条横线使用相同的范围', () => {
@@ -206,16 +206,15 @@ describe('createMultiplicationGridScene', () => {
       uniformMultiplicationBars: true, showCarrySteps: false,
     })
 
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.carry')).toBe(false)
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.addition-carry')).toBe(false)
-    const carryRows = scene.rows.filter(({ id }) => id.startsWith('carry-row') || id === 'addition-carry-row')
-    expect(carryRows).toHaveLength(3)
-    expect(carryRows.every(({ size }) => size === 0)).toBe(true)
-    expect(scene.cells.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { column: 0, columnSpan: 8 } })
-    expect(scene.cells.find(({ id }) => id === 'multiplication-sum-bar')).toMatchObject({ position: { column: 0, columnSpan: 8 } })
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.carry')).toBe(false)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.addition-carry')).toBe(false)
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.columns.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { column: 0, columnSpan: 5 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplication-sum-bar')).toMatchObject({ position: { column: 0, columnSpan: 5 } })
   })
 
-  test('进位与横线使用零高行，隐藏进位不改变网格高度和横线位置', () => {
+  test('进位与横线使用已有边界，隐藏进位不改变网格高度和横线位置', () => {
     const computation = computeMultiplication('145', '12')
     const baseSettings = {
       cellWidth: 32,
@@ -229,17 +228,12 @@ describe('createMultiplicationGridScene', () => {
 
     expect(resolveGridMetrics(withCarries).height).toBe(resolveGridMetrics(withoutCarries).height)
 
-    const inputBarRowId = (scene: ReturnType<typeof createMultiplicationGridScene>): string => {
-      const cell = scene.cells.find(({ id }) => id === 'multiplication-input-bar')
-      return scene.rows[cell!.position.row].id
-    }
-    expect(inputBarRowId(withCarries)).toBe('input-bar-row')
-    expect(inputBarRowId(withoutCarries)).toBe('input-bar-row')
-    expect(withCarries.rows.find(({ id }) => id === 'carry-row-0')).toMatchObject({ size: 0 })
-    expect(withCarries.rows.find(({ id }) => id === 'addition-carry-row')).toMatchObject({ size: 0 })
+    expect(withCarries.elements.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { row: 1, edge: 'bottom' } })
+    expect(withoutCarries.elements.find(({ id }) => id === 'multiplication-input-bar')).toMatchObject({ position: { row: 1, edge: 'bottom' } })
+    expect(withCarries.rows.every(({ size }) => size > 0)).toBe(true)
   })
 
-  test('进位行与进位列会提前创建，即使当前没有进位', () => {
+  test('即使当前没有进位，真实行列仍保持完整且不含虚拟轨道', () => {
     const baseSettings = {
       cellWidth: 32,
       rowHeight: 46,
@@ -251,20 +245,46 @@ describe('createMultiplicationGridScene', () => {
       ...baseSettings,
       showCarrySteps: true,
     })
-    expect(noCarry.columns.filter(({ id }) => id.startsWith('carry-boundary'))).toHaveLength(2)
-    expect(noCarry.rows.filter(({ id }) => id.startsWith('carry-row'))).toHaveLength(1)
-    expect(noCarry.rows.filter(({ id }) => id.startsWith('carry-row')).every(({ size }) => size === 0)).toBe(true)
-    expect(noCarry.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.carry')).toBe(false)
+    expect(noCarry.columns).toHaveLength(4)
+    expect(noCarry.rows).toHaveLength(3)
+    expect(noCarry.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(noCarry.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.carry')).toBe(false)
 
     const hidden = createMultiplicationGridScene(computeMultiplication('145', '12'), {
       ...baseSettings,
       showCarrySteps: false,
     })
-    expect(hidden.columns.filter(({ id }) => id.startsWith('carry-boundary'))).toHaveLength(3)
-    expect(hidden.rows.filter(({ id }) => id.startsWith('carry-row') || id === 'addition-carry-row')).toHaveLength(3)
-    expect(hidden.cells.some(({ content }) => (
+    expect(hidden.columns).toHaveLength(5)
+    expect(hidden.rows).toHaveLength(5)
+    expect(hidden.elements.some(({ content }) => (
       content?.kind === 'text'
       && (content.styleToken === 'multiplication.carry' || content.styleToken === 'multiplication.addition-carry')
     ))).toBe(false)
+  })
+
+  test('逐位展示部分积，进入加法阶段后才出现求和横线和最终积', () => {
+    const computation = computeMultiplication('145', '12')
+    const firstDigit = createMultiplicationGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
+      uniformMultiplicationBars: false, showCarrySteps: true, visibleStepCount: 1,
+    })
+    const partialDigits = firstDigit.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.partial-product'
+    ))
+    expect(partialDigits).toHaveLength(1)
+    expect(partialDigits[0].content).toMatchObject({ text: '0' })
+    expect(firstDigit.elements.some(({ id }) => id === 'multiplication-sum-bar')).toBe(false)
+    expect(firstDigit.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product')).toBe(false)
+
+    const additionFirstStep = createMultiplicationGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
+      uniformMultiplicationBars: false,
+      showCarrySteps: true,
+      visibleStepCount: computation.partialProducts.reduce((count, partialProduct) => count + partialProduct.digitSteps.length, 0) + 1,
+    })
+    expect(additionFirstStep.elements.some(({ id }) => id === 'multiplication-sum-bar')).toBe(true)
+    expect(additionFirstStep.elements.some(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.product' && content.text === '0'
+    ))).toBe(true)
   })
 })

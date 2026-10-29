@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getGridCellRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
+import { getGridElementRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
 import { computeDivision } from '@vertical-arithmetic/calculators'
 import { createDivisionGridScene } from '@vertical-arithmetic/layout'
 
@@ -82,7 +82,7 @@ describe('computeDivision', () => {
     expect(limited.steps).toHaveLength(1)
   })
 
-  test('竖式布局层仅消费计算中间过程，并输出通用的可变轨道网格', () => {
+  test('竖式布局层仅消费计算中间过程，并输出带显式边界位置的可变轨道网格', () => {
     const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
     const scene = createDivisionGridScene(computation, {
       cellWidth: 32,
@@ -97,29 +97,31 @@ describe('computeDivision', () => {
     })
 
     expect(scene.columns.some(({ id }) => id === 'division-bracket')).toBe(true)
-    expect(scene.columns.find(({ id }) => id === 'decimal-separator')).toMatchObject({ size: 0 })
-    expect(scene.cells.some(({ styleToken }) => styleToken === 'division.bracket-top-line')).toBe(true)
-    expect(scene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(
+    expect(scene.columns.some(({ id }) => id === 'decimal-separator')).toBe(false)
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.columns.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.some(({ styleToken }) => styleToken === 'division.bracket-top-line')).toBe(true)
+    expect(scene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(
       computation.steps.filter(({ quotientDigit }) => quotientDigit !== '0').length,
     )
-    scene.cells
+    scene.elements
       .filter(({ styleToken }) => styleToken === 'division.subtraction-bar')
-      .forEach((cell) => {
-        expect(scene.rows[cell.position.row].size).toBe(0)
+      .forEach((element) => {
+        expect(element.position).toMatchObject({ kind: 'edge', edge: 'bottom' })
       })
-    const topLine = scene.cells.find(({ styleToken }) => styleToken === 'division.bracket-top-line')
+    const topLine = scene.elements.find(({ styleToken }) => styleToken === 'division.bracket-top-line')
     expect(topLine).toBeDefined()
-    expect(scene.rows[topLine!.position.row]).toMatchObject({ id: 'bracket-top-line-row', size: 0 })
+    expect(topLine).toMatchObject({ position: { kind: 'edge', row: 1, edge: 'top' } })
     expect(scene.showGuideGrid).toBe(true)
     expect(scene.textHorizontalAlign).toBe('left')
     expect(scene.textVerticalAlign).toBe('top')
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-minuend')).toBe(true)
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-subtrahend')).toBe(true)
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.appended-zero')).toBe(true)
-    const decimalCell = scene.cells.find(({ content }) => content?.kind === 'text' && content.styleToken === 'division.decimal-separator')
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-minuend')).toBe(true)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.partial-subtrahend')).toBe(true)
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'division.appended-zero')).toBe(true)
+    const decimalCell = scene.elements.find(({ content }) => content?.kind === 'text' && content.styleToken === 'division.decimal-separator')
     expect(decimalCell?.content).toMatchObject({ text: '.', horizontalAlign: 'center' })
     expect(decimalCell).toBeDefined()
-    expect(getGridCellRect(decimalCell!, resolveGridMetrics(scene))).toMatchObject({ width: 0 })
+    expect(getGridElementRect(decimalCell!, resolveGridMetrics(scene))).toMatchObject({ width: 0, height: 0 })
     expect(resolveGridMetrics(scene).width).toBeGreaterThan(0)
   })
 
@@ -143,8 +145,8 @@ describe('computeDivision', () => {
     })
 
     expect(computation.steps).toHaveLength(3)
-    expect(hiddenScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(2)
-    expect(shownScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(3)
+    expect(hiddenScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(2)
+    expect(shownScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(3)
     expect(resolveGridMetrics(shownScene).height).toBeGreaterThan(resolveGridMetrics(hiddenScene).height)
 
     const zeroQuotient = computeDivision('12', '4')
@@ -157,8 +159,75 @@ describe('computeDivision', () => {
       showZeroQuotientSteps: true,
     })
     expect(zeroQuotient.steps).toHaveLength(1)
-    expect(zeroHiddenScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(0)
-    expect(zeroShownScene.cells.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(1)
+    expect(zeroHiddenScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(0)
+    expect(zeroShownScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(1)
+  })
+
+  test('关闭零商步骤后，播放同样跳过过程行并让余数对齐当前被减数', () => {
+    const computation = computeDivision('25', '10230')
+    const firstScene = createDivisionGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, bracketBend: 1,
+      showGuideGrid: false, uniformSubtractionBars: false, showZeroQuotientSteps: false, visibleStepCount: 1,
+    })
+    const zeroQuotientScene = createDivisionGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, bracketBend: 1,
+      showGuideGrid: false, uniformSubtractionBars: false, showZeroQuotientSteps: false, visibleStepCount: 2,
+    })
+    const secondScene = createDivisionGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, bracketBend: 1,
+      showGuideGrid: false, uniformSubtractionBars: false, showZeroQuotientSteps: false, visibleStepCount: 3,
+    })
+
+    expect(firstScene.elements.find(({ id }) => id === 'remainder-0')).toMatchObject({ position: { column: 5 } })
+    expect(zeroQuotientScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(1)
+    expect(zeroQuotientScene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.quotient'
+    )).map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['4', '0'])
+    expect(zeroQuotientScene.elements.find(({ id }) => id === 'remainder-0')).toMatchObject({ position: { column: 5 } })
+    expect(secondScene.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(2)
+    expect(secondScene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.partial-minuend'
+    )).map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['2', '3', '0'])
+    expect(secondScene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.quotient'
+    )).map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['4', '0', '9'])
+  })
+
+  test('小数点独立占一步，出现时不改动下方计算过程', () => {
+    const computation = computeDivision('8', '1', { resultMode: 'decimal' })
+    const baseSettings = {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, bracketBend: 1,
+      showGuideGrid: false, uniformSubtractionBars: false, showZeroQuotientSteps: true,
+    }
+    const beforeDecimalStep = createDivisionGridScene(computation, {
+      ...baseSettings,
+      visibleStepCount: 1,
+    })
+    const decimalPointStep = createDivisionGridScene(computation, {
+      ...baseSettings,
+      visibleStepCount: 2,
+    })
+    const firstFractionCalculation = createDivisionGridScene(computation, {
+      ...baseSettings,
+      visibleStepCount: 3,
+    })
+
+    expect(computation.steps).toHaveLength(4)
+    expect(beforeDecimalStep.elements.some(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.appended-zero'
+    ))).toBe(false)
+    expect(decimalPointStep.elements.some(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.decimal-separator'
+    ))).toBe(true)
+    expect(decimalPointStep.elements.some(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.appended-zero'
+    ))).toBe(false)
+    expect(firstFractionCalculation.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.appended-zero'
+    ))).toHaveLength(1)
+    expect(firstFractionCalculation.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar')).toHaveLength(
+      decimalPointStep.elements.filter(({ styleToken }) => styleToken === 'division.subtraction-bar').length + 1,
+    )
   })
 
 

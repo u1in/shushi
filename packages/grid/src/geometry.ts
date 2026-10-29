@@ -1,7 +1,9 @@
 /** Grid geometry: resolves variable tracks and turns cell positions into pixel rectangles. */
 import type {
-  GridCell,
+  GridCellPosition,
+  GridElement,
   GridScene,
+  GridPosition,
   GridTextHorizontalAlign,
   GridTextVerticalAlign,
   GridTrack,
@@ -30,8 +32,8 @@ export interface GridTextAnchor {
 }
 
 const assertValidTrackSize = (track: GridTrack, axis: '列' | '行'): void => {
-  if (!Number.isFinite(track.size) || track.size < 0) {
-    throw new Error(`网格${axis}轨道 ${track.id} 的尺寸必须是非负有限数，当前为 ${track.size}。`)
+  if (!Number.isFinite(track.size) || track.size <= 0) {
+    throw new Error(`网格${axis}轨道 ${track.id} 的尺寸必须是正有限数，当前为 ${track.size}。`)
   }
 }
 
@@ -57,13 +59,26 @@ export const resolveGridMetrics = (scene: GridScene): GridMetrics => {
   }
 }
 
-export const getGridCellRect = (cell: GridCell, metrics: GridMetrics): GridRect => {
-  const { column, row, columnSpan = 1, rowSpan = 1 } = cell.position
+const getCellRect = (position: Omit<GridCellPosition, 'kind'>, metrics: GridMetrics): GridRect => {
+  const { column, row, columnSpan = 1, rowSpan = 1 } = position
   const rightColumn = column + columnSpan
   const bottomRow = row + rowSpan
 
-  if (metrics.columnOffsets[rightColumn] === undefined || metrics.rowOffsets[bottomRow] === undefined) {
-    throw new Error(`网格单元格 ${cell.id} 超出轨道范围。`)
+  if (
+    !Number.isInteger(column)
+    || !Number.isInteger(row)
+    || !Number.isInteger(columnSpan)
+    || !Number.isInteger(rowSpan)
+    || column < 0
+    || row < 0
+    || columnSpan <= 0
+    || rowSpan <= 0
+    || metrics.columnOffsets[column] === undefined
+    || metrics.rowOffsets[row] === undefined
+    || metrics.columnOffsets[rightColumn] === undefined
+    || metrics.rowOffsets[bottomRow] === undefined
+  ) {
+    throw new Error('网格单元区域超出轨道范围。')
   }
 
   return {
@@ -74,12 +89,57 @@ export const getGridCellRect = (cell: GridCell, metrics: GridMetrics): GridRect 
   }
 }
 
+const getIntersectionRect = (columnLine: number, rowLine: number, metrics: GridMetrics): GridRect => {
+  if (
+    !Number.isInteger(columnLine)
+    || !Number.isInteger(rowLine)
+    || metrics.columnOffsets[columnLine] === undefined
+    || metrics.rowOffsets[rowLine] === undefined
+  ) {
+    throw new Error('网格交点超出轨道范围。')
+  }
+  return { left: metrics.columnOffsets[columnLine], top: metrics.rowOffsets[rowLine], width: 0, height: 0 }
+}
+
+/** Resolves every first-class grid position without inventing hidden tracks. */
+export const getGridPositionRect = (position: GridPosition, metrics: GridMetrics): GridRect => {
+  if (position.kind === 'cell') return getCellRect(position, metrics)
+  if (position.kind === 'intersection') return getIntersectionRect(position.columnLine, position.rowLine, metrics)
+
+  const cellRect = getCellRect(position, metrics)
+  const isHorizontal = position.edge === 'top' || position.edge === 'bottom'
+  const edgeRect = isHorizontal
+    ? {
+      left: cellRect.left,
+      top: position.edge === 'top' ? cellRect.top : cellRect.top + cellRect.height,
+      width: cellRect.width,
+      height: 0,
+    }
+    : {
+      left: position.edge === 'left' ? cellRect.left : cellRect.left + cellRect.width,
+      top: cellRect.top,
+      width: 0,
+      height: cellRect.height,
+    }
+
+  if (position.kind === 'edge') return edgeRect
+  return {
+    left: edgeRect.left + edgeRect.width / 2,
+    top: edgeRect.top + edgeRect.height / 2,
+    width: 0,
+    height: 0,
+  }
+}
+
+/** Resolves the rectangle associated with a drawable element's declared position. */
+export const getGridElementRect = (element: GridElement, metrics: GridMetrics): GridRect => (
+  getGridPositionRect(element.position, metrics)
+)
+
 /**
- * Converts a cell rect and its resolved alignment into an anchor point plus the
- * edge that must touch it. A zero-width or zero-height rect has a single
- * possible point, so the alignment degenerates into the extension direction.
- * Both renderers implement this same anchor, which keeps zero-size tracks
- * predictable and identical across SVG and DOM/CSS.
+ * Converts an area, edge, midpoint or intersection rect and its resolved
+ * alignment into an anchor point plus the edge that must touch it. Both
+ * renderers share this calculation so all first-class positions agree.
  */
 export const getGridTextAnchor = (
   rect: GridRect,
@@ -95,8 +155,3 @@ export const getGridTextAnchor = (
   horizontalAlign,
   verticalAlign,
 })
-
-/** Collapses offsets that coincide because of zero-size tracks, for guide grids. */
-export const getDistinctOffsets = (offsets: number[]): number[] => offsets.filter(
-  (offset, index) => index === 0 || Math.abs(offset - offsets[index - 1]) > 1e-6,
-)

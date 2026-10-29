@@ -33,29 +33,40 @@ describe('computeAddition', () => {
 })
 
 describe('createAdditionGridScene', () => {
-  test('用通用网格表达右对齐加数、零高进位行和横线', () => {
+  test('用通用网格表达右对齐加数、边界交点进位和横线', () => {
     const scene = createAdditionGridScene(computeAddition('356', '278'), {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: true,
       showCarrySteps: true,
     })
-    expect(scene.rows[2]).toMatchObject({ id: 'carry-row', size: 0 })
-    expect(scene.rows[3]).toMatchObject({ id: 'sum-bar-row', size: 0 })
-    expect(scene.columns.filter(({ id }) => id.startsWith('carry-boundary'))).toHaveLength(2)
-    expect(scene.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.carry')).toHaveLength(2)
-    expect(scene.cells.find(({ id }) => id === 'carry-0')?.position.row).toBe(2)
-    expect(scene.cells.find(({ id }) => id === 'addition-sum-bar')).toMatchObject({ position: { column: 0, columnSpan: 6 } })
-    expect(scene.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.sum' && content.text === '6')).toBe(true)
+    expect(scene.rows).toHaveLength(3)
+    expect(scene.columns).toHaveLength(4)
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.columns.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.carry')).toHaveLength(2)
+    expect(scene.elements.find(({ id }) => id === 'carry-0')).toMatchObject({ position: { kind: 'intersection', columnLine: 3, rowLine: 2 } })
+    expect(scene.elements.find(({ id }) => id === 'addition-sum-bar')).toMatchObject({ position: { kind: 'edge', column: 0, row: 2, columnSpan: 4, edge: 'top' } })
+    expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.sum' && content.text === '6')).toBe(true)
     expect(resolveGridMetrics(scene).height).toBeGreaterThan(0)
   })
 
-  test('隐藏进位不改变零高轨道或网格尺寸，横线固定包括加号列', () => {
+  test('隐藏进位不改变网格尺寸，横线固定包括加号列', () => {
     const calculation = computeAddition('356', '278')
     const common = { cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false }
     const shown = createAdditionGridScene(calculation, { ...common, showCarrySteps: true })
     const hidden = createAdditionGridScene(calculation, { ...common, showCarrySteps: false })
-    expect(hidden.rows[2]).toMatchObject({ id: 'carry-row', size: 0 })
-    expect(hidden.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.carry')).toBe(false)
+    expect(hidden.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(hidden.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.carry')).toBe(false)
     expect(resolveGridMetrics(shown).height).toBe(resolveGridMetrics(hidden).height)
-    expect(hidden.cells.find(({ id }) => id === 'addition-sum-bar')).toMatchObject({ position: { column: 0, columnSpan: 6 } })
+    expect(hidden.elements.find(({ id }) => id === 'addition-sum-bar')).toMatchObject({ position: { column: 0, columnSpan: 4, edge: 'top' } })
+  })
+
+  test('按可见步骤渐进显示和与进位', () => {
+    const scene = createAdditionGridScene(computeAddition('356', '278'), {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showCarrySteps: true,
+      visibleStepCount: 2,
+    })
+    const sumDigits = scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.sum')
+    expect(sumDigits.map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['3', '4'])
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'addition.carry')).toHaveLength(2)
   })
 })

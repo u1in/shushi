@@ -1,5 +1,5 @@
 /** Short-division layout engine: converts all three short-division processes to GridScene. */
-import type { GridCell, GridScene, GridTextContent, GridTrack } from '@vertical-arithmetic/grid'
+import type { GridElement, GridScene, GridTextContent, GridTrack } from '@vertical-arithmetic/grid'
 import type { ShortDivisionComputation } from '@vertical-arithmetic/calculators'
 import type { ShortDivisionRenderSettings } from './types'
 
@@ -8,16 +8,16 @@ const DIVISOR_TRACK_SIZE = 1.1
 const OPERAND_GAP_TRACK_SIZE = 0.34
 const REMAINDER_LABEL_FONT_SIZE_RATIO = 0.72
 
-const createTextCell = (
+const createTextElement = (
   id: string,
   text: string,
   column: number,
   row: number,
   styleToken: string,
   textOptions: Pick<GridTextContent, 'fontSizeRatio' | 'horizontalAlign' | 'verticalAlign'> = {},
-): GridCell => ({ id, position: { column, row }, content: { kind: 'text', text, styleToken, ...textOptions } })
+): GridElement => ({ id, position: { kind: 'cell', column, row }, content: { kind: 'text', text, styleToken, ...textOptions } })
 
-/** 统计每组需要的最大位宽；每个潜在数字左边界都预建一个零宽竖线锚点。 */
+/** 统计每组需要的最大位宽；数字的真实左边界就是短除竖线的锚点。 */
 const getValueGroups = (computation: ShortDivisionComputation): { widths: number[], values: string[][] } => {
   const values = [
     computation.inputValues,
@@ -41,13 +41,13 @@ export const createShortDivisionGridScene = (
   settings: ShortDivisionRenderSettings,
 ): GridScene => {
   const { widths } = getValueGroups(computation)
+  const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? computation.steps.length, 0), computation.steps.length)
+  const visibleSteps = computation.steps.slice(0, visibleStepCount)
   const columns: GridTrack[] = [{ id: 'short-division-divisor', size: DIVISOR_TRACK_SIZE }]
   const groupDigitColumns: number[][] = []
   widths.forEach((width, groupIndex) => {
     const digitColumns: number[] = []
     for (let digitIndex = 0; digitIndex < width; digitIndex += 1) {
-      // 每个数字格前有一个 0u 轨道，短除竖线可随本行数字的起点移动而不改变宽度。
-      columns.push({ id: `value-anchor-${groupIndex}-${digitIndex}`, size: 0 })
       digitColumns.push(columns.length)
       columns.push({ id: `value-${groupIndex}-${digitIndex}`, size: 1 })
     }
@@ -62,7 +62,7 @@ export const createShortDivisionGridScene = (
   }
 
   const rows: GridTrack[] = []
-  const cells: GridCell[] = []
+  const elements: GridElement[] = []
   const appendRow = (id: string, size = 1): number => {
     rows.push({ id, size })
     return rows.length - 1
@@ -70,22 +70,22 @@ export const createShortDivisionGridScene = (
   const placeValue = (idPrefix: string, value: string, groupIndex: number, row: number, styleToken: string): void => {
     // 数字保持原有右对齐：2｜12 的下一行 2｜6 中，6 位于 2 的正下方。
     const startIndex = widths[groupIndex] - value.length
-    ;[...value].forEach((digit, digitIndex) => cells.push(createTextCell(
+    ;[...value].forEach((digit, digitIndex) => elements.push(createTextElement(
       `${idPrefix}-${groupIndex}-${digitIndex}`, digit, groupDigitColumns[groupIndex][startIndex + digitIndex], row, styleToken,
     )))
   }
 
-  computation.steps.forEach((step, stepIndex) => {
+  visibleSteps.forEach((step, stepIndex) => {
     const row = appendRow(`short-division-step-${stepIndex}`)
     const firstValueStartIndex = widths[0] - step.dividends[0].length
-    const separatorColumn = groupDigitColumns[0][firstValueStartIndex] - 1
+    const separatorColumn = groupDigitColumns[0][firstValueStartIndex]
     // 除数必须贴在本轮竖线左侧：首位时使用专属左列，其余情况复用本行空出的数字格。
-    const divisorColumn = separatorColumn === 1 ? 0 : separatorColumn - 1
-    cells.push(createTextCell(`short-division-divisor-${stepIndex}`, step.divisor, divisorColumn, row, 'short-division.divisor'))
+    const divisorColumn = separatorColumn - 1
+    elements.push(createTextElement(`short-division-divisor-${stepIndex}`, step.divisor, divisorColumn, row, 'short-division.divisor'))
     step.dividends.forEach((value, index) => placeValue(`short-division-dividend-${stepIndex}`, value, index, row, 'short-division.dividend'))
     if (showRemainders) {
       // “余”是辅助标签，字号略小于余数数字，避免抢占主要计算过程的视觉层级。
-      cells.push(createTextCell(
+      elements.push(createTextElement(
         `short-division-remainder-label-${stepIndex}`,
         '余',
         remainderLabelColumn,
@@ -93,25 +93,27 @@ export const createShortDivisionGridScene = (
         'short-division.remainder-label',
         { fontSizeRatio: REMAINDER_LABEL_FONT_SIZE_RATIO },
       ))
-      cells.push(createTextCell(`short-division-remainder-${stepIndex}`, step.remainders[0], remainderLabelColumn + 1, row, 'short-division.remainder'))
+      elements.push(createTextElement(`short-division-remainder-${stepIndex}`, step.remainders[0], remainderLabelColumn + 1, row, 'short-division.remainder'))
     }
     // 每一轮数字起点不同，竖线要贴在本轮第一个数字左边界，而非固定在首列。
-    cells.push({
+    elements.push({
       id: `short-division-separator-${stepIndex}`,
-      position: { column: separatorColumn, row },
-      edges: { left: true },
+      position: { kind: 'edge', column: separatorColumn, row, edge: 'left' },
+      content: { kind: 'line' },
       styleToken: 'short-division.separator',
     })
-    const barRow = appendRow(`short-division-bar-${stepIndex}`, 0)
-    cells.push({
+    elements.push({
       id: `short-division-bar-${stepIndex}`,
-      position: { column: separatorColumn, row: barRow, columnSpan: valueAreaEndColumn - separatorColumn },
-      edges: { bottom: true },
+      position: { kind: 'edge', column: separatorColumn, row, columnSpan: valueAreaEndColumn - separatorColumn, edge: 'bottom' },
+      content: { kind: 'line' },
       styleToken: 'short-division.bar',
     })
   })
   const finalRow = appendRow('short-division-final')
-  computation.finalValues.forEach((value, index) => placeValue('short-division-final', value, index, finalRow, 'short-division.final'))
+  const resultValues = settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
+    ? computation.finalValues
+    : (visibleSteps.at(-1)?.quotients ?? [])
+  resultValues.forEach((value, index) => placeValue('short-division-final', value, index, finalRow, 'short-division.final'))
 
   return {
     columns,
@@ -123,7 +125,7 @@ export const createShortDivisionGridScene = (
     defaultTextStyleToken: 'grid.default-text',
     textHorizontalAlign: settings.textHorizontalAlign ?? 'center',
     textVerticalAlign: settings.textVerticalAlign ?? 'center',
-    cells,
+    elements,
     showGuideGrid: settings.showGuideGrid,
     ariaLabel: `短除法：${computation.inputValues.join('、')}`,
   }

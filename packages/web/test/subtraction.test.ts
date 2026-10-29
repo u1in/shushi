@@ -36,15 +36,16 @@ describe('createSubtractionGridScene', () => {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: true,
       showBorrowSteps: true,
     })
-    expect(scene.rows[0]).toMatchObject({ id: 'borrow-row', size: 0 })
-    expect(scene.cells.find(({ id }) => id === 'minuend-0')?.content).toMatchObject({ text: '2', styleToken: 'subtraction.minuend' })
-    expect(scene.cells.find(({ id }) => id === 'minuend-1')?.content).toMatchObject({ text: '0', styleToken: 'subtraction.minuend' })
-    expect(scene.cells.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.borrow')).toHaveLength(2)
-    expect(scene.cells.find(({ id }) => id === 'borrow-0')).toMatchObject({
+    expect(scene.rows[0]).toMatchObject({ id: 'minuend-row', size: 1 })
+    expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
+    expect(scene.elements.find(({ id }) => id === 'minuend-0')?.content).toMatchObject({ text: '2', styleToken: 'subtraction.minuend' })
+    expect(scene.elements.find(({ id }) => id === 'minuend-1')?.content).toMatchObject({ text: '0', styleToken: 'subtraction.minuend' })
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.borrow')).toHaveLength(2)
+    expect(scene.elements.find(({ id }) => id === 'borrow-0')).toMatchObject({
       position: { column: 2 },
       content: { text: '·', fontSizeRatio: 0.84, horizontalAlign: 'center', verticalAlign: 'center' },
     })
-    expect(scene.cells.find(({ id }) => id === 'subtraction-difference-bar')).toMatchObject({ position: { column: 0, columnSpan: 4 } })
+    expect(scene.elements.find(({ id }) => id === 'subtraction-difference-bar')).toMatchObject({ position: { column: 0, columnSpan: 4 } })
     expect(resolveGridMetrics(scene).width).toBeGreaterThan(0)
   })
 
@@ -53,13 +54,24 @@ describe('createSubtractionGridScene', () => {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       showBorrowSteps: false,
     })
-    expect(hidden.cells.find(({ id }) => id === 'minuend-0')?.content).toMatchObject({ text: '2' })
-    expect(hidden.cells.some(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.borrow')).toBe(false)
-    expect(hidden.cells.find(({ id }) => id === 'subtraction-difference-bar')).toMatchObject({ position: { column: 0, columnSpan: 4 } })
+    expect(hidden.elements.find(({ id }) => id === 'minuend-0')?.content).toMatchObject({ text: '2' })
+    expect(hidden.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.borrow')).toBe(false)
+    expect(hidden.elements.find(({ id }) => id === 'subtraction-difference-bar')).toMatchObject({ position: { column: 0, columnSpan: 4 } })
     const negative = createSubtractionGridScene(computeSubtraction('12', '35'), {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       showBorrowSteps: true,
     })
-    expect(negative.cells.find(({ id }) => id === 'negative-sign')?.content).toMatchObject({ text: '−', styleToken: 'subtraction.negative-sign' })
+    expect(negative.elements.find(({ id }) => id === 'negative-sign')?.content).toMatchObject({ text: '−', styleToken: 'subtraction.negative-sign' })
+  })
+
+  test('按可见步骤渐进显示差和借位，输入被减数保持完整', () => {
+    const scene = createSubtractionGridScene(computeSubtraction('502', '137'), {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showBorrowSteps: true,
+      visibleStepCount: 2,
+    })
+    const differenceDigits = scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.difference')
+    expect(differenceDigits.map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['6', '5'])
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.minuend')).toHaveLength(3)
+    expect(scene.elements.filter(({ content }) => content?.kind === 'text' && content.styleToken === 'subtraction.borrow')).toHaveLength(2)
   })
 })
