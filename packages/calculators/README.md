@@ -8,6 +8,7 @@
 - `computeSubtraction(minuend, subtrahend)`：计算含连续借位和负结果标记的减法过程。
 - `computeDivision(divisor, dividend, options?)`：计算长除法过程。
 - `computeMultiplication(multiplicand, multiplier)`：计算长乘法过程。
+- `computeShortDivision({ mode, values, targetBase? })`：计算质因数分解、公因数或进制转换短除法过程。
 - `AdditionComputation`、`SubtractionComputation`、`DivisionComputation`、`MultiplicationComputation` 及各步骤类型。
 - `DivisionOptions`：支持 `remainder` 和 `decimal` 两种结果模式，并可限制小数位数。
 
@@ -19,6 +20,7 @@
 - [减法计算规则](./docs/减法计算规则.md)
 - [除法计算规则](./docs/除法计算规则.md)
 - [乘法计算规则](./docs/乘法计算规则.md)
+- [短除法计算规则](./docs/短除法计算规则.md)
 
 ## Bug 反馈与作者
 

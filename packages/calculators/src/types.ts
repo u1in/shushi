@@ -33,6 +33,63 @@ export interface DivisionOptions {
   maxDecimalDigits?: number
 }
 
+/** 短除法的三个教学用途；每种用途的终止条件不同。 */
+export type ShortDivisionMode = 'factorization' | 'commonFactor' | 'baseConversion'
+
+/** 一次短除法行：右侧的原数被左侧除数除后，商写到下一行。 */
+export interface ShortDivisionStep {
+  divisor: string
+  dividends: string[]
+  quotients: string[]
+  /** 进制转换才记录余数；质因数与公因数短除法均为 0。 */
+  remainders: string[]
+}
+
+interface ShortDivisionBaseComputation {
+  mode: ShortDivisionMode
+  inputValues: string[]
+  steps: ShortDivisionStep[]
+  finalValues: string[]
+}
+
+/** 分解质因数：终止的 1 或质数保留在底行。 */
+export interface FactorizationShortDivisionComputation extends ShortDivisionBaseComputation {
+  mode: 'factorization'
+  divisors: string[]
+  primeFactors: string[]
+  factorizationText: string
+  divisorCount: number
+  divisorSum: string
+}
+
+/** 公共质因数短除法：左侧乘积为 GCD，左侧与底行共同乘积为 LCM。 */
+export interface CommonFactorShortDivisionComputation extends ShortDivisionBaseComputation {
+  mode: 'commonFactor'
+  divisors: string[]
+  gcd: string
+  lcm: string
+}
+
+/** 十进制转目标进制：最终结果按余数自下而上读取。 */
+export interface BaseConversionShortDivisionComputation extends ShortDivisionBaseComputation {
+  mode: 'baseConversion'
+  targetBase: number
+  remaindersBottomUp: string[]
+  convertedText: string
+}
+
+export type ShortDivisionComputation =
+  | FactorizationShortDivisionComputation
+  | CommonFactorShortDivisionComputation
+  | BaseConversionShortDivisionComputation
+
+/** 短除法入口；`values` 在分解/进制转换时只取一个数，公因数模式至少需要两个数。 */
+export interface ShortDivisionInput {
+  mode: ShortDivisionMode
+  values: unknown[]
+  targetBase?: unknown
+}
+
 export interface MultiplicationDigitStep {
   multiplicandDigitIndex: number
   multiplicandDigit: string
