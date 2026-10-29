@@ -6,6 +6,7 @@ import DivisionNamingMapPage from './pages/DivisionNamingMapPage.vue'
 import MultiplicationNamingMapPage from './pages/MultiplicationNamingMapPage.vue'
 import AdditionNamingMapPage from './pages/AdditionNamingMapPage.vue'
 import SubtractionNamingMapPage from './pages/SubtractionNamingMapPage.vue'
+import ShortDivisionNamingMapPage from './pages/ShortDivisionNamingMapPage.vue'
 import './styles/tailwind.css'
 import './styles/naming-map.css'
 
@@ -17,6 +18,7 @@ const router = createRouter({
     { path: '/multiplication-elements', component: MultiplicationNamingMapPage },
     { path: '/addition-elements', component: AdditionNamingMapPage },
     { path: '/subtraction-elements', component: SubtractionNamingMapPage },
+    { path: '/short-division-elements', component: ShortDivisionNamingMapPage },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

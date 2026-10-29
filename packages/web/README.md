@@ -4,11 +4,12 @@
 
 ## 页面
 
-- `/`：加、减、乘、除计算器首页。
+- `/`：加、减、乘、除和短除法计算器首页。
 - `/addition-elements`：加法竖式元素命名图谱。
 - `/subtraction-elements`：减法竖式元素命名图谱。
 - `/division-elements`：除法竖式元素命名图谱。
 - `/multiplication-elements`：乘法竖式元素命名图谱。
+- `/short-division-elements`：短除法竖式元素命名图谱。
 
 `packages/web/index.html` 是唯一的 Vite 应用壳；页面和组件位于 `src/`，测试位于 `test/`。前端通过工作区依赖调用计算器、布局引擎、行列网格和渲染器包。
 

@@ -3,6 +3,7 @@ import DivisionCalculator from '../components/DivisionCalculator.vue'
 import MultiplicationCalculator from '../components/MultiplicationCalculator.vue'
 import AdditionCalculator from '../components/AdditionCalculator.vue'
 import SubtractionCalculator from '../components/SubtractionCalculator.vue'
+import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
 </script>
 
 <template>
@@ -15,7 +16,8 @@ import SubtractionCalculator from '../components/SubtractionCalculator.vue'
 
     <AdditionCalculator />
     <SubtractionCalculator />
-    <DivisionCalculator />
     <MultiplicationCalculator />
+    <DivisionCalculator />
+    <ShortDivisionCalculator />
   </main>
 </template>
