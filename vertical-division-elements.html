@@ -19,7 +19,7 @@
       .naming-map-stage { position: relative; margin: 20px auto; color: #172033; }
       .naming-map-highlight-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
       .naming-map-highlight { position: absolute; border: 2px solid var(--highlight-color); border-radius: 8px; background: color-mix(in srgb, var(--highlight-color) 9%, transparent); box-shadow: 0 0 0 2px rgba(255, 255, 255, .78); }
-      .naming-map-highlight::after { position: absolute; top: -13px; right: -10px; display: grid; min-width: 24px; height: 24px; padding: 0 8px; place-items: center; border: 2px solid var(--highlight-color); border-radius: 999px; color: #fff; background: var(--highlight-color); content: attr(data-name); font: 800 11px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: nowrap; }
+      .naming-map-highlight::after { position: absolute; top: -13px; right: -10px; display: grid; min-width: 24px; height: 24px; padding: 0 8px; place-items: center; border: 2px solid var(--highlight-color); border-radius: 999px; color: #fff; background: var(--highlight-color); content: attr(data-name); font: 800 11px/1 var(--site-font-family); white-space: nowrap; }
       .naming-map-highlight--repeat::after { display: none; }
       .naming-map-highlight--hidden { display: none; }
       .tone-blue { --highlight-color: #4166b6; } .tone-ink { --highlight-color: #192642; } .tone-muted { --highlight-color: #7d8eac; } .tone-green { --highlight-color: #1e8b83; } .tone-subtraction { --highlight-color: #6d83ae; } .tone-partial { --highlight-color: #5a709f; } .tone-grid { --highlight-color: #a7bbdd; border-style: dashed; }
@@ -27,11 +27,11 @@
       .naming-map-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
       .naming-map-catalog .naming-map-grid { grid-template-columns: 1fr; gap: 8px; }
       .naming-map-json-view { max-height: 720px; overflow: auto; margin-top: 18px; border: 1px solid #dce5f2; border-radius: 12px; padding: 12px; background: #f8faff; }
-      .naming-map-json-view .json-formatter-row { font-family: "Noto Sans SC", "PingFang SC", Inter, ui-sans-serif, system-ui, sans-serif !important; font-size: .72rem; }
+      .naming-map-json-view .json-formatter-row { font-family: var(--numeric-font-family) !important; font-variant-numeric: tabular-nums; font-size: .72rem; }
       .naming-map-json-notes { margin-top: 12px; border-top: 1px solid #e1e8f3; padding-top: 10px; }
       .naming-map-json-notes summary { cursor: pointer; color: #48618f; font-size: .78rem; font-weight: 800; }
       .naming-map-json-notes dl { display: grid; grid-template-columns: max-content 1fr; gap: 5px 10px; margin: 10px 0 0; font-size: .72rem; line-height: 1.4; }
-      .naming-map-json-notes dt { color: #4166b6; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .naming-map-json-notes dt { color: #4166b6; font-family: var(--site-font-family); }
       .naming-map-json-notes dd { margin: 0; color: #71809a; }
       .naming-map-item { position: relative; display: block; min-height: 0; border: 1px solid #e1e8f3; border-radius: 11px; padding: 9px 12px 8px 44px; cursor: pointer; }
       .naming-map-item:hover { border-color: #b8c8e4; background: #fbfcff; }

@@ -1,6 +1,8 @@
 /* Shared application and board-renderer theme. Operation-specific colors use semantic style tokens. */
 :root {
-  font-family: "Noto Sans SC", "PingFang SC", Inter, ui-sans-serif, system-ui, sans-serif;
+  --site-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "Latin Modern Math", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif;
+  --numeric-font-family: var(--site-font-family);
+  font-family: var(--site-font-family);
   color: #172033;
   background: #f5f7fb;
   font-synthesis: none;
@@ -269,6 +271,17 @@ button:hover {
 .ghost-button {
   color: #48618f;
   background: #edf2fb;
+}
+
+.field input,
+.division-operator,
+.range-field output,
+.ghost-button,
+.result-heading h2,
+.answer,
+.normalization {
+  font-family: var(--numeric-font-family);
+  font-variant-numeric: tabular-nums;
 }
 
 .error-message {
@@ -785,6 +798,7 @@ h2 {
 /* Generic variable-track board renderer. Operation layouts select these semantic tokens. */
 .division-svg .board-text,
 .division-dom .board-text {
+  font-family: var(--site-font-family);
   font-size: var(--board-font-size, 27px);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -982,7 +996,8 @@ h2 {
 }
 
 .data-flow-json-view .json-formatter-row {
-  font-family: "Noto Sans SC", "PingFang SC", Inter, ui-sans-serif, system-ui, sans-serif !important;
+  font-family: var(--numeric-font-family) !important;
+  font-variant-numeric: tabular-nums;
   font-size: .74rem;
 }
 
@@ -1021,7 +1036,8 @@ h2 {
 }
 
 .calculation-json-view .json-formatter-row {
-  font-family: "Noto Sans SC", "PingFang SC", Inter, ui-sans-serif, system-ui, sans-serif !important;
+  font-family: var(--numeric-font-family) !important;
+  font-variant-numeric: tabular-nums;
   font-size: .78rem;
 }
 
