@@ -2,6 +2,7 @@
 import { computeMultiplication } from '@vertical-arithmetic/calculators'
 import { createMultiplicationGridScene } from '@vertical-arithmetic/layout'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
+import RendererDataPanel from '../components/RendererDataPanel.vue'
 import type { NamingMapItem } from '../components/NamingMapGrid.vue'
 
 const computation = computeMultiplication('97', '89')
@@ -58,5 +59,6 @@ const notes = [
       </details>
       <pre class="mt-5 max-h-[37.5rem] overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-700">{{ JSON.stringify(computation, null, 2) }}</pre>
     </section>
+    <RendererDataPanel :scene="scene" />
   </main>
 </template>

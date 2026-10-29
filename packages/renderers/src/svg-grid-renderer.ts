@@ -37,6 +37,8 @@ const renderSvgElement = (
       x2: rect.left + rect.width,
       y2: rect.top + rect.height,
     })
+    if (element.content.color) node.style.stroke = element.content.color
+    if (element.content.thickness !== undefined) node.style.strokeWidth = `${element.content.thickness}px`
     applyStyleToken(node, element.styleToken)
     lineLayer.appendChild(node)
     return
@@ -51,6 +53,7 @@ const renderSvgElement = (
       y: anchor.y,
     })
     node.textContent = element.content.text
+    if (element.content.color) node.style.fill = element.content.color
     if (element.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
@@ -75,6 +78,8 @@ const renderSvgElement = (
     class: `grid-corner grid-corner--${element.content.corner}`,
     d: `M ${rect.left} ${bottom} H ${right - radius} Q ${right} ${bottom} ${right} ${bottom - radius} V ${rect.top}`,
   })
+  if (element.content.color) node.style.stroke = element.content.color
+  if (element.content.thickness !== undefined) node.style.strokeWidth = `${element.content.thickness}px`
   applyStyleToken(node, element.styleToken)
   lineLayer.appendChild(node)
 }

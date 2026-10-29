@@ -5,6 +5,8 @@ import { createAdditionGridScene } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
 import type { AdditionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
+import { useCalculatorStepPlayback } from '../composables/stepPlayback'
+import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const firstAddend = ref('356')
 const secondAddend = ref('278')
@@ -18,15 +20,29 @@ const computation = ref<AdditionComputation>()
 const scene = ref<GridScene>()
 const answer = computed(() => computation.value?.sumDigits ?? '—')
 
+const renderScene = (): void => {
+  if (!computation.value) return
+  scene.value = createAdditionGridScene(computation.value, {
+    cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
+    showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
+    visibleStepCount: visibleStepCount.value,
+  })
+}
+const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
+const visibleStepCount = playback.visibleStepCount
+const currentStep = playback.currentStep
+const stepCount = playback.stepCount
+const canStart = playback.canStart
+const canPrevious = playback.canPrevious
+const canNext = playback.canNext
+
 /** 首页先提供双加数练习；计算器 API 仍支持传入三个及以上加数实现连加。 */
 const calculate = (): void => {
   try {
     const result = computeAddition(firstAddend.value, secondAddend.value)
     computation.value = result
-    scene.value = createAdditionGridScene(result, {
-      cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
-      showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
-    })
+    visibleStepCount.value = undefined
+    renderScene()
     error.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '输入无法计算，请检查格式。'
@@ -65,6 +81,7 @@ calculate()
       <section class="result-card" aria-live="polite"><div class="calculation-result">
         <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ firstAddend }} + {{ secondAddend }} =</h2></div><output class="answer">{{ answer }}</output></div>
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
+        <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
       </div></section>
     </section>

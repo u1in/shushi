@@ -16,6 +16,7 @@
       "@vertical-arithmetic/grid": ["../grid/src/index.ts"],
       "@vertical-arithmetic/calculators": ["../calculators/src/index.ts"],
       "@vertical-arithmetic/layout": ["../layout/src/index.ts"],
+      "@vertical-arithmetic/macro": ["../macro/src/index.ts"],
       "@vertical-arithmetic/renderers": ["../renderers/src/index.ts"]
     }
   },

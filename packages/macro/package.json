@@ -1,0 +1,13 @@
+{
+  "name": "@vertical-arithmetic/macro",
+  "description": "把人类可写的竖式宏语言编译为通用 GridScene 的解析与布局包。",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vertical-arithmetic/grid": "file:../grid"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -5,6 +5,8 @@ import { createMultiplicationGridScene } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
 import type { MultiplicationComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
+import { useCalculatorStepPlayback } from '../composables/stepPlayback'
+import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const multiplicand = ref('97')
 const multiplier = ref('89')
@@ -19,18 +21,43 @@ const computation = ref<MultiplicationComputation>()
 const scene = ref<GridScene>()
 const answer = computed(() => computation.value?.productDigits ?? '—')
 
+const renderScene = (): void => {
+  if (!computation.value) return
+  scene.value = createMultiplicationGridScene(computation.value, {
+    cellWidth: cellWidth.value,
+    rowHeight: rowHeight.value,
+    fontSizeRatio: fontSizeRatio.value,
+    showGuideGrid: showGuideGrid.value,
+    uniformMultiplicationBars: uniformMultiplicationBars.value,
+    showCarrySteps: showCarrySteps.value,
+    visibleStepCount: visibleStepCount.value,
+  })
+}
+const playback = useCalculatorStepPlayback({
+  getStepCount: () => {
+    const result = computation.value
+    if (!result) return 0
+    const multiplicationStepCount = result.partialProducts.reduce(
+      (count, partialProduct) => count + partialProduct.digitSteps.length,
+      0,
+    )
+    return multiplicationStepCount + (result.multiplierDigits.length > 1 ? result.additionSteps.length : 0)
+  },
+  render: renderScene,
+})
+const visibleStepCount = playback.visibleStepCount
+const currentStep = playback.currentStep
+const stepCount = playback.stepCount
+const canStart = playback.canStart
+const canPrevious = playback.canPrevious
+const canNext = playback.canNext
+
 const calculate = (): void => {
   try {
     const result = computeMultiplication(multiplicand.value, multiplier.value)
     computation.value = result
-    scene.value = createMultiplicationGridScene(result, {
-      cellWidth: cellWidth.value,
-      rowHeight: rowHeight.value,
-      fontSizeRatio: fontSizeRatio.value,
-      showGuideGrid: showGuideGrid.value,
-      uniformMultiplicationBars: uniformMultiplicationBars.value,
-      showCarrySteps: showCarrySteps.value,
-    })
+    visibleStepCount.value = undefined
+    renderScene()
     error.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '输入无法计算，请检查格式。'
@@ -73,6 +100,7 @@ calculate()
         <div class="calculation-result">
           <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ multiplicand }} × {{ multiplier }} =</h2></div><output class="answer">{{ answer }}</output></div>
           <p class="normalization">{{ computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
+          <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>

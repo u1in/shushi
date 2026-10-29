@@ -28,6 +28,11 @@ const renderDomElement = (
     node.style.top = `${rect.top}px`
     node.style.width = `${rect.width || 3}px`
     node.style.height = `${rect.height || 3}px`
+    // 线条的直观样式由 GridScene 声明，两个渲染器使用同一组受限属性。
+    if (element.content.color) node.style.backgroundColor = element.content.color
+    if (element.content.thickness !== undefined) {
+      node.style.setProperty('--grid-line-thickness', `${element.content.thickness}px`)
+    }
     parent.appendChild(node)
     return
   }
@@ -44,6 +49,7 @@ const renderDomElement = (
     const translateX = horizontalAlign === 'center' ? '-50%' : horizontalAlign === 'right' ? '-100%' : '0'
     const translateY = verticalAlign === 'center' ? '-50%' : verticalAlign === 'bottom' ? '-100%' : '0'
     node.style.transform = `translate(${translateX}, ${translateY})`
+    if (element.content.color) node.style.color = element.content.color
     if (element.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
@@ -51,7 +57,7 @@ const renderDomElement = (
     return
   }
 
-  const strokeWidth = 3
+  const strokeWidth = element.content.thickness ?? 3
   const halfStroke = strokeWidth / 2
   const node = document.createElement('div')
   if (element.position.kind !== 'cell') {
@@ -64,6 +70,14 @@ const renderDomElement = (
   node.style.width = `${rect.width + strokeWidth}px`
   node.style.height = `${rect.height + strokeWidth}px`
   node.style.setProperty('--grid-corner-radius', `${Math.min(rect.width, rect.height) * element.content.radiusRatio + halfStroke}px`)
+  if (element.content.color) {
+    node.style.borderRightColor = element.content.color
+    node.style.borderBottomColor = element.content.color
+  }
+  if (element.content.thickness !== undefined) {
+    node.style.borderRightWidth = `${element.content.thickness}px`
+    node.style.borderBottomWidth = `${element.content.thickness}px`
+  }
   parent.appendChild(node)
 }
 

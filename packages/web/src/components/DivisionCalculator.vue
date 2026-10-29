@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeDivision } from '@vertical-arithmetic/calculators'
-import { createDivisionGridScene } from '@vertical-arithmetic/layout'
+import { createDivisionGridScene, getDivisionPlaybackStepCount } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
 import type { DivisionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
+import { useCalculatorStepPlayback } from '../composables/stepPlayback'
+import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const dividend = ref('10230')
 const divisor = ref('25')
@@ -19,6 +21,33 @@ const error = ref('')
 const computation = ref<DivisionComputation>()
 const scene = ref<GridScene>()
 
+const renderScene = (): void => {
+  if (!computation.value) return
+  scene.value = createDivisionGridScene(computation.value, {
+    cellWidth: cellWidth.value,
+    rowHeight: rowHeight.value,
+    fontSizeRatio: fontSizeRatio.value,
+    bracketBend: 1,
+    showGuideGrid: showGuideGrid.value,
+    uniformSubtractionBars: uniformSubtractionBars.value,
+    showZeroQuotientSteps: showZeroQuotientSteps.value,
+    visibleStepCount: visibleStepCount.value,
+  })
+}
+const playback = useCalculatorStepPlayback({
+  getStepCount: () => {
+    const result = computation.value
+    return result ? getDivisionPlaybackStepCount(result, showZeroQuotientSteps.value) : 0
+  },
+  render: renderScene,
+})
+const visibleStepCount = playback.visibleStepCount
+const currentStep = playback.currentStep
+const stepCount = playback.stepCount
+const canStart = playback.canStart
+const canPrevious = playback.canPrevious
+const canNext = playback.canNext
+
 const answer = computed(() => computation.value
   ? computation.value.remainder === '0' ? computation.value.quotientText : `${computation.value.quotientText} …… ${computation.value.remainder}`
   : '—')
@@ -27,15 +56,8 @@ const calculate = (): void => {
   try {
     const result = computeDivision(divisor.value, dividend.value, { resultMode: resultMode.value })
     computation.value = result
-    scene.value = createDivisionGridScene(result, {
-      cellWidth: cellWidth.value,
-      rowHeight: rowHeight.value,
-      fontSizeRatio: fontSizeRatio.value,
-      bracketBend: 1,
-      showGuideGrid: showGuideGrid.value,
-      uniformSubtractionBars: uniformSubtractionBars.value,
-      showZeroQuotientSteps: showZeroQuotientSteps.value,
-    })
+    visibleStepCount.value = undefined
+    renderScene()
     error.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '输入无法计算，请检查格式。'
@@ -82,6 +104,7 @@ calculate()
         <div class="calculation-result">
           <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ dividend }} ÷ {{ divisor }} =</h2></div><output class="answer">{{ answer }}</output></div>
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
+          <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>

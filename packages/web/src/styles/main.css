@@ -87,6 +87,94 @@ h1 {
   margin-top: 54px;
 }
 
+.macro-playground {
+  margin-bottom: 54px;
+}
+
+.macro-source-field {
+  display: grid;
+  gap: 9px;
+  color: #63718b;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.macro-insert-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 20px 0 10px;
+}
+
+.macro-format-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.macro-insert-toolbar > span,
+.macro-format-toolbar > span {
+  flex-basis: 100%;
+  margin-right: 3px;
+  color: #63718b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.macro-insert-button {
+  border: 1px solid #d5deed;
+  border-radius: 8px;
+  padding: 5px 8px;
+  color: #48618f;
+  background: #f8faff;
+  box-shadow: none;
+  font: 800 0.71rem/1 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.macro-insert-button:hover {
+  color: #fff;
+  background: #4166b6;
+}
+
+.macro-insert-button:focus-visible {
+  outline: 3px solid rgba(110, 143, 210, 0.35);
+  outline-offset: 2px;
+}
+
+.macro-example-label {
+  flex-basis: 100%;
+  color: #63718b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.macro-example-button {
+  padding: 9px 11px;
+  font-family: var(--numeric-font-family);
+}
+
+.macro-source-field textarea {
+  min-height: 258px;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #d5deed;
+  border-radius: 14px;
+  outline: none;
+  padding: 15px 16px;
+  color: #18233c;
+  background: #f8faff;
+  font: 700 0.84rem/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+  tab-size: 2;
+}
+
+.macro-source-field textarea:focus {
+  border-color: #6e8fd2;
+  box-shadow: 0 0 0 4px rgba(110, 143, 210, 0.15);
+}
+
 .operation-demo .naming-map-link {
   margin: 0;
 }
@@ -285,6 +373,32 @@ button {
 
 button:hover {
   transform: translateY(-1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.step-playback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 4px;
+}
+
+.step-playback__label {
+  margin-right: auto;
+  color: #62708b;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.step-playback__button {
+  padding: 9px 12px;
+  font-size: 0.78rem;
 }
 
 .primary-button {
@@ -840,16 +954,21 @@ h2 {
 .division-svg .grid-text {
   dominant-baseline: middle;
   text-anchor: middle;
-  fill: #172033;
+  fill: #000;
   font-weight: 700;
 }
+
+.grid-text[data-style-token="macro.default-text"] { color: #172033; font-weight: 700; }
+.division-svg .grid-text[data-style-token="macro.default-text"] { fill: #172033; }
+.grid-text[data-style-token="macro.decimal"] { color: #4166b6; font-weight: 800; }
+.division-svg .grid-text[data-style-token="macro.decimal"] { fill: #4166b6; }
 
 .division-dom .grid-text {
   position: absolute;
   display: block;
   width: max-content;
   white-space: nowrap;
-  color: #172033;
+  color: #000;
   font-weight: 700;
 }
 
@@ -920,23 +1039,23 @@ h2 {
   position: absolute;
 }
 
-.division-dom .grid-edge { background: #172033; }
+.division-dom .grid-edge { background: #000; }
 .division-dom .grid-corner {
-  border-right: var(--division-stroke, 3px) solid #172033;
-  border-bottom: var(--division-stroke, 3px) solid #172033;
+  border-right: var(--division-stroke, 3px) solid #000;
+  border-bottom: var(--division-stroke, 3px) solid #000;
   border-bottom-right-radius: var(--grid-corner-radius);
 }
 
 .division-dom .grid-edge--top,
 .division-dom .grid-edge--bottom {
-  height: 2px !important;
+  height: var(--grid-line-thickness, 2px) !important;
   border-radius: 0;
   transform: translateY(-1px);
 }
 
 .division-dom .grid-edge--left,
 .division-dom .grid-edge--right {
-  width: var(--division-stroke, 3px) !important;
+  width: var(--grid-line-thickness, var(--division-stroke, 3px)) !important;
   transform: translateX(calc(var(--division-stroke, 3px) / -2));
 }
 
@@ -965,7 +1084,7 @@ h2 {
 
 .division-svg .grid-edge {
   fill: none;
-  stroke: #172033;
+  stroke: #000;
   stroke-linecap: round;
   stroke-width: var(--division-stroke, 3px);
 }
@@ -978,7 +1097,7 @@ h2 {
 
 .division-svg .grid-corner {
   fill: none;
-  stroke: #172033;
+  stroke: #000;
   stroke-linecap: round;
   stroke-width: var(--division-stroke, 3px);
 }

@@ -5,6 +5,8 @@ import { createSubtractionGridScene } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
 import type { SubtractionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
+import { useCalculatorStepPlayback } from '../composables/stepPlayback'
+import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const minuend = ref('502')
 const subtrahend = ref('137')
@@ -18,14 +20,28 @@ const computation = ref<SubtractionComputation>()
 const scene = ref<GridScene>()
 const answer = computed(() => computation.value?.resultText ?? '—')
 
+const renderScene = (): void => {
+  if (!computation.value) return
+  scene.value = createSubtractionGridScene(computation.value, {
+    cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
+    showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
+    visibleStepCount: visibleStepCount.value,
+  })
+}
+const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
+const visibleStepCount = playback.visibleStepCount
+const currentStep = playback.currentStep
+const stepCount = playback.stepCount
+const canStart = playback.canStart
+const canPrevious = playback.canPrevious
+const canNext = playback.canNext
+
 const calculate = (): void => {
   try {
     const result = computeSubtraction(minuend.value, subtrahend.value)
     computation.value = result
-    scene.value = createSubtractionGridScene(result, {
-      cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
-      showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
-    })
+    visibleStepCount.value = undefined
+    renderScene()
     error.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '输入无法计算，请检查格式。'
@@ -65,6 +81,7 @@ calculate()
         <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output></div>
         <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
+        <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
       </div></section>
     </section>

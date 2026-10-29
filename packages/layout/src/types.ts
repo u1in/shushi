@@ -6,6 +6,8 @@ export interface GridRenderSettings {
   rowHeight: number
   fontSizeRatio: number
   showGuideGrid: boolean
+  /** 播放教学过程时显示的已完成步骤数；未设置时显示完整结果。 */
+  visibleStepCount?: number
   textHorizontalAlign?: GridTextHorizontalAlign
   textVerticalAlign?: GridTextVerticalAlign
 }

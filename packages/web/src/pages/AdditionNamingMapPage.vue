@@ -2,6 +2,7 @@
 import { computeAddition } from '@vertical-arithmetic/calculators'
 import { createAdditionGridScene } from '@vertical-arithmetic/layout'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
+import RendererDataPanel from '../components/RendererDataPanel.vue'
 import type { NamingMapItem } from '../components/NamingMapGrid.vue'
 
 const computation = computeAddition('356', '278')
@@ -32,5 +33,6 @@ const notes = [
       <details class="mt-4 border-t border-slate-200 pt-3" open><summary class="cursor-pointer font-bold text-blue-800">字段注释</summary><dl class="mt-3 grid gap-x-4 gap-y-2 text-sm md:grid-cols-[max-content_1fr]"><template v-for="[field, description] in notes" :key="field"><dt class="font-mono font-bold text-blue-700">{{ field }}</dt><dd class="text-slate-600">{{ description }}</dd></template></dl></details>
       <pre class="mt-5 max-h-[37.5rem] overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-700">{{ JSON.stringify(computation, null, 2) }}</pre>
     </section>
+    <RendererDataPanel :scene="scene" />
   </main>
 </template>

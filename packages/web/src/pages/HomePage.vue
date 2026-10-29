@@ -4,6 +4,7 @@ import MultiplicationCalculator from '../components/MultiplicationCalculator.vue
 import AdditionCalculator from '../components/AdditionCalculator.vue'
 import SubtractionCalculator from '../components/SubtractionCalculator.vue'
 import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
+import MacroPlayground from '../components/MacroPlayground.vue'
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
       <p class="intro">用于展示四则运算的计算过程与竖式；每种运算均提供可缩放的过程网格。</p>
     </section>
 
+    <MacroPlayground />
     <AdditionCalculator />
     <SubtractionCalculator />
     <MultiplicationCalculator />

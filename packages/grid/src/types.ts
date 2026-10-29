@@ -63,6 +63,8 @@ export interface GridTextContent {
   text: string
   /** Optional override. Omitted text inherits the renderer's default text style. */
   styleToken?: string
+  /** Optional renderer-neutral colour override, applied after semantic style tokens. */
+  color?: string
   /** Optional multiplier of the scene font size for compact annotations such as carries. */
   fontSizeRatio?: number
   /**
@@ -79,11 +81,19 @@ export interface GridCornerContent {
   corner: 'bottomRight'
   /** Multiplier of the smaller resolved cell dimension. */
   radiusRatio: number
+  /** Optional renderer-neutral stroke colour, shared by DOM/CSS and SVG. */
+  color?: string
+  /** Optional positive stroke thickness in CSS pixels. */
+  thickness?: number
 }
 
 /** A straight rule rendered along a `GridEdgePosition`. */
 export interface GridLineContent {
   kind: 'line'
+  /** Optional renderer-neutral colour override shared by DOM/CSS and SVG. */
+  color?: string
+  /** Optional positive stroke thickness in CSS pixels. */
+  thickness?: number
 }
 
 export type GridElementContent = GridTextContent | GridCornerContent | GridLineContent
