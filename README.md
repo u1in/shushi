@@ -5,10 +5,11 @@
 ## 当前能力
 
 - 除法：支持整数商、余数，以及在可有限展开时展示小数过程。
+- 短除法：支持质因数分解与约数信息、最大公约数 / 最小公倍数，以及十进制转 2–36 进制。
 - 乘法：支持逐位乘法、部分积、进位和最终求和过程。
 - 行列网格：用与运算无关的 `GridScene` 描述轨道、单元格、文字、边线和对齐方式。
 - 渲染器：同一场景可渲染为 DOM/CSS 或 SVG。
-- Web 应用：提供计算器和除法、乘法竖式元素命名图谱页面。
+- Web 应用：提供计算器和各运算的竖式元素命名图谱页面。
 
 ## 工作区结构
 
@@ -47,8 +48,10 @@ npm run build
 - [网格架构与子包关系](./packages/grid/docs/网格架构.md)
 - [除法计算规则](./packages/calculators/docs/除法计算规则.md)
 - [乘法计算规则](./packages/calculators/docs/乘法计算规则.md)
+- [短除法计算规则](./packages/calculators/docs/短除法计算规则.md)
 - [除法竖式排版规则](./packages/layout/docs/除法竖式排版规则.md)
 - [乘法竖式排版规则](./packages/layout/docs/乘法竖式排版规则.md)
+- [短除法竖式排版规则](./packages/layout/docs/短除法竖式排版规则.md)
 
 ## Bug 反馈与贡献
 
