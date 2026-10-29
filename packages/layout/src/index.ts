@@ -1,3 +1,5 @@
+export * from './addition-layout'
 export * from './division-layout'
 export * from './multiplication-layout'
+export * from './subtraction-layout'
 export * from './types'

@@ -1,10 +1,12 @@
 # `@vertical-arithmetic/web`
 
-小学竖式项目的浏览器前端应用，使用 Vue、Vue Router、Vite 和 Tailwind CSS 组织计算器、网格预览与竖式元素命名图谱页面。
+四则运算竖式项目的浏览器前端应用，使用 Vue、Vue Router、Vite 和 Tailwind CSS 组织计算器、网格预览与竖式元素命名图谱页面。
 
 ## 页面
 
-- `/`：除法与乘法计算器首页。
+- `/`：加、减、乘、除计算器首页。
+- `/addition-elements`：加法竖式元素命名图谱。
+- `/subtraction-elements`：减法竖式元素命名图谱。
 - `/division-elements`：除法竖式元素命名图谱。
 - `/multiplication-elements`：乘法竖式元素命名图谱。
 

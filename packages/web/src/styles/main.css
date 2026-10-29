@@ -366,6 +366,14 @@ button:hover {
   padding: 8px 0 0;
 }
 
+.settings-range-group,
+.settings-switch-group {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  min-width: 0;
+}
+
 .panel-kicker {
   margin: 0;
   color: #7d8eac;
@@ -729,15 +737,15 @@ h2 {
 .division-svg .division-bracket-arc {
   fill: none;
   stroke: #4166b6;
-  stroke-linecap: round;
-  stroke-width: var(--division-stroke, 3px);
+  stroke-linecap: butt;
+  stroke-width: 2px;
 }
 
 .division-svg .division-line--divisionBracketTopLine,
 .division-svg .division-line--subtractionBar {
   fill: none;
-  stroke-linecap: round;
-  stroke-width: var(--division-stroke, 3px);
+  stroke-linecap: butt;
+  stroke-width: 2px;
 }
 
 .division-svg .division-line--divisionBracketTopLine {
@@ -763,20 +771,20 @@ h2 {
 }
 
 .division-dom .division-bracket-arc {
-  border-right: var(--division-stroke, 3px) solid #4166b6;
-  border-bottom: var(--division-stroke, 3px) solid #4166b6;
+  border-right: 2px solid #4166b6;
+  border-bottom: 2px solid #4166b6;
   border-bottom-right-radius: var(--bracket-arc-radius);
 }
 
 .division-dom .division-line--divisionBracketTopLine {
-  height: var(--division-stroke, 3px) !important;
+  height: 2px !important;
   border-radius: 0;
   background: #4166b6;
 }
 
 .division-dom .division-line--subtractionBar {
-  height: var(--division-stroke, 3px) !important;
-  border-radius: 999px;
+  height: 2px !important;
+  border-radius: 0;
   background: #6d83ae;
 }
 
@@ -850,6 +858,26 @@ h2 {
 .division-svg .grid-text[data-style-token="multiplication.partial-product"] { fill: #1e8b83; }
 .grid-text[data-style-token="multiplication.product"] { color: #213c77; font-weight: 800; }
 .division-svg .grid-text[data-style-token="multiplication.product"] { fill: #213c77; }
+.grid-text[data-style-token="addition.addend"],
+.grid-text[data-style-token="subtraction.minuend"] { color: #192642; font-weight: 700; }
+.division-svg .grid-text[data-style-token="addition.addend"],
+.division-svg .grid-text[data-style-token="subtraction.minuend"] { fill: #192642; }
+.grid-text[data-style-token="addition.operator"],
+.grid-text[data-style-token="subtraction.operator"],
+.grid-text[data-style-token="subtraction.negative-sign"] { color: #4166b6; font-weight: 800; }
+.division-svg .grid-text[data-style-token="addition.operator"],
+.division-svg .grid-text[data-style-token="subtraction.operator"],
+.division-svg .grid-text[data-style-token="subtraction.negative-sign"] { fill: #4166b6; }
+.grid-text[data-style-token="addition.carry"],
+.grid-text[data-style-token="subtraction.borrow"] { color: #c58031; font-weight: 800; }
+.division-svg .grid-text[data-style-token="addition.carry"],
+.division-svg .grid-text[data-style-token="subtraction.borrow"] { fill: #c58031; }
+.grid-text[data-style-token="addition.sum"],
+.grid-text[data-style-token="subtraction.difference"] { color: #213c77; font-weight: 800; }
+.division-svg .grid-text[data-style-token="addition.sum"],
+.division-svg .grid-text[data-style-token="subtraction.difference"] { fill: #213c77; }
+.grid-text[data-style-token="subtraction.subtrahend"] { color: #1e8b83; font-weight: 700; }
+.division-svg .grid-text[data-style-token="subtraction.subtrahend"] { fill: #1e8b83; }
 
 .division-dom .grid-edge,
 .division-dom .grid-corner,
@@ -866,8 +894,9 @@ h2 {
 
 .division-dom .grid-edge--top,
 .division-dom .grid-edge--bottom {
-  height: var(--division-stroke, 3px) !important;
-  transform: translateY(calc(var(--division-stroke, 3px) / -2));
+  height: 2px !important;
+  border-radius: 0;
+  transform: translateY(-1px);
 }
 
 .division-dom .grid-edge--left,
@@ -877,12 +906,14 @@ h2 {
 }
 
 .division-dom .grid-edge[data-style-token="division.bracket-top-line"] { background: #4166b6; }
-.division-dom .grid-edge[data-style-token="division.subtraction-bar"] { border-radius: 999px; background: #6d83ae; }
+.division-dom .grid-edge[data-style-token="division.subtraction-bar"] { border-radius: 0; background: #6d83ae; }
 .division-dom .grid-edge[data-style-token="multiplication.input-bar"] { background: #4166b6; }
-.division-dom .grid-edge[data-style-token="multiplication.sum-bar"] { border-radius: 999px; background: #6d83ae; }
+.division-dom .grid-edge[data-style-token="multiplication.sum-bar"] { border-radius: 0; background: #6d83ae; }
+.division-dom .grid-edge[data-style-token="addition.sum-bar"] { border-radius: 0; background: #6d83ae; }
+.division-dom .grid-edge[data-style-token="subtraction.difference-bar"] { border-radius: 0; background: #6d83ae; }
 .division-dom .grid-corner[data-style-token="division.bracket"] {
-  border-right: var(--division-stroke, 3px) solid #4166b6;
-  border-bottom: var(--division-stroke, 3px) solid #4166b6;
+  border-right: 2px solid #4166b6;
+  border-bottom: 2px solid #4166b6;
   border-bottom-right-radius: var(--grid-corner-radius);
 }
 
@@ -893,6 +924,12 @@ h2 {
   stroke-width: var(--division-stroke, 3px);
 }
 
+.division-svg .grid-edge--top,
+.division-svg .grid-edge--bottom {
+  stroke-linecap: butt;
+  stroke-width: 2px;
+}
+
 .division-svg .grid-corner {
   fill: none;
   stroke: #172033;
@@ -901,14 +938,16 @@ h2 {
 }
 
 .division-svg .grid-edge[data-style-token="division.bracket-top-line"] { stroke: #4166b6; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="division.subtraction-bar"] { stroke: #6d83ae; }
+.division-svg .grid-edge[data-style-token="division.subtraction-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
 .division-svg .grid-edge[data-style-token="multiplication.input-bar"] { stroke: #4166b6; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="multiplication.sum-bar"] { stroke: #6d83ae; }
+.division-svg .grid-edge[data-style-token="multiplication.sum-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="addition.sum-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="subtraction.difference-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
 .division-svg .grid-corner[data-style-token="division.bracket"] {
   fill: none;
   stroke: #4166b6;
-  stroke-linecap: round;
-  stroke-width: var(--division-stroke, 3px);
+  stroke-linecap: butt;
+  stroke-width: 2px;
 }
 
 .division-dom .grid-guide-line {

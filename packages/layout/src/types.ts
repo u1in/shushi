@@ -22,3 +22,13 @@ export interface MultiplicationRenderSettings extends GridRenderSettings {
   uniformMultiplicationBars: boolean
   showCarrySteps: boolean
 }
+
+/** Addition-only layout configuration. */
+export interface AdditionRenderSettings extends GridRenderSettings {
+  showCarrySteps: boolean
+}
+
+/** Subtraction-only layout configuration. */
+export interface SubtractionRenderSettings extends GridRenderSettings {
+  showBorrowSteps: boolean
+}

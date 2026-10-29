@@ -1,18 +1,22 @@
 # `@vertical-arithmetic/calculators`
 
-小学竖式计算层。它校验非负整数输入，使用十进制字符串执行除法和乘法，并输出与渲染器无关的过程数据，供 `@vertical-arithmetic/layout` 编排为网格场景。
+四则运算计算层。它校验非负整数输入，使用十进制字符串执行加、减、乘、除，并输出与渲染器无关的过程数据，供 `@vertical-arithmetic/layout` 编排为网格场景。
 
 ## 导出内容
 
+- `computeAddition(...addends)`：计算两个或多个加数的逐列加法过程。
+- `computeSubtraction(minuend, subtrahend)`：计算含连续借位和负结果标记的减法过程。
 - `computeDivision(divisor, dividend, options?)`：计算长除法过程。
 - `computeMultiplication(multiplicand, multiplier)`：计算长乘法过程。
-- `DivisionComputation`、`MultiplicationComputation` 及各步骤类型。
+- `AdditionComputation`、`SubtractionComputation`、`DivisionComputation`、`MultiplicationComputation` 及各步骤类型。
 - `DivisionOptions`：支持 `remainder` 和 `decimal` 两种结果模式，并可限制小数位数。
 
 输入会被规范化为非负十进制整数字符串，非法输入和除数为零会抛出中文错误。计算层只输出语义过程，不输出 DOM、CSS、行列坐标或像素信息。
 
 ## 规则文档
 
+- [加法计算规则](./docs/加法计算规则.md)
+- [减法计算规则](./docs/减法计算规则.md)
 - [除法计算规则](./docs/除法计算规则.md)
 - [乘法计算规则](./docs/乘法计算规则.md)
 

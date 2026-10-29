@@ -1,6 +1,6 @@
 {
   "name": "@vertical-arithmetic/web",
-  "description": "小学竖式项目的 Vue、Vue Router 与 Tailwind CSS 前端应用。",
+  "description": "四则运算竖式项目的 Vue、Vue Router 与 Tailwind CSS 前端应用。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",

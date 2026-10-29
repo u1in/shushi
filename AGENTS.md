@@ -2,7 +2,7 @@
 
 ## 项目说明
 
-这是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的静态网站项目，项目名称为“**小学竖式项目**”（根工作区包名：`@vertical-arithmetic/project`）。它旨在承载多种小学四则运算的计算器与竖式展示；当前已实现除法器，后续可扩展加法、减法、乘法等。
+这是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的静态网站项目，项目名称为“**四则运算竖式项目**”（根工作区包名：`@vertical-arithmetic/project`）。它旨在承载多种四则运算的计算器与竖式展示；当前已实现除法器，后续可扩展加法、减法、乘法等。
 
 通用架构、网格场景与渲染职责见：
 
