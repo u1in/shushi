@@ -9,6 +9,7 @@
     "./style.css": "./src/styles/macro-docs.css"
   },
   "dependencies": {
+    "@vertical-arithmetic/docs": "file:../docs",
     "@vertical-arithmetic/grid": "file:../grid",
     "@vertical-arithmetic/macro": "file:../macro",
     "@vertical-arithmetic/renderers": "file:../renderers",

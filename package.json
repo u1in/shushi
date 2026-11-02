@@ -20,10 +20,14 @@
   "scripts": {
     "dev": "cd packages/web && npm run dev",
     "start": "npm run dev",
-    "build": "cd packages/web && npm run build",
+    "build": "npm run build:core && cd packages/web && npm run build",
+    "build:core": "cd packages/core && npm run build",
+    "docs:dev": "npm run build:core && cd packages/docs-site && npm run docs:dev",
+    "docs:build": "npm run build:core && cd packages/docs-site && npm run docs:build",
     "preview": "cd packages/web && npm run preview",
     "test": "cd packages/web && npm run test",
-    "typecheck": "cd packages/web && npm run typecheck"
+    "typecheck": "npm run typecheck:core && cd packages/web && npm run typecheck",
+    "typecheck:core": "cd packages/core && npm run typecheck"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

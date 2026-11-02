@@ -21,6 +21,7 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@vertical-arithmetic/docs": "file:../docs",
     "@vertical-arithmetic/grid": "file:../grid",
     "@vertical-arithmetic/calculators": "file:../calculators",
     "@vertical-arithmetic/layout": "file:../layout",

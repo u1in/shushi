@@ -1,0 +1,24 @@
+{
+  "name": "@vertical-arithmetic/docs-site",
+  "description": "四则运算竖式项目的 VuePress 文档发布适配层。",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vuepress dev ../docs --config vuepress.config.ts",
+    "docs:build": "vuepress build ../docs --config vuepress.config.ts"
+  },
+  "dependencies": {
+    "@vertical-arithmetic/core": "file:../core",
+    "@vertical-arithmetic/docs": "file:../docs",
+    "@vertical-arithmetic/macro-docs": "file:../macro-docs",
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@vuepress/bundler-vite": "2.0.0-rc.31",
+    "@vuepress/theme-default": "2.0.0-rc.137",
+    "mermaid": "^11.12.2",
+    "sass-embedded": "^1.107.1",
+    "vuepress": "2.0.0-rc.31"
+  }
+}

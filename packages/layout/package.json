@@ -15,7 +15,8 @@
   "type": "module",
   "dependencies": {
     "@vertical-arithmetic/grid": "file:../grid",
-    "@vertical-arithmetic/calculators": "file:../calculators"
+    "@vertical-arithmetic/calculators": "file:../calculators",
+    "@vertical-arithmetic/macro": "file:../macro"
   },
   "exports": {
     ".": "./src/index.ts"
