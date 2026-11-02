@@ -140,6 +140,22 @@ export const createDivisionGridScene = (
   ;[...computation.dividendDigits].forEach((digit, index) => {
     elements.push(createTextElement(`dividend-${index}`, digit, sourceColumnToGridColumn(index), dividendRow, 'division.dividend'))
   })
+  // 小数点既是商的读法，也是被除数“补 0”前的边界；两个位置必须在同一教学事件出现。
+  const hasVisibleDecimalSeparator = visibleEvents.some(({ kind }) => kind === 'decimal-separator')
+  if (computation.hasFraction && hasVisibleDecimalSeparator) {
+    elements.push({
+      id: 'dividend-decimal-separator',
+      position: {
+        kind: 'edgeMidpoint',
+        column: dividendStartColumn + computation.dividendDigits.length - 1,
+        row: dividendRow,
+        edge: 'right',
+      },
+      content: {
+        kind: 'text', text: '.', styleToken: 'division.dividend-decimal-separator', horizontalAlign: 'center',
+      },
+    })
+  }
   for (let index = 0; index < computation.fractionalDigitCount; index += 1) {
     const sourceColumn = computation.dividendDigits.length + index
     if (!visibleAppendedZeroColumns.has(sourceColumn)) continue
@@ -154,7 +170,6 @@ export const createDivisionGridScene = (
 
   const latestVisibleStep = visibleSteps.at(-1)
   // 零商过程行可以隐藏，但它仍是正式商的一位；当后续步骤完成时，商必须连续显示。
-  const hasVisibleDecimalSeparator = visibleEvents.some(({ kind }) => kind === 'decimal-separator')
   const latestVisibleTokenColumn = latestVisibleQuotientStep
     ? latestVisibleQuotientStep.dividendColumn + (
       computation.hasFraction && latestVisibleQuotientStep.dividendColumn >= computation.dividendDigits.length ? 1 : 0

@@ -193,7 +193,7 @@ describe('computeDivision', () => {
     )).map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['4', '0', '9'])
   })
 
-  test('小数点独立占一步，出现时不改动下方计算过程', () => {
+  test('小数点先于被除数补 0 独立出现，且不改动下方计算过程', () => {
     const computation = computeDivision('8', '1', { resultMode: 'decimal' })
     const baseSettings = {
       cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, bracketBend: 1,
@@ -218,6 +218,9 @@ describe('computeDivision', () => {
     ))).toBe(false)
     expect(decimalPointStep.elements.some(({ content }) => (
       content?.kind === 'text' && content.styleToken === 'division.decimal-separator'
+    ))).toBe(true)
+    expect(decimalPointStep.elements.some(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'division.dividend-decimal-separator'
     ))).toBe(true)
     expect(decimalPointStep.elements.some(({ content }) => (
       content?.kind === 'text' && content.styleToken === 'division.appended-zero'
