@@ -6,19 +6,17 @@ import SubtractionCalculator from '../components/SubtractionCalculator.vue'
 import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
 import MacroPlayground from '../components/MacroPlayground.vue'
 import MacroAstInspector from '../components/MacroAstInspector.vue'
+import ThemeControl from '../components/ThemeControl.vue'
 </script>
 
 <template>
   <main class="page-shell">
-    <header class="mb-2 flex items-center justify-end gap-4 text-sm font-bold">
-      <RouterLink to="/macro-rules" class="text-slate-500 transition hover:text-blue-700">宏语言参考</RouterLink>
-      <span class="text-slate-300" aria-hidden="true">/</span>
-      <RouterLink to="/macro-api" class="text-slate-500 transition hover:text-emerald-700">技术文档</RouterLink>
-    </header>
-
     <section class="hero">
-      <p class="eyebrow">@u1in/shushi · SVG · DOM</p>
-      <h1>@u1in/shushi</h1>
+      <div class="hero-topline">
+        <p class="eyebrow">@u1in/shushi · SVG · DOM</p>
+        <ThemeControl />
+      </div>
+      <h1>竖式运算的可视化工作台</h1>
       <p class="intro">用于展示加法、减法、乘法、除法和短除法的计算过程与竖式；每种运算均提供可缩放的过程网格。</p>
     </section>
 

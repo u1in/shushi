@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="用于展示加法、减法、乘法、除法和短除法计算过程与竖式的 Vue 应用。" />
     <title>@u1in/shushi</title>
+    <script>
+      // 首屏先恢复主题属性，避免 Vue 挂载前出现一次错误的浅色闪烁。
+      (() => {
+        try {
+          const mode = window.localStorage.getItem('shushi-theme-mode')
+          if (mode === 'light' || mode === 'dark') document.documentElement.dataset.theme = mode
+        } catch {
+          // 本地存储不可用时由 CSS 的系统主题规则接管。
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
