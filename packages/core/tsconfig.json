@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@vertical-arithmetic/grid": ["../grid/src/index.ts"],
+      "@vertical-arithmetic/calculators": ["../calculators/src/index.ts"],
+      "@vertical-arithmetic/layout": ["../layout/src/index.ts"],
+      "@vertical-arithmetic/macro": ["../macro/src/index.ts"],
+      "@vertical-arithmetic/renderers": ["../renderers/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}
