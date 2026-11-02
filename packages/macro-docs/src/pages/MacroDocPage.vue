@@ -20,10 +20,13 @@ const page = computed(() => macroDocPageBySlug.get(props.slug))
 const group = computed(() => macroDocGroups.find(({ id }) => id === page.value?.group))
 const neighbors = computed(() => getMacroDocNeighbors(props.slug))
 
+/** 用户手册不再渲染旧版“动手练习”章节，只保留说明、示例和结果对照。 */
+const visibleSections = computed(() => page.value?.sections.filter(({ id }) => id !== 'practice') ?? [])
+
 /** 以正文字符量粗略估算阅读时间，给读者一个进入长页面前的预期。 */
 const readingMinutes = computed(() => {
   if (!page.value) return 0
-  return Math.max(2, Math.ceil(JSON.stringify(page.value.sections).length / 520))
+  return Math.max(2, Math.ceil(JSON.stringify(visibleSections.value).length / 520))
 })
 
 const article = ref<HTMLElement>()
@@ -48,7 +51,7 @@ const handleScroll = (): void => {
 }
 
 onMounted(() => {
-  activeSection.value = page.value?.sections[0]?.id ?? ''
+  activeSection.value = visibleSections.value[0]?.id ?? ''
   updateActiveSection()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
@@ -60,7 +63,7 @@ onBeforeUnmount(() => {
 })
 
 watch(() => props.slug, async () => {
-  activeSection.value = page.value?.sections[0]?.id ?? ''
+  activeSection.value = visibleSections.value[0]?.id ?? ''
   await nextTick()
   updateActiveSection()
 })
@@ -97,7 +100,7 @@ watchEffect(() => {
       </header>
 
       <section
-        v-for="section in page.sections"
+        v-for="section in visibleSections"
         :id="section.id"
         :key="section.id"
         class="mdocs-section"
@@ -135,7 +138,7 @@ watchEffect(() => {
     <aside class="mdocs-toc" aria-label="本页目录">
       <p class="mdocs-toc-title">本页内容</p>
       <ol>
-        <li v-for="section in page.sections" :key="section.id">
+        <li v-for="section in visibleSections" :key="section.id">
           <a
             :href="`#${section.id}`"
             :class="{ 'is-active': activeSection === section.id }"

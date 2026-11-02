@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { useClipboard } from './use-clipboard'
+import HighlightedCode from './HighlightedCode.vue'
+import type { DocCodeLanguage } from '@vertical-arithmetic/docs/macro/types'
 
 /** 文档中的只读源码块；与示例卡片不同，它不负责编译或预览。 */
-const props = withDefaults(defineProps<{ code: string, title?: string }>(), {
+const props = withDefaults(defineProps<{ code: string, title?: string, language?: DocCodeLanguage }>(), {
   title: 'MACRO SOURCE',
+  language: 'macro',
 })
 
 const { copied, copy } = useClipboard()
@@ -17,6 +20,6 @@ const { copied, copy } = useClipboard()
         {{ copied ? '已复制' : '复制' }}
       </button>
     </div>
-    <pre><code>{{ props.code }}</code></pre>
+    <pre><code><HighlightedCode :code="props.code" :language="props.language" /></code></pre>
   </div>
 </template>

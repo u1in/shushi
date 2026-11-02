@@ -37,8 +37,9 @@ const currentPage = computed(() => macroDocPageBySlug.get(currentSlug.value))
 const visibleGroups = computed(() => macroDocNavGroups.filter(({ id }) => (
   currentArea.value === 'technical' ? id === 'technical' || id === 'api' : id !== 'technical' && id !== 'api'
 )))
+const visiblePages = computed(() => visibleGroups.value.flatMap(({ pages }) => pages))
 const pageNumbers = computed(() => new Map(
-  visibleGroups.value.flatMap(({ pages }) => pages).map((page, index) => [page.slug, index + 1]),
+  visiblePages.value.map((page, index) => [page.slug, index + 1]),
 ))
 const pageNumber = (slug: string): string => String(pageNumbers.value.get(slug) ?? 0).padStart(2, '0')
 const brandPath = computed(() => (currentArea.value === 'technical' ? '/macro-api' : '/macro-rules'))
@@ -123,7 +124,7 @@ onBeforeUnmount(() => {
               :key="page.slug"
               :to="getMacroDocPath(page.slug)"
               class="mdocs-nav-link"
-              :class="{ 'is-active': currentSlug === page.slug }"
+              :class="{ 'mdocs-nav-link--api': group.id === 'api', 'is-active': currentSlug === page.slug }"
               :aria-current="currentSlug === page.slug ? 'page' : 'false'"
             >
               <span class="mdocs-nav-index">{{ pageNumber(page.slug) }}</span>

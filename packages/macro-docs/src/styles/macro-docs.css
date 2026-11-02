@@ -1,4 +1,4 @@
-/* 网格宏技术文档：顶栏、侧边目录、正文、可运行示例与页内练习。 */
+/* 网格宏技术文档：顶栏、侧边目录、正文、可运行示例与结果对照。 */
 .mdocs-page {
   --mdocs-ink: #14213d;
   --mdocs-strong: #1c2942;
@@ -195,6 +195,13 @@
 
 .mdocs-nav-link.is-active .mdocs-nav-index {
   color: var(--mdocs-blue);
+}
+
+.mdocs-nav-link--api {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 650;
 }
 
 .mdocs-nav-label {
@@ -398,18 +405,31 @@
 }
 
 .mdocs-table-wrap table {
+  display: table;
   width: 100%;
-  border-collapse: collapse;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.84rem;
   line-height: 1.65;
 }
 
 .mdocs-table-wrap th,
 .mdocs-table-wrap td {
+  border: 0;
   border-bottom: 1px solid #edf2f9;
   padding: 10px 13px;
   text-align: left;
   vertical-align: top;
+}
+
+.mdocs-table-wrap tbody tr {
+  background: transparent;
+}
+
+.mdocs-table-wrap th + th,
+.mdocs-table-wrap td + td {
+  border-left: 1px solid #edf2f9;
 }
 
 .mdocs-table-wrap th {
@@ -471,6 +491,37 @@
   line-height: 1.72;
   tab-size: 2;
   white-space: pre;
+}
+
+/* 轻量语法高亮：保持源码可复制，同时让注释、字符串、关键字和函数名有稳定层次。 */
+.mdocs-code .code-token-comment,
+.mdocs-example-code .code-token-comment,
+.mdocs-compare-code .code-token-comment {
+  color: #8ea3c5;
+}
+
+.mdocs-code .code-token-string,
+.mdocs-example-code .code-token-string,
+.mdocs-compare-code .code-token-string {
+  color: #b9e6b0;
+}
+
+.mdocs-code .code-token-number,
+.mdocs-example-code .code-token-number,
+.mdocs-compare-code .code-token-number {
+  color: #f6c77b;
+}
+
+.mdocs-code .code-token-keyword,
+.mdocs-example-code .code-token-keyword,
+.mdocs-compare-code .code-token-keyword {
+  color: #9bd7ff;
+}
+
+.mdocs-code .code-token-function,
+.mdocs-example-code .code-token-function,
+.mdocs-compare-code .code-token-function {
+  color: #f2a9d4;
 }
 
 .mdocs-code pre {
@@ -573,25 +624,22 @@
 .mdocs-example-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   border-bottom: 1px solid #e8eef7;
-  padding: 14px 18px;
-  background: linear-gradient(180deg, #fbfdff, #f7faff);
+  padding: 9px 14px;
+  background: #fbfdff;
 }
 
-.mdocs-example-kicker {
-  margin: 0 0 3px;
-  color: #8ba0c1;
-  font-size: 0.62rem;
+.mdocs-example-label,
+.mdocs-example-result-label {
+  color: #526b94;
+  font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.16em;
 }
 
-.mdocs-example-head h3 {
-  margin: 0;
-  color: var(--mdocs-strong);
-  font-size: 1rem;
+.mdocs-example-result-label {
+  margin-left: auto;
+  color: #18766d;
 }
 
 .mdocs-example-body {
@@ -667,24 +715,10 @@
   margin-top: 22px;
   border: 1px solid var(--mdocs-border);
   border-radius: 18px;
-  padding: 16px;
+  padding: 0;
   background: #fff;
   box-shadow: 0 16px 38px rgba(55, 75, 112, 0.07);
-}
-
-.mdocs-compare-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 13px;
-}
-
-.mdocs-compare-kicker {
-  color: #8ba0c1;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  overflow: hidden;
 }
 
 .mdocs-compare-badge {
@@ -703,53 +737,67 @@
   background: #fff2f4;
 }
 
+/* 对照组件的标题属于自定义内容，不参与 VuePress 正文首标题的锚点间距规则。 */
+.mdocs-compare :is(h1, h2, h3, h4, h5, h6) {
+  margin-bottom: 0 !important;
+  padding-top: 0;
+}
+
 .mdocs-compare-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  /* 三组内容按完整源码、语法糖源码、结果顺序纵向排列，给代码和预览更宽的可读空间。 */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
 }
 
 .mdocs-compare-card {
   overflow: hidden;
-  border: 1px solid #e3ebf6;
-  border-radius: 13px;
   background: #fff;
 }
 
-.mdocs-compare-card header {
+.mdocs-compare-card-head {
   display: flex;
-  align-items: baseline;
+  /* 固定标题栏高度，避免外层文档样式或内容变化再次把三行布局撑开。 */
+  box-sizing: border-box;
+  height: 34px;
+  min-height: 34px;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   border-bottom: 1px solid #e8eef7;
-  padding: 9px 13px;
+  padding: 0 13px;
   background: #f8fbff;
+  line-height: 1.2;
 }
 
-.mdocs-compare-card h4 {
+.mdocs-compare-card-head h4 {
   margin: 0;
+  /* 覆盖 VuePress 对正文首个标题注入的 1rem 底部间距。 */
+  margin-bottom: 0 !important;
+  padding-top: 0;
   color: #2d405f;
   font-size: 0.82rem;
 }
 
-.mdocs-compare-card header span {
-  color: #93a1b6;
-  font-family: var(--mdocs-mono);
-  font-size: 0.62rem;
-  white-space: nowrap;
+.mdocs-compare-card + .mdocs-compare-card {
+  border-top: 1px solid #e3ebf6;
 }
 
 .mdocs-compare-code {
-  min-height: 120px;
-  max-height: 280px;
-  border-bottom: 1px solid #1e2d4d;
+  /* 源码区随内容展开，保留换行并允许长行折行，避免隐藏内容或出现滚动条。 */
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   background: #0f172a;
   font-size: 0.76rem;
 }
 
 .mdocs-compare-preview {
   display: grid;
-  min-height: 150px;
+  min-height: 180px;
   padding: 14px;
   place-items: center;
   background: #fbfcff;
@@ -757,198 +805,11 @@
 }
 
 .mdocs-compare-note {
-  margin: 13px 2px 0;
+  margin: 13px 2px 12px;
+  padding: 0 12px;
   color: #5b6b85;
   font-size: 0.82rem;
   line-height: 1.75;
-}
-
-/* ---------- 沙盒 ---------- */
-.mdocs-sandbox {
-  overflow: hidden;
-  margin-top: 22px;
-  border: 1px solid #cfdcf0;
-  border-radius: 19px;
-  background: #fff;
-  box-shadow: 0 18px 44px rgba(55, 75, 112, 0.09);
-}
-
-.mdocs-sandbox.is-complete {
-  border-color: #addccc;
-}
-
-.mdocs-sandbox-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  border-bottom: 1px solid #e8eef7;
-  padding: 15px 18px;
-  background: linear-gradient(180deg, #f7fbff, #eef5ff);
-}
-
-.mdocs-sandbox-kicker {
-  margin: 0 0 3px;
-  color: #6f8db8;
-  font-size: 0.61rem;
-  font-weight: 800;
-  letter-spacing: 0.17em;
-}
-
-.mdocs-sandbox-head h3 {
-  margin: 0;
-  color: var(--mdocs-strong);
-  font-size: 1rem;
-}
-
-.mdocs-sandbox-status {
-  border: 1px solid #d7e3f4;
-  border-radius: 999px;
-  padding: 4px 10px;
-  color: #6b82a6;
-  background: rgba(255, 255, 255, 0.8);
-  font-size: 0.68rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.mdocs-sandbox-status.is-complete {
-  border-color: #bfe6d8;
-  color: #18766d;
-  background: #effaf6;
-}
-
-.mdocs-sandbox-task {
-  margin: 0;
-  border-bottom: 1px solid #edf2f9;
-  padding: 13px 18px;
-  color: #53647f;
-  background: #fcfdff;
-  font-size: 0.87rem;
-  line-height: 1.75;
-}
-
-.mdocs-sandbox-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: stretch;
-}
-
-.mdocs-sandbox-editor {
-  min-width: 0;
-  border-right: 1px solid #e8eef7;
-  padding: 15px;
-}
-
-.mdocs-sandbox-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 9px;
-}
-
-.mdocs-sandbox-toolbar > span {
-  color: #7c8da6;
-  font-size: 0.67rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.mdocs-sandbox-toolbar > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.mdocs-ghost-button {
-  border: 1px solid #d8e3f2;
-  border-radius: 7px;
-  padding: 5px 9px;
-  color: #58709a;
-  background: #f8fbff;
-  font-size: 0.67rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.mdocs-ghost-button:hover:not(:disabled) {
-  border-color: #aec3e5;
-  color: #214b9f;
-  background: #eef4ff;
-}
-
-.mdocs-ghost-button:disabled {
-  color: #9fb0c8;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.mdocs-sandbox-input {
-  display: block;
-  width: 100%;
-  min-height: 235px;
-  resize: vertical;
-  border: 1px solid #1e2d4d;
-  border-radius: 12px;
-  padding: 13px 14px;
-  color: #dbeafe;
-  background: #0f172a;
-  font-family: var(--mdocs-mono);
-  font-size: 0.8rem;
-  line-height: 1.7;
-  tab-size: 2;
-}
-
-.mdocs-sandbox-input:focus {
-  border-color: #6f95d8;
-  outline: 3px solid rgba(110, 143, 210, 0.25);
-}
-
-.mdocs-sandbox-hint {
-  margin-top: 11px;
-  color: #6a7d99;
-  font-size: 0.76rem;
-  line-height: 1.7;
-}
-
-.mdocs-sandbox-hint summary {
-  color: #5273a9;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.mdocs-sandbox-hint p {
-  margin: 7px 0 0;
-}
-
-.mdocs-sandbox-preview {
-  display: grid;
-  min-height: 250px;
-  padding: 18px;
-  place-items: center;
-  background:
-    linear-gradient(rgba(227, 235, 247, 0.55) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(227, 235, 247, 0.55) 1px, transparent 1px),
-    #fbfcff;
-  background-size: 22px 22px;
-  overflow: auto;
-}
-
-.mdocs-sandbox-placeholder {
-  display: grid;
-  gap: 5px;
-  color: #93a1b6;
-  text-align: center;
-}
-
-.mdocs-sandbox-placeholder strong {
-  color: #6b7f9d;
-  font-size: 0.82rem;
-}
-
-.mdocs-sandbox-placeholder span {
-  font-size: 0.72rem;
 }
 
 /* ---------- 步骤与卡片 ---------- */
@@ -1790,19 +1651,13 @@
   }
 
   .mdocs-example-body,
-  .mdocs-compare-grid,
-  .mdocs-sandbox-grid {
+  .mdocs-compare-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .mdocs-example-code {
     border-right: 0;
     border-bottom: 1px solid #1e2d4d;
-  }
-
-  .mdocs-sandbox-editor {
-    border-right: 0;
-    border-bottom: 1px solid #e8eef7;
   }
 
   .mdocs-example-preview {
@@ -1825,8 +1680,7 @@
   .mdocs-callout,
   .mdocs-code,
   .mdocs-example,
-  .mdocs-compare,
-  .mdocs-sandbox {
+  .mdocs-compare {
     border-radius: 14px;
   }
 
@@ -1860,10 +1714,6 @@
     font-size: 1.8rem;
   }
 
-  .mdocs-sandbox-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 /* 位置相同、但简写带有额外配色语义时的中性徽标。 */

@@ -5,10 +5,26 @@ import DocText from './DocText.vue'
 import MacroCodeBlock from './MacroCodeBlock.vue'
 import MacroCompare from './MacroCompare.vue'
 import MacroExampleCard from './MacroExampleCard.vue'
-import MacroSandbox from './MacroSandbox.vue'
 
 /** 文档块渲染器：把纯数据块分派到对应的展示组件。 */
-const props = defineProps<{ blocks: DocBlock[] }>()
+const props = withDefaults(defineProps<{
+  blocks: DocBlock[]
+  /** VuePress 等外部文档站的内部链接前缀；主应用保留原有绝对路径。 */
+  linkPrefix?: string
+  /** 文档站可按新的阅读目录把旧宏路由映射到分组页锚点。 */
+  linkResolver?: (path: string) => string
+}>(), {
+  linkPrefix: '',
+  linkResolver: undefined,
+})
+
+/** 把旧的宏文档路由映射到发布站点的集中式入口。 */
+const resolveDocLink = (path: string): string => {
+  if (props.linkResolver) return props.linkResolver(path)
+  if (!props.linkPrefix) return path
+  const slug = path.replace(/^\/macro-(?:rules|api)\/?/, '')
+  return `${props.linkPrefix}${slug}`.replace(/\/$/, '') || props.linkPrefix
+}
 
 /** 九宫格顺序固定为从左到右、从上到下。 */
 const positions = [
@@ -56,13 +72,14 @@ const borderEdgeLabels = {
       <figcaption v-if="block.caption">{{ block.caption }}</figcaption>
     </figure>
 
-    <MacroCodeBlock v-else-if="block.type === 'code'" :code="block.code" :title="block.title" />
+    <MacroCodeBlock v-else-if="block.type === 'code'" :code="block.code" :title="block.title" :language="block.language" />
 
     <MacroExampleCard
       v-else-if="block.type === 'example'"
       :title="block.title"
       :code="block.code"
       :note="block.note"
+      :language="block.language"
     />
 
     <aside
@@ -73,16 +90,6 @@ const borderEdgeLabels = {
       <strong>{{ block.title }}</strong>
       <p><DocText :text="block.text" /></p>
     </aside>
-
-    <MacroSandbox
-      v-else-if="block.type === 'sandbox'"
-      :title="block.title"
-      :task="block.task"
-      :starter="block.starter"
-      :answer="block.answer"
-      :hint="block.hint"
-      :mode="block.mode"
-    />
 
     <MacroCompare
       v-else-if="block.type === 'compare'"
@@ -106,7 +113,7 @@ const borderEdgeLabels = {
 
     <div v-else-if="block.type === 'cards'" class="mdocs-cards">
       <template v-for="item in block.items" :key="item.title">
-        <RouterLink v-if="item.to" :to="item.to" class="mdocs-card">
+        <RouterLink v-if="item.to" :to="resolveDocLink(item.to)" class="mdocs-card">
           <strong>{{ item.title }}</strong>
           <span>{{ item.text }}</span>
           <small>继续阅读 →</small>
