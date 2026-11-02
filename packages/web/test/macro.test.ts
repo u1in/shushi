@@ -185,6 +185,41 @@ describe('网格宏编译器', () => {
     expect(annotation.content.kind === 'text' && annotation.content.styleToken).toBeUndefined()
   })
 
+  test('MTD 是 MT(·) 的零参数简写，并保持借位锚点、字号与配色', () => {
+    const compact = compileMacro('GRID(ROW(CELL(MM(3), MTD), CELL(MM(5), MTD())))')
+    const explicit = compileMacro('GRID(ROW(CELL(MM(3), MT(·)), CELL(MM(5), MT(·))))')
+    const annotations = compact.elements.filter(({ content }) => content.kind === 'text' && content.text === '·')
+
+    expect(annotations).toHaveLength(2)
+    expect(annotations[0]).toMatchObject({
+      position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
+      content: {
+        horizontalAlign: 'center', verticalAlign: 'top', fontSizeRatio: 0.42,
+        color: AUTO_COLOR_THEME.borrow[0],
+      },
+    })
+    expect(compact.elements).toEqual(explicit.elements)
+    expect(formatMacro('[3,MTD];')).toBe('[3, MTD];')
+    expect(minifyMacro('[3, MTD];')).toBe('[3,MTD];')
+
+    const shorthand = compileMacro('[3, MTD];')
+    expect(shorthand.elements.find(({ content }) => content.kind === 'text' && content.text === '·')).toMatchObject({
+      position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
+      content: { horizontalAlign: 'center', verticalAlign: 'top' },
+    })
+  })
+
+  test('MTD 不接受文字参数，但可带 KV 配置', () => {
+    expect(() => compileMacro('GRID(ROW(CELL(MM(3), MTD(·))))')).toThrow(/MTD.*零参数/)
+    const scene = compileMacro('GRID(KV(autoColor, false), ROW(CELL(MM(3), MTD(KV(style, borrow.dot)), KV(columnSpan, 2))))')
+    const annotation = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '·')
+
+    expect(annotation).toMatchObject({
+      position: { kind: 'cell', column: 0, row: 0, columnSpan: 2 },
+      content: { horizontalAlign: 'center', verticalAlign: 'top', styleToken: 'borrow.dot' },
+    })
+  })
+
   test('RB 可与 MM 同置于单元格，用作右下角进位标记', () => {
     const scene = compileMacro(`ROW(MM(3), MM(5), MM(6)),
 ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),

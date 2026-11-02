@@ -317,7 +317,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '`CELL` 既是布局单位，也是组合边界。`ROW(MM(5), MM(6))` 会归一化成两个独立单元格；如果 9 和借位点要叠在同一格，就必须写成 `CELL(MM(9), MT(·))`，或使用方括号简写 `[9, MT(·)]`。',
+            text: '`CELL` 既是布局单位，也是组合边界。`ROW(MM(5), MM(6))` 会归一化成两个独立单元格；如果 9 和借位点要叠在同一格，就必须写成 `CELL(MM(9), MTD)`，也可使用方括号简写 `[9, MTD]`；`MTD` 是 `MT(·)` 的零参数简写。',
           },
           {
             type: 'list',

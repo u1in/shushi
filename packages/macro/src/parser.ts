@@ -2,7 +2,7 @@ import type { MacroCall, MacroLiteral, MacroNode, MacroSymbol } from './types'
 import { getCanonicalMacroName } from './macro-aliases'
 
 /** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
-const CELL_ZERO_ARGUMENT_SYMBOLS = new Set(['DOT', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
+const CELL_ZERO_ARGUMENT_SYMBOLS = new Set(['DOT', 'MTD', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
 
 /** 带位置的错误信息让主页输入框能直接指出宏源码的问题。 */
 const createSyntaxError = (source: string, index: number, message: string): Error => (

@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
         </RouterLink>
 
         <nav class="mdocs-topbar-nav" aria-label="站点导航">
-          <span class="mdocs-version">V1.9</span>
+          <span class="mdocs-version">V1.10</span>
           <RouterLink to="/" class="mdocs-topbar-link">返回首页</RouterLink>
         </nav>
       </div>
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
         </nav>
         <p class="mdocs-sidebar-foot">
           当前：{{ currentPage?.navLabel ?? '网格宏文档' }}<br>
-          语言版本 V1.9 · 内容与编译器同步
+          语言版本 V1.10 · 内容与编译器同步
         </p>
       </aside>
 

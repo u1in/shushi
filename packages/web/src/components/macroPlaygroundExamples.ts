@@ -13,7 +13,7 @@ export const arithmeticExamples: MacroExample[] = [
   },
   {
     label: '502 − 137 = 365',
-    source: '[5,MT(·)],[0,MT(·)],2;−,1,3,7;LN;3,6,5;',
+    source: '[5,MTD],[0,MTD],2;−,1,3,7;LN;3,6,5;',
   },
   {
     label: '97 × 89 = 8633',

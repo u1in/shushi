@@ -9,12 +9,12 @@ import { resolveLineStyle } from './basic-macros'
  */
 export const SUGAR_MACRO_NAMES = [
   'LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL',
-  'DOT', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD',
+  'MTD', 'DOT', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD',
 ] as const
 
-export const SUGAR_ZERO_ARGUMENT_MACROS = new Set(['TBD', 'RBD', 'BBD', 'LBD', 'BRACKET'])
+export const SUGAR_ZERO_ARGUMENT_MACROS = new Set(['TBD', 'RBD', 'BBD', 'LBD', 'BRACKET', 'MTD'])
 
-const POSITION_MACRO_NAMES = new Set(['LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL'])
+const POSITION_MACRO_NAMES = new Set(['LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL', 'MTD'])
 const BORDER_MACRO_NAMES = new Set(['TBD', 'RBD', 'BBD', 'LBD'])
 const ANNOTATION_FONT_SIZE_RATIO = 0.42
 export const BRACKET_TRACK_SIZE = 0.5
@@ -27,7 +27,11 @@ export interface SugarCellPlacement {
   styleToken?: string
 }
 
-export const isPositionMacro = (node: MacroNode): boolean => node.kind === 'call' && POSITION_MACRO_NAMES.has(node.name)
+/** MTD 等零参数定位宏在 AST 中是 symbol，这里统一按可省略括号的调用识别。 */
+export const isPositionMacro = (node: MacroNode): boolean => {
+  const call = getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
+  return call !== undefined && POSITION_MACRO_NAMES.has(call.name)
+}
 
 export type BorderMacroName = 'TBD' | 'RBD' | 'BBD' | 'LBD'
 
@@ -55,6 +59,7 @@ const getTextAlignment = (name: string): Pick<GridTextContent, 'horizontalAlign'
     LB: { horizontalAlign: 'left', verticalAlign: 'bottom' },
     MB: { horizontalAlign: 'center', verticalAlign: 'bottom' },
     RB: { horizontalAlign: 'right', verticalAlign: 'bottom' },
+    MTD: { horizontalAlign: 'center', verticalAlign: 'top' },
   }
   const alignment = alignments[name]
   if (!alignment) throw new Error(`未知的单元格定位宏 ${name}。`)
@@ -96,9 +101,11 @@ export const compileSugarCellElement = (
     }
   }
   const name = dot ? 'RBL' : call?.name
+  const isMiddleTopDot = name === 'MTD'
   const { content, options } = call ? splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS) : { content: [], options: new Map<string, string>() }
-  const text = dot ? '.' : getMacroValue(content[0] ?? { kind: 'literal', value: '' }, `${name} 的文本`)
-  if (!dot && content.length !== 1) throw new Error(`${name} 必须包含一个文本参数。`)
+  if (isMiddleTopDot && content.length > 0) throw new Error('MTD 是 MT(·) 的零参数简写，不接受文字参数。')
+  const text = dot ? '.' : isMiddleTopDot ? '·' : getMacroValue(content[0] ?? { kind: 'literal', value: '' }, `${name} 的文本`)
+  if (!dot && !isMiddleTopDot && content.length !== 1) throw new Error(`${name} 必须包含一个文本参数。`)
   // DOT 的默认颜色由 GRID(autoColor) 统一注入；关闭时不保留旧的蓝色 token，回退为黑色。
   const styleToken = options.get('style') ?? cell.styleToken
   const fontSizeRatio = options.has('fontSizeRatio')

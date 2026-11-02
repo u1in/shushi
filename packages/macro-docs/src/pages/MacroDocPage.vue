@@ -92,7 +92,7 @@ watchEffect(() => {
           <span>{{ group?.title }}</span>
           <span>{{ page.sections.length }} 个章节</span>
           <span>约 {{ readingMinutes }} 分钟</span>
-          <span>宏语言 V1.9</span>
+          <span>宏语言 V1.10</span>
         </div>
       </header>
 

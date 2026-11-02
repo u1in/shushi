@@ -172,8 +172,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             columns: ['位置', '允许的写法', '说明'],
             rows: [
               ['第一项', '`MM(text)` 或裸文字', '裸文字会自动补成 `MM(text)`；这是唯一能省略 MM 的位置。'],
-              ['后续项', '完整宏调用', '例如 `RB(1)`、`MT(·)`、`TBD()`、`KV(columnSpan, 2)`。'],
-              ['后续项', '零参数图元', '`DOT`、`BK`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；`EP` 是 ROW 的单元格，不能放进 CELL。'],
+              ['后续项', '完整宏调用', '例如 `RB(1)`、`TBD()`、`KV(columnSpan, 2)`。'],
+              ['后续项', '零参数图元', '`DOT`、`MTD`、`BK`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；`EP` 是 ROW 的单元格，不能放进 CELL。'],
             ],
           },
           {
@@ -284,7 +284,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '零参数省略与别名',
     kicker: 'SYNTAX SUGAR · 03',
     group: 'sugar',
-    summary: 'LN、EP、BK 分别是 LINE、EMPTY、BRACKET 的输入别名；零参数宏还可以省略空括号。解析后它们统一还原为完整宏名。',
+    summary: 'LN、EP、BK 分别是 LINE、EMPTY、BRACKET 的输入别名；零参数宏还可以省略空括号。`MTD` 则是 `MT(·)` 的零参数专用简写。',
     sections: [
       {
         id: 'aliases',
@@ -319,13 +319,14 @@ export const sugarSyntaxPages: MacroDocPage[] = [
               ['`STYLE`', '`STYLE`', 'LINE 或边框宏的参数。'],
               ['`DIV`', '`DIV`', 'ROW 的直接子项。'],
               ['`TBD / RBD / BBD / LBD`', '`TBD` 等', 'CELL 内。'],
+              ['`MTD`', '`MTD` 或 `MTD()`', 'CELL 内，表示中上借位点。'],
             ],
           },
           {
             type: 'callout',
             tone: 'warn',
             title: '需要参数的宏不能省括号',
-            text: '`MM`、`RB`、`MT`、`VALUE`、`KV` 都必须保留括号。裸写 `MM` 不会自动变成“空文字居中的单元格”，裸写 `RB` 也不会被当作进位宏。',
+            text: '`MM`、`RB`、`MT`、`VALUE`、`KV` 都必须保留括号。裸写 `MM` 不会自动变成“空文字居中的单元格”，裸写 `RB` 也不会被当作进位宏。`MTD` 是专门的无参数借位点宏，不能写成裸 `MT`。',
           },
         ],
       },

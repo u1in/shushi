@@ -41,6 +41,7 @@ const macroSnippetGroups: MacroSnippetGroup[] = [
     snippets: [
       { label: 'LT', source: 'LT(),', cursorOffset: 3, title: '单元格左上文本' },
       { label: 'MT', source: 'MT(),', cursorOffset: 3, title: '单元格中上文本' },
+      { label: 'MTD', source: 'MTD,', cursorOffset: 4, title: '单元格中上借位点简写（等价 MT(·)）' },
       { label: 'RT', source: 'RT(),', cursorOffset: 3, title: '单元格右上文本' },
       { label: 'ML', source: 'ML(),', cursorOffset: 3, title: '单元格左中文本' },
       { label: 'MM', source: 'MM(),', cursorOffset: 3, title: '单元格中心文本' },

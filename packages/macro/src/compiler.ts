@@ -182,7 +182,7 @@ const getLineRange = (
 
 /**
  * 自动配色在宏层完成：渲染器只接收通用的 renderer-neutral 色值。
- * MT 约定为借位提示、RB 约定为进位提示；运算符和 DOT 的独占色优先级最高。
+ * MT/MTD 约定为借位提示、RB 约定为进位提示；运算符和 DOT 的独占色优先级最高。
  */
 const applyAutoColor = (element: GridElement, node: MacroNode, row: number): GridElement => {
   const macroName = getCall(node)?.name
@@ -198,7 +198,7 @@ const applyAutoColor = (element: GridElement, node: MacroNode, row: number): Gri
   const color = isDotMacro(node)
     ? AUTO_COLOR_THEME.decimal
     : operatorColor
-      ?? (macroName === 'RB' ? getAutoCarryColor(row) : macroName === 'MT' ? getAutoBorrowColor(row) : getAutoRowTextColor(row))
+      ?? (macroName === 'RB' ? getAutoCarryColor(row) : macroName === 'MT' || macroName === 'MTD' ? getAutoBorrowColor(row) : getAutoRowTextColor(row))
   return { ...element, content: { ...element.content, color } }
 }
 
