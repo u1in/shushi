@@ -1,6 +1,6 @@
 /** Multiplication macro layout: produces the same source language that users edit. */
-import type { GridScene } from '@vertical-arithmetic/grid'
-import type { MultiplicationComputation } from '@vertical-arithmetic/calculators'
+import type { GridScene } from '@u1in/shushi-grid'
+import type { MultiplicationComputation } from '@u1in/shushi-calculators'
 import type { MultiplicationRenderSettings } from './types'
 import {
   compileCalculatorMacro,

@@ -5,7 +5,7 @@ import {
   computeMultiplication,
   computeShortDivision,
   computeSubtraction,
-} from '@vertical-arithmetic/calculators'
+} from '@u1in/shushi-calculators'
 import {
   createAdditionGridScene,
   createAdditionMacroSource,
@@ -17,8 +17,8 @@ import {
   createShortDivisionMacroSource,
   createSubtractionGridScene,
   createSubtractionMacroSource,
-} from '@vertical-arithmetic/layout'
-import { compileMacro, formatMacro, parseMacro } from '@vertical-arithmetic/macro'
+} from '@u1in/shushi-layout'
+import { compileMacro, formatMacro, parseMacro } from '@u1in/shushi-macro'
 
 /** 自动竖式必须先成为人工可输入的源码，再走同一解析与编译链路。 */
 const expectHumanReproducible = (source: string, scene: unknown): void => {

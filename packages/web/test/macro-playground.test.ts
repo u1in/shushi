@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { compileMacro, formatMacro, minifyMacro } from '@vertical-arithmetic/macro'
+import { compileMacro, formatMacro, minifyMacro } from '@u1in/shushi-macro'
 import { arithmeticExamples, formatExampleSource } from '../src/components/macroPlaygroundExamples'
 
 /**

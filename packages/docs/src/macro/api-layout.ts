@@ -33,7 +33,7 @@ const createLayoutApiPage = ({ slug, summary, example, purpose, signature, param
   ],
 })
 
-const additionExample = `import { computeAddition, createAdditionMacroSource } from '@vertical-arithmetic/core'
+const additionExample = `import { computeAddition, createAdditionMacroSource } from '@u1in/shushi-core'
 
 const computation = computeAddition('356', '278')
 // 布局器把计算过程写成可复制、可编辑的宏源码。
@@ -41,7 +41,7 @@ const source = createAdditionMacroSource(computation, { showCarrySteps: true })
 
 console.log(source)`
 
-const subtractionExample = `import { computeSubtraction, createSubtractionMacroSource } from '@vertical-arithmetic/core'
+const subtractionExample = `import { computeSubtraction, createSubtractionMacroSource } from '@u1in/shushi-core'
 
 const computation = computeSubtraction('356', '278')
 const settings = {
@@ -56,7 +56,7 @@ const source = createSubtractionMacroSource(computation, settings)
 
 console.log(source)`
 
-const divisionExample = `import { computeDivision, createDivisionMacroSource } from '@vertical-arithmetic/core'
+const divisionExample = `import { computeDivision, createDivisionMacroSource } from '@u1in/shushi-core'
 
 const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
 const settings = {
@@ -73,7 +73,7 @@ const source = createDivisionMacroSource(computation, settings)
 
 console.log(source)`
 
-const multiplicationExample = `import { computeMultiplication, createMultiplicationMacroSource } from '@vertical-arithmetic/core'
+const multiplicationExample = `import { computeMultiplication, createMultiplicationMacroSource } from '@u1in/shushi-core'
 
 const computation = computeMultiplication('97', '89')
 const settings = {
@@ -89,7 +89,7 @@ const source = createMultiplicationMacroSource(computation, settings)
 
 console.log(source)`
 
-const shortDivisionExample = `import { computeShortDivision, createShortDivisionMacroSource } from '@vertical-arithmetic/core'
+const shortDivisionExample = `import { computeShortDivision, createShortDivisionMacroSource } from '@u1in/shushi-core'
 
 const computation = computeShortDivision({ mode: 'factorization', values: ['360'] })
 const settings = {
@@ -118,13 +118,13 @@ export const createAdditionMacroSourcePage = createLayoutApiPage({
     ['`settings`', '`Partial<AdditionRenderSettings>`', '可选的列宽、行高、字号、辅助网格、可见步骤和进位显示配置。'],
     ['返回值', '`string`', '包含 GRID、ROW、CELL、RB 和 LINE 等公开宏命令的源码。'],
   ],
-  caution: '不要把它当作计算器使用；输入计算结果必须先由 `computeAddition` 生成。返回源码的语义依赖 `@vertical-arithmetic/macro` 的公开宏契约。',
+  caution: '不要把它当作计算器使用；输入计算结果必须先由 `computeAddition` 生成。返回源码的语义依赖 `@u1in/shushi-macro` 的公开宏契约。',
 })
 
 export const createAdditionGridScenePage = createLayoutApiPage({
   slug: 'createAdditionGridScene',
   summary: '兼容性地把 AdditionComputation 转换为 GridScene。',
-  example: `import { computeAddition, createAdditionGridScene } from '@vertical-arithmetic/core'
+  example: `import { computeAddition, createAdditionGridScene } from '@u1in/shushi-core'
 
 const computation = computeAddition('356', '278')
 // 该入口内部先生成宏源码，再走统一宏编译链路。
@@ -170,7 +170,7 @@ export const createSubtractionMacroSourcePage = createLayoutApiPage({
 export const createSubtractionGridScenePage = createLayoutApiPage({
   slug: 'createSubtractionGridScene',
   summary: '兼容性地把 SubtractionComputation 转换为 GridScene。',
-  example: `import { computeSubtraction, createSubtractionGridScene } from '@vertical-arithmetic/core'
+  example: `import { computeSubtraction, createSubtractionGridScene } from '@u1in/shushi-core'
 
 const computation = computeSubtraction('356', '278')
 const scene = createSubtractionGridScene(computation, {
@@ -198,7 +198,7 @@ console.log(scene.elements.length)`,
 export const getDivisionPlaybackStepCountPage = createLayoutApiPage({
   slug: 'getDivisionPlaybackStepCount',
   summary: '计算长除法在当前零商显示策略下的播放事件数量。',
-  example: `import { computeDivision, getDivisionPlaybackStepCount } from '@vertical-arithmetic/core'
+  example: `import { computeDivision, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
 
 const computation = computeDivision('25', '10230')
 // 播放控件用同一事件数量限制 visibleStepCount。
@@ -238,7 +238,7 @@ export const createDivisionMacroSourcePage = createLayoutApiPage({
 export const createDivisionGridScenePage = createLayoutApiPage({
   slug: 'createDivisionGridScene',
   summary: '兼容性地把 DivisionComputation 转换为 GridScene。',
-  example: `import { computeDivision, createDivisionGridScene } from '@vertical-arithmetic/core'
+  example: `import { computeDivision, createDivisionGridScene } from '@u1in/shushi-core'
 
 const computation = computeDivision('25', '10230')
 const scene = createDivisionGridScene(computation, {
@@ -268,7 +268,7 @@ console.log(scene.ariaLabel)`,
 export const getMultiplicationStepCountPage = createLayoutApiPage({
   slug: 'getMultiplicationStepCount',
   summary: '计算逐位乘法和列加法合计的教学播放步数。',
-  example: `import { computeMultiplication, getMultiplicationStepCount } from '@vertical-arithmetic/core'
+  example: `import { computeMultiplication, getMultiplicationStepCount } from '@u1in/shushi-core'
 
 const computation = computeMultiplication('97', '89')
 // 播放控件用此数量控制部分积和最终求和的进度。
@@ -304,7 +304,7 @@ export const createMultiplicationMacroSourcePage = createLayoutApiPage({
 export const createMultiplicationGridScenePage = createLayoutApiPage({
   slug: 'createMultiplicationGridScene',
   summary: '兼容性地把 MultiplicationComputation 转换为 GridScene。',
-  example: `import { computeMultiplication, createMultiplicationGridScene } from '@vertical-arithmetic/core'
+  example: `import { computeMultiplication, createMultiplicationGridScene } from '@u1in/shushi-core'
 
 const computation = computeMultiplication('97', '89')
 const scene = createMultiplicationGridScene(computation, {
@@ -350,7 +350,7 @@ export const createShortDivisionMacroSourcePage = createLayoutApiPage({
 export const createShortDivisionGridScenePage = createLayoutApiPage({
   slug: 'createShortDivisionGridScene',
   summary: '兼容性地把 ShortDivisionComputation 转换为 GridScene。',
-  example: `import { computeShortDivision, createShortDivisionGridScene } from '@vertical-arithmetic/core'
+  example: `import { computeShortDivision, createShortDivisionGridScene } from '@u1in/shushi-core'
 
 const computation = computeShortDivision({ mode: 'factorization', values: ['360'] })
 const scene = createShortDivisionGridScene(computation, {
@@ -378,7 +378,7 @@ console.log(scene.rows.length)`,
 export const compileCalculatorMacroPage = createLayoutApiPage({
   slug: 'compileCalculatorMacro',
   summary: '把计算器布局生成的宏源码编译为 GridScene。',
-  example: `import { compileCalculatorMacro, createAdditionMacroSource, computeAddition } from '@vertical-arithmetic/core'
+  example: `import { compileCalculatorMacro, createAdditionMacroSource, computeAddition } from '@u1in/shushi-core'
 
 const computation = computeAddition('356', '278')
 const source = createAdditionMacroSource(computation)

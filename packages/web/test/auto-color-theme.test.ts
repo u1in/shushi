@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { AUTO_COLOR_THEME } from '@vertical-arithmetic/macro'
+import { AUTO_COLOR_THEME } from '@u1in/shushi-macro'
 
 /** 把 sRGB 通道转换为 WCAG 相对亮度计算所需的线性值。 */
 const linearize = (channel: number): number => {

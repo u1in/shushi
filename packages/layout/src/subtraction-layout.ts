@@ -1,6 +1,6 @@
 /** Subtraction macro layout: serializes borrowing records into macro source. */
-import type { GridScene } from '@vertical-arithmetic/grid'
-import type { SubtractionComputation } from '@vertical-arithmetic/calculators'
+import type { GridScene } from '@u1in/shushi-grid'
+import type { SubtractionComputation } from '@u1in/shushi-calculators'
 import type { SubtractionRenderSettings } from './types'
 import {
   compileCalculatorMacro,

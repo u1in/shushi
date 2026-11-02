@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
-import { compileMacro, formatMacro, minifyMacro } from '@vertical-arithmetic/macro'
+import { compileMacro, formatMacro, minifyMacro } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import { arithmeticExamples, formatExampleSource, type MacroExample } from './macroPlaygroundExamples'

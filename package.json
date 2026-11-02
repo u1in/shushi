@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/project",
-  "description": "四则运算计算器、竖式布局引擎与行列网格渲染的多包工作区。",
+  "name": "@u1in/shushi",
+  "description": "竖式计算器、竖式布局引擎与行列网格渲染的多包工作区。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",

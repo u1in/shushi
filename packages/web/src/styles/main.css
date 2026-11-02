@@ -1052,7 +1052,7 @@ h2 {
   font-weight: 700;
 }
 
-/* 首页计算器的语义配色与 @vertical-arithmetic/macro 的 autoColor 色板保持一致；
+/* 首页计算器的语义配色与 @u1in/shushi-macro 的 autoColor 色板保持一致；
    调整 auto-color-theme.ts 时需同步这里的 style token。 */
 .grid-text[data-style-token="division.divisor"] { color: #c43e49; font-weight: 800; }
 .division-svg .grid-text[data-style-token="division.divisor"] { fill: #c43e49; }

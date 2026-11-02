@@ -36,7 +36,7 @@ const createCalculatorApiPage = ({ slug, summary, example, purpose, signature, p
 export const computeAdditionPage = createCalculatorApiPage({
   slug: 'computeAddition',
   summary: '计算两个或多个非负整数字符串的逐列加法过程。',
-  example: `import { computeAddition } from '@vertical-arithmetic/core'
+  example: `import { computeAddition } from '@u1in/shushi-core'
 
 // 结果保留字符串，适合处理超出 JavaScript 安全整数范围的输入。
 const computation = computeAddition('356', '278')
@@ -55,7 +55,7 @@ console.log(computation.steps)`,
 export const computeSubtractionPage = createCalculatorApiPage({
   slug: 'computeSubtraction',
   summary: '计算两个非负整数的逐列减法和借位过程。',
-  example: `import { computeSubtraction } from '@vertical-arithmetic/core'
+  example: `import { computeSubtraction } from '@u1in/shushi-core'
 
 // 计算层保留借位后的工作数字，供布局层显示教学标记。
 const computation = computeSubtraction('356', '278')
@@ -78,7 +78,7 @@ console.log(computation.steps)`,
 export const computeDivisionPage = createCalculatorApiPage({
   slug: 'computeDivision',
   summary: '计算十进制长除法的商、余数和逐轮试商过程。',
-  example: `import { computeDivision } from '@vertical-arithmetic/core'
+  example: `import { computeDivision } from '@u1in/shushi-core'
 
 // 参数顺序是除数在前、被除数在后。
 const computation = computeDivision('25', '10230', {
@@ -107,7 +107,7 @@ console.log(computation.steps)`,
 export const computeMultiplicationPage = createCalculatorApiPage({
   slug: 'computeMultiplication',
   summary: '计算十进制逐位乘法、部分积和最终积。',
-  example: `import { computeMultiplication } from '@vertical-arithmetic/core'
+  example: `import { computeMultiplication } from '@u1in/shushi-core'
 
 const computation = computeMultiplication('97', '89', {
   // 关闭后始终保留完整的逐位乘法过程。
@@ -134,7 +134,7 @@ console.log(computation.partialProducts)`,
 export const computeShortDivisionPage = createCalculatorApiPage({
   slug: 'computeShortDivision',
   summary: '计算质因数分解、公因数或进制转换短除法过程。',
-  example: `import { computeShortDivision } from '@vertical-arithmetic/core'
+  example: `import { computeShortDivision } from '@u1in/shushi-core'
 
 const computation = computeShortDivision({
   mode: 'baseConversion',

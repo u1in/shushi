@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useClipboard } from './use-clipboard'
 import HighlightedCode from './HighlightedCode.vue'
-import type { DocCodeLanguage } from '@vertical-arithmetic/docs/macro/types'
+import type { DocCodeLanguage } from '@u1in/shushi-docs/macro/types'
 
 /** 文档中的只读源码块；与示例卡片不同，它不负责编译或预览。 */
 const props = withDefaults(defineProps<{ code: string, title?: string, language?: DocCodeLanguage }>(), {

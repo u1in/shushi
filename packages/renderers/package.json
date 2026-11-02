@@ -1,5 +1,5 @@
 {
-  "name": "@vertical-arithmetic/renderers",
+  "name": "@u1in/shushi-renderers",
   "description": "把通用竖式行列网格布局渲染为 DOM/CSS 或 SVG。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
@@ -14,7 +14,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@vertical-arithmetic/grid": "file:../grid"
+    "@u1in/shushi-grid": "file:../grid"
   },
   "exports": {
     ".": "./src/index.ts"

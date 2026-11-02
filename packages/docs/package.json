@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/docs",
-  "description": "四则运算竖式项目的框架无关核心文档。",
+  "name": "@u1in/shushi-docs",
+  "description": "@u1in/shushi 的框架无关核心文档。",
   "version": "0.1.0",
   "private": true,
   "type": "module",

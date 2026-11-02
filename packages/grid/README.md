@@ -1,4 +1,4 @@
-# `@vertical-arithmetic/grid`
+# `@u1in/shushi-grid`
 
 通用竖式行列网格模型与几何工具。该包不包含除法、乘法等具体运算规则，也不依赖 DOM、CSS 或 SVG，负责为布局引擎和渲染器提供稳定的网格数据结构。
 

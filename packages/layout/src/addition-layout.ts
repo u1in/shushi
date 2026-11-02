@@ -1,6 +1,6 @@
 /** Addition macro layout: serializes the process into human-editable macro source. */
-import type { GridScene } from '@vertical-arithmetic/grid'
-import type { AdditionComputation } from '@vertical-arithmetic/calculators'
+import type { GridScene } from '@u1in/shushi-grid'
+import type { AdditionComputation } from '@u1in/shushi-calculators'
 import type { AdditionRenderSettings } from './types'
 import {
   compileCalculatorMacro,

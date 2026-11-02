@@ -20,7 +20,7 @@ export const quickStartPage: MacroDocPage = {
         {
           type: 'code',
           title: 'TypeScript',
-          code: `import { compileMacro } from '@vertical-arithmetic/core'
+          code: `import { compileMacro } from '@u1in/shushi-core'
 
 const source = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
 const scene = compileMacro(source)`,
@@ -44,7 +44,7 @@ const scene = compileMacro(source)`,
         {
           type: 'code',
           title: 'TypeScript',
-          code: `import { compileMacro, renderSvgGrid } from '@vertical-arithmetic/core'
+          code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const svg = renderSvgGrid(scene)
@@ -64,7 +64,7 @@ document.querySelector('#app')?.append(svg)`,
         {
           type: 'code',
           title: 'TypeScript',
-          code: `import { compileMacro, renderDomGrid } from '@vertical-arithmetic/core'
+          code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const stage = renderDomGrid(scene)
@@ -84,7 +84,7 @@ document.querySelector('#app')?.append(stage)`,
         {
           type: 'code',
           title: 'TypeScript',
-          code: `import { compileMacro, extractVisibleTextRows } from '@vertical-arithmetic/core'
+          code: `import { compileMacro, extractVisibleTextRows } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const rows = extractVisibleTextRows(scene)

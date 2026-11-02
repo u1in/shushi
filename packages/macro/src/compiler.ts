@@ -1,4 +1,4 @@
-import type { GridElement, GridLineContent, GridScene } from '@vertical-arithmetic/grid'
+import type { GridElement, GridLineContent, GridScene } from '@u1in/shushi-grid'
 import type { MacroCall, MacroNode, MacroStyle } from './types'
 import {
   AUTO_COLOR_MAX_ROWS,
@@ -63,7 +63,7 @@ interface NormalizedShortDivisionRow {
 }
 
 const DEFAULTS: MacroCompileDefaults = {
-  // 与首页四则运算器一致：30px 数字格、46px 行高、1.00 字号比例及 20×12px 留白。
+  // 与首页运算器一致：30px 数字格、46px 行高、1.00 字号比例及 20×12px 留白。
   unitWidth: 30,
   unitHeight: 46,
   fontSizeRatio: 1,
@@ -363,7 +363,7 @@ const compileShortDivisionMacro = (
 
 /**
  * 将已解析宏降级为 renderer-neutral GridScene。
- * 该层只处理行列、对齐、横线和样式，不理解任何具体四则运算。
+ * 该层只处理行列、对齐、横线和样式，不理解任何具体运算。
  */
 export const compileMacroAst = (root: MacroCall): GridScene => {
   if (root.name !== 'GRID') throw new Error('根节点必须是 GRID(...)。')

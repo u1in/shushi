@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { extractVisibleTextRows } from '@vertical-arithmetic/grid'
-import type { GridScene } from '@vertical-arithmetic/grid'
+import { extractVisibleTextRows } from '@u1in/shushi-grid'
+import type { GridScene } from '@u1in/shushi-grid'
 
 const props = defineProps<{ scene: GridScene }>()
 /** 首页默认展开 OCR 结果；场景更新时保持展开并实时刷新按行内容。 */

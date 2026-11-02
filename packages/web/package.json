@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/web",
-  "description": "四则运算竖式项目的 Vue、Vue Router 与 Tailwind CSS 前端应用。",
+  "name": "@u1in/shushi-web",
+  "description": "@u1in/shushi 的 Vue、Vue Router 与 Tailwind CSS 前端应用。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",
@@ -21,13 +21,13 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@vertical-arithmetic/docs": "file:../docs",
-    "@vertical-arithmetic/grid": "file:../grid",
-    "@vertical-arithmetic/calculators": "file:../calculators",
-    "@vertical-arithmetic/layout": "file:../layout",
-    "@vertical-arithmetic/macro": "file:../macro",
-    "@vertical-arithmetic/macro-docs": "file:../macro-docs",
-    "@vertical-arithmetic/renderers": "file:../renderers",
+    "@u1in/shushi-docs": "file:../docs",
+    "@u1in/shushi-grid": "file:../grid",
+    "@u1in/shushi-calculators": "file:../calculators",
+    "@u1in/shushi-layout": "file:../layout",
+    "@u1in/shushi-macro": "file:../macro",
+    "@u1in/shushi-macro-docs": "file:../macro-docs",
+    "@u1in/shushi-renderers": "file:../renderers",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   }

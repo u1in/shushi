@@ -1,6 +1,6 @@
 # 竖式布局规则
 
-本目录集中维护各运算的宏排版规则。布局实现位于 `packages/layout/src`，只负责把计算过程填写为人类可编辑的宏字符串；唯一的 `GridScene` 生成入口是 `@vertical-arithmetic/macro` 的 `compileMacro`。
+本目录集中维护各运算的宏排版规则。布局实现位于 `packages/layout/src`，只负责把计算过程填写为人类可编辑的宏字符串；唯一的 `GridScene` 生成入口是 `@u1in/shushi-macro` 的 `compileMacro`。
 
 所有自动竖式都必须满足“复制生成源码到宏试验区可复刻相同结果”的项目原则。布局模块不得直接组装 `GridScene`。
 

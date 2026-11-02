@@ -4,8 +4,8 @@ import {
   macroDocPageBySlug,
   macroDocNavGroups,
   type DocGroupId,
-} from '@vertical-arithmetic/docs/macro'
-import { MacroDocBlocks } from '@vertical-arithmetic/macro-docs'
+} from '@u1in/shushi-docs/macro'
+import { MacroDocBlocks } from '@u1in/shushi-macro-docs'
 
 /**
  * 把宏文档包的唯一内容清单嵌入 VuePress。

@@ -1,5 +1,5 @@
-import type { GridScene } from '@vertical-arithmetic/grid'
-import { compileMacro } from '@vertical-arithmetic/macro'
+import type { GridScene } from '@u1in/shushi-grid'
+import { compileMacro } from '@u1in/shushi-macro'
 import type { GridRenderSettings } from './types'
 
 /**

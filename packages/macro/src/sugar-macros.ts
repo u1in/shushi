@@ -1,4 +1,4 @@
-import type { GridElement, GridPosition, GridTextContent } from '@vertical-arithmetic/grid'
+import type { GridElement, GridPosition, GridTextContent } from '@u1in/shushi-grid'
 import type { MacroCall, MacroNode } from './types'
 import { getMacroCall, getMacroValue, getPositiveNumber, splitMacroOptions } from './macro-ast'
 import { resolveLineStyle } from './basic-macros'

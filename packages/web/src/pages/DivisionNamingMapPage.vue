@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computeDivision } from '@vertical-arithmetic/calculators'
-import { createDivisionGridScene } from '@vertical-arithmetic/layout'
-import { galleryPageByOperation } from '@vertical-arithmetic/docs/gallery'
+import { computeDivision } from '@u1in/shushi-calculators'
+import { createDivisionGridScene } from '@u1in/shushi-layout'
+import { galleryPageByOperation } from '@u1in/shushi-docs/gallery'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
 
 const computation = computeDivision('25', '10230', { resultMode: 'decimal' })

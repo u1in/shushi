@@ -3,8 +3,8 @@ import {
   getGridElementRect,
   getGridTextAnchor,
   resolveGridMetrics,
-} from '@vertical-arithmetic/grid'
-import type { GridElement, GridMetrics, GridScene } from '@vertical-arithmetic/grid'
+} from '@u1in/shushi-grid'
+import type { GridElement, GridMetrics, GridScene } from '@u1in/shushi-grid'
 
 const setStyleToken = (node: HTMLElement, styleToken: string | undefined): void => {
   if (styleToken) node.dataset.styleToken = styleToken

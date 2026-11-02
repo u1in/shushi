@@ -16,9 +16,9 @@ import MacroPlayground from '../components/MacroPlayground.vue'
     </header>
 
     <section class="hero">
-      <p class="eyebrow">VERTICAL ARITHMETIC · SVG · DOM</p>
-      <h1>四则运算竖式项目</h1>
-      <p class="intro">用于展示四则运算的计算过程与竖式；每种运算均提供可缩放的过程网格。</p>
+      <p class="eyebrow">@u1in/shushi · SVG · DOM</p>
+      <h1>@u1in/shushi</h1>
+      <p class="intro">用于展示加法、减法、乘法、除法和短除法的计算过程与竖式；每种运算均提供可缩放的过程网格。</p>
     </section>
 
     <MacroPlayground />

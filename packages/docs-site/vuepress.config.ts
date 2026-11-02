@@ -9,7 +9,7 @@ import { resolve } from 'node:path'
  */
 export default defineUserConfig({
   lang: 'zh-CN',
-  title: '四则运算竖式项目文档',
+  title: '@u1in/shushi',
   description: '计算规则、网格宏语言、技术契约与竖式图例。',
   clientConfigFile: resolve(process.cwd(), 'vuepress.client.ts'),
   // README 是文档包维护者说明，不是用户手册页面；VuePress 使用专门的 index.md 作为首页。
@@ -34,14 +34,14 @@ export default defineUserConfig({
     Object.assign(page.frontmatter, {
       home: true,
       sidebar: false,
-      heroText: '四则运算竖式项目',
+      heroText: '@u1in/shushi',
       tagline: '人工录入与计算器自动填写同一份宏源码，并经同一编译链路得到竖式',
       actions: [
         { text: '查看技术文档', link: '/technical/安装' },
         { text: '查看宏命令', link: '/macro/语法基础', type: 'primary' },
         { text: '查看图例文档', link: '/gallery/加法' },
       ],
-      footer: 'Copyright © 2026 u1in · 四则运算竖式项目 · Released under the MIT License',
+      footer: 'Copyright © 2026 u1in · @u1in/shushi · Released under the MIT License',
     })
   },
   bundler: viteBundler(),

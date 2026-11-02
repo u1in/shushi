@@ -1,5 +1,5 @@
 {
-  "name": "@vertical-arithmetic/grid",
+  "name": "@u1in/shushi-grid",
   "description": "与具体运算无关的竖式行列网格模型、单元格、轨道与几何工具。",
   "author": "u1in <u1in@qq.com>",
   "repository": {

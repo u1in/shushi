@@ -1,7 +1,7 @@
 import type { MacroDocPage } from './types'
 
 /**
- * “实践”分组：用四则运算的真实竖式对照完整命令与语法糖，
+ * “实践”分组：用各类运算的真实竖式对照完整命令与语法糖，
  * 最后集中列出容易踩坑的规则。所有 compare 左侧与右侧必须输出同一个 GridScene。
  */
 export const practicePages: MacroDocPage[] = [

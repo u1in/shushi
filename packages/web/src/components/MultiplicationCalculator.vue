@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeMultiplication } from '@vertical-arithmetic/calculators'
-import { compileCalculatorMacro, createMultiplicationMacroSource, getMultiplicationStepCount } from '@vertical-arithmetic/layout'
+import { computeMultiplication } from '@u1in/shushi-calculators'
+import { compileCalculatorMacro, createMultiplicationMacroSource, getMultiplicationStepCount } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
 import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
-import type { MultiplicationComputation } from '@vertical-arithmetic/calculators'
-import type { GridScene } from '@vertical-arithmetic/grid'
+import type { MultiplicationComputation } from '@u1in/shushi-calculators'
+import type { GridScene } from '@u1in/shushi-grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 

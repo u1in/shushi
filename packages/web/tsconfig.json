@@ -13,13 +13,13 @@
     "noUnusedParameters": true,
     "baseUrl": ".",
     "paths": {
-      "@vertical-arithmetic/core": ["../core/src/index.ts"],
-      "@vertical-arithmetic/grid": ["../grid/src/index.ts"],
-      "@vertical-arithmetic/calculators": ["../calculators/src/index.ts"],
-      "@vertical-arithmetic/layout": ["../layout/src/index.ts"],
-      "@vertical-arithmetic/macro": ["../macro/src/index.ts"],
-      "@vertical-arithmetic/macro-docs": ["../macro-docs/src/index.ts"],
-      "@vertical-arithmetic/renderers": ["../renderers/src/index.ts"]
+      "@u1in/shushi-core": ["../core/src/index.ts"],
+      "@u1in/shushi-grid": ["../grid/src/index.ts"],
+      "@u1in/shushi-calculators": ["../calculators/src/index.ts"],
+      "@u1in/shushi-layout": ["../layout/src/index.ts"],
+      "@u1in/shushi-macro": ["../macro/src/index.ts"],
+      "@u1in/shushi-macro-docs": ["../macro-docs/src/index.ts"],
+      "@u1in/shushi-renderers": ["../renderers/src/index.ts"]
     }
   },
   "include": ["src", "test"]

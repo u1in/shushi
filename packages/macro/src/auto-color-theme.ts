@@ -55,7 +55,7 @@ export const AUTO_COLOR_THEME = {
   carry: AUTO_COLOR_CARRY,
   /** MT(text) 代表的借位标记色，按所在 ROW 分配。 */
   borrow: AUTO_COLOR_BORROW,
-  /** 四则运算符为全局独占色，不与行、进位、借位色复用。 */
+  /** 运算符为全局独占色，不与行、进位、借位色复用。 */
   operators: {
     '+': '#b02a37',
     '-': '#c2410c',

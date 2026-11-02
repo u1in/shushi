@@ -1,6 +1,6 @@
 /** Short-division macro layout: uses the public DIV/VALUE grammar exclusively. */
-import type { GridScene } from '@vertical-arithmetic/grid'
-import type { ShortDivisionComputation } from '@vertical-arithmetic/calculators'
+import type { GridScene } from '@u1in/shushi-grid'
+import type { ShortDivisionComputation } from '@u1in/shushi-calculators'
 import type { ShortDivisionRenderSettings } from './types'
 import { compileCalculatorMacro, macroLiteral, macroOption } from './macro-source'
 

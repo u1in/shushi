@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest'
 
-import { extractVisibleTextRows } from '@vertical-arithmetic/grid'
-import type { GridScene } from '@vertical-arithmetic/grid'
-import { computeAddition } from '@vertical-arithmetic/calculators'
-import { computeSubtraction } from '@vertical-arithmetic/calculators'
-import { createAdditionGridScene, createSubtractionGridScene } from '@vertical-arithmetic/layout'
-import { compileMacro } from '@vertical-arithmetic/macro'
+import { extractVisibleTextRows } from '@u1in/shushi-grid'
+import type { GridScene } from '@u1in/shushi-grid'
+import { computeAddition } from '@u1in/shushi-calculators'
+import { computeSubtraction } from '@u1in/shushi-calculators'
+import { createAdditionGridScene, createSubtractionGridScene } from '@u1in/shushi-layout'
+import { compileMacro } from '@u1in/shushi-macro'
 
 const createScene = (elements: GridScene['elements']): GridScene => ({
   columns: [{ id: 'left', size: 1 }, { id: 'right', size: 1 }],

@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/docs-site",
-  "description": "四则运算竖式项目的 VuePress 文档发布适配层。",
+  "name": "@u1in/shushi-docs-site",
+  "description": "@u1in/shushi 的 VuePress 文档发布适配层。",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,9 @@
     "docs:build": "vuepress build ../docs --config vuepress.config.ts"
   },
   "dependencies": {
-    "@vertical-arithmetic/core": "file:../core",
-    "@vertical-arithmetic/docs": "file:../docs",
-    "@vertical-arithmetic/macro-docs": "file:../macro-docs",
+    "@u1in/shushi-core": "file:../core",
+    "@u1in/shushi-docs": "file:../docs",
+    "@u1in/shushi-macro-docs": "file:../macro-docs",
     "vue": "^3.5.44"
   },
   "devDependencies": {

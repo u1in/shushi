@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { getGridElementRect, renderDomGrid, resolveGridMetrics, type GridElement, type GridScene } from '@vertical-arithmetic/core'
-import type { GalleryItem } from '@vertical-arithmetic/docs/gallery'
+import { getGridElementRect, renderDomGrid, resolveGridMetrics, type GridElement, type GridScene } from '@u1in/shushi-core'
+import type { GalleryItem } from '@u1in/shushi-docs/gallery'
 
 type Bounds = { left: number, top: number, width: number, height: number }
 

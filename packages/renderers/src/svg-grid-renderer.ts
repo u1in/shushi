@@ -3,8 +3,8 @@ import {
   getGridElementRect,
   getGridTextAnchor,
   resolveGridMetrics,
-} from '@vertical-arithmetic/grid'
-import type { GridElement, GridMetrics, GridScene } from '@vertical-arithmetic/grid'
+} from '@u1in/shushi-grid'
+import type { GridElement, GridMetrics, GridScene } from '@u1in/shushi-grid'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 

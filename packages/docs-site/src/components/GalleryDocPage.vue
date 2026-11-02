@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { galleryPageByOperation, type GalleryOperation } from '@vertical-arithmetic/docs/gallery'
-import { computeAddition, computeDivision, computeMultiplication, computeShortDivision, computeSubtraction, createAdditionGridScene, createDivisionGridScene, createMultiplicationGridScene, createShortDivisionGridScene, createSubtractionGridScene } from '@vertical-arithmetic/core'
+import { galleryPageByOperation, type GalleryOperation } from '@u1in/shushi-docs/gallery'
+import { computeAddition, computeDivision, computeMultiplication, computeShortDivision, computeSubtraction, createAdditionGridScene, createDivisionGridScene, createMultiplicationGridScene, createShortDivisionGridScene, createSubtractionGridScene } from '@u1in/shushi-core'
 import GalleryNamingMap from './GalleryNamingMap.vue'
-import type { GridScene } from '@vertical-arithmetic/core'
+import type { GridScene } from '@u1in/shushi-core'
 
 const props = defineProps<{ operation: GalleryOperation }>()
 const page = computed(() => galleryPageByOperation.get(props.operation))
@@ -31,7 +31,7 @@ const scenario = computed<GridScene>(() => {
 
         <section class="docs-gallery-section">
           <h2>图例说明</h2>
-          <p>下面的名称、语义 token 和来源类型来自 <code>@vertical-arithmetic/docs</code>。左侧交互图谱与此表使用同一份数据。</p>
+          <p>下面的名称、语义 token 和来源类型来自 <code>@u1in/shushi-docs</code>。左侧交互图谱与此表使用同一份数据。</p>
       <div class="docs-gallery-table-wrap">
         <table>
           <thead><tr><th>编号</th><th>名称</th><th>说明</th><th>语义 token</th><th>来源</th></tr></thead>

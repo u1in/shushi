@@ -12,8 +12,8 @@ export const gridScenePage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro } from '@vertical-arithmetic/core'
-import type { GridScene } from '@vertical-arithmetic/core'
+        code: `import { compileMacro } from '@u1in/shushi-core'
+import type { GridScene } from '@u1in/shushi-core'
 
 // 编译结果就是两个渲染器共用的场景契约。
 const scene: GridScene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
@@ -62,7 +62,7 @@ export const resolveGridMetricsPage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, resolveGridMetrics } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, resolveGridMetrics } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 渲染器会使用同一份尺寸；调用方也可以提前布局外层容器。
@@ -102,7 +102,7 @@ export const getGridPositionRectPage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, getGridPositionRect, resolveGridMetrics } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, getGridPositionRect, resolveGridMetrics } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;')
 const metrics = resolveGridMetrics(scene)
@@ -136,7 +136,7 @@ export const getGridElementRectPage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, getGridElementRect, resolveGridMetrics } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, getGridElementRect, resolveGridMetrics } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;')
 const metrics = resolveGridMetrics(scene)
@@ -171,7 +171,7 @@ export const getGridTextAnchorPage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { getGridTextAnchor } from '@vertical-arithmetic/core'
+        code: `import { getGridTextAnchor } from '@u1in/shushi-core'
 
 const rect = { left: 20, top: 12, width: 30, height: 46 }
 // 居中对齐会把锚点放在矩形中心。
@@ -209,7 +209,7 @@ export const extractVisibleTextRowsPage = gridPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, extractVisibleTextRows } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, extractVisibleTextRows } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 返回值按渲染锚点的 y 坐标分行，再按 x 坐标排序。

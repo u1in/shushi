@@ -1,11 +1,11 @@
-import { formatMacro } from '@vertical-arithmetic/macro'
+import { formatMacro } from '@u1in/shushi-macro'
 
 export interface MacroExample {
   label: string
   source: string
 }
 
-/** 与主页下方四则运算器的默认题目对应；GRID 默认启用自动配色，因此无需额外配置。 */
+/** 与主页下方运算器的默认题目对应；GRID 默认启用自动配色，因此无需额外配置。 */
 export const arithmeticExamples: MacroExample[] = [
   {
     label: '356 + 278 = 634',

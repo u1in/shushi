@@ -4,7 +4,7 @@ import {
   computeAddition,
   createAdditionMacroSource,
   renderDomGrid,
-} from '@vertical-arithmetic/core'
+} from '@u1in/shushi-core'
 
 describe('统一 npm 入口', () => {
   it('汇总计算、布局、宏编译和渲染 API', () => {

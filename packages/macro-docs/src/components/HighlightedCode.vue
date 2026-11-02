@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DocCodeLanguage } from '@vertical-arithmetic/docs/macro/types'
+import type { DocCodeLanguage } from '@u1in/shushi-docs/macro/types'
 
 interface CodeToken {
   text: string

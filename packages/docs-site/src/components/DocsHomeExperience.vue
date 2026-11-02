@@ -5,11 +5,11 @@ import {
   computeAddition,
   createAdditionMacroSource,
   renderDomGrid,
-} from '@vertical-arithmetic/core'
+} from '@u1in/shushi-core'
 
 const resultHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
-const installCommand = 'npm install @vertical-arithmetic/core'
+const installCommand = 'npm install @u1in/shushi-core'
 type CopyState = 'idle' | 'copied' | 'failed'
 type CopyTimer = { id?: number }
 
@@ -30,7 +30,7 @@ const exampleCode = `import {
   createAdditionMacroSource,
   compileMacro,
   renderDomGrid,
-} from '@vertical-arithmetic/core'
+} from '@u1in/shushi-core'
 
 // 计算层：只生成与渲染无关的逐列过程
 const computation = computeAddition('356', '278')
@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
   <span class="docs-code-function">createAdditionMacroSource</span>,
   <span class="docs-code-function">compileMacro</span>,
   <span class="docs-code-function">renderDomGrid</span>,
-} <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@vertical-arithmetic/core'</span>
+} <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
 
 <span class="docs-code-comment">// 计算层：只生成与渲染无关的逐列过程</span>
 <span class="docs-code-keyword">const</span> computation = <span class="docs-code-function">computeAddition</span>(<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>)
@@ -243,7 +243,7 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
     <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
       <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
       <h2 id="docs-home-overview-title">把“怎么算、怎么排、怎么画”拆成可验证的三层</h2>
-      <p class="docs-home-lead">四则运算竖式项目面向教学、调试和前端集成：用户可以人工录入网格宏源码，也可以输入数值让计算器自动填写同一种源码；两者都由同一个宏编译器生成统一场景，DOM/CSS 与 SVG 最后消费同一份数据。</p>
+      <p class="docs-home-lead">@u1in/shushi面向教学、调试和前端集成：用户可以人工录入网格宏源码，也可以输入数值让计算器自动填写同一种源码；两者都由同一个宏编译器生成统一场景，DOM/CSS 与 SVG 最后消费同一份数据。</p>
       <div class="docs-home-feature-grid">
         <article class="docs-home-feature">
           <span class="docs-home-feature-index">01</span>

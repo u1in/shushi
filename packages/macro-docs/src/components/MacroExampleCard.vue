@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { compileMacro } from '@vertical-arithmetic/macro'
+import { compileMacro } from '@u1in/shushi-macro'
 import MacroGridPreview from './MacroGridPreview.vue'
 import DocText from './DocText.vue'
 import { useClipboard } from './use-clipboard'
 import HighlightedCode from './HighlightedCode.vue'
-import type { DocCodeLanguage } from '@vertical-arithmetic/docs/macro/types'
+import type { DocCodeLanguage } from '@u1in/shushi-docs/macro/types'
 
 /**
  * 可运行示例：展示源码并即时编译右侧预览。

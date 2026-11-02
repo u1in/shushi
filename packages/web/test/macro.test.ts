@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { AUTO_COLOR_THEME, compileMacro, formatMacro, minifyMacro, parseMacro } from '@vertical-arithmetic/macro'
+import { AUTO_COLOR_THEME, compileMacro, formatMacro, minifyMacro, parseMacro } from '@u1in/shushi-macro'
 
 describe('网格宏编译器', () => {
   test('顶层分号将裸文字自动补成 MM，再包裹为 ROW 和隐式 GRID', () => {
@@ -83,7 +83,7 @@ describe('网格宏编译器', () => {
     ])
   })
 
-  test('GRID 默认视觉参数与首页四则运算器一致', () => {
+  test('GRID 默认视觉参数与首页运算器一致', () => {
     const scene = compileMacro('ROW(MM(5))')
 
     expect(scene.unitWidth).toBe(30)

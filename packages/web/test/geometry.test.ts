@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { getGridPositionRect, getGridTextAnchor, resolveGridMetrics } from '@vertical-arithmetic/grid'
-import type { GridScene, GridTrack } from '@vertical-arithmetic/grid'
+import { getGridPositionRect, getGridTextAnchor, resolveGridMetrics } from '@u1in/shushi-grid'
+import type { GridScene, GridTrack } from '@u1in/shushi-grid'
 
 const createScene = (columns: GridTrack[], rows: GridTrack[]): GridScene => ({
   columns,

@@ -18,7 +18,7 @@ export const compileMacroPage = compilePage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro } from '@vertical-arithmetic/core'
+        code: `import { compileMacro } from '@u1in/shushi-core'
 
 // 分号分隔三行，编译器会把它们转换成 GridScene。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
@@ -41,7 +41,7 @@ console.log(scene.elements.length) // 文本与线条图元数量`,
       ],
     },
     {
-      id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '编译器不负责四则运算', text: '`compileMacro` 不会计算 356 + 278，也不会自动补出 634；运算结果必须由计算器或调用方先写入宏源码。源码语法错误会抛出带字符位置的 Error。' }],
+      id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '编译器不负责计算', text: '`compileMacro` 不会计算 356 + 278，也不会自动补出 634；运算结果必须由计算器或调用方先写入宏源码。源码语法错误会抛出带字符位置的 Error。' }],
     },
   ],
 })
@@ -55,7 +55,7 @@ export const compileMacroAstPage = compilePage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacroAst, parseMacro } from '@vertical-arithmetic/core'
+        code: `import { compileMacroAst, parseMacro } from '@u1in/shushi-core'
 
 const ast = parseMacro('3,5,6;LN;6,3,4;')
 // 先解析，再把 AST 交给编译器生成通用场景。
@@ -86,8 +86,8 @@ export const parseMacroPage = compilePage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { parseMacro } from '@vertical-arithmetic/core'
-import type { MacroCall } from '@vertical-arithmetic/core'
+        code: `import { parseMacro } from '@u1in/shushi-core'
+import type { MacroCall } from '@u1in/shushi-core'
 
 // 只解析，不生成轨道或渲染节点。
 const ast: MacroCall = parseMacro('ROW(MM(3), MM(5))')
@@ -121,7 +121,7 @@ export const formatMacroPage = compilePage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { formatMacro } from '@vertical-arithmetic/core'
+        code: `import { formatMacro } from '@u1in/shushi-core'
 
 const source = 'GRID(ROW(MM(3),MM(5)),LINE,ROW(MM(8)))'
 // 输出保留宏层级，并为嵌套参数补充两格缩进。
@@ -152,7 +152,7 @@ export const minifyMacroPage = compilePage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { minifyMacro } from '@vertical-arithmetic/core'
+        code: `import { minifyMacro } from '@u1in/shushi-core'
 
 const source = \`GRID(
   ROW(MM(3), MM(5)),

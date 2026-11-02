@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computeSubtraction } from '@vertical-arithmetic/calculators'
-import { createSubtractionGridScene } from '@vertical-arithmetic/layout'
-import { galleryPageByOperation } from '@vertical-arithmetic/docs/gallery'
+import { computeSubtraction } from '@u1in/shushi-calculators'
+import { createSubtractionGridScene } from '@u1in/shushi-layout'
+import { galleryPageByOperation } from '@u1in/shushi-docs/gallery'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
 
 const computation = computeSubtraction('502', '137')

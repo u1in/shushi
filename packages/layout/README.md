@@ -1,6 +1,6 @@
-# `@vertical-arithmetic/layout`
+# `@u1in/shushi-layout`
 
-运算专属的竖式布局引擎。该包联合 `@vertical-arithmetic/calculators` 的计算结果和 `@vertical-arithmetic/grid` 的通用网格模型，决定轨道、行列、运算线、符号、补零和进位标记的位置，并生成可供渲染器消费的 `GridScene`。
+运算专属的竖式布局引擎。该包联合 `@u1in/shushi-calculators` 的计算结果和 `@u1in/shushi-grid` 的通用网格模型，决定轨道、行列、运算线、符号、补零和进位标记的位置，并生成可供渲染器消费的 `GridScene`。
 
 ## 导出内容
 

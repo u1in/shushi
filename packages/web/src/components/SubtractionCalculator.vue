@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeSubtraction } from '@vertical-arithmetic/calculators'
-import { compileCalculatorMacro, createSubtractionMacroSource } from '@vertical-arithmetic/layout'
+import { computeSubtraction } from '@u1in/shushi-calculators'
+import { compileCalculatorMacro, createSubtractionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
 import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
-import type { SubtractionComputation } from '@vertical-arithmetic/calculators'
-import type { GridScene } from '@vertical-arithmetic/grid'
+import type { SubtractionComputation } from '@u1in/shushi-calculators'
+import type { GridScene } from '@u1in/shushi-grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 

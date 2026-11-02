@@ -1,4 +1,4 @@
-import type { GridTextHorizontalAlign, GridTextVerticalAlign } from '@vertical-arithmetic/grid'
+import type { GridTextHorizontalAlign, GridTextVerticalAlign } from '@u1in/shushi-grid'
 
 /** Grid configuration shared by every operation-specific layout engine. */
 export interface GridRenderSettings {

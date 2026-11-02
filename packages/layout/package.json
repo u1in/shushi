@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/layout",
-  "description": "根据除法、乘法计算结果决定竖式结构并生成行列网格布局。",
+  "name": "@u1in/shushi-layout",
+  "description": "根据各类竖式运算结果决定竖式结构并生成行列网格布局。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",
@@ -14,9 +14,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@vertical-arithmetic/grid": "file:../grid",
-    "@vertical-arithmetic/calculators": "file:../calculators",
-    "@vertical-arithmetic/macro": "file:../macro"
+    "@u1in/shushi-grid": "file:../grid",
+    "@u1in/shushi-calculators": "file:../calculators",
+    "@u1in/shushi-macro": "file:../macro"
   },
   "exports": {
     ".": "./src/index.ts"

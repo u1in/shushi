@@ -1,6 +1,6 @@
-# `@vertical-arithmetic/docs`
+# `@u1in/shushi-docs`
 
-这是四则运算竖式项目的框架无关核心文档包。文档内容集中存放在本包，发布框架只是读取本目录的适配层，因此未来可以把 VuePress 替换为 VitePress、Docusaurus 或静态 Markdown 发布器，而不移动规则源文件。
+这是 @u1in/shushi 的框架无关核心文档包。文档内容集中存放在本包，发布框架只是读取本目录的适配层，因此未来可以把 VuePress 替换为 VitePress、Docusaurus 或静态 Markdown 发布器，而不移动规则源文件。
 
 ## 先从这里开始
 
@@ -14,4 +14,4 @@
 - `technical/`：技术文档，包含计算、布局、网格和工作区契约；
 - `gallery/`：图例文档，集中解释竖式元素命名、语义 token 和必要的文字说明；交互演示只是消费这些数据的视图。
 
-`@vertical-arithmetic/docs-site` 只负责当前的 VuePress 主题、导航和交互组件注册，不是文档内容的权威来源。
+`@u1in/shushi-docs-site` 只负责当前的 VuePress 主题、导航和交互组件注册，不是文档内容的权威来源。

@@ -15,16 +15,16 @@ export const installPage: MacroDocPage = {
       blocks: [
         {
           type: 'paragraph',
-          text: '从宏源码到画面通常只需要统一入口 `@vertical-arithmetic/core`。底层仍按职责拆分：`macro` 负责把源码编译成 `GridScene`，`grid` 提供场景类型与几何工具，`renderers` 只消费 `GridScene`。',
+          text: '从宏源码到画面通常只需要统一入口 `@u1in/shushi-core`。底层仍按职责拆分：`macro` 负责把源码编译成 `GridScene`，`grid` 提供场景类型与几何工具，`renderers` 只消费 `GridScene`。',
         },
         {
           type: 'table',
           columns: ['包', '职责', '主要导出'],
           rows: [
-            ['`@vertical-arithmetic/core`', '统一导出运行时公共 API', '`compileMacro`、`parseMacro`、`renderDomGrid` 等'],
-            ['`@vertical-arithmetic/macro`', '解析、格式化与编译宏源码', '`compileMacro`、`parseMacro`、`formatMacro`、`minifyMacro`'],
-            ['`@vertical-arithmetic/grid`', '`GridScene` 类型、几何与文本行提取', '`extractVisibleTextRows`、`resolveGridMetrics`'],
-            ['`@vertical-arithmetic/renderers`', '把 `GridScene` 绘制为 SVG 或 DOM/CSS', '`renderSvgGrid`、`renderDomGrid`'],
+            ['`@u1in/shushi-core`', '统一导出运行时公共 API', '`compileMacro`、`parseMacro`、`renderDomGrid` 等'],
+            ['`@u1in/shushi-macro`', '解析、格式化与编译宏源码', '`compileMacro`、`parseMacro`、`formatMacro`、`minifyMacro`'],
+            ['`@u1in/shushi-grid`', '`GridScene` 类型、几何与文本行提取', '`extractVisibleTextRows`、`resolveGridMetrics`'],
+            ['`@u1in/shushi-renderers`', '把 `GridScene` 绘制为 SVG 或 DOM/CSS', '`renderSvgGrid`、`renderDomGrid`'],
           ],
         },
       ],
@@ -40,13 +40,13 @@ export const installPage: MacroDocPage = {
         {
           type: 'code',
           title: 'npm',
-          code: `npm i @vertical-arithmetic/core`,
+          code: `npm i @u1in/shushi-core`,
         },
         {
           type: 'callout',
           tone: 'info',
           title: '按已发布包编写',
-          text: '统一入口会把运行时领域包汇总为单个 ESM 文件和类型声明入口。npm scoped 包名必须包含 `/`，因此可发布包名是 `@vertical-arithmetic/core`，不是 `@vertical-arithmetic`。',
+          text: '统一入口会把运行时领域包汇总为单个 ESM 文件和类型声明入口。项目统一使用 `@u1in/shushi` 作为工作区根包名，并使用 `@u1in/shushi-*` 命名领域包；面向 npm 使用者的运行时入口是 `@u1in/shushi-core`。',
         },
       ],
     },
@@ -61,7 +61,7 @@ export const installPage: MacroDocPage = {
         {
           type: 'code',
           title: 'TypeScript',
-          code: `import { compileMacro } from '@vertical-arithmetic/core'
+          code: `import { compileMacro } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { resolveGridMetrics } from '@vertical-arithmetic/grid'
-import { renderSvgGrid } from '@vertical-arithmetic/renderers'
-import type { GridScene } from '@vertical-arithmetic/grid'
+import { resolveGridMetrics } from '@u1in/shushi-grid'
+import { renderSvgGrid } from '@u1in/shushi-renderers'
+import type { GridScene } from '@u1in/shushi-grid'
 
 /**
  * 文档专用的轻量 SVG 预览。

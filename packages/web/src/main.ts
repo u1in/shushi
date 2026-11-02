@@ -7,7 +7,7 @@ import MultiplicationNamingMapPage from './pages/MultiplicationNamingMapPage.vue
 import AdditionNamingMapPage from './pages/AdditionNamingMapPage.vue'
 import SubtractionNamingMapPage from './pages/SubtractionNamingMapPage.vue'
 import ShortDivisionNamingMapPage from './pages/ShortDivisionNamingMapPage.vue'
-import { MacroApiDocsPage, MacroDocPage, MacroLanguageDocsPage, macroDocPages } from '@vertical-arithmetic/macro-docs'
+import { MacroApiDocsPage, MacroDocPage, MacroLanguageDocsPage, macroDocPages } from '@u1in/shushi-macro-docs'
 import './styles/tailwind.css'
 import './styles/naming-map.css'
 

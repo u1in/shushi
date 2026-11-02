@@ -1,6 +1,6 @@
-# `@vertical-arithmetic/web`
+# `@u1in/shushi-web`
 
-四则运算竖式项目的浏览器前端应用，使用 Vue、Vue Router、Vite 和 Tailwind CSS 组织计算器、网格预览与竖式元素命名图谱页面。
+@u1in/shushi 的浏览器前端应用，使用 Vue、Vue Router、Vite 和 Tailwind CSS 组织计算器、网格预览与竖式元素命名图谱页面。
 
 ## 页面
 

@@ -1,6 +1,6 @@
 /** Long-division macro layout: serializes every visible teaching snapshot as macro source. */
-import type { GridScene } from '@vertical-arithmetic/grid'
-import type { DivisionComputation, LongDivisionStep } from '@vertical-arithmetic/calculators'
+import type { GridScene } from '@u1in/shushi-grid'
+import type { DivisionComputation, LongDivisionStep } from '@u1in/shushi-calculators'
 import type { RenderSettings } from './types'
 import {
   compileCalculatorMacro,

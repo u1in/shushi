@@ -1,6 +1,6 @@
-# `@vertical-arithmetic/renderers`
+# `@u1in/shushi-renderers`
 
-通用网格渲染层。该包只消费 `@vertical-arithmetic/grid` 的 `GridScene`，将同一份场景数据绘制为 DOM/CSS 或 SVG，不包含任何除法、乘法或其他运算规则。
+通用网格渲染层。该包只消费 `@u1in/shushi-grid` 的 `GridScene`，将同一份场景数据绘制为 DOM/CSS 或 SVG，不包含任何除法、乘法或其他运算规则。
 
 ## 导出内容
 

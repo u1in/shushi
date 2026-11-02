@@ -59,7 +59,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
   if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
-  document.title = '四则运算竖式项目'
+  document.title = '@u1in/shushi'
 })
 
 watch(() => props.slug, async () => {

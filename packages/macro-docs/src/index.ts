@@ -3,7 +3,7 @@
  * 内容数据、文档页面、可复用图例组件与样式都从这里对外暴露，
  * 主应用只负责挂载路由和提供站点外壳。
  */
-export * from '@vertical-arithmetic/docs/macro'
+export * from '@u1in/shushi-docs/macro'
 
 export { default as MacroDocsLayout } from './pages/MacroDocsLayout.vue'
 export { default as MacroLanguageDocsPage } from './pages/MacroLanguageDocsPage.vue'

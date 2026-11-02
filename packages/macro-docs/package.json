@@ -1,5 +1,5 @@
 {
-  "name": "@vertical-arithmetic/macro-docs",
+  "name": "@u1in/shushi-macro-docs",
   "description": "网格宏语言技术文档的内容、页面组件、图例与样式。",
   "version": "0.1.0",
   "private": true,
@@ -9,10 +9,10 @@
     "./style.css": "./src/styles/macro-docs.css"
   },
   "dependencies": {
-    "@vertical-arithmetic/docs": "file:../docs",
-    "@vertical-arithmetic/grid": "file:../grid",
-    "@vertical-arithmetic/macro": "file:../macro",
-    "@vertical-arithmetic/renderers": "file:../renderers",
+    "@u1in/shushi-docs": "file:../docs",
+    "@u1in/shushi-grid": "file:../grid",
+    "@u1in/shushi-macro": "file:../macro",
+    "@u1in/shushi-renderers": "file:../renderers",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   }

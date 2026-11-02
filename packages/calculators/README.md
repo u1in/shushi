@@ -1,6 +1,6 @@
-# `@vertical-arithmetic/calculators`
+# `@u1in/shushi-calculators`
 
-四则运算计算层。它校验非负整数输入，使用十进制字符串执行加、减、乘、除，并输出与渲染器无关的过程数据，供 `@vertical-arithmetic/layout` 编排为网格场景。
+@u1in/shushi 的计算层。它校验非负整数输入，执行各类运算，并输出与渲染器无关的过程数据，供 `@u1in/shushi-layout` 编排为网格场景。
 
 ## 导出内容
 

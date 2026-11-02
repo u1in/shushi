@@ -12,7 +12,7 @@ export const renderSvgGridPage = renderPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, renderSvgGrid } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 函数会创建完整 SVG；调用方只需挂载返回节点。
@@ -47,7 +47,7 @@ export const renderDomGridPage = renderPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, renderDomGrid } from '@vertical-arithmetic/core'
+        code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 舞台和两层子节点会由渲染器自动创建。

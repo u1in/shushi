@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computeShortDivision } from '@vertical-arithmetic/calculators'
-import { createShortDivisionGridScene } from '@vertical-arithmetic/layout'
-import { galleryPageByOperation } from '@vertical-arithmetic/docs/gallery'
+import { computeShortDivision } from '@u1in/shushi-calculators'
+import { createShortDivisionGridScene } from '@u1in/shushi-layout'
+import { galleryPageByOperation } from '@u1in/shushi-docs/gallery'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
 
 const computation = computeShortDivision({ mode: 'baseConversion', values: ['13'], targetBase: 2 })

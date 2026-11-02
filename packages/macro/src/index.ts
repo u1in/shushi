@@ -8,7 +8,7 @@ export type { MacroCall, MacroLiteral, MacroNode, MacroStyle, MacroSymbol } from
 
 import { compileMacroAst } from './compiler'
 import { parseMacro } from './parser'
-import type { GridScene } from '@vertical-arithmetic/grid'
+import type { GridScene } from '@u1in/shushi-grid'
 
 /** 供网页输入框与未来运算布局共用的一步式宏源码编译入口。 */
 export const compileMacro = (source: string): GridScene => compileMacroAst(parseMacro(source))

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { compileMacro } from '@vertical-arithmetic/macro'
+import { compileMacro } from '@u1in/shushi-macro'
 import MacroGridPreview from './MacroGridPreview.vue'
 import HighlightedCode from './HighlightedCode.vue'
 import DocText from './DocText.vue'

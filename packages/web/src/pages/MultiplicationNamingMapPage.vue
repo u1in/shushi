@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computeMultiplication } from '@vertical-arithmetic/calculators'
-import { createMultiplicationGridScene } from '@vertical-arithmetic/layout'
-import { galleryPageByOperation } from '@vertical-arithmetic/docs/gallery'
+import { computeMultiplication } from '@u1in/shushi-calculators'
+import { createMultiplicationGridScene } from '@u1in/shushi-layout'
+import { galleryPageByOperation } from '@u1in/shushi-docs/gallery'
 import NamingMapGrid from '../components/NamingMapGrid.vue'
 
 const computation = computeMultiplication('97', '89')

@@ -1,6 +1,6 @@
 {
-  "name": "@vertical-arithmetic/core",
-  "description": "四则运算计算、竖式布局、宏编译与网格渲染的统一 npm 入口。",
+  "name": "@u1in/shushi-core",
+  "description": "竖式计算、竖式布局、宏编译与网格渲染的统一 npm 入口。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",

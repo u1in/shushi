@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { getGridElementRect, resolveGridMetrics } from '@vertical-arithmetic/grid'
-import { renderDomGrid } from '@vertical-arithmetic/renderers'
-import type { GridElement, GridScene } from '@vertical-arithmetic/grid'
+import { getGridElementRect, resolveGridMetrics } from '@u1in/shushi-grid'
+import { renderDomGrid } from '@u1in/shushi-renderers'
+import type { GridElement, GridScene } from '@u1in/shushi-grid'
 
 type Bounds = { left: number, top: number, width: number, height: number }
 type HighlightSource = 'text' | 'cell' | 'edge' | 'rendered-text' | 'scene'
