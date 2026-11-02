@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeAddition } from '@vertical-arithmetic/calculators'
-import { createAdditionGridScene } from '@vertical-arithmetic/layout'
+import { compileCalculatorMacro, createAdditionMacroSource } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { AdditionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
@@ -19,15 +20,18 @@ const showCarrySteps = ref(true)
 const error = ref('')
 const computation = ref<AdditionComputation>()
 const scene = ref<GridScene>()
+const macroSource = ref('')
 const answer = computed(() => computation.value?.sumDigits ?? '—')
 
 const renderScene = (): void => {
   if (!computation.value) return
-  scene.value = createAdditionGridScene(computation.value, {
+  const settings = {
     cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
     showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
     visibleStepCount: visibleStepCount.value,
-  })
+  }
+  macroSource.value = createAdditionMacroSource(computation.value, settings)
+  scene.value = compileCalculatorMacro(macroSource.value)
 }
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
@@ -84,6 +88,7 @@ calculate()
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
+        <GeneratedMacroSource :source="macroSource" />
       </div></section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />
     </section>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeDivision } from '@vertical-arithmetic/calculators'
-import { createDivisionGridScene, getDivisionPlaybackStepCount } from '@vertical-arithmetic/layout'
+import { compileCalculatorMacro, createDivisionMacroSource, getDivisionPlaybackStepCount } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { DivisionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
@@ -21,10 +22,11 @@ const showZeroQuotientSteps = ref(false)
 const error = ref('')
 const computation = ref<DivisionComputation>()
 const scene = ref<GridScene>()
+const macroSource = ref('')
 
 const renderScene = (): void => {
   if (!computation.value) return
-  scene.value = createDivisionGridScene(computation.value, {
+  const settings = {
     cellWidth: cellWidth.value,
     rowHeight: rowHeight.value,
     fontSizeRatio: fontSizeRatio.value,
@@ -33,7 +35,9 @@ const renderScene = (): void => {
     uniformSubtractionBars: uniformSubtractionBars.value,
     showZeroQuotientSteps: showZeroQuotientSteps.value,
     visibleStepCount: visibleStepCount.value,
-  })
+  }
+  macroSource.value = createDivisionMacroSource(computation.value, settings)
+  scene.value = compileCalculatorMacro(macroSource.value)
 }
 const playback = useCalculatorStepPlayback({
   getStepCount: () => {
@@ -107,6 +111,7 @@ calculate()
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

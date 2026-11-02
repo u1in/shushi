@@ -839,6 +839,8 @@ h2 {
   min-width: 440px;
   min-height: 220px;
   color: #172033;
+  /* 厂字弯与厂字横是同一视觉部件，固定共用颜色，避免两个渲染器分色。 */
+  --division-bracket-color: #4a5f78;
 }
 
 .division-svg {
@@ -1141,7 +1143,8 @@ h2 {
   transform: translateX(calc(var(--division-stroke, 3px) / -2));
 }
 
-.division-dom .grid-edge[data-style-token="division.bracket-top-line"] { background: #3986e4; }
+.division-dom .grid-edge[data-style-token="division.bracket"],
+.division-dom .grid-edge[data-style-token="division.bracket-top-line"] { background: var(--division-bracket-color); }
 .division-dom .grid-edge[data-style-token="division.subtraction-bar"] { border-radius: 0; background: #4a5f78; }
 .division-dom .grid-edge[data-style-token="multiplication.input-bar"] { background: #4a5f78; }
 .division-dom .grid-edge[data-style-token="multiplication.sum-bar"] { border-radius: 0; background: #4a5f78; }
@@ -1159,8 +1162,8 @@ h2 {
   background: #4a5f78;
 }
 .division-dom .grid-corner[data-style-token="division.bracket"] {
-  border-right: 2px solid #3986e4;
-  border-bottom: 2px solid #3986e4;
+  border-right: 2px solid var(--division-bracket-color);
+  border-bottom: 2px solid var(--division-bracket-color);
   border-bottom-right-radius: var(--grid-corner-radius);
 }
 
@@ -1184,7 +1187,8 @@ h2 {
   stroke-width: var(--division-stroke, 3px);
 }
 
-.division-svg .grid-edge[data-style-token="division.bracket-top-line"] { stroke: #3986e4; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="division.bracket"],
+.division-svg .grid-edge[data-style-token="division.bracket-top-line"] { stroke: var(--division-bracket-color); stroke-linecap: butt; }
 .division-svg .grid-edge[data-style-token="division.subtraction-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
 .division-svg .grid-edge[data-style-token="multiplication.input-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
 .division-svg .grid-edge[data-style-token="multiplication.sum-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
@@ -1194,7 +1198,7 @@ h2 {
 .division-svg .grid-edge[data-style-token="short-division.bar"] { stroke: #4a5f78; stroke-linecap: butt; stroke-width: 2px; }
 .division-svg .grid-corner[data-style-token="division.bracket"] {
   fill: none;
-  stroke: #3986e4;
+  stroke: var(--division-bracket-color);
   stroke-linecap: butt;
   stroke-width: 2px;
 }

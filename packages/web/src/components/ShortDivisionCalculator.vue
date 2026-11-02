@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeShortDivision } from '@vertical-arithmetic/calculators'
-import { createShortDivisionGridScene } from '@vertical-arithmetic/layout'
+import { compileCalculatorMacro, createShortDivisionMacroSource } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { ShortDivisionComputation, ShortDivisionMode } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
@@ -22,17 +23,20 @@ const showRemainders = ref(true)
 const error = ref('')
 const computation = ref<ShortDivisionComputation>()
 const scene = ref<GridScene>()
+const macroSource = ref('')
 
 const renderScene = (): void => {
   if (!computation.value) return
-  scene.value = createShortDivisionGridScene(computation.value, {
+  const settings = {
     cellWidth: cellWidth.value,
     rowHeight: rowHeight.value,
     fontSizeRatio: fontSizeRatio.value,
     showGuideGrid: showGuideGrid.value,
     showRemainders: showRemainders.value,
     visibleStepCount: visibleStepCount.value,
-  })
+  }
+  macroSource.value = createShortDivisionMacroSource(computation.value, settings)
+  scene.value = compileCalculatorMacro(macroSource.value)
 }
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
@@ -131,6 +135,7 @@ calculate()
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

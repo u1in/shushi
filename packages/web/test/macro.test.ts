@@ -309,6 +309,12 @@ ROW(MM(6), MM(3), MM(4))`)
     expect(new Set(colors).size).toBe(3)
   })
 
+  test('VALUE 可保留语义样式，并允许末行使用空数值组占位', () => {
+    const scene = compileMacro('GRID(KV(autoColor, false), ROW(MM(2), DIV, VALUE(13, KV(style, short-division.dividend)), VALUE(余), VALUE(1)), ROW(VALUE(6, KV(style, short-division.final)), VALUE(""), VALUE("")))')
+    expect(scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.dividend')).toBe(true)
+    expect(scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.final')).toBe(true)
+  })
+
   test('显式列数不足会报错，字符串和括号也有清晰诊断', () => {
     expect(() => compileMacro('GRID(KV(columns, 1), ROW(MM(5), MM(6)))')).toThrow(/小于最长 ROW/)
     expect(() => parseMacro('GRID(ROW(MM(5))')).toThrow(/缺少结束括号/)

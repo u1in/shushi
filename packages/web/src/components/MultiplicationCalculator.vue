@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeMultiplication } from '@vertical-arithmetic/calculators'
-import { createMultiplicationGridScene, getMultiplicationStepCount } from '@vertical-arithmetic/layout'
+import { compileCalculatorMacro, createMultiplicationMacroSource, getMultiplicationStepCount } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { MultiplicationComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
@@ -21,11 +22,12 @@ const useTrailingZeroShortcut = ref(true)
 const error = ref('')
 const computation = ref<MultiplicationComputation>()
 const scene = ref<GridScene>()
+const macroSource = ref('')
 const answer = computed(() => computation.value?.productDigits ?? '—')
 
 const renderScene = (): void => {
   if (!computation.value) return
-  scene.value = createMultiplicationGridScene(computation.value, {
+  const settings = {
     cellWidth: cellWidth.value,
     rowHeight: rowHeight.value,
     fontSizeRatio: fontSizeRatio.value,
@@ -33,7 +35,9 @@ const renderScene = (): void => {
     uniformMultiplicationBars: uniformMultiplicationBars.value,
     showCarrySteps: showCarrySteps.value,
     visibleStepCount: visibleStepCount.value,
-  })
+  }
+  macroSource.value = createMultiplicationMacroSource(computation.value, settings)
+  scene.value = compileCalculatorMacro(macroSource.value)
 }
 const playback = useCalculatorStepPlayback({
   getStepCount: () => {
@@ -104,6 +108,7 @@ calculate()
           <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

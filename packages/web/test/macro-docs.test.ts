@@ -4,17 +4,26 @@ import type { DocBlock } from '@vertical-arithmetic/macro-docs'
 import {
   getMacroDocNeighbors,
   getMacroDocPath,
+  macroDocApiNavGroups,
   macroDocNavGroups,
   macroDocPageBySlug,
   macroDocPages,
 } from '@vertical-arithmetic/macro-docs'
 
 /**
- * 文档即代码：页内所有示例、对照与练习都必须可编译。
+ * 文档即代码：页内所有示例与对照都必须可编译。
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'install', 'quickstart', 'api-overview', 'compile-api', 'render-api', 'grid-api', 'syntax',
+  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro',
+  'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
+  'getGridTextAnchor', 'extractVisibleTextRows',
+  'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
+  'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
+  'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
+  'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
+  'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision',
+  'syntax',
   'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
   'row-shorthand', 'cell-shorthand', 'zero-argument',
   'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
@@ -37,12 +46,6 @@ const collectSnippets = (block: DocBlock, page: string, section: string): Snippe
     return [
       { page, section, label: block.leftTitle, code: block.leftCode },
       { page, section, label: block.rightTitle, code: block.rightCode },
-    ]
-  }
-  if (block.type === 'sandbox') {
-    return [
-      { page, section, label: `${block.title}（练习起点）`, code: block.starter },
-      { page, section, label: `${block.title}（参考答案）`, code: block.answer },
     ]
   }
   return []
@@ -103,7 +106,31 @@ describe('网格宏文档', () => {
     )
 
     expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
-    expect(pagesOf('api')).toEqual(['api-overview', 'compile-api', 'render-api', 'grid-api'])
+    expect(pagesOf('api')).toEqual([
+      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro',
+      'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
+      'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
+      'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
+      'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
+      'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
+      'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
+      'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision',
+    ])
+    expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
+      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro']],
+      ['渲染 API', ['renderSvgGrid', 'renderDomGrid']],
+      ['网格和文本 API', [
+        'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
+        'extractVisibleTextRows',
+      ]],
+      ['布局 API', [
+        'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
+        'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
+        'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
+        'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
+      ]],
+      ['计算 API', ['computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision']],
+    ])
     expect(pagesOf('orientation')).toEqual([
       'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
     ])
@@ -124,7 +151,18 @@ describe('网格宏文档', () => {
     }
   })
 
-  test('所有示例、对照与练习源码都能编译', () => {
+  test('每个 API 页面使用统一章节顺序并标注代码语言', () => {
+    for (const page of macroDocApiNavGroups.flatMap(({ pages }) => pages)) {
+      expect(page.sections.map(({ id }) => id), page.slug).toEqual(['name', 'example', 'purpose', 'signature', 'cautions'])
+      const codeBlocks = page.sections.flatMap(({ blocks }) => blocks).filter(
+        (block): block is Extract<DocBlock, { type: 'code' }> => block.type === 'code',
+      )
+      expect(codeBlocks.length, `${page.slug} 没有代码块`).toBeGreaterThan(0)
+      expect(codeBlocks.every(({ language }) => language === 'typescript' || language === 'css'), page.slug).toBe(true)
+    }
+  })
+
+  test('所有示例与对照源码都能编译', () => {
     expect(snippets.length).toBeGreaterThan(40)
     for (const snippet of snippets) {
       expect(
@@ -153,19 +191,10 @@ describe('网格宏文档', () => {
     }
   })
 
-  test('练习参考答案与起点不同，且页尾翻页链完整', () => {
+  test('用户手册不发布练习章节，且页尾翻页链完整', () => {
     for (const page of macroDocPages) {
       for (const section of page.sections) {
-        for (const block of section.blocks) {
-          if (block.type === 'sandbox') {
-            if (block.mode === 'source') {
-              const strip = (value: string): string => value.replace(/\s+/g, '')
-              expect(strip(block.answer), `${page.slug} / ${block.title} 的源码答案与起点相同`).not.toBe(strip(block.starter))
-            } else {
-              expect(compileMacro(block.starter), `${page.slug} / ${block.title} 的练习起点已经等于答案`).not.toEqual(compileMacro(block.answer))
-            }
-          }
-        }
+        expect(section.id).not.toBe('practice')
       }
     }
 
@@ -186,7 +215,7 @@ describe('网格宏文档', () => {
     expect(getMacroDocPath('install')).toBe('/macro-api')
     expect(getMacroDocPath('quickstart')).toBe('/macro-api/quickstart')
     expect(getMacroDocNeighbors('install').previous).toBeUndefined()
-    expect(getMacroDocNeighbors('grid-api').next).toBeUndefined()
+    expect(getMacroDocNeighbors('computeShortDivision').next).toBeUndefined()
   })
 
   test('页面内“继续阅读”链接都能落到文档页', () => {
