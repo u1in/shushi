@@ -84,8 +84,8 @@ calculate()
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
-        <VisibleTextRowsPanel v-if="scene" :scene="scene" />
       </div></section>
+      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
     </section>
   </div>
 </template>

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { extractVisibleTextRows } from '@vertical-arithmetic/grid'
 import type { GridScene } from '@vertical-arithmetic/grid'
 
 const props = defineProps<{ scene: GridScene }>()
-const isOpen = ref(false)
+/** 首页默认展开 OCR 结果；场景更新时保持展开并实时刷新按行内容。 */
+const isOpen = ref(true)
 const rows = computed(() => extractVisibleTextRows(props.scene))
-
-// 算式或播放进度改变会生成新场景，关闭旧结果以免用户误认它仍对应当前竖式。
-watch(() => props.scene, () => { isOpen.value = false })
 </script>
 
 <template>
-  <section class="visible-text-rows" aria-label="OCR 按行结果">
+  <section class="ocr-panel visible-text-rows" aria-label="OCR 按行结果">
+    <p class="panel-kicker">OCR</p>
+    <h2>按行识别结果</h2>
     <button
       class="ghost-button visible-text-rows__button"
       type="button"

@@ -115,13 +115,24 @@ h1 {
   margin: 10px 0;
 }
 
-.macro-insert-toolbar > span,
+.macro-insert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.macro-insert-header > span,
 .macro-format-toolbar > span {
-  flex-basis: 100%;
   margin-right: 3px;
   color: #63718b;
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.macro-format-toolbar > span {
+  flex-basis: 100%;
 }
 
 .macro-insert-groups {
@@ -201,17 +212,14 @@ h1 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(400px, 0.86fr) minmax(0, 2.28fr);
+  grid-template-columns: minmax(400px, 0.86fr) minmax(0, 2.1fr) minmax(280px, 0.7fr);
   gap: 18px;
-}
-
-.macro-playground .workspace {
-  grid-template-columns: minmax(360px, 0.86fr) minmax(0, 1.9fr);
 }
 
 .control-panel,
 .settings-panel,
-.result-card {
+.result-card,
+.ocr-panel {
   border: 1px solid rgba(209, 218, 235, 0.88);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.84);
@@ -713,18 +721,30 @@ h2 {
   font-size: 0.84rem;
 }
 
-/* 首页示例复用同一块 API 输出面板，展示当前 GridScene 的实际可见字符行。 */
-.visible-text-rows {
-  margin-top: 16px;
+/* 首页示例复用同一块 API 输出面板，作为结果卡之外的独立 OCR 板块。 */
+.ocr-panel {
+  align-self: start;
+  min-width: 0;
+  padding: 24px;
+}
+
+.ocr-panel h2 {
+  margin-top: 6px;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
 }
 
 .visible-text-rows__button {
+  width: 100%;
+  margin-top: 16px;
   padding: 9px 12px;
   font-size: 0.78rem;
 }
 
 .visible-text-rows__output {
+  max-height: 440px;
   margin-top: 10px;
+  overflow: auto;
   border: 1px solid #dce5f2;
   border-radius: 12px;
   padding: 12px;
@@ -1376,10 +1396,6 @@ h2 {
     grid-template-columns: 1fr;
   }
 
-  .macro-playground .workspace {
-    grid-template-columns: 1fr;
-  }
-
   .settings-controls {
     grid-template-columns: 1fr;
   }
@@ -1398,8 +1414,13 @@ h2 {
 }
 
 @media (max-width: 1180px) and (min-width: 801px) {
-  .macro-playground .workspace {
-    grid-template-columns: minmax(340px, 0.9fr) minmax(0, 1.5fr);
+  .workspace {
+    grid-template-columns: minmax(320px, 0.9fr) minmax(0, 2fr);
+  }
+
+  /* 中等宽度下第三列放不下，OCR 板块落到工作区下方并横跨两列。 */
+  .ocr-panel {
+    grid-column: 1 / -1;
   }
 
   .result-content-grid {
@@ -1423,7 +1444,8 @@ h2 {
   }
 
   .control-panel,
-  .result-card {
+  .result-card,
+  .ocr-panel {
     padding: 20px;
   }
 

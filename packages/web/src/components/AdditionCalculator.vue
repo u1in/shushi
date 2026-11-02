@@ -84,8 +84,8 @@ calculate()
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
-        <VisibleTextRowsPanel v-if="scene" :scene="scene" />
       </div></section>
+      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
     </section>
   </div>
 </template>

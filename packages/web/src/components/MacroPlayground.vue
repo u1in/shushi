@@ -3,42 +3,12 @@ import { computed, nextTick, ref } from 'vue'
 import { compileMacro, formatMacro, minifyMacro } from '@vertical-arithmetic/macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
+import { arithmeticExamples, formatExampleSource, type MacroExample } from './macroPlaygroundExamples'
 
-interface MacroExample {
-  label: string
-  source: string
-}
-
-/** 与主页下方四则运算器的默认题目对应；GRID 默认启用自动配色，因此无需额外配置。 */
-const arithmeticExamples: MacroExample[] = [
-  {
-    label: '356 + 278 = 634',
-    source: '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;',
-  },
-  {
-    label: '502 − 137 = 365',
-    source: '[5,MT(·)],[0,MT(·)],2;−,1,3,7;LN;3,6,5;',
-  },
-  {
-    label: '97 × 89 = 8633',
-    source: '9,7;×,[8,RB(6)],9;LN(KV(span,full));8,7,3;[7,RB(1)],[7,RB(1)],[6,LT(5)],EP;LN(KV(span,full));8,6,3,3;',
-  },
-  {
-    label: '10230 ÷ 25 = 409.2',
-    source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,[0,DOT],0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
-  },
-  {
-    label: '短除法 · 60 = 2 × 2 × 3 × 5',
-    source: '2,DIV,VALUE(60);2,DIV,VALUE(30);3,DIV,VALUE(15);VALUE(5);',
-  },
-  {
-    label: '最大公约数 · 60 与 84',
-    source: '2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);',
-  },
-]
-
-const source = ref(arithmeticExamples[0].source)
+const source = ref(formatExampleSource(arithmeticExamples[0].source))
 const sourceTextarea = ref<HTMLTextAreaElement>()
+/** 快速插入模板默认收起，避免挤占宏源码编辑区。 */
+const isInsertOpen = ref(false)
 
 interface MacroSnippet {
   label: string
@@ -141,8 +111,9 @@ const result = computed(() => {
   }
 })
 
+/** 切换示例时同样展示格式化源码，保证每个示例的默认视图都可读。 */
 const useExample = ({ source: exampleSource }: MacroExample): void => {
-  source.value = exampleSource
+  source.value = formatExampleSource(exampleSource)
 }
 
 /** 格式化失败时保留原源码，让现有编译错误继续提示用户修正输入。 */
@@ -165,10 +136,13 @@ const minifySource = (): void => transformSource(minifyMacro)
       <section class="control-panel">
         <p class="panel-kicker">MACRO PLAYGROUND</p>
         <h2>网格宏试验区</h2>
-        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、DIV、VALUE、STYLE 与 KV；短除法只需在 ROW 中写 DIV，编译器会自动切换半格阶梯，无需 KV(trackUnit, half)。顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。</p>
+        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、DIV、VALUE、STYLE 与 KV；短除法只需在 ROW 中写 DIV，编译器会自动切换半格阶梯，无需 KV(trackUnit, half)。顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。载入示例时会自动按函数层级格式化源码。</p>
         <div class="macro-insert-toolbar" aria-label="快速插入宏">
-          <span>快速插入</span>
-          <div class="macro-insert-groups">
+          <div class="macro-insert-header">
+            <span>快速插入</span>
+            <button class="macro-insert-button" type="button" :aria-expanded="isInsertOpen" aria-controls="macro-insert-groups" @click="isInsertOpen = !isInsertOpen">{{ isInsertOpen ? '收起' : '展开' }}</button>
+          </div>
+          <div v-show="isInsertOpen" id="macro-insert-groups" class="macro-insert-groups">
             <div v-for="group in macroSnippetGroups" :key="group.label" class="macro-insert-group">
               <span class="macro-insert-group-label">{{ group.label }}</span>
               <button v-for="snippet in group.snippets" :key="snippet.label" class="macro-insert-button" type="button" :title="snippet.title" @click="insertSnippet(snippet)">{{ snippet.label }}</button>
@@ -199,13 +173,13 @@ const minifySource = (): void => transformSource(minifyMacro)
             </div>
           </div>
           <GridPreview :scene="result.scene" mode="svg" />
-          <VisibleTextRowsPanel :scene="result.scene" />
         </div>
         <div v-else class="calculation-result">
           <p class="panel-kicker">COMPILATION ERROR</p>
           <h2>请修正宏源码后预览</h2>
         </div>
       </section>
+      <VisibleTextRowsPanel v-if="result.scene" :scene="result.scene" />
     </section>
   </div>
 </template>
