@@ -46,8 +46,8 @@ const basicCommands: BasicCommand[] = [
   {
     name: 'GRID',
     signature: 'GRID(...children)',
-    properties: ['子项：ROW、LINE、KV。', '常用 KV：columns、unitWidth、unitHeight、padding / paddingX / paddingY、fontSizeRatio / fontSize、showGrid、autoColor、style、ariaLabel。'],
-    rules: '省略 columns 时按最长 ROW 推导；显式 columns 不能小于实际所需列数。',
+    properties: ['子项：ROW、LINE、KV。', '常用 KV：columns、trackUnit、unitWidth、unitHeight、padding / paddingX / paddingY、fontSizeRatio / fontSize、showGrid、autoColor、style、ariaLabel。'],
+    rules: '省略 columns 时按最长 ROW 推导；显式 columns 不能小于实际所需列数。ROW 中出现 DIV 时自动切换为半格短除法模式。',
     caution: 'autoColor 默认开启且最多支持 40 条 ROW；开启时线条的显式颜色和粗细不会生效。',
     example: 'GRID(KV(columns, 4), ROW(EMPTY()))',
   },
@@ -82,6 +82,14 @@ const basicCommands: BasicCommand[] = [
     rules: '始终附着于上一条 ROW 的下边缘，不创建额外行高。',
     caution: '前面必须已经有 ROW；默认 span 是 previous。',
     example: 'LINE(STYLE(KV(thickness, 2)), KV(span, previous))',
+  },
+  {
+    name: 'DIV / VALUE',
+    signature: 'DIV · VALUE(number)',
+    properties: ['ROW 中出现 DIV 时自动进入半格短除法模式，无需 KV(trackUnit, half)。', 'DIV 左侧是一个除数单元格；右侧和底行使用一个或多个 VALUE 数值组。'],
+    rules: 'DIV 自动生成本行竖线和横线；编译器依据 VALUE 的位数统一右对齐，并从下向上补齐半格阶梯。',
+    caution: 'DIV 必须是 ROW 直接子项且不占格；含 DIV 的 GRID 只能包含 ROW 与 KV；最后一行不能包含 DIV；显式 trackUnit=full 会被 DIV 覆盖。VALUE 不支持 KV，也不能用于普通 GRID。',
+    example: 'ROW(MM(2), DIV, VALUE(60))',
   },
   {
     name: 'STYLE',
@@ -158,6 +166,7 @@ const edgeTextMacro = { name: 'RBL', edge: '右侧文字', example: 'CELL(MM(7),
             <li><strong>ROW 默认右对齐。</strong>编译器按最长 ROW 推导列数，短行会贴齐个位列。</li>
             <li><strong>CELL 决定同格组合。</strong>它定义一个真实单元格；后续可在其中放入定位文本、边框等图元。</li>
             <li><strong>LINE 绑定上一行。</strong>它是边缘图元，不是新的数字行。</li>
+            <li><strong>DIV 定义短除边界。</strong>ROW 中出现 DIV 时，GRID 自动切换半格模式；DIV 读取右侧 VALUE 组并生成阶梯、竖线与横线。</li>
           </ol>
         </section>
 

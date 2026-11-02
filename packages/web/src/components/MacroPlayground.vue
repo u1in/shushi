@@ -27,6 +27,14 @@ const arithmeticExamples: MacroExample[] = [
     label: '10230 ÷ 25 = 409.2',
     source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,0,0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
   },
+  {
+    label: '短除法 · 60 = 2 × 2 × 3 × 5',
+    source: '2,DIV,VALUE(60);2,DIV,VALUE(30);3,DIV,VALUE(15);VALUE(5);',
+  },
+  {
+    label: '最大公约数 · 60 与 84',
+    source: '2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);',
+  },
 ]
 
 const source = ref(arithmeticExamples[0].source)
@@ -54,6 +62,8 @@ const macroSnippetGroups: MacroSnippetGroup[] = [
       { label: '[]', source: '[],', cursorOffset: 1, title: '用方括号组合一个单元格中的图元' },
       { label: 'ROW', source: 'ROW(),', cursorOffset: 4, title: '插入数字行' },
       { label: 'LN', source: 'LN,', cursorOffset: 3, title: '插入 LINE 行级横线别名' },
+      { label: 'DIV', source: 'DIV,', cursorOffset: 4, title: '插入短除法分割边界（自动切换半格模式）' },
+      { label: 'VALUE', source: 'VALUE(),', cursorOffset: 6, title: '插入短除法右侧数值组' },
     ],
   },
   {
@@ -155,7 +165,7 @@ const minifySource = (): void => transformSource(minifyMacro)
       <section class="control-panel">
         <p class="panel-kicker">MACRO PLAYGROUND</p>
         <h2>网格宏试验区</h2>
-        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、STYLE 与 KV；顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。未指定列数时按最长行自动推导，自动配色默认开启。</p>
+        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、DIV、VALUE、STYLE 与 KV；短除法只需在 ROW 中写 DIV，编译器会自动切换半格阶梯，无需 KV(trackUnit, half)。顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。</p>
         <div class="macro-insert-toolbar" aria-label="快速插入宏">
           <span>快速插入</span>
           <div class="macro-insert-groups">
@@ -175,7 +185,7 @@ const minifySource = (): void => transformSource(minifyMacro)
           <textarea ref="sourceTextarea" v-model="source" spellcheck="false" aria-label="宏源码输入框"></textarea>
         </label>
         <div class="form-actions">
-          <span class="macro-example-label">四则示例</span>
+          <span class="macro-example-label">示例</span>
           <button v-for="example in arithmeticExamples" :key="example.label" class="ghost-button macro-example-button" type="button" @click="useExample(example)">{{ example.label }}</button>
         </div>
         <p class="error-message" role="alert">{{ result.error }}</p>

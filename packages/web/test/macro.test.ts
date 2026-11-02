@@ -119,6 +119,62 @@ describe('网格宏编译器', () => {
     })
   })
 
+  test('DIV 在半格 GRID 中根据 VALUE 自动生成短除法阶梯与合并数字格', () => {
+    const scene = compileMacro(`GRID(
+  KV(trackUnit, half),
+  KV(autoColor, false),
+  ROW(MM(2), DIV, VALUE(60)),
+  ROW(MM(2), DIV, VALUE(30)),
+  ROW(MM(3), DIV, VALUE(15)),
+  ROW(VALUE(5))
+)`)
+    const separators = scene.elements.filter(({ id }) => id.startsWith('macro-div-separator-'))
+    const bars = scene.elements.filter(({ id }) => id.startsWith('macro-div-bar-'))
+    const firstDigit = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '6')
+
+    expect(scene.columns).toHaveLength(8)
+    expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
+    expect(separators.map(({ position }) => position)).toEqual([
+      { kind: 'edge', column: 2, row: 0, edge: 'left' },
+      { kind: 'edge', column: 3, row: 1, edge: 'left' },
+      { kind: 'edge', column: 4, row: 2, edge: 'left' },
+    ])
+    expect(bars).toHaveLength(3)
+    expect(firstDigit).toMatchObject({ position: { kind: 'cell', column: 4, row: 0, columnSpan: 2 } })
+    expect(scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '5' && content.styleToken === undefined).at(-1)).toMatchObject({
+      position: { kind: 'cell', column: 6, row: 3, columnSpan: 2 },
+    })
+  })
+
+  test('DIV 自动提升为半格模式，无需 trackUnit 声明', () => {
+    const shorthand = compileMacro('2,DIV,VALUE(60);2,DIV,VALUE(30);3,DIV,VALUE(15);VALUE(5);')
+    const explicitFull = compileMacro('GRID(KV(trackUnit, full), ROW(MM(2), DIV, VALUE(60)), ROW(VALUE(5)))')
+
+    expect(shorthand.columns).toHaveLength(8)
+    expect(shorthand.rows).toHaveLength(4)
+    expect(shorthand.columns.every(({ size }) => size === 0.5)).toBe(true)
+    expect(explicitFull.columns.every(({ size }) => size === 0.5)).toBe(true)
+    expect(() => compileMacro('GRID(ROW(MM(2), DIV, VALUE(60)))')).toThrow(/最后一行/)
+    expect(() => compileMacro('GRID(ROW(MM(2), DIV, VALUE(60)), ROW(VALUE(30), VALUE(42)))')).toThrow(/数量必须一致/)
+  })
+
+  test('最大公约数分号写法自动保留多 VALUE 组', () => {
+    const scene = compileMacro('2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);')
+
+    expect(scene.columns).toHaveLength(13)
+    expect(scene.rows).toHaveLength(4)
+    expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
+  })
+
+  test('多 VALUE 组自动保留半格空隙，适用于最大公约数短除法', () => {
+    const scene = compileMacro('GRID(KV(trackUnit, half), KV(autoColor, false), ROW(MM(2), DIV, VALUE(60), VALUE(84)), ROW(VALUE(3), VALUE(7)))')
+    const firstGroupLastDigit = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '0')
+    const secondGroupFirstDigit = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '8')
+
+    expect(firstGroupLastDigit).toMatchObject({ position: { kind: 'cell', column: 4, row: 0, columnSpan: 2 } })
+    expect(secondGroupFirstDigit).toMatchObject({ position: { kind: 'cell', column: 7, row: 0, columnSpan: 2 } })
+  })
+
   test('非单元格中心的文本默认使用进位教学字号，但不改写颜色 token', () => {
     const scene = compileMacro('GRID(ROW(MM(9), MT(·)))')
     const [middle, annotation] = scene.elements

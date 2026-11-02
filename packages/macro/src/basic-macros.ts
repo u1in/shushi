@@ -5,10 +5,10 @@ import { getMacroCall, getPositiveNumber, splitMacroOptions } from './macro-ast'
  * 基础宏只定义网格结构、配置及跨渲染器线条样式；不承担位置快捷写法。
  * 它们是未来高层借位、进位等语法糖最终需要降级到的稳定底座。
  */
-export const BASIC_MACRO_NAMES = ['GRID', 'ROW', 'CELL', 'EMPTY', 'LINE', 'STYLE', 'KV'] as const
+export const BASIC_MACRO_NAMES = ['GRID', 'ROW', 'CELL', 'EMPTY', 'LINE', 'DIV', 'VALUE', 'STYLE', 'KV'] as const
 
 /** 基础宏中可省略空括号的命令。 */
-export const BASIC_ZERO_ARGUMENT_MACROS = new Set(['LINE', 'EMPTY', 'STYLE'])
+export const BASIC_ZERO_ARGUMENT_MACROS = new Set(['LINE', 'EMPTY', 'STYLE', 'DIV'])
 
 /** 默认线段只有统一粗细；颜色交给渲染器黑色基线或 GRID(autoColor) 主题。 */
 export const DEFAULT_LINE_STYLE: Required<Pick<MacroStyle, 'thickness'>> = { thickness: 2 }
