@@ -14,7 +14,7 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'syntax',
+  'intro', 'install', 'quickstart', 'api-overview', 'compile-api', 'render-api', 'grid-api', 'syntax',
   'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
   'row-shorthand', 'cell-shorthand', 'zero-argument',
   'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
@@ -102,6 +102,8 @@ describe('网格宏文档', () => {
       macroDocNavGroups.find(({ id }) => id === groupId)?.pages.map(({ slug }) => slug) ?? []
     )
 
+    expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
+    expect(pagesOf('api')).toEqual(['api-overview', 'compile-api', 'render-api', 'grid-api'])
     expect(pagesOf('orientation')).toEqual([
       'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
     ])
@@ -167,11 +169,24 @@ describe('网格宏文档', () => {
       }
     }
 
-    macroDocPages.forEach((page, index) => {
-      const { previous, next } = getMacroDocNeighbors(page.slug)
-      expect(previous?.slug).toBe(macroDocPages[index - 1]?.slug)
-      expect(next?.slug).toBe(macroDocPages[index + 1]?.slug)
-    })
+    const isTechnical = (group: string): boolean => group === 'technical' || group === 'api'
+    const areas = [
+      macroDocPages.filter(({ group }) => !isTechnical(group)),
+      macroDocPages.filter(({ group }) => isTechnical(group)),
+    ]
+    for (const areaPages of areas) {
+      areaPages.forEach((page, index) => {
+        const { previous, next } = getMacroDocNeighbors(page.slug)
+        expect(previous?.slug).toBe(areaPages[index - 1]?.slug)
+        expect(next?.slug).toBe(areaPages[index + 1]?.slug)
+      })
+    }
+
+    expect(getMacroDocPath('intro')).toBe('/macro-rules')
+    expect(getMacroDocPath('install')).toBe('/macro-api')
+    expect(getMacroDocPath('quickstart')).toBe('/macro-api/quickstart')
+    expect(getMacroDocNeighbors('install').previous).toBeUndefined()
+    expect(getMacroDocNeighbors('grid-api').next).toBeUndefined()
   })
 
   test('页面内“继续阅读”链接都能落到文档页', () => {

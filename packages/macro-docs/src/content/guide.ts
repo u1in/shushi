@@ -68,17 +68,17 @@ export const guidePages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '下面这段源码使用顶层分号行和方括号简写：第一行写 `56`，第二行画横线，第三行写 `7.`。结尾分号可以省略。',
+            text: '下面是一道完整的加法竖式：`356 + 278 = 634`。源码使用顶层分号行、方括号和进位标记 `RB`，结尾分号可以省略。',
           },
           {
             type: 'example',
-            title: '第一个可运行的网格',
-            code: '5, [6, RB(1)];\nLN;\n[7, DOT];',
-            note: '`RB(1)` 与数字 6 同格，显示在右下角；`DOT` 等价于 `RBL(.)`，贴在 7 的右边界。',
+            title: '第一道完整的加法竖式',
+            code: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;\nLN;\n6,3,4;',
+            note: '两个 `RB(1)` 分别贴在同格数字 2、7 的右下角，表示进位；`LN` 画出结果横线，最后一行是 634。',
           },
           {
             type: 'paragraph',
-            text: '把这段源码读成完整命令就是：`GRID(ROW(MM(5), CELL(MM(6), RB(1))), LINE, ROW(CELL(MM(7), DOT)))`。语法糖页面会逐项解释这些压缩规则。',
+            text: '把这段源码读成完整命令就是：`GRID(ROW(MM(3), MM(5), MM(6)), ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)), LINE, ROW(MM(6), MM(3), MM(4)))`。语法糖页面会逐项解释这些压缩规则。',
           },
         ],
       },
@@ -88,11 +88,11 @@ export const guidePages: MacroDocPage[] = [
         blocks: [
           {
             type: 'sandbox',
-            title: '把示例补成完整竖式',
-            task: '给第二格的 6 加一个进位点，并给第三行的 7 加上小数点，输出应当与上面的第一个示例一致。',
-            starter: '5,6;\nLN;\n7;',
-            answer: '5,[6,RB(1)];\nLN;\n[7,DOT];',
-            hint: '进位点与数字同格用方括号；小数点用 DOT。',
+            title: '补全加法竖式的结果',
+            task: '补上结果行和横线，使 356 + 278 = 634 成立。',
+            starter: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;',
+            answer: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;\nLN;\n6,3,4;',
+            hint: '横线用 `LN` 单独占一个分号段；结果 634 放在最后一行。',
           },
         ],
       },
@@ -103,6 +103,7 @@ export const guidePages: MacroDocPage[] = [
           {
             type: 'cards',
             items: [
+              { title: '安装与快速使用', text: 'npm 安装、编译宏、SVG/DOM 渲染与可见文本行提取。', to: '/macro-api' },
               { title: '基础语法规则', text: '调用形式、分隔符、引号、隐式 GRID、配置优先级与语法速查。', to: '/macro-rules/syntax' },
               { title: '基础宏命令', text: '从 GRID 到 KV 共九个结构宏；每页都列出参数、规则、错误与可运行示例。', to: '/macro-rules/grid' },
               { title: '方位宏命令', text: 'LT 到 RBL 共十个文本定位宏；每页说明锚点、字号与配色约定。', to: '/macro-rules/lt' },

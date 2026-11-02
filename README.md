@@ -23,7 +23,7 @@
 | `@vertical-arithmetic/macro-docs` | 网格宏文档内容、页面组件、图例与样式 |
 | `@vertical-arithmetic/web` | Vue 前端、路由、主题和交互页面 |
 
-计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。网格宏文档由 `packages/macro-docs` 独立维护，`web` 只负责挂载 `/macro-rules` 路由。
+计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。网格宏文档由 `packages/macro-docs` 独立维护，`web` 只负责挂载 `/macro-rules`（宏语言参考）与 `/macro-api`（技术文档）两个入口。
 
 ## 开始使用
 
@@ -35,7 +35,7 @@ npm install
 npm start          # 启动主应用，等同于 npm run dev
 ```
 
-启动后访问 `/macro-rules` 查看网格宏文档。
+启动后访问 `/macro-rules` 查看宏语言参考，访问 `/macro-api` 查看安装与 API 技术文档。
 
 常用校验命令：
 

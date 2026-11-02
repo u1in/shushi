@@ -7,13 +7,17 @@ import MultiplicationNamingMapPage from './pages/MultiplicationNamingMapPage.vue
 import AdditionNamingMapPage from './pages/AdditionNamingMapPage.vue'
 import SubtractionNamingMapPage from './pages/SubtractionNamingMapPage.vue'
 import ShortDivisionNamingMapPage from './pages/ShortDivisionNamingMapPage.vue'
-import { MacroDocPage, MacroDocsLayout, macroDocPages } from '@vertical-arithmetic/macro-docs'
+import { MacroApiDocsPage, MacroDocPage, MacroLanguageDocsPage, macroDocPages } from '@vertical-arithmetic/macro-docs'
 import './styles/tailwind.css'
 import './styles/naming-map.css'
 
-/** 文档静态页由 macro-docs 包的内容清单生成，新增页面只需在包内登记。 */
+/** 两个入口使用独立页面，页面清单、侧边栏和翻页互不共享。 */
+const isTechnicalGroup = (group: string): boolean => group === 'technical' || group === 'api'
 const macroDocRoutes = macroDocPages
-  .filter(({ slug }) => slug !== 'intro')
+  .filter(({ slug, group }) => !isTechnicalGroup(group) && slug !== 'intro')
+  .map(({ slug }) => ({ path: slug, component: MacroDocPage, props: { slug } }))
+const technicalDocRoutes = macroDocPages
+  .filter(({ slug, group }) => isTechnicalGroup(group) && slug !== 'install')
   .map(({ slug }) => ({ path: slug, component: MacroDocPage, props: { slug } }))
 
 const router = createRouter({
@@ -27,12 +31,21 @@ const router = createRouter({
     { path: '/short-division-elements', component: ShortDivisionNamingMapPage },
     {
       path: '/macro-rules',
-      component: MacroDocsLayout,
+      component: MacroLanguageDocsPage,
       children: [
         { path: '', component: MacroDocPage, props: { slug: 'intro' } },
         ...macroDocRoutes,
       ],
     },
+    {
+      path: '/macro-api',
+      component: MacroApiDocsPage,
+      children: [
+        { path: '', component: MacroDocPage, props: { slug: 'install' } },
+        ...technicalDocRoutes,
+      ],
+    },
+    { path: '/macro-rules/quickstart', redirect: '/macro-api/quickstart' },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

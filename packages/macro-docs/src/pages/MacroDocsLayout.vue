@@ -5,32 +5,43 @@ import {
   getMacroDocPath,
   macroDocNavGroups,
   macroDocPageBySlug,
-  macroDocPages,
 } from '../content'
 
 /**
- * 技术文档外壳：固定顶栏、可滚动侧边目录与内容区。
- * 移动端把侧边栏收成抽屉；路由切换时关闭抽屉并回到内容顶部。
+ * 单个文档入口的外壳：固定顶栏、可滚动侧边目录与内容区。
+ * 宏语言参考与技术文档分别使用自己的包装页面，传入固定的 area。
  */
+const props = defineProps<{ area: 'macro' | 'technical' }>()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarRef = ref<HTMLElement>()
 
-/**
- * 父级布局的 route.params 不包含子路由参数，因此从 pathname 推导当前 slug。
- * 这样侧边栏高亮、aria-current 与页尾翻页都只依赖当前地址。
- */
+/** 入口由包装页面固定，slug 仍从 pathname 推导。 */
+const currentArea = computed(() => props.area)
 const currentSlug = computed(() => {
   const path = route.path.replace(/\/+$/, '')
+  if (currentArea.value === 'technical') {
+    if (path === '/macro-api') return 'install'
+    const slug = path.startsWith('/macro-api/') ? path.slice('/macro-api/'.length) : ''
+    const page = macroDocPageBySlug.get(slug)
+    return page?.group === 'technical' || page?.group === 'api' ? slug : 'install'
+  }
   if (path === '/macro-rules') return 'intro'
   const slug = path.startsWith('/macro-rules/') ? path.slice('/macro-rules/'.length) : ''
-  return macroDocPageBySlug.has(slug) ? slug : 'intro'
+  const page = macroDocPageBySlug.get(slug)
+  return slug && page?.group !== 'technical' && page?.group !== 'api' ? slug : 'intro'
 })
 const currentPage = computed(() => macroDocPageBySlug.get(currentSlug.value))
 
-/** 侧边栏编号直接使用全局阅读顺序，跨分组连续。 */
-const pageNumbers = new Map(macroDocPages.map((page, index) => [page.slug, index + 1]))
-const pageNumber = (slug: string): string => String(pageNumbers.get(slug) ?? 0).padStart(2, '0')
+/** 每个入口只显示自己的分组，编号在各入口内从 01 开始。 */
+const visibleGroups = computed(() => macroDocNavGroups.filter(({ id }) => (
+  currentArea.value === 'technical' ? id === 'technical' || id === 'api' : id !== 'technical' && id !== 'api'
+)))
+const pageNumbers = computed(() => new Map(
+  visibleGroups.value.flatMap(({ pages }) => pages).map((page, index) => [page.slug, index + 1]),
+))
+const pageNumber = (slug: string): string => String(pageNumbers.value.get(slug) ?? 0).padStart(2, '0')
+const brandPath = computed(() => (currentArea.value === 'technical' ? '/macro-api' : '/macro-rules'))
 
 // 进入长目录靠后的页面时，把当前项滚动到可视区域内，避免用户自己寻找。
 watch(currentSlug, async () => {
@@ -80,10 +91,10 @@ onBeforeUnmount(() => {
           <span></span><span></span><span></span>
         </button>
 
-        <RouterLink to="/macro-rules" class="mdocs-brand">
+        <RouterLink :to="brandPath" class="mdocs-brand">
           <span class="mdocs-brand-text">
-            <strong>网格宏文档</strong>
-            <small>GRID MACRO DOCS</small>
+            <strong>{{ currentArea === 'technical' ? '网格宏技术文档' : '网格宏文档' }}</strong>
+            <small>{{ currentArea === 'technical' ? 'GRID MACRO API' : 'GRID MACRO DOCS' }}</small>
           </span>
         </RouterLink>
 
@@ -104,7 +115,7 @@ onBeforeUnmount(() => {
 
       <aside id="mdocs-sidebar" ref="sidebarRef" class="mdocs-sidebar" :class="{ 'is-open': sidebarOpen }">
         <nav class="mdocs-sidebar-nav" aria-label="文档目录">
-          <section v-for="group in macroDocNavGroups" :key="group.id" class="mdocs-nav-group">
+          <section v-for="group in visibleGroups" :key="group.id" class="mdocs-nav-group">
             <p class="mdocs-nav-group-title">{{ group.title }}</p>
             <p class="mdocs-nav-group-desc">{{ group.description }}</p>
             <RouterLink

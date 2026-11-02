@@ -6,6 +6,8 @@
 export * from './content'
 
 export { default as MacroDocsLayout } from './pages/MacroDocsLayout.vue'
+export { default as MacroLanguageDocsPage } from './pages/MacroLanguageDocsPage.vue'
+export { default as MacroApiDocsPage } from './pages/MacroApiDocsPage.vue'
 export { default as MacroDocPage } from './pages/MacroDocPage.vue'
 export { default as MacroDocBlocks } from './components/MacroDocBlocks.vue'
 export { default as MacroExampleCard } from './components/MacroExampleCard.vue'

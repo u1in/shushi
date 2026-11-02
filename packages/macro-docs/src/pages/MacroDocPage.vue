@@ -109,7 +109,7 @@ watchEffect(() => {
         <MacroDocBlocks :blocks="section.blocks" />
       </section>
 
-      <nav class="mdocs-pager" aria-label="文档翻页">
+      <nav v-if="neighbors.previous || neighbors.next" class="mdocs-pager" aria-label="文档翻页">
         <RouterLink
           v-if="neighbors.previous"
           class="mdocs-pager-link mdocs-pager-link--previous"

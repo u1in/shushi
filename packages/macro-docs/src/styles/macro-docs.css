@@ -1907,7 +1907,10 @@
 
 .mdocs-preview-svg .grid-text {
   font-family: var(--site-font-family, serif);
+  font-size: var(--grid-font-size, 27px);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
+  line-height: 1;
 }
 
 .mdocs-preview-svg .grid-edge,
@@ -1923,3 +1926,4 @@
   stroke-dasharray: 2 5;
   stroke-width: 1px;
 }
+

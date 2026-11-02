@@ -9,6 +9,12 @@ import MacroPlayground from '../components/MacroPlayground.vue'
 
 <template>
   <main class="page-shell">
+    <header class="mb-2 flex items-center justify-end gap-4 text-sm font-bold">
+      <RouterLink to="/macro-rules" class="text-slate-500 transition hover:text-blue-700">宏语言参考</RouterLink>
+      <span class="text-slate-300" aria-hidden="true">/</span>
+      <RouterLink to="/macro-api" class="text-slate-500 transition hover:text-emerald-700">技术文档</RouterLink>
+    </header>
+
     <section class="hero">
       <p class="eyebrow">VERTICAL ARITHMETIC · SVG · DOM</p>
       <h1>四则运算竖式项目</h1>

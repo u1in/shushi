@@ -5,7 +5,7 @@
  */
 
 /** 文档分组：决定左侧导航的章节顺序，也用于面包屑。 */
-export type DocGroupId = 'guide' | 'basic' | 'orientation' | 'symbol' | 'sugar' | 'practice'
+export type DocGroupId = 'guide' | 'technical' | 'api' | 'basic' | 'orientation' | 'symbol' | 'sugar' | 'practice'
 
 export interface DocGroup {
   id: DocGroupId
