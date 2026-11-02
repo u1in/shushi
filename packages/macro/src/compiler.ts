@@ -58,6 +58,8 @@ interface PositionedCell extends NormalizedCell {
 interface NormalizedShortDivisionRow {
   divisor?: NormalizedCell
   valueGroups: NormalizedCell[][]
+  separatorStyleToken?: string
+  barStyleToken?: string
 }
 
 const DEFAULTS: MacroCompileDefaults = {
@@ -121,11 +123,22 @@ const readValueGroup = (node: MacroNode): NormalizedCell[] => {
   const valueCall = getCall(node, 'VALUE')
   if (!valueCall) throw new Error('短除法 DIV 右侧和底行只能包含 VALUE(...)。')
   const { content, options } = splitOptions(valueCall.arguments)
-  if (options.size > 0 || content.length !== 1) throw new Error('VALUE 必须且只能包含一个数值文本，不能设置 KV。')
+  if ([...options.keys()].some((key) => key !== 'style') || content.length !== 1) {
+    throw new Error('VALUE 必须且只能包含一个数值文本；只支持 KV(style, token)。')
+  }
   const value = getMacroValue(content[0], 'VALUE 的数值')
   const digits = [...value]
-  if (digits.length === 0) throw new Error('VALUE 不能为空。')
-  return digits.map((digit) => readCell({ kind: 'call', name: 'MM', arguments: [{ kind: 'literal', value: digit }] }, 2))
+  // 空 VALUE 只用于末行的可编辑占位组；它不产生图元，但仍保留数值组边界。
+  return digits.map((digit) => readCell({
+    kind: 'call',
+    name: 'MM',
+    arguments: [
+      { kind: 'literal', value: digit },
+      ...(options.has('style')
+        ? [{ kind: 'call' as const, name: 'KV', arguments: [{ kind: 'literal' as const, value: 'style' }, { kind: 'literal' as const, value: options.get('style')! }] }]
+        : []),
+    ],
+  }, 2))
 }
 
 /**
@@ -145,10 +158,18 @@ const readShortDivisionRow = (node: MacroCall): NormalizedShortDivisionRow => {
   const left = content.slice(0, dividerIndex)
   const right = content.slice(dividerIndex + 1)
   const dividerCall = getCall(content[dividerIndex], 'DIV')
-  if (dividerCall?.arguments.length !== 0) throw new Error('DIV 是零参数宏。')
+  const { content: dividerContent, options: dividerOptions } = splitOptions(dividerCall?.arguments ?? [])
+  if (dividerContent.length > 0 || [...dividerOptions.keys()].some((key) => key !== 'separatorStyle' && key !== 'barStyle')) {
+    throw new Error('DIV 只支持 KV(separatorStyle, token) 与 KV(barStyle, token)。')
+  }
   if (left.length !== 1) throw new Error('短除法 DIV 左侧必须恰有一个除数单元格。')
   if (right.length === 0) throw new Error('短除法 DIV 右侧至少需要一个 VALUE。')
-  return { divisor: readCell(left[0], 2), valueGroups: right.map(readValueGroup) }
+  return {
+    divisor: readCell(left[0], 2),
+    valueGroups: right.map(readValueGroup),
+    separatorStyleToken: dividerOptions.get('separatorStyle'),
+    barStyleToken: dividerOptions.get('barStyle'),
+  }
 }
 
 const readLine = (node: MacroCall, afterRow: number): NormalizedLine => {
@@ -298,11 +319,13 @@ const compileShortDivisionMacro = (
         id: `macro-div-separator-${processIndex}`,
         position: { kind: 'edge', column: separatorColumn, row: rowIndex, edge: 'left' },
         content: { kind: 'line' },
+        styleToken: row.separatorStyleToken,
       }
       const bar: GridElement = {
         id: `macro-div-bar-${processIndex}`,
         position: { kind: 'edge', column: separatorColumn, row: rowIndex, columnSpan: valueAreaEnd - separatorColumn, edge: 'bottom' },
         content: { kind: 'line' },
+        styleToken: row.barStyleToken,
       }
       elements.push(autoColor ? applyAutoColor(separator, dividerNode, rowIndex) : separator)
       elements.push(autoColor ? applyAutoColor(bar, dividerNode, rowIndex) : bar)
