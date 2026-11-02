@@ -146,7 +146,7 @@ console.log(formatted)`,
 
 export const minifyMacroPage = compilePage({
   slug: 'minifyMacro', title: 'minifyMacro', navLabel: 'minifyMacro', kicker: 'API · MACRO COMPILER', group: 'api',
-  summary: '解析宏源码并输出去除多余空白的最短可读版本。',
+  summary: '把完整宏源码转换为去除空白、启用语法糖的最简形式。',
   sections: [
     { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`minifyMacro`：宏源码压缩函数。' }] },
     {
@@ -159,25 +159,71 @@ const source = \`GRID(
   LINE,
   ROW(MM(8))
 )\`
-// 压缩结果适合放入请求体或单行配置。
+// 完整 GRID/ROW/CELL 写法会进一步降级为分号行、方括号和最短宏名。
 const compact = minifyMacro(source)
 
-console.log(compact)`,
+console.log(compact)
+// 3,5;LN;8;`,
       }],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，并使用可用的最短宏别名，减少源码传输体积。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，使用最短宏别名，并在不影响语义时把完整的 `GRID`、`ROW`、`CELL`、`MM` 写法降级为顶层分号行、方括号和可省略的 `MM`。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacro = (source: string) => string` },
         { type: 'table', columns: ['项目', '类型', '说明'], rows: [
           ['`source`', '`string`', '可解析的宏源码。'],
-          ['返回值', '`string`', '无多余换行和空白的源码，保留必要的分隔符。'],
+          ['返回值', '`string`', '最短可读写法；无场景级 KV 配置时优先使用分号行，有配置时保留必要的 GRID 根节点。'],
         ] },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '压缩不是任意删除字符', text: '函数会先解析源码，因此语法错误仍会抛出 Error。不要使用字符串替换自行删除逗号、分号或引号，否则可能改变文本参数和行结构。' }] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '压缩不是任意删除字符', text: '函数会先解析源码，因此语法错误仍会抛出 Error。它只改变宏源码表达方式，不验证加法、减法、乘法或除法的业务计算结果；不要使用字符串替换自行删除逗号、分号或引号。' }] },
+  ],
+})
+
+export const createMacroAstInspectionPage = compilePage({
+  slug: 'createMacroAstInspection', title: 'createMacroAstInspection', navLabel: 'createMacroAstInspection', kicker: 'API · MACRO INSPECTOR', group: 'api',
+  summary: '编译宏源码，并建立渲染元素到 AST 节点的可编辑反查映射。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`createMacroAstInspection`：宏渲染元素检查与单项编辑入口。' }] },
+    {
+      id: 'example', title: '例子', blocks: [{
+        type: 'code', title: 'TypeScript 示例', language: 'typescript',
+        code: `import { createMacroAstInspection } from '@u1in/shushi-core'
+
+const inspection = createMacroAstInspection('GRID(ROW(MM(3), MM(5)), LINE, ROW(MM(8)))')
+const five = inspection.scene.elements.find(
+  ({ content }) => content.kind === 'text' && content.text === '5',
+)
+
+// 由渲染元素 ID 反查 MM(5) 的 AST 节点，并只替换它的文字字面量。
+const updated = inspection.updateElementText(five!.id, '9')
+
+console.log(updated.minifiedSource)
+// 3,9;LN;8;`,
+      }],
+    },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量；更新结果会重新编译场景并提供 `minifiedSource`。' }] },
+    {
+      id: 'signature', title: '函数签名和属性说明', blocks: [
+        { type: 'code', title: '函数签名', language: 'typescript', code: `type CreateMacroAstInspection = (source: string) => MacroAstInspection
+
+interface MacroAstInspection {
+  ast: MacroCall
+  scene: GridScene
+  minifiedSource: string
+  references: Record<string, MacroElementAstReference>
+  updateElementText: (elementId: string, text: string) => MacroAstInspection
+}` },
+        { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+          ['`references`', '`Record<string, MacroElementAstReference>`', '以 `GridElement.id` 为键，包含来源 AST 节点、路径以及可编辑文字路径。'],
+          ['`updateElementText`', '函数', '不可变地替换所选图元的第一个文字字面量，并返回新的检查结果。'],
+          ['`minifiedSource`', '`string`', '当前 AST 重新输出的最简宏源码。'],
+        ] },
+      ],
+    },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '并非所有图元都包含文字', text: '数字、运算符和进位注记通常可以编辑；LINE、BRACKET、边框和 DIV 等图元仍可反查来源节点，但没有文字字面量，调用 `updateElementText` 会抛出 Error。映射不写入 GridScene，因此渲染器仍保持与宏语言无关。' }] },
   ],
 })
 
 /** 宏编译分类的页面顺序同时决定侧栏顺序和技术文档页尾翻页顺序。 */
-export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, minifyMacroPage]
+export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, minifyMacroPage, createMacroAstInspectionPage]

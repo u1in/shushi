@@ -10,6 +10,11 @@ const setStyleToken = (node: HTMLElement, styleToken: string | undefined): void 
   if (styleToken) node.dataset.styleToken = styleToken
 }
 
+/** 元素 ID 供外层交互组件回查 GridScene 元素；渲染器不解释任何宏语义。 */
+const setElementId = (node: HTMLElement, element: GridElement): void => {
+  node.dataset.gridElementId = element.id
+}
+
 const renderDomElement = (
   parent: HTMLElement,
   element: GridElement,
@@ -33,6 +38,7 @@ const renderDomElement = (
     if (element.content.thickness !== undefined) {
       node.style.setProperty('--grid-line-thickness', `${element.content.thickness}px`)
     }
+    setElementId(node, element)
     parent.appendChild(node)
     return
   }
@@ -53,6 +59,7 @@ const renderDomElement = (
     if (element.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
+    setElementId(node, element)
     parent.appendChild(node)
     return
   }
@@ -78,6 +85,7 @@ const renderDomElement = (
     node.style.borderRightWidth = `${element.content.thickness}px`
     node.style.borderBottomWidth = `${element.content.thickness}px`
   }
+  setElementId(node, element)
   parent.appendChild(node)
 }
 

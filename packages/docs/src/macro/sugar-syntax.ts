@@ -336,7 +336,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '格式化器会输出最短合法宏名：`LINE` 变 `LN`、`EMPTY` 变 `EP`、`BRACKET` 变 `BK`。去格式化（`minifyMacro`）还会去掉空格与换行，但不会改变语义。',
+            text: '格式化器会输出最短合法宏名：`LINE` 变 `LN`、`EMPTY` 变 `EP`、`BRACKET` 变 `BK`。最简化（`minifyMacro`）还会去掉空格与换行，并在没有场景级配置时把完整 `GRID` / `ROW` / `CELL` 写法降级为分号行和方括号；前后语义保持一致。',
           },
           {
             type: 'code',

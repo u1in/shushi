@@ -48,6 +48,8 @@ interface NormalizedLine {
   span: 'previous' | 'longest' | 'full'
   style: MacroStyle
   styleToken?: string
+  /** 保留原始 LINE 节点，供 AST 检查器反查被渲染的横线。 */
+  sourceNode: MacroNode
 }
 
 interface PositionedCell extends NormalizedCell {
@@ -60,7 +62,12 @@ interface NormalizedShortDivisionRow {
   valueGroups: NormalizedCell[][]
   separatorStyleToken?: string
   barStyleToken?: string
+  /** DIV 对应的原始节点，分割线与横线需要回溯到它。 */
+  dividerNode?: MacroNode
 }
+
+/** 编译观察器只暴露“输出元素来自哪个宏节点”，不把 AST 写入通用 GridScene 契约。 */
+type MacroElementObserver = (element: GridElement, sourceNode: MacroNode) => void
 
 const DEFAULTS: MacroCompileDefaults = {
   // 与首页运算器一致：30px 数字格、46px 行高、1.00 字号比例及 20×12px 留白。
@@ -169,10 +176,11 @@ const readShortDivisionRow = (node: MacroCall): NormalizedShortDivisionRow => {
     valueGroups: right.map(readValueGroup),
     separatorStyleToken: dividerOptions.get('separatorStyle'),
     barStyleToken: dividerOptions.get('barStyle'),
+    dividerNode: content[dividerIndex],
   }
 }
 
-const readLine = (node: MacroCall, afterRow: number): NormalizedLine => {
+const readLine = (node: MacroCall, afterRow: number, sourceNode: MacroNode = node): NormalizedLine => {
   const { content, options } = splitOptions(node.arguments)
   const styleNode = content.at(0)
   if (content.length > 1) throw new Error('LINE 最多接受一个 STYLE 参数，其余请用 KV 配置。')
@@ -182,7 +190,7 @@ const readLine = (node: MacroCall, afterRow: number): NormalizedLine => {
   }
   const styleToken = options.get('style')
   const style = resolveLineStyle(styleNode, styleToken)
-  return { afterRow, span, style, styleToken }
+  return { afterRow, span, style, styleToken, sourceNode }
 }
 
 const getLineRange = (
@@ -244,15 +252,20 @@ const compileCellElements = (
   autoColor: boolean,
   nextId: { value: number },
   columns?: number,
+  onElement?: MacroElementObserver,
 ): void => {
   cell.elements.forEach((node) => {
     const element = compileSugarCellElement(node, cell, row, nextId.value)
-    elements.push(autoColor ? applyAutoColor(element, node, row) : element)
+    const compiledElement = autoColor ? applyAutoColor(element, node, row) : element
+    elements.push(compiledElement)
+    onElement?.(compiledElement, node)
     nextId.value += 1
     if (columns !== undefined && getBracketMacro(node)) {
       const bracketHead = compileBracketHead(cell, row, columns, nextId.value)
       if (bracketHead) {
-        elements.push(autoColor ? applyAutoColor(bracketHead, node, row) : bracketHead)
+        const compiledBracketHead = autoColor ? applyAutoColor(bracketHead, node, row) : bracketHead
+        elements.push(compiledBracketHead)
+        onElement?.(compiledBracketHead, node)
         nextId.value += 1
       }
     }
@@ -275,6 +288,7 @@ const compileShortDivisionMacro = (
   rows: MacroCall[],
   options: Map<string, string>,
   autoColor: boolean,
+  onElement?: MacroElementObserver,
 ): GridScene => {
   const normalizedRows = rows.map(readShortDivisionRow)
   const processRows = normalizedRows.filter(({ divisor }) => divisor !== undefined)
@@ -313,8 +327,8 @@ const compileShortDivisionMacro = (
   normalizedRows.forEach((row, rowIndex) => {
     if (row.divisor) {
       const separatorColumn = leftHalfTrackCount + dividerOffsets[processIndex]
-      compileCellElements(elements, { ...row.divisor, column: separatorColumn - 2 }, rowIndex, autoColor, nextId)
-      const dividerNode: MacroNode = { kind: 'symbol', name: 'DIV' }
+      compileCellElements(elements, { ...row.divisor, column: separatorColumn - 2 }, rowIndex, autoColor, nextId, undefined, onElement)
+      const dividerNode = row.dividerNode ?? { kind: 'symbol' as const, name: 'DIV' }
       const separator: GridElement = {
         id: `macro-div-separator-${processIndex}`,
         position: { kind: 'edge', column: separatorColumn, row: rowIndex, edge: 'left' },
@@ -327,14 +341,18 @@ const compileShortDivisionMacro = (
         content: { kind: 'line' },
         styleToken: row.barStyleToken,
       }
-      elements.push(autoColor ? applyAutoColor(separator, dividerNode, rowIndex) : separator)
-      elements.push(autoColor ? applyAutoColor(bar, dividerNode, rowIndex) : bar)
+      const compiledSeparator = autoColor ? applyAutoColor(separator, dividerNode, rowIndex) : separator
+      const compiledBar = autoColor ? applyAutoColor(bar, dividerNode, rowIndex) : bar
+      elements.push(compiledSeparator)
+      elements.push(compiledBar)
+      onElement?.(compiledSeparator, dividerNode)
+      onElement?.(compiledBar, dividerNode)
       processIndex += 1
     }
     row.valueGroups.forEach((group, groupIndex) => {
       const startIndex = groupWidths[groupIndex] - group.length
       group.forEach((cell, digitIndex) => {
-        compileCellElements(elements, { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] }, rowIndex, autoColor, nextId)
+        compileCellElements(elements, { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] }, rowIndex, autoColor, nextId, undefined, onElement)
       })
     })
   })
@@ -365,7 +383,7 @@ const compileShortDivisionMacro = (
  * 将已解析宏降级为 renderer-neutral GridScene。
  * 该层只处理行列、对齐、横线和样式，不理解任何具体运算。
  */
-export const compileMacroAst = (root: MacroCall): GridScene => {
+const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementObserver): GridScene => {
   if (root.name !== 'GRID') throw new Error('根节点必须是 GRID(...)。')
   const { content, options } = splitOptions(root.arguments)
   const autoColor = getBoolean(options.get('autoColor'), 'GRID 的 autoColor', true)
@@ -378,7 +396,7 @@ export const compileMacroAst = (root: MacroCall): GridScene => {
     if (!content.every((node) => getCall(node, 'ROW') || getCall(node, 'KV'))) {
       throw new Error('包含 DIV 的 GRID 只能包含 ROW 与 KV。')
     }
-    return compileShortDivisionMacro(rowCalls, options, autoColor)
+    return compileShortDivisionMacro(rowCalls, options, autoColor, onElement)
   }
   const rows: NormalizedRow[] = []
   const lines: NormalizedLine[] = []
@@ -391,7 +409,7 @@ export const compileMacroAst = (root: MacroCall): GridScene => {
     }
     if (call.name === 'LINE') {
       if (rows.length === 0) throw new Error('LINE 前必须先有一个 ROW。')
-      lines.push(readLine(call, rows.length - 1))
+      lines.push(readLine(call, rows.length - 1, node))
       return
     }
     throw new Error(`GRID 不支持子节点 ${call.name}。`)
@@ -420,7 +438,7 @@ export const compileMacroAst = (root: MacroCall): GridScene => {
   }))
   const elements: GridElement[] = []
   const nextId = { value: 0 }
-  positionedRows.forEach((cells, row) => cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, nextId, columns)))
+  positionedRows.forEach((cells, row) => cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, nextId, columns, onElement)))
   lines.forEach((line, index) => {
     const range = getLineRange(line.span, positionedRows[line.afterRow], positionedRows, columns)
     const contentValue: GridLineContent = { kind: 'line', ...line.style }
@@ -430,7 +448,9 @@ export const compileMacroAst = (root: MacroCall): GridScene => {
       content: contentValue,
       styleToken: line.styleToken,
     }
-    elements.push(autoColor ? applyAutoColor(element, { kind: 'symbol', name: 'LINE' }, line.afterRow) : element)
+    const compiledLine = autoColor ? applyAutoColor(element, { kind: 'symbol', name: 'LINE' }, line.afterRow) : element
+    elements.push(compiledLine)
+    onElement?.(compiledLine, line.sourceNode)
   })
   const unitWidth = getPositiveNumber(options.get('unitWidth'), 'GRID 的 unitWidth', DEFAULTS.unitWidth)
   const uniformPadding = options.get('padding')
@@ -468,3 +488,12 @@ export const compileMacroAst = (root: MacroCall): GridScene => {
     ariaLabel: options.get('ariaLabel') ?? '宏公式预览',
   }
 }
+
+/** 常规编译入口不暴露检查器细节，保持原有 AST → GridScene 契约。 */
+export const compileMacroAst = (root: MacroCall): GridScene => compileMacroAstWithObserver(root)
+
+/** AST 检查器专用编译入口：额外报告每个渲染元素的来源宏节点。 */
+export const compileMacroAstForInspection = (
+  root: MacroCall,
+  onElement: MacroElementObserver,
+): GridScene => compileMacroAstWithObserver(root, onElement)

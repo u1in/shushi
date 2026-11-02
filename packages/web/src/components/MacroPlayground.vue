@@ -153,7 +153,7 @@ const minifySource = (): void => transformSource(minifyMacro)
         <div class="macro-format-toolbar" aria-label="格式化宏源码">
           <span>格式化</span>
           <button class="macro-insert-button" type="button" @click="formatSource">格式化</button>
-          <button class="macro-insert-button" type="button" @click="minifySource">去格式化</button>
+          <button class="macro-insert-button" type="button" @click="minifySource">最简化</button>
         </div>
         <label class="macro-source-field">
           <span>宏源码</span>

@@ -27,6 +27,9 @@ const serializeNode = (node: MacroNode, usesCellShorthand = false): string => {
   if (node.kind === 'literal') return serializeLiteral(node.value)
   if (node.kind === 'symbol') return getShortestMacroName(node.name)
   if (usesCellShorthand && node.name === 'CELL') return `[${node.arguments.map((argument, index) => serializeCellArgument(argument, index, true)).join(',')}]`
+  if (usesCellShorthand && node.name === 'ROW') {
+    return `${getShortestMacroName(node.name)}(${node.arguments.map((argument) => getElidableMiddleText(argument) ?? serializeNode(argument, true)).join(',')})`
+  }
   return `${getShortestMacroName(node.name)}(${node.arguments.map((argument) => serializeNode(argument, usesCellShorthand)).join(',')})`
 }
 
@@ -104,8 +107,26 @@ const formatRoot = (root: MacroCall, source: string, pretty: boolean): string =>
   return nodes.map((node) => formatNode(node, 0, usesCellShorthand)).join(',\n')
 }
 
+/**
+ * 最简化时允许把没有 GRID 配置的完整根节点降级为顶层分号行。
+ * 一旦根节点包含 KV 配置，仍需保留 GRID，避免把场景级设置误放进 ROW。
+ */
+const minifyRoot = (root: MacroCall, source: string): string => {
+  const hasGridOptions = root.arguments.some((node) => node.kind === 'call' && node.name === 'KV')
+  if (hasExplicitGrid(source) && !hasGridOptions && root.arguments.length > 0) return formatRowShorthand(root, false, true)
+  if (!hasExplicitGrid(source) && hasTopLevelSemicolon(source)) return formatRowShorthand(root, false, true)
+  return (hasExplicitGrid(source) ? serializeNode(root, true) : root.arguments.map((node) => serializeNode(node, true)).join(','))
+}
+
+/** 直接序列化 AST 时不保留输入风格，始终选择可用的最简表达。 */
+export const minifyMacroAst = (root: MacroCall): string => {
+  const hasGridOptions = root.arguments.some((node) => node.kind === 'call' && node.name === 'KV')
+  return hasGridOptions ? serializeNode(root, true) : formatRowShorthand(root, false, true)
+}
+
 /** 将宏源码解析为 AST 后按函数层级格式化，保留显式或隐式 GRID 的写法。 */
 export const formatMacro = (source: string): string => formatRoot(parseMacro(source), source, true)
 
-/** 将宏源码解析后压缩为无换行、无多余空格的最短可读写法。 */
-export const minifyMacro = (source: string): string => formatRoot(parseMacro(source), source, false)
+/** 将完整宏源码压缩为最简合法写法，并在可行时降级为分号行与方括号语法糖。 */
+export const minifyMacro = (source: string): string => minifyRoot(parseMacro(source), source)
+

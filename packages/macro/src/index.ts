@@ -1,6 +1,8 @@
 export { compileMacroAst } from './compiler'
 export { parseMacro } from './parser'
 export { formatMacro, minifyMacro } from './formatter'
+export { createMacroAstInspection } from './ast-inspector'
+export type { MacroAstInspection, MacroElementAstReference, MacroNodePath } from './ast-inspector'
 export { BASIC_MACRO_NAMES, BASIC_ZERO_ARGUMENT_MACROS, DEFAULT_LINE_STYLE } from './basic-macros'
 export { AUTO_COLOR_MAX_ROWS, AUTO_COLOR_THEME } from './auto-color-theme'
 export { SUGAR_MACRO_NAMES, SUGAR_ZERO_ARGUMENT_MACROS } from './sugar-macros'

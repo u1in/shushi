@@ -5,6 +5,7 @@ import AdditionCalculator from '../components/AdditionCalculator.vue'
 import SubtractionCalculator from '../components/SubtractionCalculator.vue'
 import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
 import MacroPlayground from '../components/MacroPlayground.vue'
+import MacroAstInspector from '../components/MacroAstInspector.vue'
 </script>
 
 <template>
@@ -22,6 +23,7 @@ import MacroPlayground from '../components/MacroPlayground.vue'
     </section>
 
     <MacroPlayground />
+    <MacroAstInspector />
     <AdditionCalculator />
     <SubtractionCalculator />
     <MultiplicationCalculator />

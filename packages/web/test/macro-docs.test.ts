@@ -15,7 +15,7 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro',
+  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
   'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
   'getGridTextAnchor', 'extractVisibleTextRows',
   'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
@@ -107,7 +107,7 @@ describe('网格宏文档', () => {
 
     expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
     expect(pagesOf('api')).toEqual([
-      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro',
+      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
       'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
       'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
       'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
@@ -117,7 +117,7 @@ describe('网格宏文档', () => {
       'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision',
     ])
     expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
-      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro']],
+      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection']],
       ['渲染 API', ['renderSvgGrid', 'renderDomGrid']],
       ['网格和文本 API', [
         'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',

@@ -107,7 +107,7 @@ console.log(rows)
         {
           type: 'cards',
           items: [
-            { title: '宏编译 API', text: 'compileMacro、parseMacro、formatMacro 与 minifyMacro。', to: '/macro-api/compileMacro' },
+            { title: '宏编译 API', text: 'compileMacro、parseMacro、minifyMacro 与 createMacroAstInspection。', to: '/macro-api/compileMacro' },
             { title: '渲染 API', text: '两个渲染器的返回值、DOM 结构与样式职责。', to: '/macro-api/renderSvgGrid' },
             { title: '网格和文本 API', text: 'GridScene、extractVisibleTextRows 与 resolveGridMetrics。', to: '/macro-api/GridScene' },
           ],

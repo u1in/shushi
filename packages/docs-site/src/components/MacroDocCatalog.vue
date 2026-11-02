@@ -33,6 +33,7 @@ const pageRoutes: Record<string, string> = {
   install: '/technical/安装', quickstart: '/technical/快速使用',
   compileMacro: '/technical/api/compileMacro', parseMacro: '/technical/api/parseMacro',
   formatMacro: '/technical/api/formatMacro', minifyMacro: '/technical/api/minifyMacro',
+  createMacroAstInspection: '/technical/api/createMacroAstInspection',
   renderSvgGrid: '/technical/api/renderSvgGrid', renderDomGrid: '/technical/api/renderDomGrid',
   GridScene: '/technical/api/GridScene', resolveGridMetrics: '/technical/api/resolveGridMetrics',
   extractVisibleTextRows: '/technical/api/extractVisibleTextRows',

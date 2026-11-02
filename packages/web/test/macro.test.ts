@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { AUTO_COLOR_THEME, compileMacro, formatMacro, minifyMacro, parseMacro } from '@u1in/shushi-macro'
+import {
+  AUTO_COLOR_THEME,
+  compileMacro,
+  createMacroAstInspection,
+  formatMacro,
+  minifyMacro,
+  parseMacro,
+} from '@u1in/shushi-macro'
 
 describe('网格宏编译器', () => {
   test('顶层分号将裸文字自动补成 MM，再包裹为 ROW 和隐式 GRID', () => {
@@ -349,10 +356,45 @@ CELL(
     expect(minifyMacro('MM(5), [MM(6), RB(1)];')).toBe('5,[6,RB(1)];')
   })
 
-  test('去格式化会移除换行和多余空格，同时保持显式 GRID', () => {
-    expect(minifyMacro(` GRID(
+  test('最简化会把完整 GRID 写法降级为分号行和语法糖', () => {
+    const source = ` GRID(
   ROW( MM(5), CELL( MM(6), MT(·) ) ),
   LINE(KV(span, full))
-) `)).toBe('GRID(ROW(MM(5),CELL(MM(6),MT(·))),LN(KV(span,full)))')
+) `
+    const compact = minifyMacro(source)
+    expect(compact).toBe('5,[6,MT(·)];LN(KV(span,full));')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
+
+  test('最简化带 GRID 配置的完整宏时保留必要的 GRID 根节点', () => {
+    expect(minifyMacro(` GRID(
+  KV(showGrid, true),
+  ROW( MM(5), CELL( MM(6), MT(·) ) )
+) `)).toBe('GRID(KV(showGrid,true),ROW(5,[6,MT(·)]))')
+  })
+
+  test('AST 检查器可从渲染元素回查文字节点，并只更新被点击的数据', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(MM(3), CELL(MM(5), RB(1))), LINE, ROW(MM(8)))')
+    const textElement = inspection.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '5')
+
+    expect(textElement).toBeDefined()
+    const reference = inspection.references[textElement!.id]
+    expect(reference).toMatchObject({ node: { kind: 'call', name: 'MM' }, text: '5' })
+    expect(reference.literalPath).toBeDefined()
+
+    const updated = inspection.updateElementText(textElement!.id, '9')
+    expect(updated.minifiedSource).toBe('3,[9,RB(1)];LN;8;')
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '9')).toBe(true)
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '5')).toBe(false)
+  })
+
+  test('AST 检查器会保留无文字图元的反查信息，并拒绝修改其文字', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(MM(3)), LINE, ROW(MM(8)))')
+    const lineElement = inspection.scene.elements.find(({ content }) => content.kind === 'line')
+
+    expect(lineElement).toBeDefined()
+    expect(inspection.references[lineElement!.id]?.node).toMatchObject({ kind: 'symbol', name: 'LINE' })
+    expect(() => inspection.updateElementText(lineElement!.id, '9')).toThrow(/不包含可编辑文字/)
+  })
+
 })

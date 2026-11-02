@@ -18,6 +18,11 @@ const applyStyleToken = (node: SVGElement, styleToken: string | undefined): void
   if (styleToken) node.setAttribute('data-style-token', styleToken)
 }
 
+/** 元素 ID 只描述 GridScene 自身，交互宿主可据此关联外部检查数据。 */
+const applyElementId = (node: SVGElement, element: GridElement): void => {
+  node.setAttribute('data-grid-element-id', element.id)
+}
+
 const renderSvgElement = (
   lineLayer: SVGElement,
   contentLayer: SVGElement,
@@ -40,6 +45,7 @@ const renderSvgElement = (
     if (element.content.color) node.style.stroke = element.content.color
     if (element.content.thickness !== undefined) node.style.strokeWidth = `${element.content.thickness}px`
     applyStyleToken(node, element.styleToken)
+    applyElementId(node, element)
     lineLayer.appendChild(node)
     return
   }
@@ -64,6 +70,7 @@ const renderSvgElement = (
       ? 'hanging'
       : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'
     applyStyleToken(node, element.content.styleToken ?? scene.defaultTextStyleToken)
+    applyElementId(node, element)
     contentLayer.appendChild(node)
     return
   }
@@ -81,6 +88,7 @@ const renderSvgElement = (
   if (element.content.color) node.style.stroke = element.content.color
   if (element.content.thickness !== undefined) node.style.strokeWidth = `${element.content.thickness}px`
   applyStyleToken(node, element.styleToken)
+  applyElementId(node, element)
   lineLayer.appendChild(node)
 }
 
