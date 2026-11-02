@@ -58,6 +58,7 @@ describe('computeShortDivision', () => {
     const separator = separators[0]
     const firstBar = scene.elements.find(({ styleToken }) => styleToken === 'short-division.bar')
     const metrics = resolveGridMetrics(scene)
+    expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
     expect(separator).toMatchObject({ position: { kind: 'edge', edge: 'left' }, content: { kind: 'line' } })
     expect(separators).toHaveLength(computation.steps.length)
     expect(getGridElementRect(separator!, metrics).width).toBe(0)
@@ -65,10 +66,12 @@ describe('computeShortDivision', () => {
     const secondStepDigit = scene.elements.find(({ id }) => id === 'short-division-dividend-1-0-0')
     const firstDivisor = scene.elements.find(({ id }) => id === 'short-division-divisor-0')
     const secondDivisor = scene.elements.find(({ id }) => id === 'short-division-divisor-1')
-    // 数字保持右对齐；位数变少时，竖线锚定到该数字格的真实左边。
+    expect(getGridElementRect(firstStepDigit!, metrics).width).toBe(32)
+    expect(getGridElementRect(firstDivisor!, metrics).width).toBe(32)
+    // 数字保持右对齐；为让整条过程严格呈阶梯，必要时竖线位于左侧预留空格的边界。
     expect(getGridElementRect(secondStepDigit!, metrics).left).toBeGreaterThan(getGridElementRect(firstStepDigit!, metrics).left)
-    expect(getGridElementRect(separators[0], metrics).left).toBe(getGridElementRect(firstStepDigit!, metrics).left)
-    expect(getGridElementRect(separators[1], metrics).left).toBe(getGridElementRect(secondStepDigit!, metrics).left)
+    expect(getGridElementRect(separators[0], metrics).left).toBeLessThan(getGridElementRect(firstStepDigit!, metrics).left)
+    expect(getGridElementRect(separators[1], metrics).left).toBeLessThan(getGridElementRect(secondStepDigit!, metrics).left)
     // 除数随竖线移动，始终写在本轮竖线左侧紧邻的一格。
     expect(getGridElementRect(firstDivisor!, metrics).left + getGridElementRect(firstDivisor!, metrics).width).toBe(getGridElementRect(separators[0], metrics).left)
     expect(getGridElementRect(secondDivisor!, metrics).left + getGridElementRect(secondDivisor!, metrics).width).toBe(getGridElementRect(separators[1], metrics).left)
@@ -84,6 +87,35 @@ describe('computeShortDivision', () => {
     expect(scene.rows.every(({ size }) => size > 0)).toBe(true)
     expect(scene.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'short-division.final')).toBe(true)
     expect(metrics).toMatchObject({ width: expect.any(Number), height: expect.any(Number) })
+  })
+
+  test('连续同宽的商行通过左侧空单元格让竖线保持阶梯状', () => {
+    const computation = computeShortDivision({ mode: 'factorization', values: ['60'] })
+    const scene = createShortDivisionGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 0.82, showGuideGrid: false, showRemainders: false,
+    })
+    const metrics = resolveGridMetrics(scene)
+    const separators = scene.elements.filter(({ styleToken }) => styleToken === 'short-division.separator')
+    const divisors = scene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'short-division.divisor'
+    ))
+    const firstDigits = computation.steps.map((_, stepIndex) => scene.elements.find(({ id }) => (
+      id === `short-division-dividend-${stepIndex}-0-0`
+    )))
+
+    expect(computation.steps.map(({ dividends }) => dividends[0])).toEqual(['60', '30', '15'])
+    expect(separators).toHaveLength(3)
+    expect(divisors.map(({ content }) => content).every((content) => (
+      content?.kind === 'text' && content.horizontalAlign === undefined
+    ))).toBe(true)
+    // 三轮均为两位数：上、中、下行分别为两个、一个、零个半格缩进。
+    const separatorLefts = separators.map((separator) => getGridElementRect(separator, metrics).left)
+    expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
+    expect(separatorLefts[1] - separatorLefts[0]).toBe(16)
+    expect(separatorLefts[2] - separatorLefts[1]).toBe(16)
+    expect(getGridElementRect(firstDigits[0]!, metrics).left - separatorLefts[0]).toBe(32)
+    expect(getGridElementRect(firstDigits[1]!, metrics).left - separatorLefts[1]).toBe(16)
+    expect(getGridElementRect(separators[2], metrics).left).toBe(getGridElementRect(firstDigits[2]!, metrics).left)
   })
 
   test('播放步骤时显示当前商作为临时结果', () => {

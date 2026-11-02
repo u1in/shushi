@@ -4,8 +4,8 @@ import type { ShortDivisionComputation } from '@vertical-arithmetic/calculators'
 import type { ShortDivisionRenderSettings } from './types'
 
 const STAGE_PADDING = 20
-const DIVISOR_TRACK_SIZE = 1.1
-const OPERAND_GAP_TRACK_SIZE = 0.34
+const HALF_TRACK_SIZE = 0.5
+const FULL_CELL_TRACK_SPAN = 2
 const REMAINDER_LABEL_FONT_SIZE_RATIO = 0.72
 
 const createTextElement = (
@@ -15,7 +15,12 @@ const createTextElement = (
   row: number,
   styleToken: string,
   textOptions: Pick<GridTextContent, 'fontSizeRatio' | 'horizontalAlign' | 'verticalAlign'> = {},
-): GridElement => ({ id, position: { kind: 'cell', column, row }, content: { kind: 'text', text, styleToken, ...textOptions } })
+): GridElement => ({
+  id,
+  // 短除法的每个数字格由两个半格轨道合并，文字仍保持完整的 1u 宽度。
+  position: { kind: 'cell', column, row, columnSpan: FULL_CELL_TRACK_SPAN },
+  content: { kind: 'text', text, styleToken, ...textOptions },
+})
 
 /** 统计每组需要的最大位宽；数字的真实左边界就是短除竖线的锚点。 */
 const getValueGroups = (computation: ShortDivisionComputation): { widths: number[], values: string[][] } => {
@@ -33,6 +38,24 @@ const getValueGroups = (computation: ShortDivisionComputation): { widths: number
 }
 
 /**
+ * 计算每轮短除竖线相对首个数值组的列偏移。
+ *
+ * 数值始终按右边界对齐；当相邻轮次的起点重合时，上方轮次在数字左侧
+ * 预留空格。自底向上收紧后，每条竖线都严格位于下一条的左侧，连续多行
+ * 同宽时便自然形成 2、1、0 个半格的阶梯，而不会再次与更下方的竖线重合。
+ */
+const getSeparatorOffsets = (computation: ShortDivisionComputation, firstGroupWidth: number): number[] => {
+  const offsets = Array<number>(computation.steps.length)
+  for (let stepIndex = computation.steps.length - 1; stepIndex >= 0; stepIndex -= 1) {
+    const naturalOffset = FULL_CELL_TRACK_SPAN * (firstGroupWidth - computation.steps[stepIndex].dividends[0].length)
+    offsets[stepIndex] = stepIndex === computation.steps.length - 1
+      ? naturalOffset
+      : Math.min(naturalOffset, offsets[stepIndex + 1] - 1)
+  }
+  return offsets
+}
+
+/**
  * 把“左除数、右原数/商、横线、底行”排成短除法；算法模式不会泄漏到渲染器。
  * 进制转换的余数在行右侧单独记录，读取方向由计算器结果决定。
  */
@@ -43,22 +66,37 @@ export const createShortDivisionGridScene = (
   const { widths } = getValueGroups(computation)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? computation.steps.length, 0), computation.steps.length)
   const visibleSteps = computation.steps.slice(0, visibleStepCount)
-  const columns: GridTrack[] = [{ id: 'short-division-divisor', size: DIVISOR_TRACK_SIZE }]
+  const separatorOffsets = getSeparatorOffsets(computation, widths[0])
+  // 最靠左的竖线左侧始终保留两个半格，合并后正好容纳一个完整除数单元格。
+  const leftHalfTrackCount = Math.max(FULL_CELL_TRACK_SPAN, FULL_CELL_TRACK_SPAN - Math.min(...separatorOffsets, 0))
+  const columns: GridTrack[] = Array.from({ length: leftHalfTrackCount }, (_, index) => ({
+    id: `short-division-stagger-${index}`,
+    size: HALF_TRACK_SIZE,
+  }))
   const groupDigitColumns: number[][] = []
   widths.forEach((width, groupIndex) => {
     const digitColumns: number[] = []
     for (let digitIndex = 0; digitIndex < width; digitIndex += 1) {
       digitColumns.push(columns.length)
-      columns.push({ id: `value-${groupIndex}-${digitIndex}`, size: 1 })
+      columns.push(
+        { id: `value-${groupIndex}-${digitIndex}-half-0`, size: HALF_TRACK_SIZE },
+        { id: `value-${groupIndex}-${digitIndex}-half-1`, size: HALF_TRACK_SIZE },
+      )
     }
     groupDigitColumns.push(digitColumns)
-    if (groupIndex < widths.length - 1) columns.push({ id: `value-gap-${groupIndex}`, size: OPERAND_GAP_TRACK_SIZE })
+    // 多输入数之间也只使用一个半格，使短除法列网格保持统一粒度。
+    if (groupIndex < widths.length - 1) columns.push({ id: `value-gap-${groupIndex}`, size: HALF_TRACK_SIZE })
   })
   const valueAreaEndColumn = columns.length
   const showRemainders = computation.mode === 'baseConversion' && settings.showRemainders
   const remainderLabelColumn = columns.length
   if (showRemainders) {
-    columns.push({ id: 'remainder-label', size: 1.15 }, { id: 'remainder-value', size: 1 })
+    columns.push(
+      { id: 'remainder-label-half-0', size: HALF_TRACK_SIZE },
+      { id: 'remainder-label-half-1', size: HALF_TRACK_SIZE },
+      { id: 'remainder-value-half-0', size: HALF_TRACK_SIZE },
+      { id: 'remainder-value-half-1', size: HALF_TRACK_SIZE },
+    )
   }
 
   const rows: GridTrack[] = []
@@ -77,10 +115,9 @@ export const createShortDivisionGridScene = (
 
   visibleSteps.forEach((step, stepIndex) => {
     const row = appendRow(`short-division-step-${stepIndex}`)
-    const firstValueStartIndex = widths[0] - step.dividends[0].length
-    const separatorColumn = groupDigitColumns[0][firstValueStartIndex]
-    // 除数必须贴在本轮竖线左侧：首位时使用专属左列，其余情况复用本行空出的数字格。
-    const divisorColumn = separatorColumn - 1
+    const separatorColumn = leftHalfTrackCount + separatorOffsets[stepIndex]
+    // 除数必须贴在本轮竖线左侧，并继承场景默认的单元格对齐方式。
+    const divisorColumn = separatorColumn - FULL_CELL_TRACK_SPAN
     elements.push(createTextElement(`short-division-divisor-${stepIndex}`, step.divisor, divisorColumn, row, 'short-division.divisor'))
     step.dividends.forEach((value, index) => placeValue(`short-division-dividend-${stepIndex}`, value, index, row, 'short-division.dividend'))
     if (showRemainders) {
@@ -93,9 +130,15 @@ export const createShortDivisionGridScene = (
         'short-division.remainder-label',
         { fontSizeRatio: REMAINDER_LABEL_FONT_SIZE_RATIO },
       ))
-      elements.push(createTextElement(`short-division-remainder-${stepIndex}`, step.remainders[0], remainderLabelColumn + 1, row, 'short-division.remainder'))
+      elements.push(createTextElement(
+        `short-division-remainder-${stepIndex}`,
+        step.remainders[0],
+        remainderLabelColumn + FULL_CELL_TRACK_SPAN,
+        row,
+        'short-division.remainder',
+      ))
     }
-    // 每一轮数字起点不同，竖线要贴在本轮第一个数字左边界，而非固定在首列。
+    // 竖线贴住本轮数值区；若为避免重合预留了空格，则贴住该空格的左边界。
     elements.push({
       id: `short-division-separator-${stepIndex}`,
       position: { kind: 'edge', column: separatorColumn, row, edge: 'left' },
