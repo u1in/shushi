@@ -1038,8 +1038,8 @@ h2 {
 
 .grid-text[data-style-token="macro.default-text"] { color: #172033; font-weight: 700; }
 .division-svg .grid-text[data-style-token="macro.default-text"] { fill: #172033; }
-.grid-text[data-style-token="macro.decimal"] { color: #4166b6; font-weight: 800; }
-.division-svg .grid-text[data-style-token="macro.decimal"] { fill: #4166b6; }
+.grid-text[data-style-token="macro.decimal"] { color: #c2185b; font-weight: 800; }
+.division-svg .grid-text[data-style-token="macro.decimal"] { fill: #c2185b; }
 
 .division-dom .grid-text {
   position: absolute;
@@ -1050,68 +1050,70 @@ h2 {
   font-weight: 700;
 }
 
-.grid-text[data-style-token="division.divisor"] { color: #4166b6; font-weight: 800; }
-.division-svg .grid-text[data-style-token="division.divisor"] { fill: #4166b6; }
-.grid-text[data-style-token="division.quotient"] { color: #213c77; font-weight: 800; }
-.division-svg .grid-text[data-style-token="division.quotient"] { fill: #213c77; }
-.grid-text[data-style-token="division.dividend"] { color: #192642; font-weight: 700; }
-.division-svg .grid-text[data-style-token="division.dividend"] { fill: #192642; }
-.grid-text[data-style-token="division.appended-zero"] { color: #a1aec4; font-weight: 700; }
-.division-svg .grid-text[data-style-token="division.appended-zero"] { fill: #a1aec4; }
+/* 首页计算器的语义配色与 @vertical-arithmetic/macro 的 autoColor 色板保持一致；
+   调整 auto-color-theme.ts 时需同步这里的 style token。 */
+.grid-text[data-style-token="division.divisor"] { color: #c43e49; font-weight: 800; }
+.division-svg .grid-text[data-style-token="division.divisor"] { fill: #c43e49; }
+.grid-text[data-style-token="division.quotient"] { color: #be4c00; font-weight: 800; }
+.division-svg .grid-text[data-style-token="division.quotient"] { fill: #be4c00; }
+.grid-text[data-style-token="division.dividend"] { color: #b2468a; font-weight: 700; }
+.division-svg .grid-text[data-style-token="division.dividend"] { fill: #b2468a; }
+.grid-text[data-style-token="division.appended-zero"] { color: #c9a3bd; font-weight: 700; }
+.division-svg .grid-text[data-style-token="division.appended-zero"] { fill: #c9a3bd; }
 .grid-text[data-style-token="division.partial-minuend"],
-.grid-text[data-style-token="division.remainder"] { color: #5a709f; font-weight: 600; }
+.grid-text[data-style-token="division.remainder"] { color: #4f9b3e; font-weight: 600; }
 .division-svg .grid-text[data-style-token="division.partial-minuend"],
-.division-svg .grid-text[data-style-token="division.remainder"] { fill: #5a709f; }
-.grid-text[data-style-token="division.partial-subtrahend"] { color: #1e8b83; font-weight: 700; }
-.division-svg .grid-text[data-style-token="division.partial-subtrahend"] { fill: #1e8b83; }
-.grid-text[data-style-token="division.decimal-separator"] { color: #4166b6; font-weight: 800; }
-.division-svg .grid-text[data-style-token="division.decimal-separator"] { fill: #4166b6; }
-.grid-text[data-style-token="division.dividend-decimal-separator"] { color: #192642; font-weight: 800; }
-.division-svg .grid-text[data-style-token="division.dividend-decimal-separator"] { fill: #192642; }
-.grid-text[data-style-token="multiplication.multiplicand"] { color: #192642; font-weight: 700; }
-.division-svg .grid-text[data-style-token="multiplication.multiplicand"] { fill: #192642; }
+.division-svg .grid-text[data-style-token="division.remainder"] { fill: #4f9b3e; }
+.grid-text[data-style-token="division.partial-subtrahend"] { color: #9752b4; font-weight: 700; }
+.division-svg .grid-text[data-style-token="division.partial-subtrahend"] { fill: #9752b4; }
+.grid-text[data-style-token="division.decimal-separator"] { color: #c2185b; font-weight: 800; }
+.division-svg .grid-text[data-style-token="division.decimal-separator"] { fill: #c2185b; }
+.grid-text[data-style-token="division.dividend-decimal-separator"] { color: #c2185b; font-weight: 800; }
+.division-svg .grid-text[data-style-token="division.dividend-decimal-separator"] { fill: #c2185b; }
+.grid-text[data-style-token="multiplication.multiplicand"] { color: #c43e49; font-weight: 700; }
+.division-svg .grid-text[data-style-token="multiplication.multiplicand"] { fill: #c43e49; }
 .grid-text[data-style-token="multiplication.multiplier"],
-.grid-text[data-style-token="multiplication.operator"] { color: #4166b6; font-weight: 800; }
+.grid-text[data-style-token="multiplication.operator"] { color: #0096c9; font-weight: 800; }
 .division-svg .grid-text[data-style-token="multiplication.multiplier"],
-.division-svg .grid-text[data-style-token="multiplication.operator"] { fill: #4166b6; }
-.grid-text[data-style-token="multiplication.carry"] { color: #c58031; font-weight: 800; }
-.division-svg .grid-text[data-style-token="multiplication.carry"] { fill: #c58031; }
-.grid-text[data-style-token="multiplication.addition-carry"] { color: #9a5a9b; font-weight: 800; }
-.division-svg .grid-text[data-style-token="multiplication.addition-carry"] { fill: #9a5a9b; }
-.grid-text[data-style-token="multiplication.partial-product"] { color: #1e8b83; font-weight: 700; }
-.division-svg .grid-text[data-style-token="multiplication.partial-product"] { fill: #1e8b83; }
-.grid-text[data-style-token="multiplication.product"] { color: #213c77; font-weight: 800; }
-.division-svg .grid-text[data-style-token="multiplication.product"] { fill: #213c77; }
+.division-svg .grid-text[data-style-token="multiplication.operator"] { fill: #0096c9; }
+.grid-text[data-style-token="multiplication.carry"] { color: #00a079; font-weight: 800; }
+.division-svg .grid-text[data-style-token="multiplication.carry"] { fill: #00a079; }
+.grid-text[data-style-token="multiplication.addition-carry"] { color: #9752b4; font-weight: 800; }
+.division-svg .grid-text[data-style-token="multiplication.addition-carry"] { fill: #9752b4; }
+.grid-text[data-style-token="multiplication.partial-product"] { color: #4f9b3e; font-weight: 700; }
+.division-svg .grid-text[data-style-token="multiplication.partial-product"] { fill: #4f9b3e; }
+.grid-text[data-style-token="multiplication.product"] { color: #be4c00; font-weight: 800; }
+.division-svg .grid-text[data-style-token="multiplication.product"] { fill: #be4c00; }
 .grid-text[data-style-token="addition.addend"],
-.grid-text[data-style-token="subtraction.minuend"] { color: #192642; font-weight: 700; }
+.grid-text[data-style-token="subtraction.minuend"] { color: #c43e49; font-weight: 700; }
 .division-svg .grid-text[data-style-token="addition.addend"],
-.division-svg .grid-text[data-style-token="subtraction.minuend"] { fill: #192642; }
+.division-svg .grid-text[data-style-token="subtraction.minuend"] { fill: #c43e49; }
 .grid-text[data-style-token="addition.operator"],
 .grid-text[data-style-token="subtraction.operator"],
-.grid-text[data-style-token="subtraction.negative-sign"] { color: #4166b6; font-weight: 800; }
+.grid-text[data-style-token="subtraction.negative-sign"] { color: #7b3fa0; font-weight: 800; }
 .division-svg .grid-text[data-style-token="addition.operator"],
 .division-svg .grid-text[data-style-token="subtraction.operator"],
-.division-svg .grid-text[data-style-token="subtraction.negative-sign"] { fill: #4166b6; }
+.division-svg .grid-text[data-style-token="subtraction.negative-sign"] { fill: #7b3fa0; }
 .grid-text[data-style-token="addition.carry"],
-.grid-text[data-style-token="subtraction.borrow"] { color: #c58031; font-weight: 800; }
+.grid-text[data-style-token="subtraction.borrow"] { color: #00a079; font-weight: 800; }
 .division-svg .grid-text[data-style-token="addition.carry"],
-.division-svg .grid-text[data-style-token="subtraction.borrow"] { fill: #c58031; }
+.division-svg .grid-text[data-style-token="subtraction.borrow"] { fill: #00a079; }
 .grid-text[data-style-token="addition.sum"],
-.grid-text[data-style-token="subtraction.difference"] { color: #213c77; font-weight: 800; }
+.grid-text[data-style-token="subtraction.difference"] { color: #be4c00; font-weight: 800; }
 .division-svg .grid-text[data-style-token="addition.sum"],
-.division-svg .grid-text[data-style-token="subtraction.difference"] { fill: #213c77; }
-.grid-text[data-style-token="subtraction.subtrahend"] { color: #1e8b83; font-weight: 700; }
-.division-svg .grid-text[data-style-token="subtraction.subtrahend"] { fill: #1e8b83; }
+.division-svg .grid-text[data-style-token="subtraction.difference"] { fill: #be4c00; }
+.grid-text[data-style-token="subtraction.subtrahend"] { color: #0096c9; font-weight: 700; }
+.division-svg .grid-text[data-style-token="subtraction.subtrahend"] { fill: #0096c9; }
 .grid-text[data-style-token="short-division.divisor"],
-.grid-text[data-style-token="short-division.remainder-label"] { color: #4166b6; font-weight: 800; }
+.grid-text[data-style-token="short-division.remainder-label"] { color: #c43e49; font-weight: 800; }
 .division-svg .grid-text[data-style-token="short-division.divisor"],
-.division-svg .grid-text[data-style-token="short-division.remainder-label"] { fill: #4166b6; }
-.grid-text[data-style-token="short-division.dividend"] { color: #192642; font-weight: 700; }
-.division-svg .grid-text[data-style-token="short-division.dividend"] { fill: #192642; }
-.grid-text[data-style-token="short-division.remainder"] { color: #1e8b83; font-weight: 800; }
-.division-svg .grid-text[data-style-token="short-division.remainder"] { fill: #1e8b83; }
-.grid-text[data-style-token="short-division.final"] { color: #5a709f; font-weight: 800; }
-.division-svg .grid-text[data-style-token="short-division.final"] { fill: #5a709f; }
+.division-svg .grid-text[data-style-token="short-division.remainder-label"] { fill: #c43e49; }
+.grid-text[data-style-token="short-division.dividend"] { color: #b2468a; font-weight: 700; }
+.division-svg .grid-text[data-style-token="short-division.dividend"] { fill: #b2468a; }
+.grid-text[data-style-token="short-division.remainder"] { color: #4f9b3e; font-weight: 800; }
+.division-svg .grid-text[data-style-token="short-division.remainder"] { fill: #4f9b3e; }
+.grid-text[data-style-token="short-division.final"] { color: #be4c00; font-weight: 800; }
+.division-svg .grid-text[data-style-token="short-division.final"] { fill: #be4c00; }
 
 .division-dom .grid-edge,
 .division-dom .grid-corner,
@@ -1139,26 +1141,26 @@ h2 {
   transform: translateX(calc(var(--division-stroke, 3px) / -2));
 }
 
-.division-dom .grid-edge[data-style-token="division.bracket-top-line"] { background: #4166b6; }
-.division-dom .grid-edge[data-style-token="division.subtraction-bar"] { border-radius: 0; background: #6d83ae; }
-.division-dom .grid-edge[data-style-token="multiplication.input-bar"] { background: #4166b6; }
-.division-dom .grid-edge[data-style-token="multiplication.sum-bar"] { border-radius: 0; background: #6d83ae; }
-.division-dom .grid-edge[data-style-token="addition.sum-bar"] { border-radius: 0; background: #6d83ae; }
-.division-dom .grid-edge[data-style-token="subtraction.difference-bar"] { border-radius: 0; background: #6d83ae; }
+.division-dom .grid-edge[data-style-token="division.bracket-top-line"] { background: #3986e4; }
+.division-dom .grid-edge[data-style-token="division.subtraction-bar"] { border-radius: 0; background: #4a5f78; }
+.division-dom .grid-edge[data-style-token="multiplication.input-bar"] { background: #4a5f78; }
+.division-dom .grid-edge[data-style-token="multiplication.sum-bar"] { border-radius: 0; background: #4a5f78; }
+.division-dom .grid-edge[data-style-token="addition.sum-bar"] { border-radius: 0; background: #4a5f78; }
+.division-dom .grid-edge[data-style-token="subtraction.difference-bar"] { border-radius: 0; background: #4a5f78; }
 .division-dom .grid-edge[data-style-token="short-division.separator"] {
   width: 2px !important;
   border-radius: 0;
-  background: #4166b6;
+  background: #3986e4;
   transform: translateX(-1px);
 }
 .division-dom .grid-edge[data-style-token="short-division.bar"] {
   height: 2px !important;
   border-radius: 0;
-  background: #6d83ae;
+  background: #4a5f78;
 }
 .division-dom .grid-corner[data-style-token="division.bracket"] {
-  border-right: 2px solid #4166b6;
-  border-bottom: 2px solid #4166b6;
+  border-right: 2px solid #3986e4;
+  border-bottom: 2px solid #3986e4;
   border-bottom-right-radius: var(--grid-corner-radius);
 }
 
@@ -1182,17 +1184,17 @@ h2 {
   stroke-width: var(--division-stroke, 3px);
 }
 
-.division-svg .grid-edge[data-style-token="division.bracket-top-line"] { stroke: #4166b6; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="division.subtraction-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="multiplication.input-bar"] { stroke: #4166b6; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="multiplication.sum-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="addition.sum-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="subtraction.difference-bar"] { stroke: #6d83ae; stroke-linecap: butt; }
-.division-svg .grid-edge[data-style-token="short-division.separator"] { stroke: #4166b6; stroke-linecap: butt; stroke-width: 2px; }
-.division-svg .grid-edge[data-style-token="short-division.bar"] { stroke: #6d83ae; stroke-linecap: butt; stroke-width: 2px; }
+.division-svg .grid-edge[data-style-token="division.bracket-top-line"] { stroke: #3986e4; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="division.subtraction-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="multiplication.input-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="multiplication.sum-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="addition.sum-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="subtraction.difference-bar"] { stroke: #4a5f78; stroke-linecap: butt; }
+.division-svg .grid-edge[data-style-token="short-division.separator"] { stroke: #3986e4; stroke-linecap: butt; stroke-width: 2px; }
+.division-svg .grid-edge[data-style-token="short-division.bar"] { stroke: #4a5f78; stroke-linecap: butt; stroke-width: 2px; }
 .division-svg .grid-corner[data-style-token="division.bracket"] {
   fill: none;
-  stroke: #4166b6;
+  stroke: #3986e4;
   stroke-linecap: butt;
   stroke-width: 2px;
 }
