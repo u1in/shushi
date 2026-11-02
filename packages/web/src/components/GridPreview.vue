@@ -6,25 +6,24 @@ import type { GridScene } from '@vertical-arithmetic/grid'
 
 const props = defineProps<{ scene: GridScene, mode: 'dom' | 'svg' | 'both' }>()
 
-const svg = ref<SVGSVGElement>()
-const dom = ref<HTMLElement>()
-const lines = ref<HTMLElement>()
-const digits = ref<HTMLElement>()
+const svgHost = ref<HTMLElement>()
+const domHost = ref<HTMLElement>()
 const metrics = computed(() => resolveGridMetrics(props.scene))
 
 /**
- * 等待条件渲染的 SVG / DOM 面板挂载后再写入图元，避免切换渲染模式时向已卸载节点绘制。
+ * 渲染器直接返回创建好的 SVG/DOM 舞台；这里只负责挂载，并补充主应用的样式类。
  */
 const render = async (): Promise<void> => {
   await nextTick()
-  if (svg.value) {
-    svg.value.replaceChildren()
-    renderSvgGrid(svg.value, props.scene)
+  if (svgHost.value) {
+    const svg = renderSvgGrid(props.scene)
+    svg.classList.add('division-svg')
+    svgHost.value.replaceChildren(svg)
   }
-  if (dom.value && lines.value && digits.value) {
-    lines.value.replaceChildren()
-    digits.value.replaceChildren()
-    renderDomGrid(lines.value, digits.value, props.scene)
+  if (domHost.value) {
+    const stage = renderDomGrid(props.scene)
+    stage.classList.add('division-dom')
+    domHost.value.replaceChildren(stage)
   }
 }
 
@@ -37,21 +36,14 @@ watch(() => props.scene, render)
     <section v-if="mode !== 'dom'" class="renderer-panel">
       <h3>SVG</h3>
       <div class="stage-scroll">
-        <!-- 该相对定位容器为绝对定位的 SVG 与 DOM 网格图元提供统一坐标系。 -->
-        <div class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
-          <svg ref="svg" :width="metrics.width" :height="metrics.height" class="division-svg" role="img" :aria-label="scene.ariaLabel"></svg>
-        </div>
+        <!-- 该相对定位容器为渲染器返回的绝对定位图元提供统一坐标系。 -->
+        <div ref="svgHost" class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }"></div>
       </div>
     </section>
     <section v-if="mode !== 'svg'" class="renderer-panel">
       <h3>DIV + CSS</h3>
       <div class="stage-scroll">
-        <div class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
-          <div ref="dom" class="division-dom" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }" :aria-label="scene.ariaLabel">
-            <div ref="lines" class="division-line-layer" aria-hidden="true"></div>
-            <div ref="digits" class="division-digit-layer"></div>
-          </div>
-        </div>
+        <div ref="domHost" class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }"></div>
       </div>
     </section>
   </div>

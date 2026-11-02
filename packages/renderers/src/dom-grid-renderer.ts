@@ -105,8 +105,8 @@ const renderGuideGrid = (parent: HTMLElement, scene: GridScene, metrics: GridMet
   })
 }
 
-/** Renders any GridScene using absolutely positioned div + CSS layers. */
-export const renderDomGrid = (
+/** 在已有图层中绘制；清空旧图元，避免复用容器时残留上一次结果。 */
+const renderDomLayers = (
   lineLayer: HTMLElement,
   contentLayer: HTMLElement,
   scene: GridScene,
@@ -116,9 +116,51 @@ export const renderDomGrid = (
   grid?.style.setProperty('--grid-font-size', `${scene.fontSize}px`)
   grid?.style.setProperty('width', `${metrics.width}px`)
   grid?.style.setProperty('height', `${metrics.height}px`)
+  lineLayer.replaceChildren()
+  contentLayer.replaceChildren()
   renderGuideGrid(lineLayer, scene, metrics)
   scene.elements.forEach((element) => {
     const layer = element.content.kind === 'line' || element.content.kind === 'corner' ? lineLayer : contentLayer
     renderDomElement(layer, element, scene, metrics)
   })
+}
+
+/**
+ * 创建舞台、线条层和内容层，绘制 GridScene 并返回舞台元素。
+ * 舞台与图层的基础定位、宽高和字号变量由渲染器内联设置。
+ */
+export const renderDomGrid = (scene: GridScene): HTMLElement => {
+  const metrics = resolveGridMetrics(scene)
+  const stage = document.createElement('div')
+  stage.className = 'grid-dom-stage'
+  stage.setAttribute('role', 'img')
+  stage.setAttribute('aria-label', scene.ariaLabel)
+  stage.style.position = 'relative'
+  stage.style.width = `${metrics.width}px`
+  stage.style.height = `${metrics.height}px`
+  stage.style.setProperty('--grid-font-size', `${scene.fontSize}px`)
+
+  const lineLayer = document.createElement('div')
+  lineLayer.className = 'grid-line-layer'
+  lineLayer.setAttribute('aria-hidden', 'true')
+  lineLayer.style.position = 'absolute'
+  lineLayer.style.top = '0'
+  lineLayer.style.right = '0'
+  lineLayer.style.bottom = '0'
+  lineLayer.style.left = '0'
+  lineLayer.style.pointerEvents = 'none'
+  lineLayer.style.zIndex = '1'
+
+  const contentLayer = document.createElement('div')
+  contentLayer.className = 'grid-content-layer'
+  contentLayer.style.position = 'absolute'
+  contentLayer.style.top = '0'
+  contentLayer.style.right = '0'
+  contentLayer.style.bottom = '0'
+  contentLayer.style.left = '0'
+  contentLayer.style.zIndex = '2'
+
+  stage.append(lineLayer, contentLayer)
+  renderDomLayers(lineLayer, contentLayer, scene)
+  return stage
 }

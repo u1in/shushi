@@ -23,8 +23,7 @@ const props = defineProps<{
   items: NamingMapItem[]
 }>()
 
-const grid = ref<HTMLElement>()
-const lineLayer = ref<HTMLElement>()
+const renderHost = ref<HTMLElement>()
 const contentLayer = ref<HTMLElement>()
 const highlightLayer = ref<HTMLElement>()
 const selected = ref<Record<string, boolean>>({})
@@ -91,8 +90,8 @@ const addElementHighlights = (item: NamingMapItem, elements: GridElement[]): voi
 }
 
 const addRenderedTextHighlights = (item: NamingMapItem): void => {
-  if (!grid.value || !contentLayer.value) return
-  const gridRect = grid.value.getBoundingClientRect()
+  if (!renderHost.value || !contentLayer.value) return
+  const gridRect = renderHost.value.getBoundingClientRect()
   contentLayer.value.querySelectorAll<HTMLElement>(`.grid-text[data-style-token="${item.token}"]`).forEach((node, index) => {
     const rect = node.getBoundingClientRect()
     addHighlight(expandBounds({
@@ -140,10 +139,11 @@ const syncHighlightVisibility = (): void => {
 const renderGrid = async (): Promise<void> => {
   props.items.forEach(({ key }) => { if (selected.value[key] === undefined) selected.value[key] = true })
   await nextTick()
-  if (!lineLayer.value || !contentLayer.value) return
-  lineLayer.value.replaceChildren()
-  contentLayer.value.replaceChildren()
-  renderDomGrid(lineLayer.value, contentLayer.value, props.scene)
+  if (!renderHost.value) return
+  const stage = renderDomGrid(props.scene)
+  stage.classList.add('division-dom')
+  renderHost.value.replaceChildren(stage)
+  contentLayer.value = stage.querySelector<HTMLElement>('.grid-content-layer') ?? undefined
   renderHighlights()
 }
 
@@ -163,12 +163,9 @@ watch(selected, syncHighlightVisibility, { deep: true })
       <h2 class="text-xl font-bold text-slate-800">图中物件</h2>
       <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 p-2">
         <div class="min-w-[600px]">
-          <div ref="stage" class="naming-map-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
-            <div ref="grid" class="division-dom" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
-              <div ref="lineLayer" class="division-line-layer" aria-hidden="true"></div>
-              <div ref="contentLayer" class="division-digit-layer"></div>
-              <div ref="highlightLayer" class="naming-map-highlight-layer" aria-hidden="true"></div>
-            </div>
+          <div class="naming-map-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }">
+            <div ref="renderHost" class="naming-map-render-host"></div>
+            <div ref="highlightLayer" class="naming-map-highlight-layer" aria-hidden="true"></div>
           </div>
         </div>
       </div>

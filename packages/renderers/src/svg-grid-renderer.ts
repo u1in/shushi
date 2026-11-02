@@ -100,9 +100,15 @@ const renderGuideGrid = (parent: SVGElement, scene: GridScene, metrics: GridMetr
   })))
 }
 
-/** Renders the same renderer-neutral grid as the DOM renderer using SVG primitives. */
-export const renderSvgGrid = (svg: SVGSVGElement, scene: GridScene): void => {
+/** 创建 SVG、绘制 GridScene 并返回该 SVG 元素。 */
+export const renderSvgGrid = (scene: GridScene): SVGSVGElement => {
+  const svg = createSvgNode('svg', {
+    class: 'grid-svg',
+    role: 'img',
+    xmlns: 'http://www.w3.org/2000/svg',
+  }) as SVGSVGElement
   const metrics = resolveGridMetrics(scene)
+  svg.style.display = 'block'
   svg.style.setProperty('--grid-font-size', `${scene.fontSize}px`)
   svg.setAttribute('viewBox', `0 0 ${metrics.width} ${metrics.height}`)
   svg.setAttribute('width', String(metrics.width))
@@ -113,4 +119,5 @@ export const renderSvgGrid = (svg: SVGSVGElement, scene: GridScene): void => {
   renderGuideGrid(lineLayer, scene, metrics)
   scene.elements.forEach((element) => renderSvgElement(lineLayer, contentLayer, element, scene, metrics))
   svg.replaceChildren(lineLayer, contentLayer)
+  return svg
 }
