@@ -3,7 +3,7 @@ import { AUTO_COLOR_THEME, compileMacro, formatMacro, minifyMacro, parseMacro } 
 
 describe('网格宏编译器', () => {
   test('顶层分号将裸文字自动补成 MM，再包裹为 ROW 和隐式 GRID', () => {
-    const scene = compileMacro('5,6;×,5,6;LINE;')
+    const scene = compileMacro('5,6;×,5,6;LN;')
 
     expect(scene.columns).toHaveLength(3)
     expect(scene.rows).toHaveLength(2)
@@ -42,6 +42,15 @@ describe('网格宏编译器', () => {
     expect(() => compileMacro('[5,RB];')).toThrow(/只有首项可以省略 MM/)
     expect(() => compileMacro('[RB(1),5];')).toThrow(/首项必须是 MM/)
     expect(() => compileMacro('[];')).toThrow(/至少需要首项文字/)
+  })
+
+  test('EP、LN 与 BK 会在解析时还原为完整的结构宏', () => {
+    const scene = compileMacro('5,EP,6;LN;BK,1;')
+
+    expect(scene.rows).toHaveLength(2)
+    expect(scene.elements.some(({ content }) => content.kind === 'line')).toBe(true)
+    expect(scene.elements.some(({ content }) => content.kind === 'corner')).toBe(true)
+    expect(minifyMacro('EMPTY, LINE, BRACKET')).toBe('EP,LN,BK')
   })
 
   test('顶层 ROW 和 LINE 会自动包裹为隐式 GRID', () => {
@@ -222,7 +231,7 @@ ROW(MM(6), MM(3), MM(4))`)
   ),
   MM(2)
 ),
-LINE,
+LN,
 ROW(
   MM(3)
 )`)
@@ -230,12 +239,12 @@ ROW(
 
   test('格式化与去格式化保留分号行简写，不重新写出 ROW', () => {
     expect(formatMacro('MM(5),MM(6);LINE;CELL(MM(7),DOT);')).toBe(`5, 6;
-LINE;
+LN;
 CELL(
   MM(7),
   DOT
 );`)
-    expect(minifyMacro(' MM(5), MM(6); LINE; MM(7) ')).toBe('5,6;LINE;7;')
+    expect(minifyMacro(' MM(5), MM(6); LINE; MM(7) ')).toBe('5,6;LN;7;')
   })
 
   test('格式化与去格式化会使用 MM 与 CELL 的安全简写', () => {
@@ -247,6 +256,6 @@ CELL(
     expect(minifyMacro(` GRID(
   ROW( MM(5), CELL( MM(6), MT(·) ) ),
   LINE(KV(span, full))
-) `)).toBe('GRID(ROW(MM(5),CELL(MM(6),MT(·))),LINE(KV(span,full)))')
+) `)).toBe('GRID(ROW(MM(5),CELL(MM(6),MT(·))),LN(KV(span,full)))')
   })
 })

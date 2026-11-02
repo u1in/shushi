@@ -22,7 +22,7 @@ const expandedCallSource = [
   ')',
 ].join('\n')
 
-const shorthandSource = '5,6;×,[5,RB(1)],6;LINE;6,3,4;'
+const shorthandSource = '5,6;×,[5,RB(1)],6;LN;6,3,4;'
 const expandedCallScene = compileMacro(expandedCallSource)
 
 interface BasicCommand {
@@ -68,16 +68,16 @@ const basicCommands: BasicCommand[] = [
     example: 'CELL(KV(columnSpan, 1), KV(style, macro.input))',
   },
   {
-    name: 'EMPTY',
-    signature: 'EMPTY(...options)',
+    name: 'EMPTY · EP',
+    signature: 'EMPTY(...options) · EP(...options)',
     properties: ['KV(columnSpan, 正整数)、KV(style, token)。'],
     rules: '占用列而不产生可见图元。',
     caution: '不能包含 MM、DOT 或任何边框等内容。',
     example: 'EMPTY(KV(columnSpan, 2))',
   },
   {
-    name: 'LINE',
-    signature: 'LINE(STYLE(...), ...options)',
+    name: 'LINE · LN',
+    signature: 'LINE(STYLE(...), ...options) · LN(STYLE(...), ...options)',
     properties: ['可选 STYLE：color、thickness。', 'KV(span, previous | longest | full)、KV(style, token)。'],
     rules: '始终附着于上一条 ROW 的下边缘，不创建额外行高。',
     caution: '前面必须已经有 ROW；默认 span 是 previous。',
@@ -208,10 +208,10 @@ const edgeTextMacro = { name: 'RBL', edge: '右侧文字', example: 'CELL(MM(7),
           <div class="macro-sugar-grid">
             <article><h3>分号行与中心文字</h3><p>仅顶层可用。每个普通分号段自动成为 ROW，裸文字自动补成 <code>MM(text)</code>，所以 <code>5, 6;</code> 等价于 <code>ROW(MM(5), MM(6))</code>。</p></article>
             <article><h3>方括号单元格 <code>[]</code></h3><p><code>[5, RB(1)]</code> 等价于 <code>CELL(MM(5), RB(1))</code>；仅第一项可省略 MM，后续定位宏必须完整写为 <code>RB(1)</code>。</p></article>
-            <article><h3>零参数省略</h3><p><code>LINE</code>、<code>EMPTY</code>、<code>STYLE</code>、<code>BRACKET</code> 与四种边框宏可省略空括号。</p></article>
+            <article><h3>零参数与短别名</h3><p><code>LN</code>、<code>EP</code>、<code>BK</code> 分别是 <code>LINE</code>、<code>EMPTY</code>、<code>BRACKET</code> 的别名；它们与四种边框宏都可省略空括号。</p></article>
           </div>
           <div class="macro-sugar-note">
-            <p><code>DOT</code> 是宏命令 <code>RBL(.)</code> 的快捷写法。<code>BRACKET</code> 生成厂字弯，独占一格且不能设置 columnSpan。<code>TBD / RBD / BBD / LBD</code> 只能放在 CELL 内，分别画上、右、下、左边。</p>
+            <p><code>DOT</code> 是宏命令 <code>RBL(.)</code> 的快捷写法。<code>BK</code>（<code>BRACKET</code>）生成厂字弯，独占一格且不能设置 columnSpan。<code>TBD / RBD / BBD / LBD</code> 只能放在 CELL 内，分别画上、右、下、左边。</p>
           </div>
         </section>
 
@@ -234,7 +234,7 @@ const edgeTextMacro = { name: 'RBL', edge: '右侧文字', example: 'CELL(MM(7),
             <li>含逗号、圆括号、双引号或方括号的普通文字必须使用双引号；反斜杠可转义引号与反斜杠。</li>
             <li>裸文字只在顶层分号行及方括号首项中自动补成 MM；<code>[5, 1]</code> 与 <code>[5, RB]</code> 都会报错。</li>
             <li>显式 GRID 的 columns 不足时会报错，不会截断内容；需要配置时不要使用只含语法糖的顶层简写。</li>
-            <li>LINE 必须在至少一个 ROW 之后；CELL 内的 BRACKET 必须独占，EMPTY 不能携带图元。</li>
+            <li>LN（LINE）必须在至少一个 ROW 之后；CELL 内的 BK（BRACKET）必须独占，EP（EMPTY）不能携带图元。</li>
             <li>autoColor 默认覆盖 LINE 与边框的可视颜色、线宽；如需精确 STYLE，写 KV(autoColor, false)。</li>
             <li>宏层只描述语义与网格结构，不应写入 DOM、CSS 类名、SVG 节点或像素坐标。</li>
           </ul>

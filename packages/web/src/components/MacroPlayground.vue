@@ -13,19 +13,19 @@ interface MacroExample {
 const arithmeticExamples: MacroExample[] = [
   {
     label: '356 + 278 = 634',
-    source: '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LINE;6,3,4;',
+    source: '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;',
   },
   {
     label: '502 − 137 = 365',
-    source: '[5,MT(·)],[0,MT(·)],2;−,1,3,7;LINE;3,6,5;',
+    source: '[5,MT(·)],[0,MT(·)],2;−,1,3,7;LN;3,6,5;',
   },
   {
     label: '97 × 89 = 8633',
-    source: '9,7;×,[8,RB(6)],9;LINE(KV(span,full));8,7,3;[7,RB(1)],[7,RB(1)],[6,LT(5)],EMPTY;LINE(KV(span,full));8,6,3,3;',
+    source: '9,7;×,[8,RB(6)],9;LN(KV(span,full));8,7,3;[7,RB(1)],[7,RB(1)],[6,LT(5)],EP;LN(KV(span,full));8,6,3,3;',
   },
   {
     label: '10230 ÷ 25 = 409.2',
-    source: '4,0,[9,DOT],2;2,5,BRACKET,1,0,2,3,0,0;1,0,0,EMPTY,EMPTY,EMPTY;LINE;2,3,0,EMPTY;2,2,5,EMPTY;LINE;5,0;5,0;LINE;0;',
+    source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,0,0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
   },
 ]
 
@@ -53,7 +53,7 @@ const macroSnippetGroups: MacroSnippetGroup[] = [
       { label: 'CELL', source: 'CELL(),', cursorOffset: 5, title: '组合一个单元格中的图元' },
       { label: '[]', source: '[],', cursorOffset: 1, title: '用方括号组合一个单元格中的图元' },
       { label: 'ROW', source: 'ROW(),', cursorOffset: 4, title: '插入数字行' },
-      { label: 'LINE', source: 'LINE,', cursorOffset: 5, title: '插入行级横线' },
+      { label: 'LN', source: 'LN,', cursorOffset: 3, title: '插入 LINE 行级横线别名' },
     ],
   },
   {
@@ -88,8 +88,8 @@ const macroSnippetGroups: MacroSnippetGroup[] = [
     label: '特殊变量',
     snippets: [
       { label: 'DOT', source: 'DOT,', cursorOffset: 4, title: '右边界小数点简写' },
-      { label: 'EMPTY', source: 'EMPTY,', cursorOffset: 6, title: '插入空单元格' },
-      { label: 'BRACKET', source: 'BRACKET,', cursorOffset: 8, title: '插入半列宽的厂字弯' },
+      { label: 'EP', source: 'EP,', cursorOffset: 3, title: '插入 EMPTY 空单元格别名' },
+      { label: 'BK', source: 'BK,', cursorOffset: 3, title: '插入 BRACKET 厂字弯别名' },
     ],
   },
   {

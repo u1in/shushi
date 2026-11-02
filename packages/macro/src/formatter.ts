@@ -1,5 +1,6 @@
 import type { MacroCall, MacroNode } from './types'
 import { parseMacro } from './parser'
+import { getShortestMacroName } from './macro-aliases'
 
 const INDENT = '  '
 
@@ -24,9 +25,9 @@ const serializeCellArgument = (node: MacroNode, index: number, usesCellShorthand
 
 const serializeNode = (node: MacroNode, usesCellShorthand = false): string => {
   if (node.kind === 'literal') return serializeLiteral(node.value)
-  if (node.kind === 'symbol') return node.name
+  if (node.kind === 'symbol') return getShortestMacroName(node.name)
   if (usesCellShorthand && node.name === 'CELL') return `[${node.arguments.map((argument, index) => serializeCellArgument(argument, index, true)).join(',')}]`
-  return `${node.name}(${node.arguments.map((argument) => serializeNode(argument, usesCellShorthand)).join(',')})`
+  return `${getShortestMacroName(node.name)}(${node.arguments.map((argument) => serializeNode(argument, usesCellShorthand)).join(',')})`
 }
 
 const canInlineCall = (node: MacroCall): boolean => node.arguments.every((argument) => argument.kind !== 'call')
@@ -37,12 +38,12 @@ const formatNode = (node: MacroNode, level: number, usesCellShorthand = false): 
   if (usesCellShorthand && node.name === 'CELL') {
     return `[${node.arguments.map((argument, index) => serializeCellArgument(argument, index, true)).join(', ')}]`
   }
-  if (node.arguments.length === 0) return `${node.name}()`
-  if (canInlineCall(node)) return `${node.name}(${node.arguments.map((argument) => serializeNode(argument, usesCellShorthand)).join(', ')})`
+  if (node.arguments.length === 0) return `${getShortestMacroName(node.name)}()`
+  if (canInlineCall(node)) return `${getShortestMacroName(node.name)}(${node.arguments.map((argument) => serializeNode(argument, usesCellShorthand)).join(', ')})`
 
   const childIndent = INDENT.repeat(level + 1)
   const closingIndent = INDENT.repeat(level)
-  return `${node.name}(\n${node.arguments.map((argument) => `${childIndent}${formatNode(argument, level + 1, usesCellShorthand)}`).join(',\n')}\n${closingIndent})`
+  return `${getShortestMacroName(node.name)}(\n${node.arguments.map((argument) => `${childIndent}${formatNode(argument, level + 1, usesCellShorthand)}`).join(',\n')}\n${closingIndent})`
 }
 
 const hasExplicitGrid = (source: string): boolean => /^\s*GRID\s*\(/u.test(source)

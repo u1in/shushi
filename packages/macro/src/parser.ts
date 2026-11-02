@@ -1,4 +1,5 @@
 import type { MacroCall, MacroLiteral, MacroNode, MacroSymbol } from './types'
+import { getCanonicalMacroName } from './macro-aliases'
 
 /** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
 const CELL_ZERO_ARGUMENT_SYMBOLS = new Set(['DOT', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
@@ -95,7 +96,8 @@ export const parseMacro = (source: string): MacroCall => {
     if (source[index] === '[') return parseCellShorthand()
     if (!isNameStart(source[index] ?? '')) return parseBareLiteral()
     while (isNamePart(source[index] ?? '')) index += 1
-    const name = source.slice(start, index)
+    const inputName = source.slice(start, index)
+    const name = getCanonicalMacroName(inputName)
     skipWhitespace()
     if (source[index] !== '(') {
       // 语义样式 token 可以使用 division.subtraction-bar 这类含点的裸值。
@@ -112,7 +114,7 @@ export const parseMacro = (source: string): MacroCall => {
     const argumentsList: MacroNode[] = []
     skipWhitespace()
     while (source[index] !== ')') {
-      if (index >= source.length) throw createSyntaxError(source, start, `${name} 缺少结束括号`)
+      if (index >= source.length) throw createSyntaxError(source, start, `${inputName} 缺少结束括号`)
       argumentsList.push(parseExpression())
       skipWhitespace()
       if (source[index] === ',') {
@@ -120,7 +122,7 @@ export const parseMacro = (source: string): MacroCall => {
         skipWhitespace()
         continue
       }
-      if (index >= source.length) throw createSyntaxError(source, start, `${name} 缺少结束括号`)
+      if (index >= source.length) throw createSyntaxError(source, start, `${inputName} 缺少结束括号`)
       if (source[index] !== ')') throw createSyntaxError(source, index, '参数之间必须使用逗号分隔')
     }
     index += 1
