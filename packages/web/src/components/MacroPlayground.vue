@@ -172,7 +172,7 @@ const minifySource = (): void => transformSource(minifyMacro)
               <h2>已推导 {{ result.scene.columns.length }} 列、{{ result.scene.rows.length }} 行</h2>
             </div>
           </div>
-          <GridPreview :scene="result.scene" mode="svg" />
+          <GridPreview :scene="result.scene" mode="both" />
         </div>
         <div v-else class="calculation-result">
           <p class="panel-kicker">COMPILATION ERROR</p>
