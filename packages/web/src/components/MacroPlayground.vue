@@ -132,7 +132,6 @@ const minifySource = (): void => transformSource(minifyMacro)
 
 <template>
   <div class="operation-demo macro-playground" data-operation="macro">
-    <p class="naming-map-link"><RouterLink to="/macro-rules">查看宏语言参考 →</RouterLink></p>
     <section class="workspace" aria-label="公式宏试验区">
       <section class="control-panel">
         <p class="panel-kicker">MACRO PLAYGROUND</p>

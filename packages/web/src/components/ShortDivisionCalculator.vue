@@ -92,7 +92,6 @@ calculate()
 
 <template>
   <div class="operation-demo operation-demo--short-division" data-operation="short-division">
-    <p class="naming-map-link"><RouterLink to="/short-division-elements">查看短除法竖式物件命名图谱 →</RouterLink></p>
     <section class="workspace" aria-label="短除法工作区">
       <form class="control-panel" @submit.prevent="calculate">
         <fieldset class="short-division-mode-group" aria-label="短除法用途">

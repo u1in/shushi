@@ -1,6 +1,6 @@
 {
   "name": "@u1in/shushi-web",
-  "description": "@u1in/shushi 的 Vue、Vue Router 与 Tailwind CSS 前端应用。",
+  "description": "@u1in/shushi 的 Vue 首页演示应用。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",
@@ -8,8 +8,8 @@
     "directory": "packages/web"
   },
   "bugs": { "url": "https://github.com/u1in/shushi/issues" },
-  "homepage": "https://github.com/u1in/shushi/tree/main/packages/web#readme",
-  "keywords": ["vertical-arithmetic", "vue", "vue-router", "tailwindcss", "vite"],
+  "homepage": "https://github.com/u1in/shushi#readme",
+  "keywords": ["vertical-arithmetic", "vue", "tailwindcss", "vite", "demo"],
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,14 +21,11 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@u1in/shushi-docs": "file:../docs",
     "@u1in/shushi-grid": "file:../grid",
     "@u1in/shushi-calculators": "file:../calculators",
     "@u1in/shushi-layout": "file:../layout",
     "@u1in/shushi-macro": "file:../macro",
-    "@u1in/shushi-macro-docs": "file:../macro-docs",
     "@u1in/shushi-renderers": "file:../renderers",
-    "vue": "^3.5.44",
-    "vue-router": "^5.4.0"
+    "vue": "^3.5.44"
   }
 }

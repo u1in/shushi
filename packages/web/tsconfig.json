@@ -18,7 +18,6 @@
       "@u1in/shushi-calculators": ["../calculators/src/index.ts"],
       "@u1in/shushi-layout": ["../layout/src/index.ts"],
       "@u1in/shushi-macro": ["../macro/src/index.ts"],
-      "@u1in/shushi-macro-docs": ["../macro-docs/src/index.ts"],
       "@u1in/shushi-renderers": ["../renderers/src/index.ts"]
     }
   },

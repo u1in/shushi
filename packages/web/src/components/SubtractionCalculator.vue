@@ -58,7 +58,6 @@ calculate()
 
 <template>
   <div class="operation-demo operation-demo--subtraction" data-operation="subtraction">
-    <p class="naming-map-link"><RouterLink to="/subtraction-elements">查看减法竖式物件命名图谱 →</RouterLink></p>
     <section class="workspace" aria-label="减法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
         <div class="input-grid">

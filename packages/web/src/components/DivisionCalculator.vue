@@ -74,7 +74,6 @@ calculate()
 
 <template>
   <div class="operation-demo operation-demo--division" data-operation="division">
-    <p class="naming-map-link"><RouterLink to="/division-elements">查看除法竖式物件命名图谱 →</RouterLink></p>
     <section class="workspace" aria-label="除法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
         <div class="input-grid">
