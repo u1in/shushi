@@ -25,7 +25,7 @@ npm run dev
 
 也可以在本包目录执行 `npm run dev`、`npm run typecheck`、`npm run test` 或 `npm run build`。
 
-详见[前端应用与工作区说明](./docs/前端应用与工作区说明.md)。
+详见[前端应用与工作区说明](../docs/technical/workspace/前端应用与工作区说明.md)。
 
 ## Bug 反馈与作者
 

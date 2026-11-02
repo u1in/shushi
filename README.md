@@ -11,6 +11,19 @@
 - 渲染器：同一场景可渲染为 DOM/CSS 或 SVG。
 - Web 应用：提供计算器和各运算的竖式元素命名图谱页面。
 
+面向 npm 使用者的公共能力统一从 `@vertical-arithmetic/core` 导入：
+
+```ts
+import {
+  compileMacro,
+  computeAddition,
+  createAdditionMacroSource,
+  renderDomGrid,
+} from '@vertical-arithmetic/core'
+```
+
+`@vertical-arithmetic/calculators`、`@vertical-arithmetic/layout` 等领域包仍保留，供需要细粒度依赖边界的场景使用。注意：npm scoped 包名必须包含 `/`，因此 `@vertical-arithmetic` 不能作为可发布包名；项目源码测试中使用的 `@vertical-arithmetic` 仅是指向统一入口的本地 TypeScript 别名。
+
 ## 工作区结构
 
 | 包 | 职责 |
@@ -20,10 +33,13 @@
 | `@vertical-arithmetic/layout` | 根据计算结果决定竖式结构并生成 `GridScene` |
 | `@vertical-arithmetic/renderers` | DOM/CSS 与 SVG 渲染器 |
 | `@vertical-arithmetic/macro` | 网格宏语言解析、编译与 `GridScene` 生成 |
-| `@vertical-arithmetic/macro-docs` | 网格宏文档内容、页面组件、图例与样式 |
+| `@vertical-arithmetic/macro-docs` | 宏文档 Vue 展示组件、图例与样式 |
+| `@vertical-arithmetic/docs` | 框架无关的宏说明、技术文档与图例文档源 |
+| `@vertical-arithmetic/docs-site` | VuePress 文档发布适配层与交互组件注册 |
 | `@vertical-arithmetic/web` | Vue 前端、路由、主题和交互页面 |
+| `@vertical-arithmetic/core` | 面向 npm 使用者的计算、布局、宏编译、网格和渲染统一入口 |
 
-计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。网格宏文档由 `packages/macro-docs` 独立维护，`web` 只负责挂载 `/macro-rules`（宏语言参考）与 `/macro-api`（技术文档）两个入口。
+计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。框架无关文档统一由 `packages/docs` 维护，`packages/docs-site` 只负责 VuePress 发布；`macro-docs` 提供宏文档的可运行内容组件，主应用仍挂载 `/macro-rules` 与 `/macro-api` 兼容入口。
 
 ## 开始使用
 
@@ -47,16 +63,9 @@ npm run build
 
 ## 文档
 
-- [项目文档索引](./docs/项目文档索引.md)
-- [前端应用与工作区说明](./packages/web/docs/前端应用与工作区说明.md)
-- [网格架构与子包关系](./packages/grid/docs/网格架构.md)
-- [网格宏文档包](./packages/macro-docs/docs/网格宏文档包.md)
-- [除法计算规则](./packages/calculators/docs/除法计算规则.md)
-- [乘法计算规则](./packages/calculators/docs/乘法计算规则.md)
-- [短除法计算规则](./packages/calculators/docs/短除法计算规则.md)
-- [除法竖式排版规则](./packages/layout/docs/除法竖式排版规则.md)
-- [乘法竖式排版规则](./packages/layout/docs/乘法竖式排版规则.md)
-- [短除法竖式排版规则](./packages/layout/docs/短除法竖式排版规则.md)
+- [集中式文档源](./packages/docs/README.md)
+- [VuePress 文档站适配层](./packages/docs-site/package.json)
+- [在线文档开发](./packages/docs/README.md#目录约定)：执行 `npm run docs:dev`
 
 ## Bug 反馈与贡献
 

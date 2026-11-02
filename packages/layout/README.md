@@ -15,11 +15,11 @@
 
 ## 规则文档
 
-- [加法竖式排版规则](./docs/加法竖式排版规则.md)
-- [减法竖式排版规则](./docs/减法竖式排版规则.md)
-- [除法竖式排版规则](./docs/除法竖式排版规则.md)
-- [乘法竖式排版规则](./docs/乘法竖式排版规则.md)
-- [短除法竖式排版规则](./docs/短除法竖式排版规则.md)
+- [加法竖式排版规则](../docs/technical/layout/加法竖式排版规则.md)
+- [减法竖式排版规则](../docs/technical/layout/减法竖式排版规则.md)
+- [除法竖式排版规则](../docs/technical/layout/除法竖式排版规则.md)
+- [乘法竖式排版规则](../docs/technical/layout/乘法竖式排版规则.md)
+- [短除法竖式排版规则](../docs/technical/layout/短除法竖式排版规则.md)
 
 ## Bug 反馈与作者
 

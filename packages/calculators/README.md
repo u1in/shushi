@@ -16,11 +16,11 @@
 
 ## 规则文档
 
-- [加法计算规则](./docs/加法计算规则.md)
-- [减法计算规则](./docs/减法计算规则.md)
-- [除法计算规则](./docs/除法计算规则.md)
-- [乘法计算规则](./docs/乘法计算规则.md)
-- [短除法计算规则](./docs/短除法计算规则.md)
+- [加法计算规则](../docs/technical/calculator/加法计算规则.md)
+- [减法计算规则](../docs/technical/calculator/减法计算规则.md)
+- [除法计算规则](../docs/technical/calculator/除法计算规则.md)
+- [乘法计算规则](../docs/technical/calculator/乘法计算规则.md)
+- [短除法计算规则](../docs/technical/calculator/短除法计算规则.md)
 
 ## Bug 反馈与作者
 

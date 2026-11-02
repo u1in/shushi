@@ -1,0 +1,99 @@
+import type { GalleryPage } from './types'
+
+/**
+ * 图例解释的唯一内容源。
+ * Web 端可以继续提供交互式高亮，但不得在页面中重新维护名称、token 和图例说明。
+ */
+export const galleryPages: GalleryPage[] = [
+  {
+    operation: 'addition',
+    title: '加法竖式元素命名图谱',
+    eyebrow: 'VERTICAL ADDITION · NAMING MAP',
+    intro: '进位、横线和数字都来自同一份加法 GridScene。',
+    sample: '356 + 278',
+    items: [
+      { key: '01', name: '加数', description: '参与相加且按个位右对齐的数。', token: 'addition.addend', tone: 'tone-ink', source: 'text', rows: true },
+      { key: '02', name: '加号', description: '最后一个加数行左侧的 +。', token: 'addition.operator', tone: 'tone-blue', source: 'text' },
+      { key: '03', name: '进位', description: '本列满十后传给前一位的 1。', token: 'addition.carry', tone: 'tone-carry', source: 'rendered-text', badgeClass: 'naming-map-highlight--badge-left' },
+      { key: '04', name: '加法横线', description: '加数下方、和上方的横线。', token: 'addition.sum-bar', tone: 'tone-sum', source: 'edge' },
+      { key: '05', name: '和', description: '所有加数按列相加得到的结果。', token: 'addition.sum', tone: 'tone-product', source: 'text' },
+      { key: '06', name: '辅助网格', description: '观察数位对齐和进位位置的参考网格。', token: 'guide-grid', tone: 'tone-grid', source: 'scene' },
+    ],
+  },
+  {
+    operation: 'subtraction',
+    title: '减法竖式元素命名图谱',
+    eyebrow: 'VERTICAL SUBTRACTION · NAMING MAP',
+    intro: '连续借位后的 4、9、12 保留在减法过程数据中；竖式主行显示原始工作被减数。',
+    sample: '502 − 137',
+    items: [
+      { key: '01', name: '被减数', description: '竖式主行中参与展示的工作被减数。', token: 'subtraction.minuend', tone: 'tone-ink', source: 'text' },
+      { key: '02', name: '借位提示', description: '显示在被借位数字上方的中点 ·。', token: 'subtraction.borrow', tone: 'tone-carry', source: 'rendered-text', badgeClass: 'naming-map-highlight--badge-left' },
+      { key: '03', name: '减数', description: '从被减数中减去的数。', token: 'subtraction.subtrahend', tone: 'tone-green', source: 'text' },
+      { key: '04', name: '减号', description: '减数行左侧的 −。', token: 'subtraction.operator', tone: 'tone-blue', source: 'text' },
+      { key: '05', name: '减法横线', description: '减数下方、差上方的横线。', token: 'subtraction.difference-bar', tone: 'tone-subtraction', source: 'edge' },
+      { key: '06', name: '差', description: '逐位相减后的结果。', token: 'subtraction.difference', tone: 'tone-product', source: 'text' },
+      { key: '07', name: '辅助网格', description: '观察同位对齐与连续借位的参考网格。', token: 'guide-grid', tone: 'tone-grid', source: 'scene' },
+    ],
+  },
+  {
+    operation: 'multiplication',
+    title: '乘法竖式元素命名图谱',
+    eyebrow: 'VERTICAL MULTIPLICATION · NAMING MAP',
+    intro: '图谱的选中状态由 Vue 组件驱动；网格与高亮边界仍来自同一份乘法 GridScene。',
+    sample: '97 × 89',
+    items: [
+      { key: '01', name: '被乘数', description: '规范化后放在第一行的操作数；关闭快捷计算时始终为较大操作数。', token: 'multiplication.multiplicand', tone: 'tone-ink', source: 'text' },
+      { key: '02', name: '乘数', description: '放在第二行、与被乘数相乘的操作数；启用快捷计算时，唯一的非零 10 倍数优先放在这里。', token: 'multiplication.multiplier', tone: 'tone-blue', source: 'text' },
+      { key: '03', name: '乘号', description: '乘数行最左侧的 ×。', token: 'multiplication.operator', tone: 'tone-blue', source: 'text', badgeClass: 'naming-map-highlight--badge-left' },
+      { key: '04', name: '乘法横线', description: '乘数下方的第一条横线。', token: 'multiplication.input-bar', tone: 'tone-blue', source: 'edge' },
+      { key: '05', name: '部分积', description: '每个乘数位乘被乘数得到的中间结果。', token: 'multiplication.partial-product', tone: 'tone-green', source: 'text', rows: true },
+      { key: '06', name: '本位进位', description: '逐位相乘传给下一高位的进位。', token: 'multiplication.carry', tone: 'tone-carry', source: 'rendered-text', badgeClass: 'naming-map-highlight--badge-left' },
+      { key: '07', name: '加法进位', description: '部分积按列相加时传给下一列的进位。', token: 'multiplication.addition-carry', tone: 'tone-addcarry', source: 'rendered-text', badgeClass: 'naming-map-highlight--badge-left' },
+      { key: '08', name: '求和横线', description: '最后一个部分积下方、最终积上方的横线。', token: 'multiplication.sum-bar', tone: 'tone-sum', source: 'edge' },
+      { key: '09', name: '最终积', description: '所有部分积按列相加得到的结果。', token: 'multiplication.product', tone: 'tone-product', source: 'text' },
+      { key: '10', name: '辅助网格', description: '帮助观察数字列、行和错位位置的参考网格。', token: 'guide-grid', tone: 'tone-grid', source: 'scene' },
+    ],
+  },
+  {
+    operation: 'division',
+    title: '除法竖式元素命名图谱',
+    eyebrow: 'VERTICAL DIVISION · NAMING MAP',
+    intro: '彩色框和目录均由 Vue 组件驱动；线框仍根据真实 GridScene 单元格计算。',
+    sample: '10230 ÷ 25',
+    items: [
+      { key: '01', name: '商', description: '除法计算得到的结果，逐位写在被除数上方。', token: 'division.quotient', tone: 'tone-blue', source: 'text' },
+      { key: '02', name: '小数点', description: '整数部分和小数部分之间的分隔点。', token: 'division.decimal-separator', tone: 'tone-blue', source: 'text' },
+      { key: '03', name: '除数', description: '用来进行除法的数。', token: 'division.divisor', tone: 'tone-blue', source: 'text' },
+      { key: '04', name: '厂字弯', description: '连接除数和被除数的弯曲部分。', token: 'division.bracket', tone: 'tone-blue', source: 'cell' },
+      { key: '05', name: '厂字横', description: '从厂字弯向右延伸的横线。', token: 'division.bracket-top-line', tone: 'tone-blue', source: 'cell' },
+      { key: '06', name: '被除数', description: '要被相除的数。', token: 'division.dividend', tone: 'tone-ink', source: 'text' },
+      { key: '07', name: '补零列', description: '计算小数时，在被除数末尾补上的零。', token: 'division.appended-zero', tone: 'tone-muted', source: 'text' },
+      { key: '08', name: '部分减数', description: '除数乘本轮商位得到的乘积。', token: 'division.partial-subtrahend', tone: 'tone-green', source: 'text', rows: true },
+      { key: '09', name: '部分被减数', description: '继续落下并参与本轮减法的数。', token: 'division.partial-minuend', tone: 'tone-partial', source: 'text', rows: true },
+      { key: '10', name: '减法线', description: '部分减数下方表示减法的横线。', token: 'division.subtraction-bar', tone: 'tone-subtraction', source: 'edge' },
+      { key: '11', name: '余数', description: '全部计算完成后剩下的数。', token: 'division.remainder', tone: 'tone-partial', source: 'text' },
+      { key: '12', name: '辅助网格', description: '帮助观察数字列和行位置的参考网格。', token: 'guide-grid', tone: 'tone-grid', source: 'scene' },
+    ],
+  },
+  {
+    operation: 'short-division',
+    title: '短除法元素命名图谱',
+    eyebrow: 'SHORT DIVISION · NAMING MAP',
+    intro: '图谱以 13 转二进制为例；同一版式也承载质因数分解和公因数短除法。',
+    sample: '13（十进制）转二进制',
+    items: [
+      { key: '01', name: '除数 / 进制', description: '短除法左侧的质数、公共质数或目标进制数。', token: 'short-division.divisor', tone: 'tone-blue', source: 'text', rows: true },
+      { key: '02', name: '短除竖线', description: '分隔左侧除数和右侧被除数或商的连续竖线。', token: 'short-division.separator', tone: 'tone-blue', source: 'edge' },
+      { key: '03', name: '被除数 / 当前商', description: '每一轮右侧参与相除的数。', token: 'short-division.dividend', tone: 'tone-ink', source: 'text', rows: true },
+      { key: '04', name: '短除横线', description: '每轮除法后、通向下一行商的横线。', token: 'short-division.bar', tone: 'tone-subtraction', source: 'edge', rows: true },
+      { key: '05', name: '余数', description: '进制转换每一步记下的余数，最终须自下向上读取。', token: 'short-division.remainder', tone: 'tone-green', source: 'text', rows: true },
+      { key: '06', name: '底行商', description: '流程终止时的商；因用途不同可为质数、互质数或 0。', token: 'short-division.final', tone: 'tone-partial', source: 'text' },
+      { key: '07', name: '辅助网格', description: '帮助观察行列对齐的参考网格。', token: 'guide-grid', tone: 'tone-grid', source: 'scene' },
+    ],
+  },
+]
+
+export const galleryPageByOperation = new Map(galleryPages.map((page) => [page.operation, page]))
+
+export type { GalleryItem, GalleryPage } from './types'

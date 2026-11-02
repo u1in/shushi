@@ -1,0 +1,14 @@
+{
+  "name": "@vertical-arithmetic/docs",
+  "description": "四则运算竖式项目的框架无关核心文档。",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./macro": "./src/macro/index.ts",
+    "./gallery": "./src/gallery/index.ts",
+    "./gallery/types": "./src/gallery/types.ts",
+    "./macro/types": "./src/macro/types.ts",
+    "./macro/*": "./src/macro/*"
+  }
+}
