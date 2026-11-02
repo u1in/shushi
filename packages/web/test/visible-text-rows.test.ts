@@ -5,6 +5,7 @@ import type { GridScene } from '@vertical-arithmetic/grid'
 import { computeAddition } from '@vertical-arithmetic/calculators'
 import { computeSubtraction } from '@vertical-arithmetic/calculators'
 import { createAdditionGridScene, createSubtractionGridScene } from '@vertical-arithmetic/layout'
+import { compileMacro } from '@vertical-arithmetic/macro'
 
 const createScene = (elements: GridScene['elements']): GridScene => ({
   columns: [{ id: 'left', size: 1 }, { id: 'right', size: 1 }],
@@ -66,5 +67,18 @@ describe('extractVisibleTextRows', () => {
     })
 
     expect(extractVisibleTextRows(scene)).toEqual(['··', '502', '−137', '365'])
+  })
+
+  test('宏的 RB 进位根据局部底部对齐单列为一行', () => {
+    const scene = compileMacro(`
+      GRID(
+        ROW(MM(3), MM(5), MM(6)),
+        ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),
+        LINE,
+        ROW(MM(6), MM(3), MM(4))
+      )
+    `)
+
+    expect(extractVisibleTextRows(scene)).toEqual(['356', '+278', '11', '634'])
   })
 })

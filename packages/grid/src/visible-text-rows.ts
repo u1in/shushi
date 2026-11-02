@@ -5,9 +5,9 @@
  * 文本以所在行中心归组；锚定在横向边界或交点的文本以其边界高度归组，
  * 因而进位、借位等注记会形成独立的一行，方便与手写 OCR 的行结果比对。
  */
-import { getGridElementRect, resolveGridMetrics } from './geometry'
+import { getGridElementRect, getGridTextAnchor, resolveGridMetrics } from './geometry'
 import type { GridMetrics } from './geometry'
-import type { GridElement, GridScene } from './types'
+import type { GridElement, GridScene, GridTextContent } from './types'
 
 interface VisibleTextItem {
   text: string
@@ -16,28 +16,22 @@ interface VisibleTextItem {
   sourceIndex: number
 }
 
-/** Returns the centre of an area or line so text can be ordered like its rendered anchor. */
+/** 与渲染器共用锚点规则，保证 RB、MT 等宏定位会落到实际可见的注记行。 */
 const getTextAnchor = (
   element: GridElement,
+  content: GridTextContent,
+  scene: GridScene,
   metrics: GridMetrics,
 ): Pick<VisibleTextItem, 'horizontalPosition' | 'verticalPosition'> => {
   const rect = getGridElementRect(element, metrics)
-  const { position } = element
-
-  if (position.kind === 'intersection' || position.kind === 'edgeMidpoint') {
-    return { horizontalPosition: rect.left, verticalPosition: rect.top }
-  }
-
-  if (position.kind === 'cell') {
-    return {
-      horizontalPosition: rect.left + rect.width / 2,
-      verticalPosition: rect.top + rect.height / 2,
-    }
-  }
-
+  const anchor = getGridTextAnchor(
+    rect,
+    content.horizontalAlign ?? scene.textHorizontalAlign,
+    content.verticalAlign ?? scene.textVerticalAlign,
+  )
   return {
-    horizontalPosition: rect.left + rect.width / 2,
-    verticalPosition: rect.top + rect.height / 2,
+    horizontalPosition: anchor.x,
+    verticalPosition: anchor.y,
   }
 }
 
@@ -57,7 +51,7 @@ export const extractVisibleTextRows = (scene: GridScene): string[] => {
     return [{
       text: element.content.text,
       sourceIndex,
-      ...getTextAnchor(element, metrics),
+      ...getTextAnchor(element, element.content, scene, metrics),
     }]
   })
   const rows = new Map<number, VisibleTextItem[]>()
