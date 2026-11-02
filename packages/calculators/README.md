@@ -24,6 +24,6 @@
 
 ## Bug 反馈与作者
 
-请在 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 提供输入、结果和预期过程，尤其是涉及补零、余数或进位的案例。
+请在 [GitHub Issues](https://github.com/u1in/shushi/issues) 提供输入、结果和预期过程，尤其是涉及补零、余数或进位的案例。
 
 作者：u1in <u1in@qq.com>

@@ -16,6 +16,6 @@
 
 ## Bug 反馈与作者
 
-请在 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 反馈问题，并说明场景数据、复现步骤和期望行为。
+请在 [GitHub Issues](https://github.com/u1in/shushi/issues) 反馈问题，并说明场景数据、复现步骤和期望行为。
 
 作者：u1in <u1in@qq.com>

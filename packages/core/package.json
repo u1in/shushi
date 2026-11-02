@@ -2,20 +2,25 @@
   "name": "@u1in/shushi-core",
   "description": "竖式计算、竖式布局、宏编译与网格渲染的统一 npm 入口。",
   "author": "u1in <u1in@qq.com>",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/u1in/vertical-arithmetic-project.git",
+    "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/u1in/vertical-arithmetic-project/issues"
+    "url": "https://github.com/u1in/shushi/issues"
   },
-  "homepage": "https://github.com/u1in/vertical-arithmetic-project/tree/main/packages/core#readme",
+  "homepage": "https://github.com/u1in/shushi/tree/main/packages/core#readme",
   "keywords": [
+    "shushi",
     "vertical-arithmetic",
     "calculator",
-    "long-division",
-    "long-multiplication",
+    "addition",
+    "subtraction",
+    "multiplication",
+    "division",
+    "short-division",
     "typescript"
   ],
   "version": "0.1.0",
@@ -28,6 +33,7 @@
     "README.md",
     "LICENSE"
   ],
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -40,6 +46,7 @@
   "scripts": {
     "build": "vite build && npm run build:types",
     "build:types": "dts-bundle-generator --project tsconfig.json --out-file dist/index.d.ts src/index.ts",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {

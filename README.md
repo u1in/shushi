@@ -69,7 +69,7 @@ npm run build
 
 ## Bug 反馈与贡献
 
-请通过 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 反馈 Bug 或提出功能建议。提交问题时请尽量附上复现步骤、输入数据、预期结果、实际结果，以及相关浏览器或 Node.js 版本。
+请通过 [GitHub Issues](https://github.com/u1in/shushi/issues) 反馈 Bug 或提出功能建议。提交问题时请尽量附上复现步骤、输入数据、预期结果、实际结果，以及相关浏览器或 Node.js 版本。
 
 涉及计算规则、布局规则、网格契约或渲染行为的改动，请同步更新所属中文规则文档和测试，并在提交前运行 `npm run typecheck`、`npm run test` 与 `npm run build`。
 

@@ -13,6 +13,6 @@
 
 ## Bug 反馈与作者
 
-请在 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 附上渲染模式、浏览器、场景数据和截图或最小复现步骤。
+请在 [GitHub Issues](https://github.com/u1in/shushi/issues) 附上渲染模式、浏览器、场景数据和截图或最小复现步骤。
 
 作者：u1in <u1in@qq.com>

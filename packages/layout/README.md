@@ -23,6 +23,6 @@
 
 ## Bug 反馈与作者
 
-请在 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 附上计算结果、布局设置和生成的场景关键信息。
+请在 [GitHub Issues](https://github.com/u1in/shushi/issues) 附上计算结果、布局设置和生成的场景关键信息。
 
 作者：u1in <u1in@qq.com>

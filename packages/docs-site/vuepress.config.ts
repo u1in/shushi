@@ -46,8 +46,8 @@ export default defineUserConfig({
   },
   bundler: viteBundler(),
   theme: defaultTheme({
-    repo: 'u1in/vertical-arithmetic-project',
-    docsRepo: 'u1in/vertical-arithmetic-project',
+    repo: 'u1in/shushi',
+    docsRepo: 'u1in/shushi',
     docsDir: 'packages/docs',
     // 文档页只保留正文与侧边栏，隐藏默认主题提供的编辑和前后页导航控件。
     editLink: false,
@@ -69,7 +69,7 @@ export default defineUserConfig({
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: '技术文档', link: '/technical/安装' },
       { text: '图例文档', link: '/gallery/加法' },
-      { text: '在线演示', link: 'https://github.com/u1in/vertical-arithmetic-project' },
+      { text: '在线演示', link: 'https://github.com/u1in/shushi' },
     ],
     sidebar: {
       '/': [

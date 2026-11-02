@@ -29,6 +29,6 @@ npm run dev
 
 ## Bug 反馈与作者
 
-请在 [GitHub Issues](https://github.com/u1in/vertical-arithmetic-project/issues) 提供页面路径、输入数据、浏览器版本和复现步骤；布局问题最好同时附截图。
+请在 [GitHub Issues](https://github.com/u1in/shushi/issues) 提供页面路径、输入数据、浏览器版本和复现步骤；布局问题最好同时附截图。
 
 作者：u1in <u1in@qq.com>
