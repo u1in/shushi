@@ -1,5 +1,8 @@
 import type { MacroCall, MacroLiteral, MacroNode, MacroSymbol } from './types'
 
+/** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
+const CELL_ZERO_ARGUMENT_SYMBOLS = new Set(['DOT', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
+
 /** 带位置的错误信息让主页输入框能直接指出宏源码的问题。 */
 const createSyntaxError = (source: string, index: number, message: string): Error => (
   new Error(`${message}（第 ${index + 1} 个字符附近：${source.slice(index, index + 18)}）`)
@@ -38,16 +41,58 @@ export const parseMacro = (source: string): MacroCall => {
 
   const parseBareLiteral = (): MacroLiteral => {
     const start = index
-    while (index < source.length && !/[,)\s]/.test(source[index])) index += 1
+    while (index < source.length && !/[,;)\]\s]/.test(source[index])) index += 1
     const value = source.slice(start, index)
     if (!value) throw createSyntaxError(source, start, '此处需要参数')
     return { kind: 'literal', value }
+  }
+
+  /** 方括号仅是 CELL 的源码语法糖，AST 与编译阶段仍只处理稳定的 CELL 调用。 */
+  const parseCellShorthand = (): MacroCall => {
+    const start = index
+    index += 1
+    const argumentsList: MacroNode[] = []
+    skipWhitespace()
+    while (source[index] !== ']') {
+      if (index >= source.length) throw createSyntaxError(source, start, 'CELL 简写缺少结束方括号')
+      argumentsList.push(parseExpression())
+      skipWhitespace()
+      if (source[index] === ',') {
+        index += 1
+        skipWhitespace()
+        continue
+      }
+      if (index >= source.length) throw createSyntaxError(source, start, 'CELL 简写缺少结束方括号')
+      if (source[index] !== ']') throw createSyntaxError(source, index, 'CELL 简写参数之间必须使用逗号分隔')
+    }
+    index += 1
+
+    if (argumentsList.length === 0) {
+      throw createSyntaxError(source, start, 'CELL 简写至少需要首项文字')
+    }
+
+    const [firstArgument, ...remainingArguments] = argumentsList
+    // 方括号的首项固定为单元格中心文字。裸文本只在这个明确位置补成 MM，避免把其他参数误当文字。
+    const normalizedFirstArgument = firstArgument.kind === 'literal'
+      ? { kind: 'call' as const, name: 'MM', arguments: [firstArgument] }
+      : firstArgument
+    if (normalizedFirstArgument.kind !== 'call' || normalizedFirstArgument.name !== 'MM') {
+      throw createSyntaxError(source, start, 'CELL 简写首项必须是 MM(text) 或可省略 MM 的文字值')
+    }
+
+    for (const argument of remainingArguments) {
+      if (argument.kind === 'literal' || (argument.kind === 'symbol' && !CELL_ZERO_ARGUMENT_SYMBOLS.has(argument.name))) {
+        throw createSyntaxError(source, start, 'CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用')
+      }
+    }
+    return { kind: 'call', name: 'CELL', arguments: [normalizedFirstArgument, ...remainingArguments] }
   }
 
   const parseExpression = (): MacroNode => {
     skipWhitespace()
     const start = index
     if (source[index] === '"') return parseQuotedLiteral()
+    if (source[index] === '[') return parseCellShorthand()
     if (!isNameStart(source[index] ?? '')) return parseBareLiteral()
     while (isNamePart(source[index] ?? '')) index += 1
     const name = source.slice(start, index)
@@ -55,8 +100,8 @@ export const parseMacro = (source: string): MacroCall => {
     if (source[index] !== '(') {
       // 语义样式 token 可以使用 division.subtraction-bar 这类含点的裸值。
       const nextCharacter = source[index]
-      // 源码末尾与逗号、右括号一样都是无参数宏的合法终止位置。
-      if (nextCharacter !== undefined && !/[,)]|\s/.test(nextCharacter)) {
+      // 源码末尾、逗号、右括号、右方括号都是无参数宏的合法终止位置。
+      if (nextCharacter !== undefined && !/[,);\]]|\s/.test(nextCharacter)) {
         index = start
         return parseBareLiteral()
       }
@@ -82,16 +127,51 @@ export const parseMacro = (source: string): MacroCall => {
     return { kind: 'call', name, arguments: argumentsList }
   }
 
-  const rootExpressions: MacroNode[] = [parseExpression()]
+  const rootStatements: MacroNode[][] = []
+  let statement: MacroNode[] = [parseExpression()]
+  let usesRowShorthand = false
   skipWhitespace()
   while (index < source.length) {
-    if (source[index] !== ',') throw createSyntaxError(source, index, '顶层宏之间必须使用逗号分隔')
-    index += 1
-    skipWhitespace()
-    if (index >= source.length) throw createSyntaxError(source, index - 1, '顶层宏后不能只有逗号')
-    rootExpressions.push(parseExpression())
+    const separator = source[index]
+    if (separator === ',') {
+      index += 1
+      skipWhitespace()
+      if (index >= source.length) throw createSyntaxError(source, index - 1, '顶层宏后不能只有逗号')
+      statement.push(parseExpression())
+    } else if (separator === ';') {
+      // 顶层分号是简写语法的行界：该行的节点会在下方自动包裹为 ROW。
+      usesRowShorthand = true
+      rootStatements.push(statement)
+      index += 1
+      skipWhitespace()
+      if (index >= source.length) {
+        statement = []
+        break
+      }
+      statement = [parseExpression()]
+    } else {
+      throw createSyntaxError(source, index, '顶层宏之间必须使用逗号或分号分隔')
+    }
     skipWhitespace()
   }
+  if (statement.length > 0) rootStatements.push(statement)
+
+  const rootExpressions = usesRowShorthand
+    ? rootStatements.flatMap((nodes) => {
+      const [node] = nodes
+      // 保留显式结构命令，便于在简写中表达横线或继续兼容已有 ROW / GRID 源码。
+      if (nodes.length === 1 && node.kind === 'call' && ['GRID', 'ROW', 'LINE'].includes(node.name)) return node
+      if (nodes.length === 1 && node.kind === 'symbol' && node.name === 'LINE') return node
+      // 分号行中的裸文本固定落在单元格正中，与 MM(text) 完全等价；显式宏则保持原样。
+      return {
+        kind: 'call' as const,
+        name: 'ROW',
+        arguments: nodes.map((item) => (
+          item.kind === 'literal' ? { kind: 'call' as const, name: 'MM', arguments: [item] } : item
+        )),
+      }
+    })
+    : rootStatements.flat()
 
   const [root] = rootExpressions
   if (rootExpressions.length === 1 && root.kind === 'call' && root.name === 'GRID') return root

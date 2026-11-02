@@ -13,19 +13,19 @@ interface MacroExample {
 const arithmeticExamples: MacroExample[] = [
   {
     label: '356 + 278 = 634',
-    source: 'ROW(MM(3),MM(5),MM(6)),ROW(MM(+),CELL(MM(2),RB(1)),CELL(MM(7),RB(1)),MM(8)),LINE,ROW(MM(6),MM(3),MM(4))',
+    source: '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LINE;6,3,4;',
   },
   {
     label: '502 − 137 = 365',
-    source: 'ROW(CELL(MM(5),MT(·)),CELL(MM(0),MT(·)),MM(2)),ROW(MM(−),MM(1),MM(3),MM(7)),LINE,ROW(MM(3),MM(6),MM(5))',
+    source: '[5,MT(·)],[0,MT(·)],2;−,1,3,7;LINE;3,6,5;',
   },
   {
     label: '97 × 89 = 8633',
-    source: 'ROW(MM(9),MM(7)),ROW(MM(×),CELL(MM(8),RB(6)),MM(9)),LINE(KV(span,full)),ROW(MM(8),MM(7),MM(3)),ROW(CELL(MM(7),RB(1)),CELL(MM(7),RB(1)),CELL(MM(6),LT(5)),EMPTY),LINE(KV(span,full)),ROW(MM(8),MM(6),MM(3),MM(3))',
+    source: '9,7;×,[8,RB(6)],9;LINE(KV(span,full));8,7,3;[7,RB(1)],[7,RB(1)],[6,LT(5)],EMPTY;LINE(KV(span,full));8,6,3,3;',
   },
   {
     label: '10230 ÷ 25 = 409.2',
-    source: 'ROW(MM(4),MM(0),CELL(MM(9),DOT),MM(2)),ROW(MM(2),MM(5),BRACKET,MM(1),MM(0),MM(2),MM(3),MM(0),MM(0)),ROW(MM(1),MM(0),MM(0),EMPTY,EMPTY,EMPTY),LINE,ROW(MM(2),MM(3),MM(0),EMPTY),ROW(MM(2),MM(2),MM(5),EMPTY),LINE,ROW(MM(5),MM(0)),ROW(MM(5),MM(0)),LINE,ROW(MM(0))',
+    source: '4,0,[9,DOT],2;2,5,BRACKET,1,0,2,3,0,0;1,0,0,EMPTY,EMPTY,EMPTY;LINE;2,3,0,EMPTY;2,2,5,EMPTY;LINE;5,0;5,0;LINE;0;',
   },
 ]
 
@@ -40,23 +40,74 @@ interface MacroSnippet {
   title: string
 }
 
-const macroSnippets: MacroSnippet[] = [
-  { label: 'GRID', source: 'GRID()', cursorOffset: 5, title: '插入公式网格根节点' },
-  { label: 'MM', source: 'MM()', cursorOffset: 3, title: '单元格中心文本' },
-  { label: 'MT', source: 'MT()', cursorOffset: 3, title: '单元格中上文本' },
-  { label: 'RB', source: 'RB()', cursorOffset: 3, title: '单元格右下角文本，可用于进位标记' },
-  { label: 'RBL', source: 'RBL()', cursorOffset: 4, title: '右边界文字行框位置' },
-  { label: 'DOT', source: 'DOT', cursorOffset: 3, title: '右边界小数点简写' },
-  { label: 'BRACKET', source: 'BRACKET', cursorOffset: 7, title: '插入半列宽的厂字弯' },
-  { label: 'CELL', source: 'CELL()', cursorOffset: 5, title: '组合一个单元格中的图元' },
-  { label: 'ROW', source: 'ROW()', cursorOffset: 4, title: '插入数字行' },
-  { label: 'LINE', source: 'LINE', cursorOffset: 4, title: '插入行级横线' },
-  { label: 'STYLE', source: 'STYLE()', cursorOffset: 6, title: '插入受限跨渲染器样式' },
-  { label: 'KV', source: 'KV(key, value)', cursorOffset: 3, title: '插入配置键值对' },
-  { label: 'TBD', source: 'TBD', cursorOffset: 3, title: '单元格上边框' },
-  { label: 'RBD', source: 'RBD', cursorOffset: 3, title: '单元格右边框' },
-  { label: 'BBD', source: 'BBD', cursorOffset: 3, title: '单元格下边框' },
-  { label: 'LBD', source: 'LBD', cursorOffset: 3, title: '单元格左边框' },
+interface MacroSnippetGroup {
+  label: string
+  snippets: MacroSnippet[]
+}
+
+const macroSnippetGroups: MacroSnippetGroup[] = [
+  {
+    label: '结构',
+    snippets: [
+      { label: 'GRID', source: 'GRID(),', cursorOffset: 5, title: '插入公式网格根节点' },
+      { label: 'CELL', source: 'CELL(),', cursorOffset: 5, title: '组合一个单元格中的图元' },
+      { label: '[]', source: '[],', cursorOffset: 1, title: '用方括号组合一个单元格中的图元' },
+      { label: 'ROW', source: 'ROW(),', cursorOffset: 4, title: '插入数字行' },
+      { label: 'LINE', source: 'LINE,', cursorOffset: 5, title: '插入行级横线' },
+    ],
+  },
+  {
+    label: '文本定位',
+    snippets: [
+      { label: 'LT', source: 'LT(),', cursorOffset: 3, title: '单元格左上文本' },
+      { label: 'MT', source: 'MT(),', cursorOffset: 3, title: '单元格中上文本' },
+      { label: 'RT', source: 'RT(),', cursorOffset: 3, title: '单元格右上文本' },
+      { label: 'ML', source: 'ML(),', cursorOffset: 3, title: '单元格左中文本' },
+      { label: 'MM', source: 'MM(),', cursorOffset: 3, title: '单元格中心文本' },
+      { label: 'MR', source: 'MR(),', cursorOffset: 3, title: '单元格右中文本' },
+      { label: 'LB', source: 'LB(),', cursorOffset: 3, title: '单元格左下文本' },
+      { label: 'MB', source: 'MB(),', cursorOffset: 3, title: '单元格中下文本' },
+      { label: 'RB', source: 'RB(),', cursorOffset: 3, title: '单元格右下角文本，可用于进位标记' },
+      { label: 'RBL', source: 'RBL(),', cursorOffset: 4, title: '右边界文字行框位置' },
+    ],
+  },
+  {
+    label: '几何符号',
+    snippets: [
+      { label: '▢', source: 'MM(▢),', cursorOffset: 6, title: '插入方框符号' },
+      { label: '★', source: 'MM(★),', cursorOffset: 6, title: '插入星星符号' },
+      { label: '☾', source: 'MM(☾),', cursorOffset: 6, title: '插入月亮符号' },
+      { label: '♡', source: 'MM(♡),', cursorOffset: 6, title: '插入爱心符号' },
+      { label: '△', source: 'MM(△),', cursorOffset: 6, title: '插入三角符号' },
+      { label: '○', source: 'MM(○),', cursorOffset: 6, title: '插入圆形符号' },
+      { label: '◆', source: 'MM(◆),', cursorOffset: 6, title: '插入菱形符号' },
+      { label: '✦', source: 'MM(✦),', cursorOffset: 6, title: '插入闪光符号' },
+    ],
+  },
+  {
+    label: '特殊变量',
+    snippets: [
+      { label: 'DOT', source: 'DOT,', cursorOffset: 4, title: '右边界小数点简写' },
+      { label: 'EMPTY', source: 'EMPTY,', cursorOffset: 6, title: '插入空单元格' },
+      { label: 'BRACKET', source: 'BRACKET,', cursorOffset: 8, title: '插入半列宽的厂字弯' },
+    ],
+  },
+  {
+    label: '边框装饰',
+    snippets: [
+      { label: 'TBD', source: 'TBD,', cursorOffset: 4, title: '单元格上边框' },
+      { label: 'RBD', source: 'RBD,', cursorOffset: 4, title: '单元格右边框' },
+      { label: 'BBD', source: 'BBD,', cursorOffset: 4, title: '单元格下边框' },
+      { label: 'LBD', source: 'LBD,', cursorOffset: 4, title: '单元格左边框' },
+    ],
+  },
+  {
+    label: '样式配置',
+    snippets: [
+      { label: 'STYLE', source: 'STYLE(),', cursorOffset: 6, title: '插入受限跨渲染器样式' },
+      { label: 'KV', source: 'KV(key, value),', cursorOffset: 3, title: '插入配置键值对' },
+    ],
+  },
 ]
 
 /** 在选择区替换或光标处插入宏模板，避免用户反复手输基础语法。 */
@@ -99,14 +150,20 @@ const minifySource = (): void => transformSource(minifyMacro)
 
 <template>
   <div class="operation-demo macro-playground" data-operation="macro">
+    <p class="naming-map-link"><RouterLink to="/macro-rules">查看网格宏录入规则 →</RouterLink></p>
     <section class="workspace" aria-label="公式宏试验区">
       <section class="control-panel">
         <p class="panel-kicker">MACRO PLAYGROUND</p>
         <h2>网格宏试验区</h2>
-        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、STYLE 与 KV；未指定列数时按最长行自动推导。自动配色默认开启，也可直接省略无配置的 GRID。</p>
+        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、STYLE 与 KV；顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。未指定列数时按最长行自动推导，自动配色默认开启。</p>
         <div class="macro-insert-toolbar" aria-label="快速插入宏">
           <span>快速插入</span>
-          <button v-for="snippet in macroSnippets" :key="snippet.label" class="macro-insert-button" type="button" :title="snippet.title" @click="insertSnippet(snippet)">{{ snippet.label }}</button>
+          <div class="macro-insert-groups">
+            <div v-for="group in macroSnippetGroups" :key="group.label" class="macro-insert-group">
+              <span class="macro-insert-group-label">{{ group.label }}</span>
+              <button v-for="snippet in group.snippets" :key="snippet.label" class="macro-insert-button" type="button" :title="snippet.title" @click="insertSnippet(snippet)">{{ snippet.label }}</button>
+            </div>
+          </div>
         </div>
         <div class="macro-format-toolbar" aria-label="格式化宏源码">
           <span>格式化</span>
@@ -131,7 +188,7 @@ const minifySource = (): void => transformSource(minifyMacro)
               <h2>已推导 {{ result.scene.columns.length }} 列、{{ result.scene.rows.length }} 行</h2>
             </div>
           </div>
-          <GridPreview :scene="result.scene" mode="both" />
+          <GridPreview :scene="result.scene" mode="svg" />
           <VisibleTextRowsPanel :scene="result.scene" />
         </div>
         <div v-else class="calculation-result">

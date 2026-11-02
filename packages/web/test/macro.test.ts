@@ -2,6 +2,48 @@ import { describe, expect, test } from 'vitest'
 import { AUTO_COLOR_THEME, compileMacro, formatMacro, minifyMacro, parseMacro } from '@vertical-arithmetic/macro'
 
 describe('网格宏编译器', () => {
+  test('顶层分号将裸文字自动补成 MM，再包裹为 ROW 和隐式 GRID', () => {
+    const scene = compileMacro('5,6;×,5,6;LINE;')
+
+    expect(scene.columns).toHaveLength(3)
+    expect(scene.rows).toHaveLength(2)
+    expect(scene.elements.some(({ content }) => content.kind === 'line')).toBe(true)
+  })
+
+  test('分号行简写保留 LINE，并允许末尾分号', () => {
+    const scene = compileMacro('MM(5);LINE(KV(span,full));MM(6)')
+    const line = scene.elements.find(({ content }) => content.kind === 'line')
+
+    expect(line).toMatchObject({
+      position: { kind: 'edge', column: 0, row: 0, columnSpan: 1, edge: 'bottom' },
+    })
+    expect(scene.rows).toHaveLength(2)
+  })
+
+  test('方括号首项可省略 MM，并降级为同格 CELL 图元', () => {
+    const scene = compileMacro('5,[6,RB(1)];')
+    const cellTexts = scene.elements.filter(({ content }) => content.kind === 'text')
+
+    expect(scene.columns).toHaveLength(2)
+    expect(cellTexts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
+        content: expect.objectContaining({ kind: 'text', text: '6' }),
+      }),
+      expect.objectContaining({
+        position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
+        content: expect.objectContaining({ kind: 'text', text: '1', horizontalAlign: 'right', verticalAlign: 'bottom' }),
+      }),
+    ]))
+  })
+
+  test('方括号只允许首项省略 MM，后续文字与定位宏必须完整书写', () => {
+    expect(() => compileMacro('[5,1];')).toThrow(/只有首项可以省略 MM/)
+    expect(() => compileMacro('[5,RB];')).toThrow(/只有首项可以省略 MM/)
+    expect(() => compileMacro('[RB(1),5];')).toThrow(/首项必须是 MM/)
+    expect(() => compileMacro('[];')).toThrow(/至少需要首项文字/)
+  })
+
   test('顶层 ROW 和 LINE 会自动包裹为隐式 GRID', () => {
     const scene = compileMacro('ROW(MM(5), MM(6)), LINE, ROW(MM(1), MM(2))')
 
@@ -184,6 +226,21 @@ LINE,
 ROW(
   MM(3)
 )`)
+  })
+
+  test('格式化与去格式化保留分号行简写，不重新写出 ROW', () => {
+    expect(formatMacro('MM(5),MM(6);LINE;CELL(MM(7),DOT);')).toBe(`5, 6;
+LINE;
+CELL(
+  MM(7),
+  DOT
+);`)
+    expect(minifyMacro(' MM(5), MM(6); LINE; MM(7) ')).toBe('5,6;LINE;7;')
+  })
+
+  test('格式化与去格式化会使用 MM 与 CELL 的安全简写', () => {
+    expect(formatMacro('MM(5),[MM(6),RB(1)];')).toBe('5, [6, RB(1)];')
+    expect(minifyMacro('MM(5), [MM(6), RB(1)];')).toBe('5,[6,RB(1)];')
   })
 
   test('去格式化会移除换行和多余空格，同时保持显式 GRID', () => {
