@@ -26,7 +26,9 @@
     "docs:dev": "npm run build:core && cd packages/docs-site && npm run docs:dev",
     "docs:build": "npm run build:core && cd packages/docs-site && npm run docs:build",
     "preview": "cd packages/web && npm run preview",
-    "test": "cd packages/web && npm run test",
+    "test": "npm run test:web && npm run test:macro-docs",
+    "test:web": "cd packages/web && npm run test",
+    "test:macro-docs": "cd packages/macro-docs && npm run test",
     "typecheck": "npm run typecheck:core && cd packages/web && npm run typecheck",
     "typecheck:core": "cd packages/core && npm run typecheck"
   },
