@@ -231,6 +231,56 @@ describe('createMultiplicationGridScene', () => {
     ))).toEqual(['8'])
   })
 
+  test('多位有效乘数的十倍数快捷计算保留基础部分积，只在乘数与积末尾补零', () => {
+    const computation = computeMultiplication('97', '890')
+    const settings = {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
+      uniformMultiplicationBars: false, showCarrySteps: true,
+    }
+    const scene = createMultiplicationGridScene(computation, settings)
+
+    expect(computation).toMatchObject({
+      multiplicandDigits: '97',
+      multiplierDigits: '890',
+      trailingZeroShortcut: { significantMultiplierDigits: '89', trailingZeroCount: 1 },
+      productDigits: '86330',
+    })
+    // 两位有效乘数仍有两条部分积、求和横线和最终积，共 3 + 2 行。
+    expect(scene.rows).toHaveLength(5)
+    expect(scene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.partial-product'
+    ))).toHaveLength(6)
+    expect(scene.elements.some(({ id }) => id === 'multiplication-sum-bar')).toBe(true)
+    expect(scene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.product'
+    )).map(({ content }) => content?.kind === 'text' ? content.text : '').join('')).toBe('86330')
+
+    // 部分积对齐到补零前的右边界；补回的零位只出现在乘数行与最终积行。
+    expect(scene.elements.find(({ id }) => id === 'partial-product-1-1')).toMatchObject({ content: { text: '3' }, position: { column: 4 } })
+    expect(scene.elements.find(({ id }) => id === 'partial-product-leading-carry-1')).toMatchObject({ content: { text: '8' }, position: { column: 2 } })
+    // 进位仍落在基础算式的真实列边界上，不因补零列而右移。
+    expect(scene.elements.find(({ id }) => id === 'carry-1-1')).toMatchObject({
+      position: { kind: 'intersection', columnLine: 4, rowLine: 2 },
+      content: { text: '6' },
+    })
+    expect(scene.elements.find(({ id }) => id === 'partial-product-0-1')).toMatchObject({ content: { text: '6' }, position: { column: 3 } })
+    expect(scene.elements.find(({ id }) => id === 'partial-product-0-0')).toMatchObject({ content: { text: '7' }, position: { column: 2 } })
+    expect(scene.elements.find(({ id }) => id === 'partial-product-leading-carry-0')).toMatchObject({ content: { text: '7' }, position: { column: 1 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-2')).toMatchObject({ content: { text: '0' }, position: { column: 5 } })
+    expect(scene.elements.find(({ id }) => id === 'product-4')).toMatchObject({ content: { text: '0' }, position: { column: 5 } })
+
+    // 逐位乘法完成时乘数只显示有效乘数，补零与按列求和留到后续步骤。
+    const multiplicationStepCount = computation.partialProducts.reduce((count, { digitSteps }) => count + digitSteps.length, 0)
+    const inProgress = createMultiplicationGridScene(computation, { ...settings, visibleStepCount: multiplicationStepCount })
+    expect(inProgress.elements.filter(({ id }) => id?.startsWith('multiplier-')).map(({ content }) => (
+      content?.kind === 'text' ? content.text : ''
+    ))).toEqual(['8', '9'])
+    expect(inProgress.elements.some(({ content }) => content?.kind === 'text' && content.styleToken === 'multiplication.product')).toBe(false)
+
+    const additionFirstStep = createMultiplicationGridScene(computation, { ...settings, visibleStepCount: multiplicationStepCount + 1 })
+    expect(additionFirstStep.elements.some(({ id }) => id === 'multiplication-sum-bar')).toBe(true)
+  })
+
   test('最后一步产生的最高位进位只进入部分积，不单独显示进位符号', () => {
     const computation = computeMultiplication('99', '9')
     const scene = createMultiplicationGridScene(computation, {

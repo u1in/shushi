@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { computeMultiplication } from '@vertical-arithmetic/calculators'
-import { createMultiplicationGridScene } from '@vertical-arithmetic/layout'
+import { createMultiplicationGridScene, getMultiplicationStepCount } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { MultiplicationComputation } from '@vertical-arithmetic/calculators'
@@ -39,13 +39,8 @@ const playback = useCalculatorStepPlayback({
   getStepCount: () => {
     const result = computation.value
     if (!result) return 0
-    const multiplicationStepCount = result.partialProducts.reduce(
-      (count, partialProduct) => count + partialProduct.digitSteps.length,
-      0,
-    )
-    return multiplicationStepCount + (
-      result.trailingZeroShortcut || result.multiplierDigits.length <= 1 ? 0 : result.additionSteps.length
-    )
+    // 播放步骤由布局层统一计算，快捷计算不会跳过基础按列求和。
+    return getMultiplicationStepCount(result)
   },
   render: renderScene,
 })

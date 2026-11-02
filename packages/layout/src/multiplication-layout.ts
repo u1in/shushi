@@ -31,6 +31,19 @@ const createTextElement = (
 })
 
 /**
+ * 播放进度使用的总步骤数：先完成有效乘数每一位的逐位乘法，多位乘数再按列相加。
+ * 快捷计算只改变补零与展示宽度，不减少这些教学步骤。
+ */
+export const getMultiplicationStepCount = (computation: MultiplicationComputation): number => {
+  const multiplicationStepCount = computation.partialProducts.reduce(
+    (count, partialProduct) => count + partialProduct.digitSteps.length,
+    0,
+  )
+  const significantMultiplierDigits = computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
+  return multiplicationStepCount + (significantMultiplierDigits.length > 1 ? computation.additionSteps.length : 0)
+}
+
+/**
  * Maps multiplication process data into a right-aligned vertical grid. The
  * calculator's shifts and carries are interpreted here; the renderers receive
  * only tracks, elements, and explicit cell boundaries.
@@ -44,13 +57,15 @@ export const createMultiplicationGridScene = (
   settings: MultiplicationRenderSettings,
 ): GridScene => {
   const isTrailingZeroShortcut = computation.trailingZeroShortcut !== null
+  // 快捷计算只拆走乘数末尾的零，真正参与逐位乘法的是有效乘数。
+  const significantMultiplierDigits = computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   // 一次逐位相乘才是教学播放中的一个步骤；部分积仅是这些步骤完成后的行结果。
   const multiplicationStepCount = computation.partialProducts.reduce(
     (count, partialProduct) => count + partialProduct.digitSteps.length,
     0,
   )
-  // 快捷计算完成基础积后直接在结果末尾补零，因此不再展示部分积求和阶段。
-  const totalStepCount = multiplicationStepCount + (!isTrailingZeroShortcut && computation.multiplierDigits.length > 1 ? computation.additionSteps.length : 0)
+  // 有效乘数为多位时仍要按列相加，快捷计算也不例外；一位乘数没有加法阶段。
+  const totalStepCount = getMultiplicationStepCount(computation)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
   const visibleMultiplicationStepCount = Math.min(visibleStepCount, multiplicationStepCount)
   const visibleAdditionStepCount = Math.max(0, visibleStepCount - multiplicationStepCount)
@@ -71,7 +86,10 @@ export const createMultiplicationGridScene = (
   const operatorColumn = 0
   const rightmostNumberIndex = numberColumnCount - 1
   const baseRightmostNumberIndex = baseNumberColumnCount - 1
-  const isMultiDigitMultiplier = !isTrailingZeroShortcut && computation.multiplierDigits.length > 1
+  // 快捷计算的基础数字（被乘数、有效乘数、部分积、基础积）共用补零前的右边界；
+  // 只有乘数行与最终积行在完成时向右补零。
+  const arithmeticRightmostNumberIndex = isTrailingZeroShortcut ? baseRightmostNumberIndex : rightmostNumberIndex
+  const isMultiDigitMultiplier = significantMultiplierDigits.length > 1
   const numberColumnIndex = (numberIndex: number): number => 1 + numberIndex
   const carryColumnLine = (targetNumberIndex: number): number => {
     if (targetNumberIndex < 0 || targetNumberIndex >= numberColumnCount - 1) {
@@ -131,9 +149,9 @@ export const createMultiplicationGridScene = (
     styleToken: 'multiplication.input-bar',
   })
 
-  // 10、100 等乘数在计算层已只计算有效位；此处把补零后的最终积直接放到横线下，
-  // 使 24 × 10 呈现为用户熟悉的三行快捷竖式。
-  if (isTrailingZeroShortcut) {
+  // 有效乘数只有一位时（如 24 × 10、97 × 800）没有部分积阶段，
+  // 直接把补零后的最终积放到横线下，呈现为用户熟悉的三行快捷竖式。
+  if (isTrailingZeroShortcut && !isMultiDigitMultiplier) {
     const productRow = appendRow('shortcut-product-row')
     if (isShortcutComplete) {
       // 零乘任何数仍只显示一个零，不把它伪装成补零后的多位积。
@@ -165,7 +183,7 @@ export const createMultiplicationGridScene = (
       // product's leading digit and is not shown as a separate carry mark.
       if (carryOut === 0 || multiplicandDigitIndex === 0) return
       const targetColumnFromRight = computation.multiplicandDigits.length - multiplicandDigitIndex
-      const targetNumberIndex = rightmostNumberIndex - partialProduct.shift - targetColumnFromRight
+      const targetNumberIndex = arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight
       elements.push({
         id: `carry-${partialProduct.multiplierDigitIndex}-${multiplicandDigitIndex}`,
         position: { kind: 'intersection', columnLine: carryColumnLine(targetNumberIndex), rowLine: row },
@@ -183,8 +201,8 @@ export const createMultiplicationGridScene = (
       const targetColumnFromRight = step.columnFromRight + 1
       // A carry into the product's highest digit is still shown on the sum
       // line: it explains how that leading digit was formed.
-      if (step.carryOut === 0 || targetColumnFromRight >= computation.productDigits.length) return
-      const targetNumberIndex = rightmostNumberIndex - targetColumnFromRight
+      if (step.carryOut === 0 || targetColumnFromRight >= baseProductDigits.length) return
+      const targetNumberIndex = arithmeticRightmostNumberIndex - targetColumnFromRight
       elements.push({
         id: `addition-carry-${step.columnFromRight}`,
         position: { kind: 'intersection', columnLine: carryColumnLine(targetNumberIndex), rowLine: row },
@@ -216,7 +234,7 @@ export const createMultiplicationGridScene = (
       elements.push(createTextElement(
         `partial-product-${partialProduct.multiplierDigitIndex}-${multiplicandDigitIndex}`,
         resultDigit,
-        numberColumnIndex(rightmostNumberIndex - partialProduct.shift - columnFromRight),
+        numberColumnIndex(arithmeticRightmostNumberIndex - partialProduct.shift - columnFromRight),
         row,
         styleToken,
       ))
@@ -228,7 +246,7 @@ export const createMultiplicationGridScene = (
       elements.push(createTextElement(
         `partial-product-leading-carry-${partialProduct.multiplierDigitIndex}`,
         String(leadingStep.carryOut),
-        numberColumnIndex(rightmostNumberIndex - partialProduct.shift - computation.multiplicandDigits.length),
+        numberColumnIndex(arithmeticRightmostNumberIndex - partialProduct.shift - computation.multiplicandDigits.length),
         row,
         styleToken,
       ))
@@ -272,8 +290,13 @@ export const createMultiplicationGridScene = (
       })
     }
     const visibleProduct = computation.additionSteps.slice(0, visibleAdditionStepCount).map(({ resultDigit }) => resultDigit).reverse().join('')
-    const productToDisplay = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount ? computation.productDigits : visibleProduct
-    placeNumber('product', productToDisplay, rightmostNumberIndex, productRow, 'multiplication.product')
+    // 播放过程中只显示基础积，完成时才在最终积右侧补回末尾零；
+    // 被乘数为零时积只有一个 0，仍留在基础右边界，不制造多余的零位。
+    const productToDisplay = isShortcutComplete ? computation.productDigits : visibleProduct
+    const productRightNumberIndex = isShortcutComplete && computation.productDigits !== '0'
+      ? rightmostNumberIndex
+      : arithmeticRightmostNumberIndex
+    placeNumber('product', productToDisplay, productRightNumberIndex, productRow, 'multiplication.product')
   }
 
   return {
