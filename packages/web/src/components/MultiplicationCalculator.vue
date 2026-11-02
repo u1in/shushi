@@ -17,6 +17,7 @@ const fontSizeRatio = ref(1)
 const showGuideGrid = ref(false)
 const uniformMultiplicationBars = ref(false)
 const showCarrySteps = ref(true)
+const useTrailingZeroShortcut = ref(true)
 const error = ref('')
 const computation = ref<MultiplicationComputation>()
 const scene = ref<GridScene>()
@@ -42,7 +43,9 @@ const playback = useCalculatorStepPlayback({
       (count, partialProduct) => count + partialProduct.digitSteps.length,
       0,
     )
-    return multiplicationStepCount + (result.multiplierDigits.length > 1 ? result.additionSteps.length : 0)
+    return multiplicationStepCount + (
+      result.trailingZeroShortcut || result.multiplierDigits.length <= 1 ? 0 : result.additionSteps.length
+    )
   },
   render: renderScene,
 })
@@ -55,7 +58,9 @@ const canNext = playback.canNext
 
 const calculate = (): void => {
   try {
-    const result = computeMultiplication(multiplicand.value, multiplier.value)
+    const result = computeMultiplication(multiplicand.value, multiplier.value, {
+      useTrailingZeroShortcut: useTrailingZeroShortcut.value,
+    })
     computation.value = result
     visibleStepCount.value = undefined
     renderScene()
@@ -93,6 +98,7 @@ calculate()
               <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
               <label class="switch-field"><input v-model="uniformMultiplicationBars" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>乘法横线等宽</span></label>
               <label class="switch-field"><input v-model="showCarrySteps" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示进位步骤</span></label>
+              <label class="switch-field"><input v-model="useTrailingZeroShortcut" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>启用 10 倍数快捷计算</span></label>
             </div>
           </div>
         </div>
@@ -100,7 +106,7 @@ calculate()
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ multiplicand }} × {{ multiplier }} =</h2></div><output class="answer">{{ answer }}</output></div>
-          <p class="normalization">{{ computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
+          <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
           <VisibleTextRowsPanel v-if="scene" :scene="scene" />

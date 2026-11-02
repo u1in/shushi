@@ -43,25 +43,35 @@ export const createMultiplicationGridScene = (
   computation: MultiplicationComputation,
   settings: MultiplicationRenderSettings,
 ): GridScene => {
+  const isTrailingZeroShortcut = computation.trailingZeroShortcut !== null
   // 一次逐位相乘才是教学播放中的一个步骤；部分积仅是这些步骤完成后的行结果。
   const multiplicationStepCount = computation.partialProducts.reduce(
     (count, partialProduct) => count + partialProduct.digitSteps.length,
     0,
   )
-  const totalStepCount = multiplicationStepCount + (computation.multiplierDigits.length > 1 ? computation.additionSteps.length : 0)
+  // 快捷计算完成基础积后直接在结果末尾补零，因此不再展示部分积求和阶段。
+  const totalStepCount = multiplicationStepCount + (!isTrailingZeroShortcut && computation.multiplierDigits.length > 1 ? computation.additionSteps.length : 0)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
   const visibleMultiplicationStepCount = Math.min(visibleStepCount, multiplicationStepCount)
   const visibleAdditionStepCount = Math.max(0, visibleStepCount - multiplicationStepCount)
   const partialWidth = Math.max(...computation.partialProducts.map(({ value, shift }) => value.length + shift))
-  const numberColumnCount = Math.max(
+  const shortcutTrailingZeroCount = computation.trailingZeroShortcut?.trailingZeroCount ?? 0
+  // 快捷计算先以有效乘数和基础积确定原竖式右边界；补回的零只向右扩展，
+  // 不能为了容纳这些零而挪动第一行、有效乘数或基础积。
+  const baseProductDigits = isTrailingZeroShortcut && computation.productDigits !== '0'
+    ? computation.productDigits.slice(0, -shortcutTrailingZeroCount)
+    : computation.productDigits
+  const baseNumberColumnCount = Math.max(
     computation.multiplicandDigits.length,
-    computation.multiplierDigits.length,
-    computation.productDigits.length,
+    computation.trailingZeroShortcut?.significantMultiplierDigits.length ?? computation.multiplierDigits.length,
+    baseProductDigits.length,
     partialWidth,
   )
+  const numberColumnCount = baseNumberColumnCount + shortcutTrailingZeroCount
   const operatorColumn = 0
   const rightmostNumberIndex = numberColumnCount - 1
-  const isMultiDigitMultiplier = computation.multiplierDigits.length > 1
+  const baseRightmostNumberIndex = baseNumberColumnCount - 1
+  const isMultiDigitMultiplier = !isTrailingZeroShortcut && computation.multiplierDigits.length > 1
   const numberColumnIndex = (numberIndex: number): number => 1 + numberIndex
   const carryColumnLine = (targetNumberIndex: number): number => {
     if (targetNumberIndex < 0 || targetNumberIndex >= numberColumnCount - 1) {
@@ -101,8 +111,18 @@ export const createMultiplicationGridScene = (
   const multiplicandRow = appendRow('multiplicand-row')
   const multiplierRow = appendRow('multiplier-row')
 
-  placeNumber('multiplicand', computation.multiplicandDigits, rightmostNumberIndex, multiplicandRow, 'multiplication.multiplicand')
-  placeNumber('multiplier', computation.multiplierDigits, rightmostNumberIndex, multiplierRow, 'multiplication.multiplier')
+  // 快捷模式的基础算式仍共用同一条右边界，例如 97 × 8 的个位对齐；
+  // 完成后补回的零从这条边界右侧延伸。
+  const multiplicandRightNumberIndex = isTrailingZeroShortcut ? baseRightmostNumberIndex : rightmostNumberIndex
+  placeNumber('multiplicand', computation.multiplicandDigits, multiplicandRightNumberIndex, multiplicandRow, 'multiplication.multiplicand')
+  const isShortcutComplete = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
+  const multiplierToDisplay = isTrailingZeroShortcut && !isShortcutComplete
+    ? computation.trailingZeroShortcut!.significantMultiplierDigits
+    : computation.multiplierDigits
+  const multiplierRightNumberIndex = isTrailingZeroShortcut
+    ? isShortcutComplete ? rightmostNumberIndex : baseRightmostNumberIndex
+    : rightmostNumberIndex
+  placeNumber('multiplier', multiplierToDisplay, multiplierRightNumberIndex, multiplierRow, 'multiplication.multiplier')
   elements.push(createTextElement('multiplication-operator', '×', operatorColumn, multiplierRow, 'multiplication.operator'))
   elements.push({
     id: 'multiplication-input-bar',
@@ -110,6 +130,34 @@ export const createMultiplicationGridScene = (
     content: { kind: 'line' },
     styleToken: 'multiplication.input-bar',
   })
+
+  // 10、100 等乘数在计算层已只计算有效位；此处把补零后的最终积直接放到横线下，
+  // 使 24 × 10 呈现为用户熟悉的三行快捷竖式。
+  if (isTrailingZeroShortcut) {
+    const productRow = appendRow('shortcut-product-row')
+    if (isShortcutComplete) {
+      // 零乘任何数仍只显示一个零，不把它伪装成补零后的多位积。
+      const productRightNumberIndex = computation.productDigits === '0'
+        ? baseRightmostNumberIndex
+        : rightmostNumberIndex
+      placeNumber('product', computation.productDigits, productRightNumberIndex, productRow, 'multiplication.product')
+    }
+
+    return {
+      columns,
+      rows,
+      padding: { top: STAGE_VERTICAL_PADDING, right: STAGE_HORIZONTAL_PADDING, bottom: STAGE_VERTICAL_PADDING, left: STAGE_HORIZONTAL_PADDING },
+      unitWidth: settings.cellWidth,
+      unitHeight: settings.rowHeight,
+      fontSize: settings.cellWidth * settings.fontSizeRatio,
+      defaultTextStyleToken: 'grid.default-text',
+      textHorizontalAlign: settings.textHorizontalAlign ?? 'center',
+      textVerticalAlign: settings.textVerticalAlign ?? 'center',
+      elements,
+      showGuideGrid: settings.showGuideGrid,
+      ariaLabel: `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的十倍数快捷竖式`,
+    }
+  }
 
   const placeCarries = (partialProduct: MultiplicationPartialProduct, row: number): void => {
     partialProduct.digitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {

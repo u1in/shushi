@@ -117,11 +117,26 @@ export interface MultiplicationAdditionStep {
   carryOut: number
 }
 
+/** 乘数末尾零的快捷计算信息；为空时使用完整逐位乘法。 */
+export interface MultiplicationTrailingZeroShortcut {
+  /** 从乘数末尾暂时移出的零位数，最终积在基础积后补回这些零。 */
+  trailingZeroCount: number
+  /** 去掉末尾零后实际参与逐位计算的乘数。 */
+  significantMultiplierDigits: string
+}
+
+/** 乘法器可选行为；未指定时保持教学页面的默认快捷计算。 */
+export interface MultiplicationOptions {
+  useTrailingZeroShortcut?: boolean
+}
+
 export interface MultiplicationComputation {
   multiplicandDigits: string
   multiplierDigits: string
   operandsSwapped: boolean
   productDigits: string
+  /** 非空时表示最终积由基础积补零得到。 */
+  trailingZeroShortcut: MultiplicationTrailingZeroShortcut | null
   partialProducts: MultiplicationPartialProduct[]
   additionSteps: MultiplicationAdditionStep[]
 }

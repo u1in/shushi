@@ -16,8 +16,8 @@ const scene = createMultiplicationGridScene(computation, {
 })
 
 const items: NamingMapItem[] = [
-  { key: '01', name: '被乘数 · Multiplicand', description: '规范化后放在第一行的较大操作数。', token: 'multiplication.multiplicand', tone: 'tone-ink', source: 'text' },
-  { key: '02', name: '乘数 · Multiplier', description: '放在第二行、与被乘数相乘的操作数。', token: 'multiplication.multiplier', tone: 'tone-blue', source: 'text' },
+  { key: '01', name: '被乘数 · Multiplicand', description: '规范化后放在第一行的操作数；关闭快捷计算时始终为较大操作数。', token: 'multiplication.multiplicand', tone: 'tone-ink', source: 'text' },
+  { key: '02', name: '乘数 · Multiplier', description: '放在第二行、与被乘数相乘的操作数；启用快捷计算时，唯一的非零 10 倍数优先放在这里。', token: 'multiplication.multiplier', tone: 'tone-blue', source: 'text' },
   { key: '03', name: '乘号 · Multiplication sign', description: '乘数行最左侧的 ×。', token: 'multiplication.operator', tone: 'tone-blue', source: 'text', badgeClass: 'naming-map-highlight--badge-left' },
   { key: '04', name: '乘法横线 · Input bar', description: '乘数下方的第一条横线。', token: 'multiplication.input-bar', tone: 'tone-blue', source: 'edge' },
   { key: '05', name: '部分积 · Partial product', description: '每个乘数位乘被乘数得到的中间结果。', token: 'multiplication.partial-product', tone: 'tone-green', source: 'text', rows: true },
@@ -29,8 +29,10 @@ const items: NamingMapItem[] = [
 ]
 
 const notes = [
-  ['multiplicandDigits', '规范化并放在第一行的被乘数（较大操作数）。'], ['multiplierDigits', '规范化并放在第二行的乘数（较小操作数）。'],
-  ['operandsSwapped', '输入顺序是否因“大数在上”而交换。'], ['productDigits', '最终积。'],
+  ['multiplicandDigits', '规范化并放在第一行的被乘数；仅启用快捷计算时，10 的倍数优先规则才可能覆盖“大数在上”。'], ['multiplierDigits', '规范化并放在第二行的乘数；仅启用快捷计算时，唯一的非零 10 倍数优先放在这里。'],
+  ['operandsSwapped', '输入顺序是否因“大数在上”或启用后的 10 倍数快捷规则而交换。'], ['productDigits', '最终积，快捷计算时已包含完成后在右侧补回的末尾 0。'],
+  ['trailingZeroShortcut', '末尾补零快捷计算信息；未启用时为 null。'], ['trailingZeroShortcut.significantMultiplierDigits', '去掉乘数末尾零后实际参与逐位计算的数字。'],
+  ['trailingZeroShortcut.trailingZeroCount', '基础积完成后补回的末尾零数量。'],
   ['partialProducts', '每个乘数位一项，包含乘数位、位移、部分积和逐位过程。'], ['partialProducts.shift', '十进制错位；个位为 0、十位为 1。'],
   ['partialProducts.value', '未补位、未乘 10^shift 的部分积数字。'], ['partialProducts.digitSteps', '逐位乘法过程，包含每一步的输入、结果和进位。'],
   ['additionSteps', '部分积按列相加的过程与进位。'], ['additionSteps.carryOut', '传给下一列的进位；最高位进位会显示在求和横线上。'],

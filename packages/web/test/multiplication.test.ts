@@ -40,9 +40,39 @@ describe('computeMultiplication', () => {
 
     const trailingZero = computeMultiplication('120', '10')
     expect(trailingZero.productDigits).toBe('1200')
+    expect(trailingZero.trailingZeroShortcut).toEqual({ trailingZeroCount: 1, significantMultiplierDigits: '1' })
     expect(trailingZero.partialProducts.map(({ shift, value }) => ({ shift, value }))).toEqual([
-      { shift: 0, value: '0' },
-      { shift: 1, value: '120' },
+      { shift: 0, value: '120' },
+    ])
+  })
+
+  test('启用快捷计算时把唯一的 10 倍数放在第二行，关闭后始终大数在上', () => {
+    const shortcut = computeMultiplication('10', '24')
+    expect(shortcut).toMatchObject({
+      multiplicandDigits: '24',
+      multiplierDigits: '10',
+      operandsSwapped: true,
+      productDigits: '240',
+      trailingZeroShortcut: { trailingZeroCount: 1, significantMultiplierDigits: '1' },
+    })
+    expect(shortcut.partialProducts.map(({ multiplierDigit, shift, value }) => ({ multiplierDigit, shift, value }))).toEqual([
+      { multiplierDigit: '1', shift: 0, value: '24' },
+    ])
+
+    const shortcutWithMultipleDigits = computeMultiplication('7', '120')
+    expect(shortcutWithMultipleDigits).toMatchObject({
+      multiplicandDigits: '7', multiplierDigits: '120', productDigits: '840',
+      trailingZeroShortcut: { trailingZeroCount: 1, significantMultiplierDigits: '12' },
+    })
+    expect(shortcutWithMultipleDigits.partialProducts.map(({ multiplierDigit, shift }) => ({ multiplierDigit, shift }))).toEqual([
+      { multiplierDigit: '2', shift: 0 }, { multiplierDigit: '1', shift: 1 },
+    ])
+
+    const regular = computeMultiplication('97', '800', { useTrailingZeroShortcut: false })
+    expect(regular).toMatchObject({ multiplicandDigits: '800', multiplierDigits: '97', operandsSwapped: true, productDigits: '77600', trailingZeroShortcut: null })
+    expect(regular.partialProducts.map(({ multiplierDigit, shift, value }) => ({ multiplierDigit, shift, value }))).toEqual([
+      { multiplierDigit: '7', shift: 0, value: '5600' },
+      { multiplierDigit: '9', shift: 1, value: '7200' },
     ])
   })
 
@@ -147,6 +177,58 @@ describe('createMultiplicationGridScene', () => {
     ))
     expect(zeroProductCells).toHaveLength(1)
     expect(zeroProductCells[0].content).toMatchObject({ text: '0' })
+  })
+
+  test('10 的倍数快捷计算直接在乘法横线下显示补零后的最终积', () => {
+    const computation = computeMultiplication('10', '24')
+    const scene = createMultiplicationGridScene(computation, {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
+      uniformMultiplicationBars: false, showCarrySteps: true,
+    })
+
+    expect(scene.rows).toHaveLength(3)
+    expect(scene.elements.some(({ id }) => id === 'multiplication-sum-bar')).toBe(false)
+    expect(scene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.partial-product'
+    ))).toHaveLength(0)
+    expect(scene.elements.filter(({ content }) => (
+      content?.kind === 'text' && content.styleToken === 'multiplication.product'
+    )).map(({ content }) => content?.kind === 'text' ? content.text : '')).toEqual(['2', '4', '0'])
+    // 快捷竖式先按基础算式 `24 × 1` 对齐，再在右侧扩展补零位。
+    expect(scene.elements.find(({ id }) => id === 'multiplicand-0')).toMatchObject({ position: { column: 1 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-0')).toMatchObject({ position: { column: 2 } })
+    expect(scene.elements.find(({ id }) => id === 'product-0')).toMatchObject({ position: { column: 1 } })
+  })
+
+  test('十倍数快捷计算以基础算式对齐，并只向右扩展乘数和积的补零位', () => {
+    const computation = computeMultiplication('97', '800')
+    const settings = {
+      cellWidth: 32, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
+      uniformMultiplicationBars: false, showCarrySteps: true,
+    }
+    const scene = createMultiplicationGridScene(computation, settings)
+
+    expect(computation).toMatchObject({
+      multiplicandDigits: '97',
+      multiplierDigits: '800',
+      trailingZeroShortcut: { significantMultiplierDigits: '8', trailingZeroCount: 2 },
+      productDigits: '77600',
+    })
+    // 数字区先容纳 `97 × 8 = 776` 的三列，再向右追加两个零位。
+    expect(scene.columns).toHaveLength(6)
+    expect(scene.elements.find(({ id }) => id === 'multiplicand-0')).toMatchObject({ position: { column: 2 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplicand-1')).toMatchObject({ position: { column: 3 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-0')).toMatchObject({ content: { text: '8' }, position: { column: 3 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-1')).toMatchObject({ content: { text: '0' }, position: { column: 4 } })
+    expect(scene.elements.find(({ id }) => id === 'multiplier-2')).toMatchObject({ content: { text: '0' }, position: { column: 5 } })
+    expect(scene.elements.find(({ id }) => id === 'product-0')).toMatchObject({ content: { text: '7' }, position: { column: 1 } })
+    expect(scene.elements.find(({ id }) => id === 'product-3')).toMatchObject({ content: { text: '0' }, position: { column: 4 } })
+    expect(scene.elements.find(({ id }) => id === 'product-4')).toMatchObject({ content: { text: '0' }, position: { column: 5 } })
+
+    const incomplete = createMultiplicationGridScene(computation, { ...settings, visibleStepCount: 1 })
+    expect(incomplete.elements.filter(({ id }) => id?.startsWith('multiplier-')).map(({ content }) => (
+      content?.kind === 'text' ? content.text : ''
+    ))).toEqual(['8'])
   })
 
   test('最后一步产生的最高位进位只进入部分积，不单独显示进位符号', () => {

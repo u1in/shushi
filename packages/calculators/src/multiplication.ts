@@ -3,7 +3,9 @@ import type {
   MultiplicationAdditionStep,
   MultiplicationComputation,
   MultiplicationDigitStep,
+  MultiplicationOptions,
   MultiplicationPartialProduct,
+  MultiplicationTrailingZeroShortcut,
 } from './types'
 
 const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
@@ -24,6 +26,19 @@ const compareDigitStrings = (left: string, right: string): number => {
   if (left.length !== right.length) return left.length > right.length ? 1 : -1
   if (left === right) return 0
   return left > right ? 1 : -1
+}
+
+/** 零本身没有可计算的有效位，不能作为“末尾补零”的快捷乘数。 */
+const isTrailingZeroMultiple = (value: string): boolean => value !== '0' && value.endsWith('0')
+
+/** 拆出十进制末尾零，保留仍需逐位相乘的有效乘数。 */
+const splitTrailingZeros = (value: string): MultiplicationTrailingZeroShortcut => {
+  const significantMultiplierDigits = value.replace(/0+$/, '')
+
+  return {
+    trailingZeroCount: value.length - significantMultiplierDigits.length,
+    significantMultiplierDigits,
+  }
 }
 
 const calculatePartialProduct = (
@@ -98,24 +113,48 @@ const calculateAddition = (
 export const computeMultiplication = (
   multiplicandValue: unknown,
   multiplierValue: unknown,
+  options: MultiplicationOptions = {},
 ): MultiplicationComputation => {
   const firstOperandDigits = parseIntegerDigits(multiplicandValue, '被乘数')
   const secondOperandDigits = parseIntegerDigits(multiplierValue, '乘数')
-  const operandsSwapped = compareDigitStrings(firstOperandDigits, secondOperandDigits) < 0
+  const firstIsTrailingZeroMultiple = isTrailingZeroMultiple(firstOperandDigits)
+  const secondIsTrailingZeroMultiple = isTrailingZeroMultiple(secondOperandDigits)
+  const useTrailingZeroShortcut = options.useTrailingZeroShortcut !== false
+  // 只有启用快捷计算时，才为了拆除末尾零而把唯一的十倍数放到第二行。
+  // 关闭时始终按“大数在上”，避免展示顺序与完整逐位乘法规则相冲突。
+  const operandsSwapped = useTrailingZeroShortcut && firstIsTrailingZeroMultiple !== secondIsTrailingZeroMultiple
+    ? firstIsTrailingZeroMultiple
+    : compareDigitStrings(firstOperandDigits, secondOperandDigits) < 0
   const multiplicandDigits = operandsSwapped ? secondOperandDigits : firstOperandDigits
   const multiplierDigits = operandsSwapped ? firstOperandDigits : secondOperandDigits
+  const trailingZeroShortcut = useTrailingZeroShortcut && isTrailingZeroMultiple(multiplierDigits)
+    ? splitTrailingZeros(multiplierDigits)
+    : null
+  // 快捷计算只移除乘数末尾的零；中间零仍然是实际位值，不能跳过。
+  const calculationMultiplierDigits = trailingZeroShortcut?.significantMultiplierDigits ?? multiplierDigits
   const partialProducts: MultiplicationPartialProduct[] = []
 
-  for (let index = multiplierDigits.length - 1; index >= 0; index -= 1) {
+  for (let index = calculationMultiplierDigits.length - 1; index >= 0; index -= 1) {
     partialProducts.push(calculatePartialProduct(
       multiplicandDigits,
-      multiplierDigits[index],
+      calculationMultiplierDigits[index],
       index,
-      multiplierDigits.length - 1 - index,
+      calculationMultiplierDigits.length - 1 - index,
     ))
   }
 
-  const { productDigits, additionSteps } = calculateAddition(partialProducts)
+  const { productDigits: baseProductDigits, additionSteps } = calculateAddition(partialProducts)
+  const productDigits = trailingZeroShortcut && baseProductDigits !== '0'
+    ? `${baseProductDigits}${'0'.repeat(trailingZeroShortcut.trailingZeroCount)}`
+    : baseProductDigits
 
-  return { multiplicandDigits, multiplierDigits, operandsSwapped, productDigits, partialProducts, additionSteps }
+  return {
+    multiplicandDigits,
+    multiplierDigits,
+    operandsSwapped,
+    productDigits,
+    trailingZeroShortcut,
+    partialProducts,
+    additionSteps,
+  }
 }
