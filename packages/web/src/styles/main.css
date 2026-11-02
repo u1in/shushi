@@ -689,6 +689,40 @@ h2 {
   font-size: 0.84rem;
 }
 
+/* 首页示例复用同一块 API 输出面板，展示当前 GridScene 的实际可见字符行。 */
+.visible-text-rows {
+  margin-top: 16px;
+}
+
+.visible-text-rows__button {
+  padding: 9px 12px;
+  font-size: 0.78rem;
+}
+
+.visible-text-rows__output {
+  margin-top: 10px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8faff;
+}
+
+.visible-text-rows__output p {
+  margin: 0 0 8px;
+  color: #62708b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.visible-text-rows__output pre {
+  margin: 0;
+  overflow-x: auto;
+  color: #24395f;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
 .renderer-mode-group {
   display: flex;
   align-items: center;

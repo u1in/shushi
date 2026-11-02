@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { compileMacro, formatMacro, minifyMacro } from '@vertical-arithmetic/macro'
 import GridPreview from './GridPreview.vue'
+import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 
 interface MacroExample {
   label: string
@@ -131,6 +132,7 @@ const minifySource = (): void => transformSource(minifyMacro)
             </div>
           </div>
           <GridPreview :scene="result.scene" mode="both" />
+          <VisibleTextRowsPanel :scene="result.scene" />
         </div>
         <div v-else class="calculation-result">
           <p class="panel-kicker">COMPILATION ERROR</p>

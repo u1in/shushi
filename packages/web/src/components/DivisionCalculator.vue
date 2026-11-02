@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { computeDivision } from '@vertical-arithmetic/calculators'
 import { createDivisionGridScene, getDivisionPlaybackStepCount } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { DivisionComputation } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
@@ -106,6 +107,7 @@ calculate()
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <VisibleTextRowsPanel v-if="scene" :scene="scene" />
         </div>
       </section>
     </section>

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { computeShortDivision } from '@vertical-arithmetic/calculators'
 import { createShortDivisionGridScene } from '@vertical-arithmetic/layout'
 import GridPreview from './GridPreview.vue'
+import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { ShortDivisionComputation, ShortDivisionMode } from '@vertical-arithmetic/calculators'
 import type { GridScene } from '@vertical-arithmetic/grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
@@ -130,6 +131,7 @@ calculate()
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <VisibleTextRowsPanel v-if="scene" :scene="scene" />
         </div>
       </section>
     </section>
