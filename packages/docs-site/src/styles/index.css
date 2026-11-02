@@ -1,0 +1,437 @@
+/* 与 packages/web 首页共享的视觉基线：雾白背景、深蓝标题、蓝色主操作。 */
+:root {
+  color-scheme: light;
+  --vp-c-accent: #4166b6;
+  --vp-c-accent-bg: #4166b6;
+  --vp-c-accent-hover: #31539e;
+  --vp-c-accent-soft: rgb(65 102 182 / 14%);
+  --vp-c-bg: #f5f7fb;
+  --vp-c-bg-alt: #eef3fb;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-text: #172033;
+  --vp-c-text-mute: #62708b;
+  --vp-c-text-subtle: #8a99af;
+  --vp-c-divider: #d9e2f0;
+  --vp-c-border: #cbd7e8;
+  /* VuePress 2 rc.31 使用短文本变量，兼容文档组件中的 1/2/3 语义别名。 */
+  --vp-c-text-1: var(--vp-c-text);
+  --vp-c-text-2: var(--vp-c-text-mute);
+  --vp-c-text-3: var(--vp-c-text-subtle);
+  --mdocs-ink: #14213d;
+  --mdocs-strong: #1c2942;
+  --mdocs-copy: #4e5d76;
+  --mdocs-muted: #7a89a3;
+  --mdocs-blue: #4166b6;
+  --mdocs-blue-strong: #214b9f;
+  --mdocs-border: #dfe7f3;
+  --mdocs-soft: #f5f8fd;
+  --mdocs-code-bg: #f7f9fc;
+  --mdocs-code-head-bg: #eef3fb;
+  --mdocs-code-border: #d5e0ee;
+  --mdocs-code-text: #26364f;
+  --mdocs-code-muted: #60728e;
+  --mdocs-code-comment: #6e7f99;
+  --mdocs-code-string: #287345;
+  --mdocs-code-number: #a05c00;
+  --mdocs-code-keyword: #315ea8;
+  --mdocs-code-function: #a13a79;
+  --mdocs-button-bg: #f6f9ff;
+  --mdocs-button-border: #d4e0f2;
+  --mdocs-button-text: #5b76a3;
+  --mdocs-button-hover-bg: #eef4ff;
+  --mdocs-button-hover-text: #214b9f;
+  --mdocs-example-bg: #ffffff;
+  --mdocs-example-head-bg: #fbfdff;
+  --mdocs-example-note-bg: #fbfcff;
+  --mdocs-example-border: #e8eef7;
+  --site-font-family: var(--vp-font-family);
+  --vp-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "STIX Two Math", "Cambria Math", "Noto Serif SC", serif;
+  /* VuePress 默认侧边栏为 20rem，这里缩窄 80px，正文会相应获得更多宽度。 */
+  --sidebar-width: 15rem;
+  --homepage-width: 1120px;
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 10% 0%, rgb(198 222 255 / 72%), transparent 30rem),
+    var(--vp-c-bg);
+}
+
+/* VuePress 的暗色开关通过 html[data-theme='dark'] 生效；首页和宏文档共用这组深色语义变量。 */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --vp-c-accent: #8db4ff;
+  --vp-c-accent-bg: #4166b6;
+  --vp-c-accent-hover: #a9c6ff;
+  --vp-c-accent-soft: rgb(141 180 255 / 18%);
+  --vp-c-bg: #0f172a;
+  --vp-c-bg-alt: #141f33;
+  --vp-c-bg-elv: #18243a;
+  --vp-c-text: #edf3ff;
+  --vp-c-text-mute: #adbbd1;
+  --vp-c-text-subtle: #8292ad;
+  --vp-c-divider: #2a3a55;
+  --vp-c-border: #344866;
+  --mdocs-ink: #edf3ff;
+  --mdocs-strong: #e4edff;
+  --mdocs-copy: #b9c7dd;
+  --mdocs-muted: #8d9db8;
+  --mdocs-blue: #8db4ff;
+  --mdocs-blue-strong: #b1cbff;
+  --mdocs-border: #30435f;
+  --mdocs-soft: #17243a;
+  --mdocs-code-bg: #0f172a;
+  --mdocs-code-head-bg: #18243a;
+  --mdocs-code-border: #30435f;
+  --mdocs-code-text: #dbeafe;
+  --mdocs-code-muted: #9fb4d6;
+  --mdocs-code-comment: #8ea3c5;
+  --mdocs-code-string: #b9e6b0;
+  --mdocs-code-number: #f6c77b;
+  --mdocs-code-keyword: #9bd7ff;
+  --mdocs-code-function: #f2a9d4;
+  --mdocs-button-bg: #253654;
+  --mdocs-button-border: #526d99;
+  --mdocs-button-text: #dbeafe;
+  --mdocs-button-hover-bg: #31486e;
+  --mdocs-button-hover-text: #ffffff;
+  --mdocs-example-bg: #18243a;
+  --mdocs-example-head-bg: #1d2a43;
+  --mdocs-example-note-bg: #18243a;
+  --mdocs-example-border: #30435f;
+}
+
+html[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at 10% 0%, rgb(45 77 135 / 28%), transparent 30rem),
+    #0f172a;
+  color: var(--vp-c-text);
+}
+
+.vp-navbar {
+  background: color-mix(in srgb, var(--vp-c-bg) 86%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+html[data-theme='dark'] .vp-navbar {
+  background: rgb(15 23 42 / 88%);
+  border-bottom-color: rgb(52 72 102 / 82%);
+}
+
+.vp-home {
+  min-height: calc(100vh - var(--navbar-height));
+}
+
+.vp-hero {
+  max-width: 850px;
+  padding: 5.6rem 0 .5rem;
+  text-align: left;
+}
+
+#main-title {
+  color: var(--vp-c-text);
+  font-size: clamp(2.7rem, 7vw, 5.3rem);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 1.02;
+}
+
+.vp-hero-description {
+  max-width: 40rem;
+  margin-left: 0;
+  color: var(--vp-c-text-mute);
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  line-height: 1.65;
+}
+
+.vp-hero-actions {
+  justify-content: flex-start;
+  gap: 0.7rem;
+}
+
+.vp-hero-action-button {
+  border-radius: 12px;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.vp-features {
+  gap: 1rem;
+  border-top: 0;
+}
+
+.vp-feature {
+  max-width: none;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 20px;
+  padding: 1.35rem 1.45rem;
+  background: color-mix(in srgb, var(--vp-c-bg-elv) 84%, transparent);
+  box-shadow: 0 18px 46px rgb(55 75 112 / 9%);
+}
+
+.vp-feature h2 {
+  color: var(--vp-c-text);
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.vp-feature p {
+  color: var(--vp-c-text-mute);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+html[data-theme='dark'] #main-title,
+html[data-theme='dark'] .vp-feature h2,
+html[data-theme='dark'] .vp-home [vp-content] h1 {
+  color: var(--vp-c-text);
+}
+
+html[data-theme='dark'] .vp-hero-description,
+html[data-theme='dark'] .vp-feature p,
+html[data-theme='dark'] .vp-home [vp-content] {
+  color: var(--vp-c-text-mute);
+}
+
+html[data-theme='dark'] .vp-feature {
+  border-color: var(--vp-c-divider);
+  background: color-mix(in srgb, var(--vp-c-bg-elv) 88%, transparent);
+  box-shadow: 0 18px 46px rgb(0 0 0 / 24%);
+}
+
+html[data-theme='dark'] .vp-home [vp-content] code {
+  color: #b1cbff;
+  background: #1c3156;
+}
+
+/* VuePress 中的宏目录复用 macro-docs 组件；这里补齐暗色表面，避免白色卡片穿透。 */
+html[data-theme='dark'] .docs-macro-page {
+  border-top-color: #2a3a55;
+}
+
+/* 宏文档由 Vue 组件自行管理标题间距，不使用 VuePress 为 Markdown 锚点预留的顶部偏移。 */
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h1,
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h2,
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h3,
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h4,
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h5,
+.vp-page:has(.docs-macro-catalog) [vp-content] .docs-macro-catalog h6 {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+html[data-theme='dark'] .docs-macro-group-description,
+html[data-theme='dark'] .docs-macro-summary,
+html[data-theme='dark'] .mdocs-p,
+html[data-theme='dark'] .mdocs-list,
+html[data-theme='dark'] .mdocs-example-note,
+html[data-theme='dark'] .mdocs-compare-note,
+html[data-theme='dark'] .mdocs-board-note {
+  color: #b9c7dd;
+}
+
+html[data-theme='dark'] .docs-macro-catalog h2,
+html[data-theme='dark'] .docs-macro-catalog h3,
+html[data-theme='dark'] .docs-macro-catalog h4,
+html[data-theme='dark'] .mdocs-example-label {
+  color: #edf3ff;
+}
+
+html[data-theme='dark'] .mdocs-table-wrap,
+html[data-theme='dark'] .mdocs-example,
+html[data-theme='dark'] .mdocs-compare,
+html[data-theme='dark'] .mdocs-compare-card,
+html[data-theme='dark'] .mdocs-card,
+html[data-theme='dark'] .mdocs-position-cell,
+html[data-theme='dark'] .mdocs-border-cell,
+html[data-theme='dark'] .mdocs-edge-text-cell,
+html[data-theme='dark'] .mdocs-bracket-divisor,
+html[data-theme='dark'] .mdocs-bracket-dividend {
+  border-color: #30435f;
+  background: #18243a;
+}
+
+html[data-theme='dark'] .mdocs-table-wrap th,
+html[data-theme='dark'] .mdocs-table-wrap td,
+html[data-theme='dark'] .mdocs-compare-card-head,
+html[data-theme='dark'] .mdocs-example-head,
+html[data-theme='dark'] .mdocs-compare-preview,
+html[data-theme='dark'] .mdocs-example-preview {
+  border-color: #30435f;
+  background: #18243a;
+}
+
+html[data-theme='dark'] .mdocs-table-wrap th {
+  color: #c7d6ec;
+  background: #20314d;
+}
+
+html[data-theme='dark'] .mdocs-table-wrap td {
+  color: #c1cee1;
+  border-bottom-color: #2a3a55;
+}
+
+html[data-theme='dark'] .mdocs-table-wrap tbody tr:hover td {
+  background: #20314d;
+}
+
+html[data-theme='dark'] .mdocs-inline-code {
+  color: #b1cbff;
+  background: #20395f;
+}
+
+html[data-theme='dark'] .mdocs-callout,
+html[data-theme='dark'] .mdocs-position-board,
+html[data-theme='dark'] .mdocs-border-board,
+html[data-theme='dark'] .mdocs-edge-text-board,
+html[data-theme='dark'] .mdocs-bracket-board,
+html[data-theme='dark'] .mdocs-border-label,
+html[data-theme='dark'] .mdocs-bracket-label {
+  border-color: #30435f;
+  background: #17243a;
+}
+
+html[data-theme='dark'] .mdocs-card span,
+html[data-theme='dark'] .mdocs-card small,
+html[data-theme='dark'] .mdocs-example-stats {
+  color: #9fb0c9;
+}
+
+/* 宏文档组件的代码块和复制按钮必须共用主题变量，避免浅色代码块仍显示深色表面。 */
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code {
+  border-color: var(--mdocs-code-border);
+  background: var(--mdocs-code-bg);
+  color: var(--mdocs-code-text);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code-head {
+  border-bottom-color: var(--mdocs-code-border);
+  color: var(--mdocs-code-muted);
+  background: var(--mdocs-code-head-bg);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code pre,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code {
+  color: var(--mdocs-code-text);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code .code-token-comment,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code .code-token-comment,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code .code-token-comment {
+  color: var(--mdocs-code-comment);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code .code-token-string,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code .code-token-string,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code .code-token-string {
+  color: var(--mdocs-code-string);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code .code-token-number,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code .code-token-number,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code .code-token-number {
+  color: var(--mdocs-code-number);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code .code-token-keyword,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code .code-token-keyword,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code .code-token-keyword {
+  color: var(--mdocs-code-keyword);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-code .code-token-function,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-code .code-token-function,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-compare-code .code-token-function {
+  color: var(--mdocs-code-function);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-copy-button,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-copy-button--light {
+  border-color: var(--mdocs-button-border);
+  color: var(--mdocs-button-text);
+  background: var(--mdocs-button-bg);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-copy-button:hover,
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-copy-button--light:hover {
+  border-color: var(--mdocs-button-border);
+  color: var(--mdocs-button-hover-text);
+  background: var(--mdocs-button-hover-bg);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example {
+  border-color: var(--mdocs-border);
+  background: var(--mdocs-example-bg);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-head {
+  border-bottom-color: var(--mdocs-example-border);
+  background: var(--mdocs-example-head-bg);
+}
+
+:is(.docs-macro-catalog, .docs-macro-single) .mdocs-example-note {
+  border-top-color: var(--mdocs-example-border);
+  color: var(--mdocs-copy);
+  background: var(--mdocs-example-note-bg);
+}
+
+/* 只修正正文直属的 Markdown 表格，不影响 MacroDocBlocks 自己的表格组件。 */
+#content > table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 10px;
+  background: var(--vp-c-bg-elv);
+  font-size: .84rem;
+  line-height: 1.65;
+}
+
+#content > table th,
+#content > table td {
+  border: 1px solid var(--vp-c-divider);
+  padding: 10px 13px;
+  text-align: left;
+  vertical-align: top;
+}
+
+#content > table th {
+  color: var(--vp-c-text);
+  background: var(--vp-c-bg-alt);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.vp-home [vp-content] {
+  max-width: var(--homepage-width);
+  margin: .8rem auto 0;
+  color: var(--vp-c-text-mute);
+}
+
+.vp-home [vp-content] h1 {
+  color: var(--vp-c-text);
+  letter-spacing: -0.04em;
+}
+
+.vp-home [vp-content] code {
+  color: var(--vp-c-accent-hover);
+  background: var(--vp-c-accent-soft);
+}
+
+@media (max-width: 720px) {
+  .vp-hero {
+    padding-top: 3.7rem;
+  }
+
+  #main-title {
+    font-size: clamp(2.35rem, 13vw, 3.7rem);
+  }
+}
