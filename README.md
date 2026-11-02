@@ -4,9 +4,7 @@
 
 项目面向教学、调试和前端集成，支持两种输入方式：人工录入网格宏源码，或输入数值让计算器自动填写同一种宏源码。两者都会经过同一个宏编译器，生成统一的 `GridScene`，再由 DOM/CSS 或 SVG 渲染器输出。
 
-> [在线演示](https://demo.example.com/shushi) · [在线文档](https://docs.example.com/shushi)
->
-> 上述地址为部署占位链接，发布正式站点后只需替换 URL。
+> [在线演示](https://u1in.github.io/shushi/demo/) · [在线文档](https://u1in.github.io/shushi/)
 
 ## 快速开始
 

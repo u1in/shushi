@@ -9,6 +9,8 @@ import { resolve } from 'node:path'
  */
 export default defineUserConfig({
   lang: 'zh-CN',
+  // 项目 Pages 将文档站发布在仓库根路径；本地开发保持根路径，便于直接访问。
+  base: process.env.GITHUB_ACTIONS ? '/shushi/' : '/',
   title: '@u1in/shushi',
   description: '计算规则、网格宏语言、技术契约与竖式图例。',
   clientConfigFile: resolve(process.cwd(), 'vuepress.client.ts'),
@@ -69,7 +71,7 @@ export default defineUserConfig({
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: '技术文档', link: '/technical/安装' },
       { text: '图例文档', link: '/gallery/加法' },
-      { text: '在线演示', link: 'https://github.com/u1in/shushi' },
+      { text: '在线演示', link: 'https://u1in.github.io/shushi/demo/' },
     ],
     sidebar: {
       '/': [
