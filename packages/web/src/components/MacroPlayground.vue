@@ -25,7 +25,7 @@ const arithmeticExamples: MacroExample[] = [
   },
   {
     label: '10230 ÷ 25 = 409.2',
-    source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,0,0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
+    source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,[0,DOT],0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
   },
   {
     label: '短除法 · 60 = 2 × 2 × 3 × 5',

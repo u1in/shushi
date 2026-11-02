@@ -25,6 +25,7 @@
     "@vertical-arithmetic/calculators": "file:../calculators",
     "@vertical-arithmetic/layout": "file:../layout",
     "@vertical-arithmetic/macro": "file:../macro",
+    "@vertical-arithmetic/macro-docs": "file:../macro-docs",
     "@vertical-arithmetic/renderers": "file:../renderers",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"

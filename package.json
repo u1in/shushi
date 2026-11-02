@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "dev": "cd packages/web && npm run dev",
+    "start": "npm run dev",
     "build": "cd packages/web && npm run build",
     "preview": "cd packages/web && npm run preview",
     "test": "cd packages/web && npm run test",

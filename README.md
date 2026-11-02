@@ -19,9 +19,11 @@
 | `@vertical-arithmetic/calculators` | 除法、乘法计算过程与结果类型 |
 | `@vertical-arithmetic/layout` | 根据计算结果决定竖式结构并生成 `GridScene` |
 | `@vertical-arithmetic/renderers` | DOM/CSS 与 SVG 渲染器 |
+| `@vertical-arithmetic/macro` | 网格宏语言解析、编译与 `GridScene` 生成 |
+| `@vertical-arithmetic/macro-docs` | 网格宏文档内容、页面组件、图例与样式 |
 | `@vertical-arithmetic/web` | Vue 前端、路由、主题和交互页面 |
 
-计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。
+计算层不依赖 DOM 或 CSS；布局层负责运算专属的行列组织；渲染器只消费 `GridScene`。网格宏文档由 `packages/macro-docs` 独立维护，`web` 只负责挂载 `/macro-rules` 路由。
 
 ## 开始使用
 
@@ -30,8 +32,10 @@
 ```bash
 source ~/.zshrc
 npm install
-npm run dev
+npm start          # 启动主应用，等同于 npm run dev
 ```
+
+启动后访问 `/macro-rules` 查看网格宏文档。
 
 常用校验命令：
 
@@ -46,6 +50,7 @@ npm run build
 - [项目文档索引](./docs/项目文档索引.md)
 - [前端应用与工作区说明](./packages/web/docs/前端应用与工作区说明.md)
 - [网格架构与子包关系](./packages/grid/docs/网格架构.md)
+- [网格宏文档包](./packages/macro-docs/docs/网格宏文档包.md)
 - [除法计算规则](./packages/calculators/docs/除法计算规则.md)
 - [乘法计算规则](./packages/calculators/docs/乘法计算规则.md)
 - [短除法计算规则](./packages/calculators/docs/短除法计算规则.md)
