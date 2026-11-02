@@ -1,8 +1,12 @@
 # @u1in/shushi
 
-@u1in/shushi 是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的多包工作区，用于把加法、减法、乘法、除法和短除法的计算过程转换为可编辑、可渲染的竖式网格。
+@u1in/shushi 是一个基于 Vite、Vue 与 Tailwind CSS 的多包工作区，用于把加法、减法、乘法、除法和短除法的计算过程转换为可编辑、可渲染的竖式网格。
 
 项目面向教学、调试和前端集成，支持两种输入方式：人工录入网格宏源码，或输入数值让计算器自动填写同一种宏源码。两者都会经过同一个宏编译器，生成统一的 `GridScene`，再由 DOM/CSS 或 SVG 渲染器输出。
+
+> [在线演示](https://demo.example.com/shushi) · [在线文档](https://docs.example.com/shushi)
+>
+> 上述地址为部署占位链接，发布正式站点后只需替换 URL。
 
 ## 快速开始
 
@@ -38,19 +42,7 @@ document.querySelector('#result')?.append(stage)
 
 ## 项目链路
 
-```text
-数值输入 ──> 计算器 ──> Calculation ──> 宏源码生成层 ──> 宏源码
-                                                        │
-人工录入宏源码 ────────────────────────────────────────┘
-                                                        ↓
-                                             宏编译器（解析与校验）
-                                                        ↓
-                                                   GridScene
-                                                ↙           ↘
-                                          DOM/CSS 渲染器   SVG 渲染器
-                                                ↓           ↓
-                                          可交互竖式页面
-```
+![VuePress 首页 Mermaid 流程图](./docs/assets/shushi-docs-home-flow.svg)
 
 计算规则不进入渲染器：计算层只负责生成运算过程和语义数据，宏编译器负责把公开宏命令转换为 `GridScene`，渲染器只消费这一份统一场景契约。
 
@@ -80,47 +72,6 @@ document.querySelector('#result')?.append(stage)
 | `@u1in/shushi-core` | 面向 npm 使用者的计算、布局、宏编译、网格和渲染统一入口 |
 
 面向 npm 使用者的公共能力统一从 `@u1in/shushi-core` 导入。`@u1in/shushi-calculators`、`@u1in/shushi-layout` 等领域包仍保留，供需要细粒度依赖边界的场景使用。
-
-## 本地开发
-
-项目要求在 WSL 中使用 fnm 管理的 Node.js 环境：
-
-```bash
-source ~/.zshrc
-npm install
-npm start             # 启动主应用，等同于 npm run dev
-```
-
-常用校验命令：
-
-```bash
-npm run typecheck
-npm run test
-npm run build
-```
-
-在线文档开发：
-
-```bash
-source ~/.zshrc
-npm run docs:dev
-```
-
-启动后可以访问：
-
-- `/`：主应用首页演示，包含宏试验区、AST 检查器和五种运算计算器
-- VuePress 首页：展示快速安装、真实代码示例、计算到渲染的链路和项目分层概览
-- VuePress 文档站：维护宏语言、技术 API 和竖式元素命名图谱文档
-
-## 文档
-
-- [集中式文档源](./packages/docs/README.md)
-- [VuePress 文档站适配层](./packages/docs-site/package.json)
-- [网格架构](./packages/docs/technical/grid/网格架构.md)
-- [宏文档包](./packages/docs/technical/macro/网格宏文档包.md)
-- [在线文档开发说明](./packages/docs/README.md#目录约定)
-
-`packages/docs` 是框架无关的唯一文档源；`packages/docs-site` 只负责 VuePress 配置、主题适配和发布脚本，首页交互组件位于 `packages/docs-site/src/components/DocsHomeExperience.vue`。
 
 ## Bug 反馈与贡献
 

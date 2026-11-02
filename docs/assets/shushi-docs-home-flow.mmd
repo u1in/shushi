@@ -1,0 +1,11 @@
+flowchart LR
+  manual["人工录入<br/>宏源码"] --> compiler["宏编译器<br/>解析与校验"]
+  input["数值输入"] --> calculator["计算器<br/>输出 Computation"]
+  calculator --> layout["宏源码生成层<br/>填写公开宏命令"]
+  layout --> source["计算器自动生成的<br/>宏源码"]
+  source --> compiler
+  compiler --> scene["GridScene<br/>统一场景契约"]
+  scene --> dom["DOM/CSS<br/>渲染器"]
+  scene --> svg["SVG<br/>渲染器"]
+  dom --> page["可交互竖式页面"]
+  svg --> page
