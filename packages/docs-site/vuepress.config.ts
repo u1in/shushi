@@ -199,7 +199,7 @@ export default defineUserConfig({
             { text: 'getGridPositionRect', link: '/technical/api/getGridPositionRect' },
             { text: 'getGridTextAnchor', link: '/technical/api/getGridTextAnchor' },
             { text: 'getMultiplicationStepCount', link: '/technical/api/getMultiplicationStepCount' },
-            { text: 'minifyMacro · 完整宏最简化', link: '/technical/api/minifyMacro' },
+            { text: 'minifyMacro', link: '/technical/api/minifyMacro' },
             { text: 'parseMacro', link: '/technical/api/parseMacro' },
             { text: 'renderDomGrid', link: '/technical/api/renderDomGrid' },
             { text: 'renderSvgGrid', link: '/technical/api/renderSvgGrid' },
