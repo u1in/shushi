@@ -203,6 +203,7 @@ export default defineUserConfig({
             { text: 'parseMacro', link: '/technical/api/parseMacro' },
             { text: 'renderDomGrid', link: '/technical/api/renderDomGrid' },
             { text: 'renderSvgGrid', link: '/technical/api/renderSvgGrid' },
+            { text: 'renderSvgString', link: '/technical/api/renderSvgString' },
             { text: 'resolveGridMetrics', link: '/technical/api/resolveGridMetrics' },
           ],
         },
