@@ -245,7 +245,16 @@ h1 {
 }
 
 .renderer-comparison--interactive .grid-svg .grid-element--selected {
-  filter: drop-shadow(0 0 3px var(--accent)) brightness(0.72);
+  filter: brightness(0.72);
+}
+
+/* SVG 没有 DOM 的 outline，宿主会补充同尺寸的矩形边框；选中态不再使用阴影。 */
+.renderer-comparison--interactive .grid-svg .grid-element--selection-border {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+  stroke: var(--accent);
+  stroke-width: 2px;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 /* DOM/CSS 渲染器也使用相同的 data-grid-element-id 和 selected class；
@@ -260,13 +269,13 @@ h1 {
 
 .renderer-comparison--interactive .division-dom .grid-element--selected {
   z-index: 3;
-  filter: drop-shadow(0 0 3px var(--accent)) brightness(0.72);
-}
-
-.renderer-comparison--interactive .division-dom .grid-text.grid-element--selected {
+  filter: brightness(0.72);
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+.renderer-comparison--interactive .division-dom .grid-text.grid-element--selected {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
@@ -877,6 +886,17 @@ button:disabled {
   align-items: end;
   justify-content: flex-start;
   gap: 18px;
+}
+
+.copy-macro-button {
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.copy-macro-button:focus-visible {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 2px;
 }
 
 h2 {
@@ -1595,6 +1615,10 @@ h2 {
   .result-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .copy-macro-button {
+    margin-left: 0;
   }
 
   .short-division-mode-group {

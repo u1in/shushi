@@ -17,7 +17,7 @@ import ThemeControl from '../components/ThemeControl.vue'
         <ThemeControl />
       </div>
       <h1>竖式运算的可视化工作台</h1>
-      <p class="intro">用于展示加法、减法、乘法、除法和短除法的计算过程与竖式；每种运算均提供可缩放的过程网格。</p>
+      <p class="intro">这是一个可交互的竖式计算与宏语言工作台：支持宏源码编译、AST 图元点击修改、SVG 与 DOM/CSS 双渲染对照、OCR 按行识别，以及加法、减法、乘法、除法和短除法的逐步演示；网格尺寸、步骤和主题均可调整。</p>
     </section>
 
     <MacroPlayground />

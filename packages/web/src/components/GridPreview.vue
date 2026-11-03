@@ -18,6 +18,8 @@ const svgHost = ref<HTMLElement>()
 const domHost = ref<HTMLElement>()
 const metrics = computed(() => resolveGridMetrics(props.scene))
 
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+
 /** 渲染器保持无状态；选中样式由宿主按元素 ID 追加，避免污染 GridScene。 */
 const syncSelectedElement = (): void => {
   for (const host of [svgHost.value, domHost.value]) {
@@ -25,6 +27,24 @@ const syncSelectedElement = (): void => {
       node.classList.toggle('grid-element--selected', node.getAttribute('data-grid-element-id') === props.selectedElementId)
     })
   }
+
+  const svg = svgHost.value?.querySelector('svg')
+  svg?.querySelectorAll('.grid-element--selection-border').forEach((node) => node.remove())
+  if (!svg || !props.selectedElementId) return
+
+  const selectedNode = Array.from(svg.querySelectorAll<SVGGraphicsElement>('[data-grid-element-id]'))
+    .find((node) => node.getAttribute('data-grid-element-id') === props.selectedElementId)
+  if (!selectedNode) return
+
+  const bounds = selectedNode.getBBox()
+  const border = document.createElementNS(SVG_NAMESPACE, 'rect')
+  border.setAttribute('class', 'grid-element--selection-border')
+  border.setAttribute('x', String(bounds.x - 3))
+  border.setAttribute('y', String(bounds.y - 3))
+  border.setAttribute('width', String(bounds.width + 6))
+  border.setAttribute('height', String(bounds.height + 6))
+  border.setAttribute('rx', '4')
+  svg.appendChild(border)
 }
 
 /**

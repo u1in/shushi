@@ -4,6 +4,7 @@ import { computeShortDivision } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createShortDivisionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
+import CopyMacroButton from './CopyMacroButton.vue'
 import type { ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
@@ -132,7 +133,7 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><output class="answer answer--short-division">{{ answer }}</output></div>
+          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><output class="answer answer--short-division">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />

@@ -4,6 +4,7 @@ import { computeSubtraction } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createSubtractionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
+import CopyMacroButton from './CopyMacroButton.vue'
 import type { SubtractionComputation } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
@@ -84,7 +85,7 @@ calculate()
         </div></div>
       </form>
       <section class="result-card" aria-live="polite"><div class="calculation-result">
-        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output></div>
+        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
         <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />

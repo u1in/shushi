@@ -5,13 +5,8 @@ import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 
-/** 示例特意使用完整命令，便于直观看到 AST 修改后仍按当前输入框风格回写源码。 */
-const initialSource = `GRID(
-  ROW(MM(3), MM(5), MM(6)),
-  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),
-  LINE,
-  ROW(MM(6), MM(3), MM(4))
-)`
+/** 示例使用最简宏命令，便于直接演示 AST 修改后仍按当前输入框风格回写源码。 */
+const initialSource = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
 
 const source = ref(initialSource)
 const inspection = ref<MacroAstInspection>(createMacroAstInspection(initialSource))
@@ -63,7 +58,16 @@ const applyText = (): void => {
   }
 }
 
-/** 重置为完整源码，方便重复体验“点击 → 修改 → 回写源码”的链路。 */
+/** 选中文字只允许保留一个 Unicode 字符，避免一次修改跨越多个 AST 文本单元。 */
+const handleEditedTextInput = (event: Event): void => {
+  const input = event.target
+  if (!(input instanceof HTMLInputElement)) return
+  const normalizedText = Array.from(input.value).slice(0, 1).join('')
+  input.value = normalizedText
+  editedText.value = normalizedText
+}
+
+/** 重置为最简源码，方便重复体验“点击 → 修改 → 回写源码”的链路。 */
 const resetInspection = (): void => {
   source.value = initialSource
   inspection.value = createMacroAstInspection(initialSource)
@@ -87,7 +91,7 @@ const resetInspection = (): void => {
         </label>
         <div class="form-actions">
           <button class="primary-button" type="button" @click="compileSource">编译宏</button>
-          <button class="ghost-button" type="button" @click="resetInspection">恢复完整示例</button>
+          <button class="ghost-button" type="button" @click="resetInspection">恢复最简示例</button>
         </div>
         <p class="normalization">提示：在源码框中按 Ctrl + Enter 也可以编译。</p>
         <p class="error-message" role="alert">{{ error }}</p>
@@ -100,7 +104,7 @@ const resetInspection = (): void => {
 
         <label class="macro-source-field">
           <span>所选文字</span>
-          <input v-model="editedText" :disabled="!canEditSelectedText" aria-label="所选 AST 文字" @keyup.enter="applyText" />
+          <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="所选 AST 文字" @input="handleEditedTextInput" @keyup.enter="applyText" />
         </label>
         <div class="form-actions">
           <button class="ghost-button" type="button" :disabled="!canEditSelectedText" @click="applyText">应用单项修改</button>
