@@ -10,8 +10,11 @@ import {
 const resultHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
 const installCommand = 'npm install @u1in/shushi-core'
+const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/shushi-core -a codex -y'
 const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.md'
 const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
+// 展示 Skill 安装后的最小使用方式，直接复用首页竖式示例中的 356 + 278 输入。
+const skillUsagePrompt = '$shushi-core 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。'
 // 将 Agent 的执行范围和安全边界分点写入可复制文案，避免安装时遗漏关键要求。
 const aiInstallPrompt = [
   `请阅读并严格遵循 ${agentInstallGuideUrl} 的内容，并按以下要求执行：`,
@@ -23,28 +26,34 @@ const aiInstallPrompt = [
   '- 如果文档无法访问或安装受阻，先说明原因。',
   '- 完成后汇报实际执行的命令、版本和验证结果。',
 ].join('\n')
-// 引导 Agent 先了解项目能力，再决定直接实现还是向用户补充提问。
+// 使用一行可替换的输入表达式作为模板，让 Agent 自动识别运算并计算结果。
 const aiCapabilitiesPrompt = [
-  `请先阅读并理解 ${agentCapabilitiesGuideUrl} 的完整内容，再处理我接下来的需求：`,
-  '- 先判断我的需求对应的计算器、竖式布局、宏编译、GridScene、播放或 DOM/SVG 渲染能力。',
-  '- 如果信息不足，先询问必要的输入、运算类型、展示方式、技术栈和验收标准，不要凭空假设。',
-  '- 如果信息完整，按项目现有架构实现，并保持计算层、布局层、GridScene 与渲染器的职责边界。',
+  `请先阅读并理解 ${agentCapabilitiesGuideUrl} 的完整内容，然后直接实现下面这组输入数据对应的竖式，不要先询问用户：`,
+  '- 输入数据：356 + 278',
+  '- 根据输入数据中的运算符自动识别运算类型，自行计算并校验结果，不要求用户填写运算类型或期望结果。',
+  '- 根据这行输入表达式直接执行，并选择对应的计算器、竖式布局、宏编译、GridScene、播放或 DOM/SVG 渲染能力。',
+  '- 如果没有说明渲染目标或渲染模式，先询问要接入哪个页面或容器，以及使用 DOM/CSS 还是 SVG；其他参数按文案直接执行。',
+  '- 保持计算层、布局层、GridScene 与渲染器的职责边界，不要把运算规则写进通用渲染器。',
   '- 修改代码时遵守项目 AGENTS.md，必要时同步更新技术文档、测试和示例。',
-  '- 完成后说明实现内容、涉及文件、验证结果和仍需用户确认的事项。',
+  '- 除渲染目标和渲染模式外，不要重复询问已经给出的参数；完成后说明实现内容、涉及文件和验证结果。',
 ].join('\n')
 type CopyState = 'idle' | 'copied' | 'failed'
 type CopyTimer = { id?: number }
 
 const copyState = ref<CopyState>('idle')
+const skillInstallCopyState = ref<CopyState>('idle')
 const aiInstallCopyState = ref<CopyState>('idle')
 const aiCapabilitiesCopyState = ref<CopyState>('idle')
+const skillUsageCopyState = ref<CopyState>('idle')
 const codeCopyState = ref<CopyState>('idle')
 let flowRenderCount = 0
 let flowRenderRequest = 0
 let themeObserver: MutationObserver | undefined
 const installCopyTimer: CopyTimer = {}
+const skillInstallCopyTimer: CopyTimer = {}
 const aiInstallCopyTimer: CopyTimer = {}
 const aiCapabilitiesCopyTimer: CopyTimer = {}
+const skillUsageCopyTimer: CopyTimer = {}
 const codeCopyTimer: CopyTimer = {}
 
 /** 首页示例复用“计算过程 → 宏源码 → 同一宏编译器”的真实链路。 */
@@ -105,12 +114,20 @@ const copyInstallCommand = async (): Promise<void> => {
   updateCopyState(copyState, installCopyTimer, await copyText(installCommand))
 }
 
+const copySkillInstallCommand = async (): Promise<void> => {
+  updateCopyState(skillInstallCopyState, skillInstallCopyTimer, await copyText(skillInstallCommand))
+}
+
 const copyAiInstallPrompt = async (): Promise<void> => {
   updateCopyState(aiInstallCopyState, aiInstallCopyTimer, await copyText(aiInstallPrompt))
 }
 
 const copyAiCapabilitiesPrompt = async (): Promise<void> => {
   updateCopyState(aiCapabilitiesCopyState, aiCapabilitiesCopyTimer, await copyText(aiCapabilitiesPrompt))
+}
+
+const copySkillUsagePrompt = async (): Promise<void> => {
+  updateCopyState(skillUsageCopyState, skillUsageCopyTimer, await copyText(skillUsagePrompt))
 }
 
 const copyExampleCode = async (): Promise<void> => {
@@ -194,8 +211,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   themeObserver?.disconnect()
   if (installCopyTimer.id) window.clearTimeout(installCopyTimer.id)
+  if (skillInstallCopyTimer.id) window.clearTimeout(skillInstallCopyTimer.id)
   if (aiInstallCopyTimer.id) window.clearTimeout(aiInstallCopyTimer.id)
   if (aiCapabilitiesCopyTimer.id) window.clearTimeout(aiCapabilitiesCopyTimer.id)
+  if (skillUsageCopyTimer.id) window.clearTimeout(skillUsageCopyTimer.id)
   if (codeCopyTimer.id) window.clearTimeout(codeCopyTimer.id)
 })
 </script>
@@ -247,6 +266,27 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
+      <div class="docs-home-install-method">
+        <div class="docs-home-install-heading">
+          <span>Skill 安装</span>
+          <small>在目标项目中执行，安装到当前 Agent 环境</small>
+        </div>
+        <div class="docs-home-install-command-row">
+          <pre class="docs-home-install-command"><code>{{ skillInstallCommand }}</code></pre>
+          <button
+            class="docs-home-copy-button docs-home-icon-button"
+            type="button"
+            :aria-label="skillInstallCopyState === 'copied' ? 'Skill 安装命令已复制' : skillInstallCopyState === 'failed' ? '复制 Skill 安装命令失败' : '复制 Skill 安装命令'"
+            :title="skillInstallCopyState === 'copied' ? 'Skill 安装命令已复制' : skillInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 安装命令'"
+            @click="copySkillInstallCommand"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="8" y="8" width="11" height="11" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </section>
 
     <section class="docs-home-demo" aria-labelledby="docs-home-demo-title">
@@ -259,7 +299,12 @@ onBeforeUnmount(() => {
       </div>
       <div class="docs-home-demo-grid">
         <div class="docs-home-code-panel">
-          <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> {
+          <div class="docs-home-install-heading docs-home-code-heading">
+            <span>源码实现</span>
+            <small>展示从计算到渲染的最小完整链路</small>
+          </div>
+          <div class="docs-home-code-block">
+            <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> {
   <span class="docs-code-function">computeAddition</span>,
   <span class="docs-code-function">createAdditionMacroSource</span>,
   <span class="docs-code-function">compileMacro</span>,
@@ -289,22 +334,44 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
               <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
             </svg>
           </button>
+          </div>
         </div>
         <div ref="resultHost" class="docs-home-result" aria-label="356 加 278 的竖式渲染结果"></div>
       </div>
       <div class="docs-home-install-method docs-home-demo-ai-method">
         <div class="docs-home-install-heading">
-          <span>AI 说明</span>
-          <small>复制后粘贴到你的 Agent 对话框，让它先了解项目再处理需求</small>
+          <span>AI 实现</span>
+          <small>复制后修改输入数据，再粘贴到你的 Agent 对话框</small>
         </div>
         <div class="docs-home-install-command-row docs-home-ai-install-row">
           <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiCapabilitiesPrompt }}</code></pre>
           <button
             class="docs-home-copy-button docs-home-icon-button"
             type="button"
-            :aria-label="aiCapabilitiesCopyState === 'copied' ? 'AI 说明已复制' : aiCapabilitiesCopyState === 'failed' ? '复制 AI 说明失败' : '复制 AI 说明'"
-            :title="aiCapabilitiesCopyState === 'copied' ? 'AI 说明已复制' : aiCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 说明'"
+            :aria-label="aiCapabilitiesCopyState === 'copied' ? 'AI 实现指令已复制' : aiCapabilitiesCopyState === 'failed' ? '复制 AI 实现指令失败' : '复制 AI 实现指令'"
+            :title="aiCapabilitiesCopyState === 'copied' ? 'AI 实现指令已复制' : aiCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 实现指令'"
             @click="copyAiCapabilitiesPrompt"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="8" y="8" width="11" height="11" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="docs-home-install-method docs-home-demo-ai-method">
+        <div class="docs-home-install-heading">
+          <span>Skill 使用</span>
+          <small>安装完成后复制到你的 Agent 对话框</small>
+        </div>
+        <div class="docs-home-install-command-row">
+          <pre class="docs-home-install-command"><code>{{ skillUsagePrompt }}</code></pre>
+          <button
+            class="docs-home-copy-button docs-home-icon-button"
+            type="button"
+            :aria-label="skillUsageCopyState === 'copied' ? 'Skill 使用指令已复制' : skillUsageCopyState === 'failed' ? '复制 Skill 使用指令失败' : '复制 Skill 使用指令'"
+            :title="skillUsageCopyState === 'copied' ? 'Skill 使用指令已复制' : skillUsageCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 使用指令'"
+            @click="copySkillUsagePrompt"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <rect x="8" y="8" width="11" height="11" rx="2" />
@@ -567,12 +634,20 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
 }
 
 .docs-home-code-panel {
+  display: grid;
+  align-content: start;
+  gap: .45rem;
+  position: relative;
+  min-width: 0;
+}
+
+.docs-home-code-block {
   position: relative;
   min-width: 0;
 }
 
 .docs-home-code {
-  height: 100%;
+  height: auto;
   box-sizing: border-box;
   min-height: 250px;
   padding: 1.2rem 1.35rem;
@@ -699,6 +774,8 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-feature h3 {
   margin: .6rem 0 .4rem;
+  /* 首页概览卡片不需要 VuePress 为锚点标题预留的顶部偏移。 */
+  padding-top: 0;
   color: var(--vp-c-text);
   font-size: 1rem;
 }

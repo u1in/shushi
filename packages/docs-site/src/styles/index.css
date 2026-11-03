@@ -206,6 +206,11 @@ html[data-theme='dark'] .vp-home [vp-content] code {
   background: #1c3156;
 }
 
+/* 首页深色代码面板只保留面板背景，避免全局正文 code 样式给每行文字加底色。 */
+html[data-theme='dark'] .vp-home [vp-content] :is(.docs-home-code, .docs-home-install-command) code {
+  background: transparent;
+}
+
 /* VuePress 中的宏目录复用 macro-docs 组件；这里补齐暗色表面，避免白色卡片穿透。 */
 html[data-theme='dark'] .docs-macro-page {
   border-top-color: #2a3a55;
