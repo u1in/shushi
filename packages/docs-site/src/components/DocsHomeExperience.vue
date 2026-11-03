@@ -10,15 +10,41 @@ import {
 const resultHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
 const installCommand = 'npm install @u1in/shushi-core'
+const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.md'
+const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
+// 将 Agent 的执行范围和安全边界分点写入可复制文案，避免安装时遗漏关键要求。
+const aiInstallPrompt = [
+  `请阅读并严格遵循 ${agentInstallGuideUrl} 的内容，并按以下要求执行：`,
+  '- 在当前项目根目录操作。',
+  '- 使用项目现有的包管理器安装并验证 @u1in/shushi-core。',
+  '- 保留现有依赖、配置和锁文件改动。',
+  '- 不要擅自安装或切换 Node.js、registry 或包管理器。',
+  '- 不要覆盖或回滚用户文件。',
+  '- 如果文档无法访问或安装受阻，先说明原因。',
+  '- 完成后汇报实际执行的命令、版本和验证结果。',
+].join('\n')
+// 引导 Agent 先了解项目能力，再决定直接实现还是向用户补充提问。
+const aiCapabilitiesPrompt = [
+  `请先阅读并理解 ${agentCapabilitiesGuideUrl} 的完整内容，再处理我接下来的需求：`,
+  '- 先判断我的需求对应的计算器、竖式布局、宏编译、GridScene、播放或 DOM/SVG 渲染能力。',
+  '- 如果信息不足，先询问必要的输入、运算类型、展示方式、技术栈和验收标准，不要凭空假设。',
+  '- 如果信息完整，按项目现有架构实现，并保持计算层、布局层、GridScene 与渲染器的职责边界。',
+  '- 修改代码时遵守项目 AGENTS.md，必要时同步更新技术文档、测试和示例。',
+  '- 完成后说明实现内容、涉及文件、验证结果和仍需用户确认的事项。',
+].join('\n')
 type CopyState = 'idle' | 'copied' | 'failed'
 type CopyTimer = { id?: number }
 
 const copyState = ref<CopyState>('idle')
+const aiInstallCopyState = ref<CopyState>('idle')
+const aiCapabilitiesCopyState = ref<CopyState>('idle')
 const codeCopyState = ref<CopyState>('idle')
 let flowRenderCount = 0
 let flowRenderRequest = 0
 let themeObserver: MutationObserver | undefined
 const installCopyTimer: CopyTimer = {}
+const aiInstallCopyTimer: CopyTimer = {}
+const aiCapabilitiesCopyTimer: CopyTimer = {}
 const codeCopyTimer: CopyTimer = {}
 
 /** 首页示例复用“计算过程 → 宏源码 → 同一宏编译器”的真实链路。 */
@@ -77,6 +103,14 @@ const updateCopyState = (state: { value: CopyState }, timer: CopyTimer, copied: 
 
 const copyInstallCommand = async (): Promise<void> => {
   updateCopyState(copyState, installCopyTimer, await copyText(installCommand))
+}
+
+const copyAiInstallPrompt = async (): Promise<void> => {
+  updateCopyState(aiInstallCopyState, aiInstallCopyTimer, await copyText(aiInstallPrompt))
+}
+
+const copyAiCapabilitiesPrompt = async (): Promise<void> => {
+  updateCopyState(aiCapabilitiesCopyState, aiCapabilitiesCopyTimer, await copyText(aiCapabilitiesPrompt))
 }
 
 const copyExampleCode = async (): Promise<void> => {
@@ -160,6 +194,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   themeObserver?.disconnect()
   if (installCopyTimer.id) window.clearTimeout(installCopyTimer.id)
+  if (aiInstallCopyTimer.id) window.clearTimeout(aiInstallCopyTimer.id)
+  if (aiCapabilitiesCopyTimer.id) window.clearTimeout(aiCapabilitiesCopyTimer.id)
   if (codeCopyTimer.id) window.clearTimeout(codeCopyTimer.id)
 })
 </script>
@@ -169,20 +205,47 @@ onBeforeUnmount(() => {
     <section class="docs-home-install" aria-labelledby="docs-home-install-title">
       <p class="docs-home-eyebrow">QUICK START</p>
       <h2 id="docs-home-install-title">先安装，再把竖式过程接入你的页面</h2>
-      <div class="docs-home-install-command-row">
-        <pre class="docs-home-install-command"><code>{{ installCommand }}</code></pre>
-        <button
-          class="docs-home-copy-button docs-home-icon-button"
-          type="button"
-          :aria-label="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制安装命令失败' : '复制安装命令'"
-          :title="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制失败，请重试' : '复制安装命令'"
-          @click="copyInstallCommand"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="8" y="8" width="11" height="11" rx="2" />
-            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-          </svg>
-        </button>
+      <div class="docs-home-install-method">
+        <div class="docs-home-install-heading">
+          <span>npm 安装</span>
+          <small>在终端执行命令，安装 @u1in/shushi-core</small>
+        </div>
+        <div class="docs-home-install-command-row">
+          <pre class="docs-home-install-command"><code>{{ installCommand }}</code></pre>
+          <button
+            class="docs-home-copy-button docs-home-icon-button"
+            type="button"
+            :aria-label="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制安装命令失败' : '复制安装命令'"
+            :title="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制失败，请重试' : '复制安装命令'"
+            @click="copyInstallCommand"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="8" y="8" width="11" height="11" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="docs-home-install-method">
+        <div class="docs-home-install-heading">
+          <span>AI 安装</span>
+          <small>复制后粘贴到你的 Agent 对话框</small>
+        </div>
+        <div class="docs-home-install-command-row docs-home-ai-install-row">
+          <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiInstallPrompt }}</code></pre>
+          <button
+            class="docs-home-copy-button docs-home-icon-button"
+            type="button"
+            :aria-label="aiInstallCopyState === 'copied' ? 'AI 安装指令已复制' : aiInstallCopyState === 'failed' ? '复制 AI 安装指令失败' : '复制 AI 安装指令'"
+            :title="aiInstallCopyState === 'copied' ? 'AI 安装指令已复制' : aiInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 安装指令'"
+            @click="copyAiInstallPrompt"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="8" y="8" width="11" height="11" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -228,6 +291,27 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
           </button>
         </div>
         <div ref="resultHost" class="docs-home-result" aria-label="356 加 278 的竖式渲染结果"></div>
+      </div>
+      <div class="docs-home-install-method docs-home-demo-ai-method">
+        <div class="docs-home-install-heading">
+          <span>AI 说明</span>
+          <small>复制后粘贴到你的 Agent 对话框，让它先了解项目再处理需求</small>
+        </div>
+        <div class="docs-home-install-command-row docs-home-ai-install-row">
+          <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiCapabilitiesPrompt }}</code></pre>
+          <button
+            class="docs-home-copy-button docs-home-icon-button"
+            type="button"
+            :aria-label="aiCapabilitiesCopyState === 'copied' ? 'AI 说明已复制' : aiCapabilitiesCopyState === 'failed' ? '复制 AI 说明失败' : '复制 AI 说明'"
+            :title="aiCapabilitiesCopyState === 'copied' ? 'AI 说明已复制' : aiCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 说明'"
+            @click="copyAiCapabilitiesPrompt"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="8" y="8" width="11" height="11" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -293,6 +377,32 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
   text-align: left;
 }
 
+.docs-home-install-method {
+  display: grid;
+  gap: .45rem;
+  width: min(100%, 72rem);
+  margin-top: .35rem;
+}
+
+.docs-home-demo-ai-method {
+  margin-top: 1rem;
+}
+
+.docs-home-install-heading {
+  display: flex;
+  align-items: baseline;
+  gap: .65rem;
+  color: var(--vp-c-text);
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.docs-home-install-heading small {
+  color: var(--vp-c-text-mute);
+  font-size: .76rem;
+  font-weight: 500;
+}
+
 .docs-home-eyebrow {
   margin: 0;
   color: var(--vp-c-accent);
@@ -351,6 +461,31 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
   padding: .7rem 1rem;
   font-size: .82rem;
   white-space: pre;
+}
+
+.docs-home-ai-install-row {
+  position: relative;
+  width: 100%;
+}
+
+.docs-home-ai-install-row .docs-home-install-command {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding-right: 4.25rem;
+}
+
+.docs-home-ai-install-row .docs-home-icon-button {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  z-index: 1;
+}
+
+.docs-home-ai-install-prompt {
+  flex: 1 1 auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .docs-home-copy-button {
@@ -584,6 +719,7 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 @media (max-width: 520px) {
   .docs-home-experience { gap: 3.5rem; }
   .docs-home-install-command-row { align-items: stretch; }
+  .docs-home-install-heading { align-items: start; flex-direction: column; gap: .2rem; }
   .docs-home-copy-button { padding: 0; }
   .docs-home-feature-grid { grid-template-columns: 1fr; }
   .docs-home-mermaid svg { min-width: 620px; }
