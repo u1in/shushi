@@ -123,6 +123,12 @@
 - 根目录 `README.md` 与 `packages/core/README.md` 是两份需要手动保持一致的项目/npm 包说明；构建脚本不会自动复制 README。修改根目录 README 的通用安装、Skill、API 或使用说明时，必须同步修改 `packages/core/README.md`，并在同一提交中提交。
 - 修改 `skills/u1in-shushi/` 的名称、调用方式或安装路径时，同步更新两个 README、文档站首页中的安装/调用示例以及 Skill 自身的 frontmatter；npm 包名 `@u1in/shushi-core` 与 Skill 名 `u1in-shushi` 不要混淆。
 
+### 公开 API 文档页面格式
+
+- `packages/docs/src/macro/` 中的公开 API 页面统一按五段顺序编写：`名称` → `例子` → `作用` → `函数签名和属性说明` → `注意事项`；不要为单个 API 另起不一致的章节顺序，补充说明应合并到这五段中。
+- API 页面中的代码块必须显式声明高亮语言（通常为 `typescript` 或 `css`），保持规范缩进和可复制格式；示例应携带解释环境、关键步骤、返回值或边界条件所必需的中文注释，不添加显而易见的逐行注释。
+- 新增 API 页面时同步更新 `packages/docs/technical/api/` 页面入口、`packages/docs-site/vuepress.config.ts` 导航、`packages/docs-site/src/components/MacroDocCatalog.vue` 路由映射和宏文档章节顺序测试；文档源仍以 `packages/docs/` 为事实来源。
+
 ## 代码与内容规范
 
 - 新写的 JavaScript/TypeScript 函数默认使用箭头函数；只有需要独立 `this` 绑定时才使用普通函数。

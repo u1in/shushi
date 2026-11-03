@@ -97,11 +97,11 @@ computeDivision(divisorValue, dividendValue, options?)
 
 ### SSR 报 `document is not defined`
 
-`renderDomGrid` 需要浏览器 DOM。把调用延迟到客户端生命周期；服务端只执行计算、宏转换、`compileMacro`、几何/文本查询，或在明确具备 DOM 的环境中调用渲染器。
+`renderDomGrid` 和 `renderSvgGrid` 需要浏览器 DOM。把它们延迟到客户端生命周期；服务端只执行计算、宏转换、`compileMacro`、几何/文本查询，或使用不依赖 DOM 的 `renderSvgString` 输出 SVG 字符串。
 
 ### DOM 与 SVG 结果不一致
 
-确认两个渲染器消费的是同一个 `GridScene`。不要为不同渲染器复制运算或坐标算法；需要几何信息时使用 `resolveGridMetrics`、`getGridElementRect` 和 `getGridTextAnchor`。
+确认三个渲染入口消费的是同一个 `GridScene`，且 SVG DOM 与 SVG 字符串使用同一棵无 DOM SVG 渲染树。不要为不同渲染器复制运算或坐标算法；需要几何信息时使用 `resolveGridMetrics`、`getGridElementRect` 和 `getGridTextAnchor`。
 
 ### 教学播放少一步或多一步
 

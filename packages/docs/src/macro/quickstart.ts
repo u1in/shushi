@@ -1,13 +1,13 @@
 import type { MacroDocPage } from './types'
 
-/** 技术文档第二页：用最短链路跑通编译、两种渲染和文本行提取。 */
+/** 技术文档第二页：用最短链路跑通编译、三种渲染输出和文本行提取。 */
 export const quickStartPage: MacroDocPage = {
   slug: 'quickstart',
   title: '快速使用',
   navLabel: '快速使用',
   kicker: 'GETTING STARTED · QUICKSTART',
   group: 'technical',
-  summary: '从统一入口完成宏源码到 SVG/DOM，并提取可直接比对的可见文本行。',
+  summary: '从统一入口完成宏源码到 SVG 字符串、SVG/DOM，并提取可直接比对的可见文本行。',
   sections: [
     {
       id: 'compile',
@@ -29,7 +29,28 @@ const scene = compileMacro(source)`,
           type: 'example',
           title: '这份宏源码渲染出来的画面',
           code: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;\nLN;\n6,3,4;',
-          note: '同一份 `GridScene` 可以交给 SVG 或 DOM 渲染器；两个渲染器只负责画，不解释加法规则。',
+          note: '同一份 `GridScene` 可以交给 SVG 字符串、SVG 或 DOM 渲染器；它们只负责画，不解释加法规则。',
+        },
+      ],
+    },
+    {
+      id: 'ssr-svg',
+      title: '在 SSR 中生成 SVG 字符串',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: '`renderSvgString(scene)` 不创建 DOM，适合 Node.js、SSR 和构建脚本；它与浏览器版 `renderSvgGrid(scene)` 共用无 DOM SVG 渲染树，因此同一份 `GridScene` 的结构、坐标和图元顺序一致。返回值可以直接写入 HTTP 响应或 SVG 文件，但不承诺与浏览器重新序列化后的字符串逐字节相同。',
+        },
+        {
+          type: 'code',
+          title: 'TypeScript',
+          code: `import { compileMacro, renderSvgString } from '@u1in/shushi-core'
+
+const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
+const svg = renderSvgString(scene)
+
+// 若 HTML 宿主要使用公共字体、颜色和线宽，请加载：
+// import '@u1in/shushi-core/style.css'`,
         },
       ],
     },
@@ -110,7 +131,7 @@ console.log(rows)
           type: 'cards',
           items: [
             { title: '宏编译 API', text: 'compileMacro、parseMacro、minifyMacro 与 createMacroAstInspection。', to: '/macro-api/compileMacro' },
-            { title: '渲染 API', text: '两个渲染器的返回值、DOM 结构与样式职责。', to: '/macro-api/renderSvgGrid' },
+            { title: '渲染 API', text: 'SVG 字符串、SVG 节点和 DOM 舞台的返回值与样式职责。', to: '/macro-api/renderSvgGrid' },
             { title: '网格和文本 API', text: 'GridScene、extractVisibleTextRows 与 resolveGridMetrics。', to: '/macro-api/GridScene' },
           ],
         },

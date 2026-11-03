@@ -15,7 +15,7 @@
 
 ## 安装
 
-一般应用只需要安装统一入口 `@u1in/shushi-core`。它同时提供计算器、竖式布局、宏解析与编译、网格工具以及 DOM/SVG 渲染器，并自带 TypeScript 类型声明。
+一般应用只需要安装统一入口 `@u1in/shushi-core`。它同时提供计算器、竖式布局、宏解析与编译、网格工具以及 DOM/SVG/SVG 字符串渲染器，并自带 TypeScript 类型声明。
 
 ### npm 安装
 
@@ -112,7 +112,7 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 | 需求 | 推荐链路 |
 | --- | --- |
 | 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision` 或 `computeShortDivision` |
-| 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` |
+| 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
 | 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |
 | 逐步展示计算过程 | 使用布局 API 的 `visibleStepCount`，每次生成新的宏源码和 `GridScene` |
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
@@ -163,7 +163,7 @@ flowchart LR
 ## 浏览器、SSR 与 CSS
 
 - `compute*`、`create*MacroSource`、`parseMacro`、`compileMacro`、`extractVisibleTextRows` 等纯数据 API 可在 Node.js 或 SSR 中使用。
-- `renderDomGrid` 和 `renderSvgGrid` 应在浏览器环境中调用；不要在 Node.js 初始化阶段直接调用依赖 DOM 的渲染 API。
+- `renderDomGrid` 和 `renderSvgGrid` 应在浏览器环境中调用；SSR 或 Node.js 脚本请使用不依赖 DOM 的 `renderSvgString`。
 - 浏览器入口请导入 `@u1in/shushi-core/style.css`。它提供网格图元的定位、字体、线条、辅助网格和语义 token 默认样式。
 - DOM 和 SVG 都消费同一个 `GridScene`，不要在渲染器中重新判断进位、借位、部分积、商或余数。
 
@@ -186,6 +186,19 @@ const svgStage = renderSvgGrid(scene)
 ```
 
 DOM 适合交互页面、元素回查和播放控制；SVG 适合导出、截图和缩放展示。
+
+### SSR 输出 SVG 字符串
+
+`renderSvgString` 不创建 DOM，适合在 Node.js、SSR 和构建脚本中直接生成 SVG 字符串：
+
+```ts
+import { compileMacro, renderSvgString } from '@u1in/shushi-core'
+
+const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
+const svg = renderSvgString(scene)
+```
+
+`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。这里保证的是 SVG 语义和视觉结构一致，不保证浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；最终宿主还应加载同一份 `@u1in/shushi-core/style.css`。
 
 ### 获取视觉文本行
 

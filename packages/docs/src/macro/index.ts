@@ -67,7 +67,7 @@ export const macroDocNavGroups: MacroDocNavGroup[] = macroDocGroups.map((group) 
 
 const apiAreaMeta: Record<ApiAreaId, Omit<MacroDocApiNavGroup, 'pages'>> = {
   compile: { id: 'compile', title: '宏编译 API', description: '从源码解析、编译到格式化和压缩。' },
-  render: { id: 'render', title: '渲染 API', description: '将 GridScene 输出为 SVG 或 DOM/CSS 节点。' },
+  render: { id: 'render', title: '渲染 API', description: '将 GridScene 输出为 SVG 字符串、SVG 或 DOM/CSS 节点。' },
   grid: { id: 'grid', title: '网格和文本 API', description: '描述场景、解析几何尺寸并提取视觉文本行。' },
   layout: { id: 'layout', title: '布局 API', description: '把计算过程转换为宏源码或 GridScene。' },
   calculator: { id: 'calculator', title: '计算 API', description: '输出与布局无关的逐步计算结果。' },

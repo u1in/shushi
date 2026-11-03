@@ -477,5 +477,5 @@ parseMacro 适合从源码取得 AST；compileMacroAst 适合在已有 MacroCall
 - AST 编辑器：使用 createMacroAstInspection，不要从字符串偏移量自行猜图元位置。
 - 只需要场景：使用 create*GridScene；需要源码可编辑性时改用 create*MacroSource。
 - 只需要几何：使用 resolveGridMetrics 和 getGrid*，不要读取渲染器私有 DOM/CSS 坐标。
-- 只需要 SVG：使用 renderSvgGrid；只需要浏览器交互：使用 renderDomGrid 并导入 CSS。
+- 浏览器中需要 SVG 节点：使用 renderSvgGrid；Node.js/SSR 需要 SVG 字符串：使用 renderSvgString；只需要浏览器交互：使用 renderDomGrid 并导入 CSS。
 

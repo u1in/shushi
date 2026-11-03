@@ -15,7 +15,7 @@ export const gridScenePage = gridPage({
         code: `import { compileMacro } from '@u1in/shushi-core'
 import type { GridScene } from '@u1in/shushi-core'
 
-// 编译结果就是两个渲染器共用的场景契约。
+// 编译结果就是三个渲染入口共用的场景契约。
 const scene: GridScene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 
 console.log(scene.columns.length, scene.rows.length)`,
@@ -56,7 +56,7 @@ console.log(scene.columns.length, scene.rows.length)`,
 export const resolveGridMetricsPage = gridPage({
   slug: 'resolveGridMetrics', title: 'resolveGridMetrics', navLabel: 'resolveGridMetrics',
   kicker: 'API · GRID AND TEXT', group: 'api',
-  summary: '把 GridScene 的轨道和留白解析为两个渲染器共用的像素尺寸。',
+  summary: '把 GridScene 的轨道和留白解析为三个渲染入口共用的像素尺寸。',
   sections: [
     { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`resolveGridMetrics`：网格轨道到实际尺寸的几何解析函数。' }] },
     {
@@ -220,7 +220,7 @@ const rows: string[] = extractVisibleTextRows(scene)
         type: 'callout',
         tone: 'info',
         title: '纯数据 API 不需要 CSS',
-        text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；只有调用 `renderDomGrid` / `renderSvgGrid` 生成画面时，才需要额外导入 `@u1in/shushi-core/style.css`。',
+        text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；`renderSvgString` 同样不需要浏览器 DOM。只有调用 `renderDomGrid` / `renderSvgGrid` 生成浏览器节点时，才需要额外导入 `@u1in/shushi-core/style.css`。',
       }],
     },
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它只读取 `GridScene`，不识别加法进位、减法借位或除法商位等运算语义。共享锚点规则会让正文、边中点注记和小数点按最终视觉位置归并，适合与 OCR 结果或快照测试比较。' }] },

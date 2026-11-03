@@ -16,7 +16,7 @@ import {
  */
 const requiredSlugs = [
   'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
-  'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
+  'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
   'getGridTextAnchor', 'extractVisibleTextRows',
   'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
   'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
@@ -108,7 +108,7 @@ describe('网格宏文档', () => {
     expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
     expect(pagesOf('api')).toEqual([
       'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
-      'renderSvgGrid', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
+      'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
       'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
       'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
       'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
@@ -118,7 +118,7 @@ describe('网格宏文档', () => {
     ])
     expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
       ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection']],
-      ['渲染 API', ['renderSvgGrid', 'renderDomGrid']],
+      ['渲染 API', ['renderSvgGrid', 'renderSvgString', 'renderDomGrid']],
       ['网格和文本 API', [
         'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
         'extractVisibleTextRows',

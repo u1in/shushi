@@ -13,7 +13,7 @@
 | 要点击图元修改文字 | `createMacroAstInspection` + `references` + `updateElementText` |
 | 要计算网格位置或尺寸 | `resolveGridMetrics` + `getGrid*Rect` / `getGridTextAnchor` |
 | 要提取无障碍或测试文本 | `extractVisibleTextRows` |
-| 要服务端生成数据或 SVG | 不调用 `renderDomGrid`；使用纯数据 API、`compileMacro` 或 `renderSvgGrid` |
+| 要服务端生成数据或 SVG | 不调用 `renderDomGrid` / `renderSvgGrid`；使用纯数据 API、`compileMacro` 或 `renderSvgString` |
 
 ## 2. 标准数值竖式流程
 
@@ -22,7 +22,7 @@
 3. 对布局设置显式填写尺寸和教学选项，不要把运算专属判断写进渲染器。
 4. 用 `compileMacro(source)` 得到 `GridScene`。
 5. 浏览器中导入 `@u1in/shushi-core/style.css`，再调用 `renderDomGrid(scene)`；需要矢量输出时调用 `renderSvgGrid(scene)`。
-6. 如果需要当前视觉文本，调用 `extractVisibleTextRows(scene)`，不要从 DOM 的偶然结构拼接文本。
+6. 如果需要服务端 SVG 字符串，调用 `renderSvgString(scene)`；如果需要当前视觉文本，调用 `extractVisibleTextRows(scene)`，不要从 DOM 的偶然结构拼接文本。
 
 ```ts
 const computation = computeSubtraction('502', '137')
@@ -109,7 +109,7 @@ DOM/SVG 渲染结果中的 `data-grid-element-id` 可以作为交互入口；`re
 
 ## 7. 服务端、浏览器与 CSS 边界
 
-服务端可以执行计算器、宏解析/格式化/编译、几何计算和文本提取。`renderDomGrid` 依赖浏览器 DOM，必须放在浏览器生命周期或带 DOM 的测试环境中。`renderSvgGrid` 返回 SVG 元素，同样应在支持 DOM 的环境中调用；若只需要数据，不需要渲染。
+服务端可以执行计算器、宏解析/格式化/编译、几何计算、文本提取和 `renderSvgString`。`renderSvgGrid` 与 `renderSvgString` 共享无 DOM SVG 渲染树，因此同一份 `GridScene` 的结构、坐标和图元顺序一致；但不承诺浏览器重新序列化后的字符串与 SSR 输出逐字节相同。`renderDomGrid` 与 `renderSvgGrid` 依赖浏览器 DOM，必须放在浏览器生命周期或带 DOM 的测试环境中调用。
 
 浏览器渲染时：
 

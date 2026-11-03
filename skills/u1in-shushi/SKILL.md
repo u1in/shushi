@@ -1,11 +1,11 @@
 ---
 name: u1in-shushi
-description: Use when an agent needs to install or use @u1in/shushi-core for vertical arithmetic calculation, teaching layouts, editable macro source, GridScene inspection, playback, DOM rendering, or SVG rendering.
+description: Use when an agent needs to install or use @u1in/shushi-core for vertical arithmetic calculation, teaching layouts, editable macro source, GridScene inspection, playback, DOM rendering, SVG rendering, or SSR SVG string output.
 ---
 
 # `u1in-shushi` Skill
 
-这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成竖式运算、教学步骤展示、可编辑宏源码、网格分析以及 DOM/SVG 渲染任务。
+这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成竖式运算、教学步骤展示、可编辑宏源码、网格分析、DOM/SVG 渲染以及 SSR SVG 字符串输出任务。
 
 ## 使用资料
 
@@ -57,13 +57,13 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
 3. 标准数值流程是：
 
    ```text
-   compute* → create*MacroSource → compileMacro → renderDomGrid/renderSvgGrid
+   compute* → create*MacroSource → compileMacro → renderDomGrid/renderSvgGrid/renderSvgString
    ```
 
 4. 计算器只负责运算过程和语义数据；布局器把计算结果转换成宏源码；宏编译器生成 `GridScene`；渲染器只消费 `GridScene`。
 5. 用户给出或需要编辑宏源码时，使用 `parseMacro`、`formatMacro`、`completeMacro`、`minifyMacro`、`createMacroAstInspection` 和 `compileMacro`，不要重新实现运算。
 6. 浏览器渲染需要导入 `@u1in/shushi-core/style.css`；纯计算、宏处理、几何查询和文本提取不需要 CSS。
-7. `renderDomGrid` 需要浏览器 DOM；Node.js/SSR 场景使用纯数据 API、`compileMacro`、`renderSvgGrid` 或延迟到浏览器渲染。
+7. `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM；Node.js/SSR 场景使用纯数据 API、`compileMacro`、`renderSvgString` 或延迟到浏览器渲染。
 8. `computeDivision` 的参数顺序是 `divisorValue, dividendValue`，即除数在前、被除数在后。
 9. `createMacroAstInspection` 是不可变 API：`updateElementText` 返回新的检查结果，不修改旧对象；更新后必须用新结果的 `scene` 重新渲染。
 
@@ -219,6 +219,7 @@ getGridTextAnchor(
 extractVisibleTextRows(scene: GridScene): string[]
 renderDomGrid(scene: GridScene): HTMLElement
 renderSvgGrid(scene: GridScene): SVGSVGElement
+renderSvgString(scene: GridScene): string
 ```
 
 - `resolveGridMetrics` 把轨道和场景尺寸解析为可用于布局的几何数据。
@@ -227,6 +228,7 @@ renderSvgGrid(scene: GridScene): SVGSVGElement
 - `extractVisibleTextRows` 返回按视觉行拼接的非空文本。
 - `renderDomGrid` 返回带线条层和内容层的 HTMLElement。
 - `renderSvgGrid` 返回带 `viewBox` 和图元的 SVGSVGElement。
+- `renderSvgString` 返回不依赖 DOM 的完整 SVG 字符串，适合 Node.js、SSR 和导出脚本。
 
 ## 4. 常用组合
 
@@ -306,7 +308,7 @@ if (reference?.literalPath) {
 - npm 404：先检查 `npm view @u1in/shushi-core dist-tags.latest`，确认 registry 和包名；不要擅自切换 registry。
 - 找不到导出：确认从 `@u1in/shushi-core` 导入，且没有使用包内部路径；再次对照 API 清单。
 - 浏览器没有样式：导入 `@u1in/shushi-core/style.css`，并确认构建工具允许 CSS 包导出。
-- Node/SSR 报 `document is not defined`：不要调用 `renderDomGrid`，把它延迟到浏览器端；纯数据 API 可以继续在服务端使用。
+- Node/SSR 报 `document is not defined`：不要调用 `renderDomGrid` 或 `renderSvgGrid`，把它们延迟到浏览器端；需要服务端 SVG 时使用 `renderSvgString`。
 - 除法结果颠倒：确认调用顺序是 `computeDivision(divisor, dividend)`。
 - 大数结果不准确：不要把输入先转换成 `number`，使用字符串。
 - 播放末尾少步骤：使用 `getMultiplicationStepCount` 或 `getDivisionPlaybackStepCount`，不要按数组长度计算。

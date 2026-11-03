@@ -34,7 +34,7 @@ const pageRoutes: Record<string, string> = {
   compileMacro: '/technical/api/compileMacro', parseMacro: '/technical/api/parseMacro',
   formatMacro: '/technical/api/formatMacro', minifyMacro: '/technical/api/minifyMacro',
   createMacroAstInspection: '/technical/api/createMacroAstInspection',
-  renderSvgGrid: '/technical/api/renderSvgGrid', renderDomGrid: '/technical/api/renderDomGrid',
+  renderSvgGrid: '/technical/api/renderSvgGrid', renderSvgString: '/technical/api/renderSvgString', renderDomGrid: '/technical/api/renderDomGrid',
   GridScene: '/technical/api/GridScene', resolveGridMetrics: '/technical/api/resolveGridMetrics',
   extractVisibleTextRows: '/technical/api/extractVisibleTextRows',
   grid: '/macro/basic/GRID', row: '/macro/basic/ROW', cell: '/macro/basic/CELL', empty: '/macro/basic/EMPTY',

@@ -26,7 +26,7 @@ title: Agent 功能说明
 | 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
 | 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
 | 场景工具 | `resolveGridMetrics`、`extractVisibleTextRows` | 几何数据或视觉文本行 | 测量、OCR 对照、无 DOM 分析 |
-| 渲染 | `renderDomGrid`、`renderSvgGrid` | `HTMLElement` 或 `SVGSVGElement` | 在网页中显示竖式 |
+| 渲染 | `renderDomGrid`、`renderSvgGrid`、`renderSvgString` | `HTMLElement`、`SVGSVGElement` 或 SVG 字符串 | 网页显示、SSR 输出或导出竖式 |
 
 通常不要跳过计算器和布局器，直接在渲染器里拼接运算规则或像素坐标。需要自定义内容时，才直接编写宏源码并交给 `compileMacro`。
 
@@ -211,7 +211,7 @@ interface MacroAstInspection {
 | 字段 | 含义 |
 | --- | --- |
 | `ast` | 宏源码的根 `MacroCall`；节点只有 `call`、`literal`、`symbol` 三种形态 |
-| `scene` | 与该 AST 对应的 `GridScene`；可以直接交给 DOM/SVG 渲染器 |
+| `scene` | 与该 AST 对应的 `GridScene`；可以直接交给 DOM、SVG 或 SVG 字符串渲染器 |
 | `sourceStyle` | 输入源码被识别为 `formatted` 还是 `minified` |
 | `source` | 按 `sourceStyle` 重新输出的源码，可作为编辑器当前文本 |
 | `minifiedSource` | 始终压缩后的合法源码 |
@@ -264,6 +264,7 @@ getGridTextAnchor(
 extractVisibleTextRows(scene: GridScene): string[]
 renderDomGrid(scene: GridScene): HTMLElement
 renderSvgGrid(scene: GridScene): SVGSVGElement
+renderSvgString(scene: GridScene): string
 ```
 
 | API | 参数含义 | 返回值 |
@@ -271,10 +272,11 @@ renderSvgGrid(scene: GridScene): SVGSVGElement
 | `resolveGridMetrics` | 已编译的场景 | 包含 `width`、`height`、`columnOffsets` 和 `rowOffsets` 的解析尺寸 |
 | `getGridPositionRect` | 网格单元、边、边中点或交点及已解析尺寸 | 包含 `left`、`top`、`width`、`height` 的 `GridRect`，不创建 DOM |
 | `getGridElementRect` | 图元和已解析尺寸 | 图元声明位置对应的 `GridRect` |
-| `getGridTextAnchor` | 几何矩形和水平/垂直对齐方式 | 包含 `x`、`y` 及对齐字段的两个渲染器共用文本锚点 |
+| `getGridTextAnchor` | 几何矩形和水平/垂直对齐方式 | 包含 `x`、`y` 及对齐字段的三个渲染入口共用文本锚点 |
 | `extractVisibleTextRows` | 已编译的场景 | 按视觉行拼接的非空文本数组 |
 | `renderDomGrid` | 已编译的场景 | 带线条层和内容层的 `HTMLElement` |
 | `renderSvgGrid` | 已编译的场景 | 带 `viewBox` 和图元的 `SVGSVGElement` |
+| `renderSvgString` | 已编译的场景 | 不依赖 DOM 的完整 SVG 字符串 |
 
 `GridScene` 的关键字段是：`columns`、`rows`（轨道）；`padding`、`unitWidth`、`unitHeight`（几何尺寸）；`fontSize`、默认文本样式和对齐方式；`elements`（文字、线条、圆角图元）；`showGuideGrid`；`ariaLabel`。渲染器只消费这些通用字段，不识别具体运算。
 
@@ -425,7 +427,8 @@ const svgStage = renderSvgGrid(scene)
 
 - DOM 适合交互式页面、元素回查和播放控制。
 - SVG 适合导出、截图、缩放和无 HTML 图层的展示。
-- 两个渲染器消费同一个 `GridScene`，不要为 DOM 和 SVG 分别计算一套布局。
+- 三个渲染入口消费同一个 `GridScene`，不要为 DOM、SVG 节点和 SVG 字符串分别计算一套布局。
+- `renderSvgGrid` 与 `renderSvgString` 还共享无 DOM SVG 渲染树；它们保证结构、坐标、属性和图元顺序一致，但不承诺浏览器重新序列化后的字符串与 SSR 输出逐字节相同。
 
 ### 3.3 教学播放或逐步显示
 
@@ -516,7 +519,7 @@ const scene = compileMacro(source)
 | 要播放计算步骤 | `compute*` → `get*StepCount` → 带 `visibleStepCount` 的 `create*MacroSource` |
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
 | 要做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
-| 要导出或缩放图像 | `compileMacro` → `renderSvgGrid` |
+| 要导出或缩放图像 | 浏览器用 `compileMacro` → `renderSvgGrid`；服务端用 `compileMacro` → `renderSvgString` |
 | 要在网页中交互显示 | `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
 
 ## 6. 输入与边界规则
@@ -527,7 +530,7 @@ const scene = compileMacro(source)
 - 除法的除数不能为 0；短除法的公因数模式至少需要两个正整数。
 - 短除法的质因数分解和公因数模式输入不超过 `1,000,000,000`；进制转换支持任意长度的十进制字符串。
 - 短除法进制转换的 `targetBase` 必须在 2 到 36 之间。
-- `renderDomGrid` 和 `renderSvgGrid` 需要浏览器 DOM；计算、布局、宏解析、编译和文本提取可以在 Node.js 或 SSR 中执行。
+- `renderDomGrid` 和 `renderSvgGrid` 需要浏览器 DOM；`renderSvgString`、计算、布局、宏解析、编译和文本提取可以在 Node.js 或 SSR 中执行。
 - 浏览器渲染入口应导入 `@u1in/shushi-core/style.css`，否则图元的定位、字体和线条默认样式可能不完整。
 - 不要在渲染器中手工判断进位、借位、部分积、商或余数；这些信息必须来自计算结果和布局器生成的语义 token。
 

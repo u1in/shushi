@@ -9,9 +9,9 @@ title: Agent 安装说明
 ## 0. 安装目标
 
 - 运行时入口：`@u1in/shushi-core`
-- 包含计算器、竖式布局、宏编译、网格工具和 DOM/SVG 渲染器。
+- 包含计算器、竖式布局、宏编译、网格工具、DOM/SVG 渲染器和 SSR SVG 字符串渲染器。
 - 计算、布局和宏编译 API 可以在 Node.js 或 SSR 中使用。
-- `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM 环境。
+- `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM 环境；SSR 或 Node.js 使用 `renderSvgString` 输出 SVG 字符串。
 - 浏览器使用渲染器时还要导入 `@u1in/shushi-core/style.css`；纯计算、布局和宏编译不需要 CSS。
 - 一般应用只需要安装 `@u1in/shushi-core`。
 
@@ -113,7 +113,7 @@ const stage = renderDomGrid(scene)
 document.querySelector('#result')?.append(stage)
 ```
 
-`renderDomGrid` 返回一个 DOM 元素；`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。若不需要 DOM，可在浏览器中使用 `renderSvgGrid(scene)` 生成 SVG；服务端或脚本环境只使用计算、布局和宏编译 API。
+`renderDomGrid` 返回一个 DOM 元素；`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。浏览器中可使用 `renderSvgGrid(scene)` 生成 SVG；服务端或脚本环境使用 `renderSvgString(scene)` 生成 SVG 字符串。
 
 ### 4.3 TypeScript 检查
 
@@ -140,7 +140,7 @@ git diff -- package.json package-lock.json pnpm-lock.yaml yarn.lock
 - **`npm install` 修改了不应修改的锁文件**：停止操作并告知用户，不要自动回滚或覆盖宿主项目已有的文件变化。
 - **`ERR_MODULE_NOT_FOUND`**：确认命令在宿主项目根目录执行，并检查 `npm ls @u1in/shushi-core --depth=0`。
 - **Node.js 报 `require` 相关错误**：本包通过 ESM `exports` 提供入口，使用 `import`，不要使用 `require('@u1in/shushi-core')`。
-- **DOM 渲染时报 `document is not defined`**：将 `renderDomGrid` 或 `renderSvgGrid` 放到浏览器端执行，不要在 Node.js/SSR 初始化阶段直接调用。
+- **DOM 渲染时报 `document is not defined`**：将 `renderDomGrid` 或 `renderSvgGrid` 放到浏览器端执行；Node.js/SSR 若要输出 SVG，请改用 `renderSvgString`，不需要 jsdom。
 - **竖式元素没有正确显示**：确认浏览器入口导入了 `@u1in/shushi-core/style.css`；计算和宏编译成功不代表渲染器公共 CSS 已加载。
 
 安装完成的最低标准是：目标包已写入宿主项目依赖、对应锁文件已更新、纯数据 API smoke test 成功。
