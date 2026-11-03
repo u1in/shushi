@@ -1623,8 +1623,8 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 .intro, .normalization, .step-playback__label, .legend, .data-flow-note, .calculation-json-note { color: var(--text-muted); }
 .panel-kicker { color: var(--text-subtle); }
 
+/* 设置控件是外层控制面板内部的截图区域，沿用基础样式的透明背景与无边界状态。 */
 .control-panel,
-.settings-panel,
 .result-card,
 .ocr-panel {
   border-color: var(--border);
