@@ -10,11 +10,11 @@ import {
 const resultHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
 const installCommand = 'npm install @u1in/shushi-core'
-const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/shushi-core -a codex -y'
+const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y'
 const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.md'
 const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
 // 展示 Skill 安装后的最小使用方式，直接复用首页竖式示例中的 356 + 278 输入。
-const skillUsagePrompt = '$shushi-core 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。'
+const skillUsagePrompt = '$u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。'
 // 将 Agent 的执行范围和安全边界分点写入可复制文案，避免安装时遗漏关键要求。
 const aiInstallPrompt = [
   `请阅读并严格遵循 ${agentInstallGuideUrl} 的内容，并按以下要求执行：`,

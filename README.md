@@ -28,7 +28,7 @@ npm install @u1in/shushi-core
 在目标项目中执行，安装到当前 Agent 环境：
 
 ```bash
-npx skills add https://github.com/u1in/shushi/tree/main/skills/shushi-core -a codex -y
+npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y
 ```
 
 ### AI 安装指令
@@ -89,7 +89,7 @@ document.querySelector('#result')?.append(stage)
 安装 Skill 后，将下面的指令复制到你的代码 Agent：
 
 ```text
-$shushi-core 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。
+$u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。
 ```
 
 ### AI 实现

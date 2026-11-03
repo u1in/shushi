@@ -1,9 +1,9 @@
 ---
-name: shushi-core
+name: u1in-shushi
 description: Use when an agent needs to install or use @u1in/shushi-core for vertical arithmetic calculation, teaching layouts, editable macro source, GridScene inspection, playback, DOM rendering, or SVG rendering.
 ---
 
-# `@u1in/shushi-core` Skill
+# `u1in-shushi` Skill
 
 这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成竖式运算、教学步骤展示、可编辑宏源码、网格分析以及 DOM/SVG 渲染任务。
 
