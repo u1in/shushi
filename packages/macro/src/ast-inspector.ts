@@ -1,11 +1,14 @@
 import type { GridScene } from '@u1in/shushi-grid'
 import { compileMacroAstForInspection } from './compiler'
-import { minifyMacroAst } from './formatter'
+import { formatMacroAst, minifyMacro, minifyMacroAst } from './formatter'
 import { parseMacro } from './parser'
 import type { MacroCall, MacroLiteral, MacroNode } from './types'
 
 /** AST 路径从根节点开始，数组每一项表示进入当前调用的第几个参数。 */
 export type MacroNodePath = readonly number[]
+
+/** AST 检查器回写源码时支持的两种输入框风格。 */
+export type MacroSourceStyle = 'formatted' | 'minified'
 
 /** 一个可点击网格元素与其来源宏节点的关联；文本存在时可单独编辑。 */
 export interface MacroElementAstReference {
@@ -23,6 +26,8 @@ export interface MacroElementAstReference {
 export interface MacroAstInspection {
   ast: MacroCall
   scene: GridScene
+  sourceStyle: MacroSourceStyle
+  source: string
   minifiedSource: string
   references: Readonly<Record<string, MacroElementAstReference>>
   updateElementText: (elementId: string, text: string) => MacroAstInspection
@@ -76,7 +81,7 @@ const replaceLiteralAtPath = (root: MacroCall, path: MacroNodePath, text: string
 }
 
 /** 将 AST 编译为场景，同时记录每一个渲染元素回溯到的宏节点。 */
-const inspectMacroAst = (ast: MacroCall): MacroAstInspection => {
+const inspectMacroAst = (ast: MacroCall, sourceStyle: MacroSourceStyle): MacroAstInspection => {
   const nodePaths = new Map<MacroNode, MacroNodePath>()
   indexNodePaths(ast, [], nodePaths)
   const references: Record<string, MacroElementAstReference> = {}
@@ -96,16 +101,21 @@ const inspectMacroAst = (ast: MacroCall): MacroAstInspection => {
   return {
     ast,
     scene,
+    sourceStyle,
+    source: formatMacroAst(ast, sourceStyle),
     minifiedSource: minifyMacroAst(ast),
     references,
     updateElementText: (elementId, text) => {
       const reference = references[elementId]
       if (!reference?.literalPath) throw new Error('选中的宏元素不包含可编辑文字。')
-      return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text))
+      return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text), sourceStyle)
     },
   }
 }
 
 /** 从完整宏源码创建可点击的 AST 检查结果。 */
-export const createMacroAstInspection = (source: string): MacroAstInspection => inspectMacroAst(parseMacro(source))
+export const createMacroAstInspection = (source: string): MacroAstInspection => {
+  const sourceStyle: MacroSourceStyle = source.trim() === minifyMacro(source) ? 'minified' : 'formatted'
+  return inspectMacroAst(parseMacro(source), sourceStyle)
+}
 

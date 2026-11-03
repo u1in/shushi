@@ -124,6 +124,11 @@ export const minifyMacroAst = (root: MacroCall): string => {
   return hasGridOptions ? serializeNode(root, true) : formatRowShorthand(root, false, true)
 }
 
+/** 将已更新的 AST 按调用方选择的输入框风格重新输出，避免编辑后被强制降级为最简式。 */
+export const formatMacroAst = (root: MacroCall, style: 'formatted' | 'minified' = 'formatted'): string => (
+  style === 'minified' ? minifyMacroAst(root) : formatRoot(root, 'GRID(', true)
+)
+
 /** 将宏源码解析为 AST 后按函数层级格式化，保留显式或隐式 GRID 的写法。 */
 export const formatMacro = (source: string): string => formatRoot(parseMacro(source), source, true)
 

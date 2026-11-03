@@ -384,8 +384,19 @@ CELL(
 
     const updated = inspection.updateElementText(textElement!.id, '9')
     expect(updated.minifiedSource).toBe('3,[9,RB(1)];LN;8;')
+    expect(updated.sourceStyle).toBe('formatted')
+    expect(updated.source).toBe(formatMacro('GRID(ROW(MM(3), CELL(MM(9), RB(1))), LINE, ROW(MM(8)))'))
     expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '9')).toBe(true)
     expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '5')).toBe(false)
+  })
+
+  test('AST 检查器会沿用最简源码输入框风格回写', () => {
+    const inspection = createMacroAstInspection('3,[5,RB(1)];LN;8;')
+    const textElement = inspection.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '5')
+
+    const updated = inspection.updateElementText(textElement!.id, '9')
+    expect(updated.sourceStyle).toBe('minified')
+    expect(updated.source).toBe('3,[9,RB(1)];LN;8;')
   })
 
   test('AST 检查器会保留无文字图元的反查信息，并拒绝修改其文字', () => {

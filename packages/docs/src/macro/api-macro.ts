@@ -198,11 +198,11 @@ const five = inspection.scene.elements.find(
 // 由渲染元素 ID 反查 MM(5) 的 AST 节点，并只替换它的文字字面量。
 const updated = inspection.updateElementText(five!.id, '9')
 
-console.log(updated.minifiedSource)
-// 3,9;LN;8;`,
+console.log(updated.source)
+// 仍沿用输入的完整格式`,
       }],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量；更新结果会重新编译场景并提供 `minifiedSource`。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量；更新结果会重新编译场景，并提供沿用输入风格的 `source` 与统一最简化的 `minifiedSource`。' }] },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: `type CreateMacroAstInspection = (source: string) => MacroAstInspection
@@ -210,14 +210,18 @@ console.log(updated.minifiedSource)
 interface MacroAstInspection {
   ast: MacroCall
   scene: GridScene
+  sourceStyle: 'formatted' | 'minified'
+  source: string
   minifiedSource: string
   references: Record<string, MacroElementAstReference>
   updateElementText: (elementId: string, text: string) => MacroAstInspection
 }` },
         { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+          ['`sourceStyle`', '`"formatted" | "minified"`', '记录当前输入框使用的完整版或最简版风格。'],
           ['`references`', '`Record<string, MacroElementAstReference>`', '以 `GridElement.id` 为键，包含来源 AST 节点、路径以及可编辑文字路径。'],
           ['`updateElementText`', '函数', '不可变地替换所选图元的第一个文字字面量，并返回新的检查结果。'],
-          ['`minifiedSource`', '`string`', '当前 AST 重新输出的最简宏源码。'],
+          ['`source`', '`string`', '当前 AST 按输入框原有完整版或最简版风格重新输出的宏源码。'],
+          ['`minifiedSource`', '`string`', '当前 AST 统一输出的最简宏源码。'],
         ] },
       ],
     },
