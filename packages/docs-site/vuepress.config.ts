@@ -74,6 +74,7 @@ export default defineUserConfig({
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: '技术文档', link: '/technical/安装' },
       { text: '图例文档', link: '/gallery/加法' },
+      { text: '更新日志', link: '/更新日志' },
       { text: '在线演示', link: 'https://u1in.github.io/shushi/demo/' },
     ],
     sidebar: {
@@ -86,6 +87,7 @@ export default defineUserConfig({
             { text: '宏命令文档', link: '/macro/语法基础' },
             { text: '技术文档', link: '/technical/安装' },
             { text: '图例文档', link: '/gallery/加法' },
+            { text: '更新日志', link: '/更新日志' },
           ],
         },
       ],

@@ -11,7 +11,18 @@
     "url": "https://github.com/u1in/shushi/issues"
   },
   "homepage": "https://github.com/u1in/shushi#readme",
-  "keywords": ["shushi", "vertical-arithmetic", "arithmetic", "addition", "subtraction", "multiplication", "division", "short-division", "vue", "typescript"],
+  "keywords": [
+    "shushi",
+    "vertical-arithmetic",
+    "arithmetic",
+    "addition",
+    "subtraction",
+    "multiplication",
+    "division",
+    "short-division",
+    "vue",
+    "typescript"
+  ],
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,8 +34,13 @@
     "start": "npm run dev",
     "build": "npm run build:core && cd packages/web && npm run build",
     "build:core": "cd packages/core && npm run build",
-    "docs:dev": "npm run build:core && cd packages/docs-site && npm run docs:dev",
-    "docs:build": "npm run build:core && cd packages/docs-site && npm run docs:build",
+    "docs:dev": "npm run sync:changelog && npm run build:core && cd packages/docs-site && npm run docs:dev",
+    "docs:build": "npm run sync:changelog && npm run build:core && cd packages/docs-site && npm run docs:build",
+    "sync:changelog": "node scripts/sync-changelog.mjs",
+    "changeset": "changeset",
+    "release:version": "changeset version",
+    "release:check": "npm run typecheck && npm run test && npm run build",
+    "release:publish": "npm run release:check && changeset publish",
     "preview": "cd packages/web && npm run preview",
     "test": "npm run test:web && npm run test:macro-docs",
     "test:web": "cd packages/web && npm run test",
@@ -33,6 +49,7 @@
     "typecheck:core": "cd packages/core && npm run typecheck"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^6.0.10",
     "tailwindcss": "^4.3.3",
