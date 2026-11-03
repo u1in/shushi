@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
   renderDomGrid,
 } from '@u1in/shushi-core'
 
 const resultHost = ref<HTMLElement>()
+const stageHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
 const installCommand = 'npm install @u1in/shushi-core'
 const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y'
@@ -49,6 +48,7 @@ const codeCopyState = ref<CopyState>('idle')
 let flowRenderCount = 0
 let flowRenderRequest = 0
 let themeObserver: MutationObserver | undefined
+let stageResizeObserver: ResizeObserver | undefined
 const installCopyTimer: CopyTimer = {}
 const skillInstallCopyTimer: CopyTimer = {}
 const aiInstallCopyTimer: CopyTimer = {}
@@ -56,10 +56,9 @@ const aiCapabilitiesCopyTimer: CopyTimer = {}
 const skillUsageCopyTimer: CopyTimer = {}
 const codeCopyTimer: CopyTimer = {}
 
-/** 首页示例复用“计算过程 → 宏源码 → 同一宏编译器”的真实链路。 */
-const computation = computeAddition('356', '278')
-const macroSource = createAdditionMacroSource(computation)
-const scene = compileMacro(macroSource)
+/** Hero demo 唯一使用这一份输入源码；输入变化后直接复用同一宏编译入口更新竖式。 */
+const heroMacroSource = ref('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
+const heroMacroError = ref('')
 const exampleCode = `import {
   computeAddition,
   createAdditionMacroSource,
@@ -204,12 +203,62 @@ const moveDemoToHero = (): void => {
   hero.appendChild(host)
 }
 
-onMounted(() => {
-  moveDemoToHero()
-  if (resultHost.value) {
+/** 只替换 demo 舞台内容；源码暂时不合法时保留上一次结果，避免输入过程中画布闪空。 */
+const renderHeroDemo = (): void => {
+  if (!stageHost.value) return
+
+  try {
+    const scene = compileMacro(heroMacroSource.value)
     const stage = renderDomGrid(scene)
     stage.classList.add('docs-home-grid-stage')
-    resultHost.value.replaceChildren(stage)
+    const frame = document.createElement('div')
+    frame.className = 'docs-home-grid-stage-frame'
+    frame.append(stage)
+    stageHost.value.replaceChildren(frame)
+    resizeHeroDemo()
+    heroMacroError.value = ''
+  } catch (reason) {
+    heroMacroError.value = reason instanceof Error ? reason.message : '宏源码无法编译。'
+  }
+}
+
+/** 按容器可用宽度缩放舞台，并同步占位尺寸，确保缩放后没有横向滚动条。 */
+const resizeHeroDemo = (): void => {
+  const host = stageHost.value
+  const frame = host?.querySelector<HTMLElement>('.docs-home-grid-stage-frame')
+  const stage = frame?.querySelector<HTMLElement>('.docs-home-grid-stage')
+  if (!host || !frame || !stage) return
+
+  const hostStyle = getComputedStyle(host)
+  const paddingWidth = Number.parseFloat(hostStyle.paddingLeft) + Number.parseFloat(hostStyle.paddingRight)
+  const paddingHeight = Number.parseFloat(hostStyle.paddingTop) + Number.parseFloat(hostStyle.paddingBottom)
+  const frameMarginTop = Number.parseFloat(getComputedStyle(frame).marginTop) || 0
+  const availableWidth = Math.max(0, host.clientWidth - paddingWidth)
+  const availableHeight = Math.max(0, host.clientHeight - paddingHeight - frameMarginTop)
+  const naturalWidth = stage.offsetWidth
+  const naturalHeight = stage.offsetHeight
+  if (!availableWidth || !naturalWidth || !naturalHeight) return
+
+  const widthScale = Math.min(1.3, availableWidth / naturalWidth)
+  const widthScaledHeight = naturalHeight * widthScale
+  /* 默认竖式只会轻微超高时收进可视区；明显过长的竖式保留纵向滚动查看。 */
+  const scale = availableHeight > 0 && widthScaledHeight <= availableHeight * 1.25
+    ? Math.min(widthScale, availableHeight / naturalHeight)
+    : widthScale
+  stage.style.transform = `scale(${scale})`
+  stage.style.transformOrigin = 'top left'
+  frame.style.width = `${naturalWidth * scale}px`
+  frame.style.height = `${naturalHeight * scale}px`
+}
+
+watch(heroMacroSource, renderHeroDemo)
+
+onMounted(() => {
+  moveDemoToHero()
+  renderHeroDemo()
+  if (stageHost.value) {
+    stageResizeObserver = new ResizeObserver(resizeHeroDemo)
+    stageResizeObserver.observe(stageHost.value)
   }
 
   void renderFlow()
@@ -219,6 +268,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   themeObserver?.disconnect()
+  stageResizeObserver?.disconnect()
   if (installCopyTimer.id) window.clearTimeout(installCopyTimer.id)
   if (skillInstallCopyTimer.id) window.clearTimeout(skillInstallCopyTimer.id)
   if (aiInstallCopyTimer.id) window.clearTimeout(aiInstallCopyTimer.id)
@@ -389,8 +439,21 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
       </div>
     </section>
 
-    <!-- VuePress 默认 hero 由主题渲染；挂载后将真实竖式节点移动到主标题右侧。 -->
-    <div ref="resultHost" class="docs-home-result docs-home-result--hero" aria-label="356 加 278 的竖式渲染结果"></div>
+    <!-- VuePress 默认 hero 由主题渲染；挂载后将 demo 与宏输入一起移动到主标题右侧。 -->
+    <div ref="resultHost" class="docs-home-result-host docs-home-result--hero">
+      <div ref="stageHost" class="docs-home-result" aria-label="可编辑宏源码的竖式渲染结果"></div>
+      <label class="docs-home-macro-input">
+        <span class="docs-home-sr-only">最简宏源码，修改后即时更新竖式</span>
+        <input
+          v-model="heroMacroSource"
+          type="text"
+          spellcheck="false"
+          autocomplete="off"
+          aria-label="最简宏源码，修改后即时更新竖式"
+        />
+        <small v-if="heroMacroError" role="alert">{{ heroMacroError }}</small>
+      </label>
+    </div>
 
     <section class="docs-home-flow" aria-labelledby="docs-home-flow-title">
       <div class="docs-home-section-heading">
@@ -696,13 +759,30 @@ html[data-theme='dark'] .docs-home-code .docs-code-string { color: #8ed6a8; }
 html[data-theme='dark'] .docs-home-code .docs-code-number { color: #ffc57d; }
 html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
+.docs-home-result-host {
+  --docs-home-demo-height: 228px;
+  --docs-home-macro-input-height: 42px;
+  display: grid;
+  min-width: 0;
+  gap: .55rem;
+  align-content: start;
+}
+
 .docs-home-result {
   display: grid;
-  min-height: 300px;
-  place-items: center;
+  height: var(--docs-home-demo-height);
+  min-height: 0;
+  align-content: start;
+  justify-content: center;
   overflow: auto;
+  overscroll-behavior: contain;
+  /* 滚动条只在需要时出现，避免默认竖式被预留槽位挤窄。 */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--vp-c-text-mute) 48%, transparent) transparent;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
+  box-sizing: border-box;
+  /* 采用顶部起始对齐，避免长竖式在缩放后因居中定位贴顶或被裁切。 */
   padding: 1rem;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--vp-c-accent) 8%, transparent) 1px, transparent 1px),
@@ -711,10 +791,85 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   background-size: 28px 28px;
 }
 
+.docs-home-result::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.docs-home-result::-webkit-scrollbar-track,
+.docs-home-result::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.docs-home-result::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.docs-home-result::-webkit-scrollbar-thumb {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--vp-c-text-mute) 48%, transparent);
+  background-clip: padding-box;
+}
+
+.docs-home-result::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--vp-c-text-mute) 70%, transparent);
+  background-clip: padding-box;
+}
+
 .docs-home-result .docs-home-grid-stage {
   flex: 0 0 auto;
-  transform: scale(1.3);
-  transform-origin: center;
+  transform-origin: top left;
+}
+
+.docs-home-grid-stage-frame {
+  flex: 0 0 auto;
+  margin-inline: auto;
+  margin-top: .45rem;
+}
+
+.docs-home-macro-input {
+  display: grid;
+  min-width: 0;
+}
+
+.docs-home-macro-input input {
+  width: 100%;
+  height: var(--docs-home-macro-input-height);
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  padding: .55rem .75rem;
+  color: var(--vp-c-text);
+  background: var(--vp-c-bg-alt);
+  font: 700 .76rem/1.2 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.docs-home-macro-input input:focus {
+  border-color: var(--vp-c-accent);
+  outline: 2px solid var(--vp-c-accent-soft);
+  outline-offset: 1px;
+}
+
+.docs-home-macro-input small {
+  margin-top: .3rem;
+  color: #d13c4b;
+  font-size: .7rem;
+  line-height: 1.35;
+}
+
+.docs-home-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* 首页 demo 在挂载后进入默认主题 hero 的第二列；正文中的源码说明仍保持完整宽度。 */
@@ -772,8 +927,11 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   grid-column: 2;
   grid-row: 1 / span 3;
   width: 100%;
-  min-height: 280px;
-  margin: 0;
+  min-height: 0;
+  /* Hero 左列按钮组保留了 1rem 的下方节奏，这里用同样的外边距对齐输入框底边。 */
+  margin: 0 0 1rem;
+  /* 让最简宏输入框的底边与左侧 Hero 按钮组的底边落在同一条线上。 */
+  align-self: end;
 }
 
 .docs-home-result .grid-text {
@@ -888,7 +1046,7 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
   .vp-home .vp-hero .docs-home-result--hero {
     width: min(100%, 320px);
-    min-height: 280px;
+    min-height: 0;
     margin: 2rem auto 0;
   }
 }
