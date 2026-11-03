@@ -1,5 +1,12 @@
 # @u1in/shushi-core
 
+[![npm version](https://img.shields.io/npm/v/%40u1in%2Fshushi-core?logo=npm)](https://www.npmjs.com/package/@u1in/shushi-core)
+[![npm downloads](https://img.shields.io/npm/dm/%40u1in%2Fshushi-core?logo=npm)](https://www.npmjs.com/package/@u1in/shushi-core)
+[![GitHub stars](https://img.shields.io/github/stars/u1in/shushi?logo=github)](https://github.com/u1in/shushi/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/u1in/shushi)](https://github.com/u1in/shushi/issues)
+[![GitHub license](https://img.shields.io/github/license/u1in/shushi)](https://github.com/u1in/shushi/blob/main/LICENSE)
+[![Deploy GitHub Pages](https://github.com/u1in/shushi/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/u1in/shushi/actions/workflows/deploy-pages.yml)
+
 把竖式计算过程接入网页或 Node.js 应用：输入运算数据，得到可编辑的宏源码，编译为统一的 `GridScene`，再渲染为 DOM/CSS 或 SVG。
 
 > 人工录入和计算器自动填写的是同一种宏源码，并经过同一条编译链路得到竖式。
