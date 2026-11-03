@@ -31,6 +31,7 @@ const exampleCode = `import {
   compileMacro,
   renderDomGrid,
 } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
 // 计算层：只生成与渲染无关的逐列过程
 const computation = computeAddition('356', '278')
@@ -201,6 +202,7 @@ onBeforeUnmount(() => {
   <span class="docs-code-function">compileMacro</span>,
   <span class="docs-code-function">renderDomGrid</span>,
 } <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
+<span class="docs-code-keyword">import</span> <span class="docs-code-string">'@u1in/shushi-core/style.css'</span>
 
 <span class="docs-code-comment">// 计算层：只生成与渲染无关的逐列过程</span>
 <span class="docs-code-keyword">const</span> computation = <span class="docs-code-function">computeAddition</span>(<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>)

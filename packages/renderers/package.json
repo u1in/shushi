@@ -17,6 +17,7 @@
     "@u1in/shushi-grid": "file:../grid"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./style.css": "./src/style.css"
   }
 }

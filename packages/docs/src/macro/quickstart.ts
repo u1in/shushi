@@ -15,7 +15,7 @@ export const quickStartPage: MacroDocPage = {
       blocks: [
         {
           type: 'paragraph',
-          text: '`compileMacro` 接收完整宏源码，返回与渲染器无关的 `GridScene`。它不会创建 DOM、SVG，也不会计算算术结果；示例里的 356、278、634 都是写在源码里的数字。',
+          text: '`compileMacro` 接收完整宏源码，返回与渲染器无关的 `GridScene`。它不会创建 DOM、SVG，也不会计算算术结果；示例里的 356、278、634 都是写在源码里的数字，因此本节的编译示例不需要导入 CSS。',
         },
         {
           type: 'code',
@@ -39,12 +39,13 @@ const scene = compileMacro(source)`,
       blocks: [
         {
           type: 'paragraph',
-          text: '`renderSvgGrid(scene)` 直接创建并返回 SVG，不需要预先写 `<svg>` 容器。',
+          text: '`renderSvgGrid(scene)` 直接创建并返回 SVG，不需要预先写 `<svg>` 容器。为保持字体、线条和语义 token 的默认表现，浏览器入口同时导入 `@u1in/shushi-core/style.css`。',
         },
         {
           type: 'code',
           title: 'TypeScript',
           code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const svg = renderSvgGrid(scene)
@@ -59,12 +60,13 @@ document.querySelector('#app')?.append(svg)`,
       blocks: [
         {
           type: 'paragraph',
-          text: '`renderDomGrid(scene)` 直接创建舞台、线条层和内容层，并返回舞台；舞台已经带相对定位、场景宽高和 `--grid-font-size` 行内样式。',
+          text: '`renderDomGrid(scene)` 直接创建舞台、线条层和内容层，并返回舞台；舞台已经带相对定位、场景宽高和 `--grid-font-size` 行内样式，但 DOM 图元的绝对定位、线条和字体仍由公共 CSS 提供。',
         },
         {
           type: 'code',
           title: 'TypeScript',
           code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const stage = renderDomGrid(scene)

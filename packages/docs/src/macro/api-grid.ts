@@ -215,7 +215,12 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 返回值按渲染锚点的 y 坐标分行，再按 x 坐标排序。
 const rows: string[] = extractVisibleTextRows(scene)
 
-console.log(rows) // ['356', '+278', '11', '634']`,
+        console.log(rows) // ['356', '+278', '11', '634']`,
+      }, {
+        type: 'callout',
+        tone: 'info',
+        title: '纯数据 API 不需要 CSS',
+        text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；只有调用 `renderDomGrid` / `renderSvgGrid` 生成画面时，才需要额外导入 `@u1in/shushi-core/style.css`。',
       }],
     },
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它只读取 `GridScene`，不识别加法进位、减法借位或除法商位等运算语义。共享锚点规则会让正文、边中点注记和小数点按最终视觉位置归并，适合与 OCR 结果或快照测试比较。' }] },

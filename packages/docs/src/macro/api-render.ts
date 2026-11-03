@@ -13,6 +13,7 @@ export const renderSvgGridPage = renderPage({
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
         code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 函数会创建完整 SVG；调用方只需挂载返回节点。
@@ -34,7 +35,7 @@ document.querySelector('#app')?.append(svg)`,
         ] },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '只在浏览器环境调用', text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。SVG 的字体、颜色和线宽仍由应用 CSS 或场景样式 token 提供。' }] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '只在浏览器环境调用', text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。浏览器入口应导入 `@u1in/shushi-core/style.css`；SVG 的字体、颜色和线宽以及 DOM 的定位、边框仍由这份公共 CSS 和场景样式 token 提供。' }] },
   ],
 })
 
@@ -47,7 +48,8 @@ export const renderDomGridPage = renderPage({
     {
       id: 'example', title: '例子', blocks: [{
         type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
+          code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 舞台和两层子节点会由渲染器自动创建。
@@ -67,23 +69,20 @@ document.querySelector('#app')?.append(stage)`,
           ['可访问性', '`role="img"` + `aria-label`', '复用场景的可访问性描述。'],
         ] },
         {
-          type: 'code', title: '基础 CSS', language: 'css', code: `.grid-dom-stage .grid-text {
-  position: absolute;
-  white-space: nowrap;
+          type: 'code', title: '自定义覆盖（可选）', language: 'css', code: `.grid-dom-stage .grid-text {
   font-family: "Noto Serif SC", "Times New Roman", serif;
-  font-size: var(--grid-font-size, 27px);
-  font-weight: 700;
-  line-height: 1;
 }
 
-/* 线条的几何位置由渲染器写入，颜色和主题可由 CSS 覆盖。 */
-.grid-dom-stage .grid-edge {
-  background: #000;
+/* 几何位置由渲染器写入；应用可以覆盖公共样式的主题变量。 */
+.grid-dom-stage {
+  --grid-text: #172033;
+  --grid-rule: #4a5f78;
+  --grid-guide: #a7bbdd;
 }`,
         },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '基础定位由内联样式提供', text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。不要在 CSS 中重新计算图元坐标；如果需要改变画面，应修改 `GridScene` 或共享样式 token。' }] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '先导入公共 CSS', text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。先导入 `@u1in/shushi-core/style.css` 获得基础定位和视觉样式；不要在自定义 CSS 中重新计算图元坐标，如果需要改变画面，应修改 `GridScene` 或覆盖共享样式 token。' }] },
   ],
 })
 

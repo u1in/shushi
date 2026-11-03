@@ -1,0 +1,272 @@
+/*
+ * @u1in/shushi-renderers 的公共渲染契约。
+ *
+ * 这里只包含 GridScene 产出的 SVG / DOM 图元样式，不包含首页卡片、表单
+ * 或 VuePress 主题。所有尺寸和坐标仍由渲染器写入，CSS 只负责定位基线、
+ * 字体、线条和语义 token 的默认视觉表现。
+ */
+
+:where(.grid-dom-stage, .grid-svg) {
+  --grid-default-text: var(--grid-text, #172033);
+  --grid-default-rule: var(--grid-rule, #4a5f78);
+  --grid-default-guide: var(--grid-guide, #a7bbdd);
+  --grid-default-bracket: var(--grid-bracket, #4a5f78);
+  --grid-default-stroke: var(--grid-stroke, var(--division-stroke, 3px));
+  color: var(--grid-default-text);
+}
+
+/* DOM 舞台与两层图层的基础定位。渲染器也会写入这些内联样式，CSS 使独立使用时仍可正常工作。 */
+.grid-dom-stage {
+  position: relative;
+}
+
+.grid-dom-stage .grid-line-layer,
+.grid-dom-stage .grid-content-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.grid-dom-stage .grid-line-layer {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.grid-dom-stage .grid-content-layer {
+  z-index: 2;
+}
+
+/* DOM 文本依赖绝对定位；如果缺少 position，渲染器写入的 left/top 不会参与布局。 */
+.grid-dom-stage .grid-text {
+  position: absolute;
+  display: block;
+  width: max-content;
+  white-space: nowrap;
+  color: var(--grid-default-text);
+  font-family: var(--grid-font-family, "Computer Modern", "CMU Serif", "Latin Modern Roman", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif);
+  font-size: var(--grid-font-size, 27px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.grid-dom-stage .grid-edge,
+.grid-dom-stage .grid-corner,
+.grid-dom-stage .grid-guide-line {
+  position: absolute;
+}
+
+.grid-dom-stage .grid-edge {
+  background: var(--grid-default-rule);
+}
+
+.grid-dom-stage .grid-corner {
+  border-right: var(--grid-default-stroke) solid var(--grid-default-rule);
+  border-bottom: var(--grid-default-stroke) solid var(--grid-default-rule);
+  border-bottom-right-radius: var(--grid-corner-radius, 0px);
+}
+
+/* 边的几何矩形由 GridScene 给出；这里统一修正边宽、线帽和半像素偏移。 */
+.grid-dom-stage .grid-edge--top,
+.grid-dom-stage .grid-edge--bottom {
+  height: var(--grid-line-thickness, 2px) !important;
+  border-radius: 0;
+  transform: translateY(-1px);
+}
+
+.grid-dom-stage .grid-edge--left,
+.grid-dom-stage .grid-edge--right {
+  width: var(--grid-line-thickness, var(--grid-default-stroke)) !important;
+  transform: translateX(calc(var(--grid-default-stroke) / -2));
+}
+
+.grid-dom-stage .grid-edge[data-style-token="division.bracket"],
+.grid-dom-stage .grid-edge[data-style-token="division.bracket-top-line"] {
+  background: var(--division-bracket-color, var(--grid-default-bracket));
+}
+
+.grid-dom-stage .grid-edge[data-style-token="division.subtraction-bar"],
+.grid-dom-stage .grid-edge[data-style-token="multiplication.input-bar"],
+.grid-dom-stage .grid-edge[data-style-token="multiplication.sum-bar"],
+.grid-dom-stage .grid-edge[data-style-token="addition.sum-bar"],
+.grid-dom-stage .grid-edge[data-style-token="subtraction.difference-bar"],
+.grid-dom-stage .grid-edge[data-style-token="short-division.bar"] {
+  border-radius: 0;
+  background: var(--grid-default-rule);
+}
+
+.grid-dom-stage .grid-edge[data-style-token="short-division.separator"] {
+  width: 2px !important;
+  border-radius: 0;
+  background: #3986e4;
+  transform: translateX(-1px);
+}
+
+.grid-dom-stage .grid-edge[data-style-token="short-division.bar"] {
+  height: 2px !important;
+}
+
+.grid-dom-stage .grid-corner[data-style-token="division.bracket"] {
+  border-right: 2px solid var(--division-bracket-color, var(--grid-default-bracket));
+  border-bottom: 2px solid var(--division-bracket-color, var(--grid-default-bracket));
+  border-bottom-right-radius: var(--grid-corner-radius, 0px);
+}
+
+.grid-dom-stage .grid-guide-line {
+  opacity: .68;
+}
+
+.grid-dom-stage .grid-guide-line--horizontal {
+  background: repeating-linear-gradient(90deg, var(--grid-default-guide) 0 2px, transparent 2px 7px);
+}
+
+.grid-dom-stage .grid-guide-line--vertical {
+  background: repeating-linear-gradient(0deg, var(--grid-default-guide) 0 2px, transparent 2px 7px);
+}
+
+/* SVG 保留坐标属性，CSS 提供字体、默认填充、线宽和线帽。 */
+.grid-svg {
+  display: block;
+}
+
+.grid-svg .grid-text {
+  dominant-baseline: middle;
+  fill: var(--grid-default-text);
+  font-family: var(--grid-font-family, "Computer Modern", "CMU Serif", "Latin Modern Roman", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif);
+  font-size: var(--grid-font-size, 27px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  text-anchor: middle;
+}
+
+.grid-svg .grid-edge {
+  fill: none;
+  stroke: var(--grid-default-rule);
+  stroke-linecap: round;
+  stroke-width: var(--grid-default-stroke);
+}
+
+.grid-svg .grid-edge--top,
+.grid-svg .grid-edge--bottom {
+  stroke-linecap: butt;
+  stroke-width: 2px;
+}
+
+.grid-svg .grid-corner {
+  fill: none;
+  stroke: var(--grid-default-rule);
+  stroke-linecap: round;
+  stroke-width: var(--grid-default-stroke);
+}
+
+.grid-svg .grid-edge[data-style-token="division.bracket"],
+.grid-svg .grid-edge[data-style-token="division.bracket-top-line"] {
+  stroke: var(--division-bracket-color, var(--grid-default-bracket));
+  stroke-linecap: butt;
+}
+
+.grid-svg .grid-edge[data-style-token="division.subtraction-bar"],
+.grid-svg .grid-edge[data-style-token="multiplication.input-bar"],
+.grid-svg .grid-edge[data-style-token="multiplication.sum-bar"],
+.grid-svg .grid-edge[data-style-token="addition.sum-bar"],
+.grid-svg .grid-edge[data-style-token="subtraction.difference-bar"],
+.grid-svg .grid-edge[data-style-token="short-division.bar"] {
+  stroke: var(--grid-default-rule);
+  stroke-linecap: butt;
+}
+
+.grid-svg .grid-edge[data-style-token="short-division.separator"] {
+  stroke: #3986e4;
+  stroke-linecap: butt;
+  stroke-width: 2px;
+}
+
+.grid-svg .grid-edge[data-style-token="short-division.bar"] {
+  stroke-width: 2px;
+}
+
+.grid-svg .grid-corner[data-style-token="division.bracket"] {
+  fill: none;
+  stroke: var(--division-bracket-color, var(--grid-default-bracket));
+  stroke-linecap: butt;
+  stroke-width: 2px;
+}
+
+.grid-svg .grid-guide-line {
+  fill: none;
+  opacity: .68;
+  stroke: var(--grid-default-guide);
+  stroke-dasharray: 2 5;
+  stroke-width: 1px;
+}
+
+/* styleToken 是可扩展的语义钩子；这些默认色板覆盖内置宏和五种运算的 token。 */
+.grid-dom-stage .grid-text[data-style-token="macro.default-text"] { color: var(--grid-default-text); font-weight: 700; }
+.grid-svg .grid-text[data-style-token="macro.default-text"] { fill: var(--grid-default-text); }
+.grid-dom-stage .grid-text[data-style-token="macro.decimal"] { color: #c2185b; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="macro.decimal"] { fill: #c2185b; }
+
+.grid-dom-stage .grid-text[data-style-token="division.divisor"] { color: #c43e49; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="division.divisor"] { fill: #c43e49; }
+.grid-dom-stage .grid-text[data-style-token="division.quotient"] { color: #be4c00; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="division.quotient"] { fill: #be4c00; }
+.grid-dom-stage .grid-text[data-style-token="division.dividend"] { color: #b2468a; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="division.dividend"] { fill: #b2468a; }
+.grid-dom-stage .grid-text[data-style-token="division.appended-zero"] { color: #c9a3bd; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="division.appended-zero"] { fill: #c9a3bd; }
+.grid-dom-stage .grid-text[data-style-token="division.partial-minuend"],
+.grid-dom-stage .grid-text[data-style-token="division.remainder"] { color: #4f9b3e; font-weight: 600; }
+.grid-svg .grid-text[data-style-token="division.partial-minuend"],
+.grid-svg .grid-text[data-style-token="division.remainder"] { fill: #4f9b3e; }
+.grid-dom-stage .grid-text[data-style-token="division.partial-subtrahend"] { color: #9752b4; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="division.partial-subtrahend"] { fill: #9752b4; }
+.grid-dom-stage .grid-text[data-style-token="division.decimal-separator"],
+.grid-dom-stage .grid-text[data-style-token="division.dividend-decimal-separator"] { color: #c2185b; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="division.decimal-separator"],
+.grid-svg .grid-text[data-style-token="division.dividend-decimal-separator"] { fill: #c2185b; }
+
+.grid-dom-stage .grid-text[data-style-token="multiplication.multiplicand"],
+.grid-dom-stage .grid-text[data-style-token="addition.addend"],
+.grid-dom-stage .grid-text[data-style-token="subtraction.minuend"] { color: #c43e49; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="multiplication.multiplicand"],
+.grid-svg .grid-text[data-style-token="addition.addend"],
+.grid-svg .grid-text[data-style-token="subtraction.minuend"] { fill: #c43e49; }
+.grid-dom-stage .grid-text[data-style-token="multiplication.multiplier"],
+.grid-dom-stage .grid-text[data-style-token="multiplication.operator"] { color: #0096c9; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="multiplication.multiplier"],
+.grid-svg .grid-text[data-style-token="multiplication.operator"] { fill: #0096c9; }
+.grid-dom-stage .grid-text[data-style-token="multiplication.carry"],
+.grid-dom-stage .grid-text[data-style-token="addition.carry"],
+.grid-dom-stage .grid-text[data-style-token="subtraction.borrow"] { color: #00a079; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="multiplication.carry"],
+.grid-svg .grid-text[data-style-token="addition.carry"],
+.grid-svg .grid-text[data-style-token="subtraction.borrow"] { fill: #00a079; }
+.grid-dom-stage .grid-text[data-style-token="multiplication.addition-carry"] { color: #9752b4; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="multiplication.addition-carry"] { fill: #9752b4; }
+.grid-dom-stage .grid-text[data-style-token="multiplication.partial-product"] { color: #4f9b3e; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="multiplication.partial-product"] { fill: #4f9b3e; }
+.grid-dom-stage .grid-text[data-style-token="multiplication.product"],
+.grid-dom-stage .grid-text[data-style-token="addition.sum"],
+.grid-dom-stage .grid-text[data-style-token="subtraction.difference"] { color: #be4c00; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="multiplication.product"],
+.grid-svg .grid-text[data-style-token="addition.sum"],
+.grid-svg .grid-text[data-style-token="subtraction.difference"] { fill: #be4c00; }
+.grid-dom-stage .grid-text[data-style-token="addition.operator"],
+.grid-dom-stage .grid-text[data-style-token="subtraction.operator"],
+.grid-dom-stage .grid-text[data-style-token="subtraction.negative-sign"] { color: #7b3fa0; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="addition.operator"],
+.grid-svg .grid-text[data-style-token="subtraction.operator"],
+.grid-svg .grid-text[data-style-token="subtraction.negative-sign"] { fill: #7b3fa0; }
+.grid-dom-stage .grid-text[data-style-token="subtraction.subtrahend"] { color: #0096c9; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="subtraction.subtrahend"] { fill: #0096c9; }
+
+.grid-dom-stage .grid-text[data-style-token="short-division.divisor"],
+.grid-dom-stage .grid-text[data-style-token="short-division.remainder-label"] { color: #c43e49; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="short-division.divisor"],
+.grid-svg .grid-text[data-style-token="short-division.remainder-label"] { fill: #c43e49; }
+.grid-dom-stage .grid-text[data-style-token="short-division.dividend"] { color: #b2468a; font-weight: 700; }
+.grid-svg .grid-text[data-style-token="short-division.dividend"] { fill: #b2468a; }
+.grid-dom-stage .grid-text[data-style-token="short-division.remainder"] { color: #4f9b3e; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="short-division.remainder"] { fill: #4f9b3e; }
+.grid-dom-stage .grid-text[data-style-token="short-division.final"] { color: #be4c00; font-weight: 800; }
+.grid-svg .grid-text[data-style-token="short-division.final"] { fill: #be4c00; }
