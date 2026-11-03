@@ -19,7 +19,7 @@ import {
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
 import type { GridScene } from '@u1in/shushi-grid'
-import { compileMacro, formatMacro, parseMacro } from '@u1in/shushi-macro'
+import { compileMacro, formatMacro, minifyMacro, parseMacro } from '@u1in/shushi-macro'
 
 /** 自动竖式必须先成为人工可输入的源码，再走同一解析与编译链路。 */
 const expectHumanReproducible = (source: string, scene: unknown): void => {
@@ -27,6 +27,14 @@ const expectHumanReproducible = (source: string, scene: unknown): void => {
   expect(() => parseMacro(source)).not.toThrow()
   expect(compileMacro(source)).toEqual(scene)
   expect(compileMacro(formatMacro(source))).toEqual(scene)
+}
+
+/** 复制按钮使用最简源码；这里验证粘贴回宏输入框后仍能完整复刻当前竖式。 */
+const expectCopiedMacroReproducible = (source: string, scene: GridScene): void => {
+  const copiedSource = minifyMacro(source)
+  expect(copiedSource).not.toBe('')
+  expect(() => parseMacro(copiedSource)).not.toThrow()
+  expect(compileMacro(copiedSource)).toEqual(scene)
 }
 
 /** 计算器宏必须把最终颜色写进 GridScene，两个渲染器才能消费同一份颜色数据。 */
@@ -44,6 +52,7 @@ describe('计算器宏源码布局', () => {
     const additionScene = createAdditionGridScene(addition, additionSettings)
     expectAutoColorScene(additionSource, additionScene)
     expectHumanReproducible(additionSource, additionScene)
+    expectCopiedMacroReproducible(additionSource, additionScene)
 
     const subtraction = computeSubtraction('502', '137')
     const subtractionSettings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showBorrowSteps: true }
@@ -52,6 +61,7 @@ describe('计算器宏源码布局', () => {
     const subtractionScene = createSubtractionGridScene(subtraction, subtractionSettings)
     expectAutoColorScene(subtractionSource, subtractionScene)
     expectHumanReproducible(subtractionSource, subtractionScene)
+    expectCopiedMacroReproducible(subtractionSource, subtractionScene)
 
     const multiplication = computeMultiplication('97', '89')
     const multiplicationSettings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, uniformMultiplicationBars: false, showCarrySteps: true }
@@ -60,6 +70,7 @@ describe('计算器宏源码布局', () => {
     const multiplicationScene = createMultiplicationGridScene(multiplication, multiplicationSettings)
     expectAutoColorScene(multiplicationSource, multiplicationScene)
     expectHumanReproducible(multiplicationSource, multiplicationScene)
+    expectCopiedMacroReproducible(multiplicationSource, multiplicationScene)
   })
 
   it('长除与短除连同播放快照都由公开宏命令复刻', () => {
@@ -73,6 +84,7 @@ describe('计算器宏源码布局', () => {
     const divisionScene = createDivisionGridScene(division, divisionSettings)
     expectAutoColorScene(divisionSource, divisionScene)
     expectHumanReproducible(divisionSource, divisionScene)
+    expectCopiedMacroReproducible(divisionSource, divisionScene)
 
     const shortDivision = computeShortDivision({ mode: 'baseConversion', values: ['13'], targetBase: 2 })
     const shortDivisionSettings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showRemainders: true, visibleStepCount: 2 }
@@ -82,5 +94,6 @@ describe('计算器宏源码布局', () => {
     const shortDivisionScene = createShortDivisionGridScene(shortDivision, shortDivisionSettings)
     expectAutoColorScene(shortDivisionSource, shortDivisionScene)
     expectHumanReproducible(shortDivisionSource, shortDivisionScene)
+    expectCopiedMacroReproducible(shortDivisionSource, shortDivisionScene)
   })
 })

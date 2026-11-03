@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
-import { compileMacro, formatMacro, minifyMacro } from '@u1in/shushi-macro'
+import { compileMacro, completeMacro, formatMacro, minifyMacro, unformatMacro } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import { arithmeticExamples, formatExampleSource, type MacroExample } from './macroPlaygroundExamples'
@@ -112,22 +112,26 @@ const result = computed(() => {
   }
 })
 
-/** 切换示例时同样展示格式化源码，保证每个示例的默认视图都可读。 */
+/** 切换示例时同样展示完整源码，保证每个示例的默认视图都可读。 */
 const useExample = ({ source: exampleSource }: MacroExample): void => {
   source.value = formatExampleSource(exampleSource)
 }
 
 /** 格式化失败时保留原源码，让现有编译错误继续提示用户修正输入。 */
-const transformSource = (transform: (value: string) => string): void => {
+const transformSource = (transform: (value: string) => string): boolean => {
   try {
     source.value = transform(source.value)
+    return true
   } catch {
     // 源码不完整时不改写输入，避免用户丢失正在编辑的内容。
+    return false
   }
 }
 
-const formatSource = (): void => transformSource(formatMacro)
-const minifySource = (): void => transformSource(minifyMacro)
+const formatSource = (): void => { transformSource(formatMacro) }
+const completeSource = (): void => { transformSource(completeMacro) }
+const minifySource = (): void => { transformSource(minifyMacro) }
+const unformatSource = (): void => { transformSource(unformatMacro) }
 </script>
 
 <template>
@@ -149,10 +153,15 @@ const minifySource = (): void => transformSource(minifyMacro)
             </div>
           </div>
         </div>
+        <div class="macro-format-toolbar" aria-label="源码形式">
+          <span>源码形式</span>
+          <button class="macro-insert-button" type="button" @click="minifySource">最简形式</button>
+          <button class="macro-insert-button" type="button" @click="completeSource">完整形式</button>
+        </div>
         <div class="macro-format-toolbar" aria-label="格式化宏源码">
           <span>格式化</span>
           <button class="macro-insert-button" type="button" @click="formatSource">格式化</button>
-          <button class="macro-insert-button" type="button" @click="minifySource">最简化</button>
+          <button class="macro-insert-button" type="button" @click="unformatSource">去格式化</button>
         </div>
         <label class="macro-source-field">
           <span>宏源码</span>

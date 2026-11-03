@@ -2,10 +2,12 @@ import { describe, expect, test } from 'vitest'
 import {
   AUTO_COLOR_THEME,
   compileMacro,
+  completeMacro,
   createMacroAstInspection,
   formatMacro,
   minifyMacro,
   parseMacro,
+  unformatMacro,
 } from '@u1in/shushi-macro'
 
 describe('网格宏编译器', () => {
@@ -351,6 +353,33 @@ CELL(
     expect(minifyMacro(' MM(5), MM(6); LINE; MM(7) ')).toBe('5,6;LN;7;')
   })
 
+  test('完整形式会展开 GRID、ROW、CELL 和定位宏名称', () => {
+    const source = '5,[6,RB(1)];LN;'
+    const complete = completeMacro(source)
+
+    expect(complete).toContain('GRID(')
+    expect(complete).toContain('ROW(')
+    expect(complete).toContain('CELL(')
+    expect(complete).toContain('MM(6)')
+    expect(complete).toContain('LINE')
+    expect(complete).not.toContain('[')
+    expect(complete).not.toContain('LN')
+    expect(compileMacro(complete)).toEqual(compileMacro(source))
+  })
+
+  test('去格式化只移除空白，不执行最简形式的语法糖和默认配置省略', () => {
+    const source = [
+      'GRID(',
+      '  KV(showGrid, true),',
+      '  ROW(CELL(MM(5), RB(1)), LINE())',
+      ')',
+    ].join('\n')
+
+    expect(unformatMacro(source)).toBe('GRID(KV(showGrid,true),ROW(CELL(MM(5),RB(1)),LN))')
+    expect(unformatMacro(source)).not.toContain('[')
+    expect(unformatMacro(source)).toContain('KV(showGrid,true)')
+  })
+
   test('格式化与去格式化会使用 MM 与 CELL 的安全简写', () => {
     expect(formatMacro('MM(5),[MM(6),RB(1)];')).toBe('5, [6, RB(1)];')
     expect(minifyMacro('MM(5), [MM(6), RB(1)];')).toBe('5,[6,RB(1)];')
@@ -370,7 +399,38 @@ CELL(
     expect(minifyMacro(` GRID(
   KV(showGrid, true),
   ROW( MM(5), CELL( MM(6), MT(·) ) )
-) `)).toBe('GRID(KV(showGrid,true),ROW(5,[6,MT(·)]))')
+ ) `)).toBe('GRID(KV(showGrid,true),ROW(MM(5),[6,MT(·)]))')
+  })
+
+  test('最简化不会把非文字首项的 CELL 错写成无效方括号', () => {
+    const source = 'GRID(ROW(CELL(BRACKET, KV(style, division.bracket)), CELL(DOT, KV(style, division.decimal-separator))))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('CELL(BK,KV(style,division.bracket)),CELL(DOT,KV(style,division.decimal-separator));')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化会省略 GRID、ROW、LINE、CELL 的默认和可推导 KV', () => {
+    const source = `GRID(
+  KV(columns, 2), KV(trackUnit, full), KV(unitWidth, 30), KV(unitHeight, 46),
+  KV(paddingX, 20), KV(paddingY, 12), KV(fontSizeRatio, 1), KV(fontSize, 30),
+  KV(showGrid, false), KV(autoColor, true), KV(ariaLabel, "宏公式预览"),
+  ROW(MM(5), MM(6), KV(align, right)),
+  LINE(KV(span, previous)),
+  ROW(CELL(MM(7), KV(columnSpan, 1)))
+)`
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('5,6;LN;[7];')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化会保留非默认 GRID 配置和 ROW 左对齐', () => {
+    const source = 'GRID(KV(columns, 3), KV(showGrid, true), ROW(MM(5), MM(6), KV(align, left)), LINE(KV(span, full)))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('GRID(KV(columns,3),KV(showGrid,true),ROW(MM(5),MM(6),KV(align,left)),LN(KV(span,full)))')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
   test('AST 检查器可从渲染元素回查文字节点，并只更新被点击的数据', () => {

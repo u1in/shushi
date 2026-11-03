@@ -1,6 +1,6 @@
 export { compileMacroAst } from './compiler'
 export { parseMacro } from './parser'
-export { formatMacro, minifyMacro } from './formatter'
+export { completeMacro, formatMacro, minifyMacro, unformatMacro } from './formatter'
 export { createMacroAstInspection } from './ast-inspector'
 export type { MacroAstInspection, MacroElementAstReference, MacroNodePath, MacroSourceStyle } from './ast-inspector'
 export { BASIC_MACRO_NAMES, BASIC_ZERO_ARGUMENT_MACROS, DEFAULT_LINE_STYLE } from './basic-macros'

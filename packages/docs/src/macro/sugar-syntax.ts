@@ -336,7 +336,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '格式化器会输出最短合法宏名：`LINE` 变 `LN`、`EMPTY` 变 `EP`、`BRACKET` 变 `BK`。最简化（`minifyMacro`）还会去掉空格与换行，并在没有场景级配置时把完整 `GRID` / `ROW` / `CELL` 写法降级为分号行和方括号；前后语义保持一致。',
+            text: '`completeMacro` 会显式展开 `GRID`、`ROW`、`CELL`、`MM` 和完整宏名；`formatMacro` 保留当前结构并增加可读的换行缩进；`unformatMacro` 只移除空白；最简化（`minifyMacro`）还会省略已知默认 KV，并在不改变语法边界时把完整写法降级为分号行和方括号。方括号首项必须是文字，因此以 `BRACKET`、`DOT` 等定位图元开头的 `CELL` 会保留显式写法，前后语义保持一致。',
           },
           {
             type: 'code',
@@ -345,7 +345,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
           },
           {
             type: 'paragraph',
-            text: '因此不要把格式化结果当作“另一种语法”——它只是同一棵 AST 的更短写法。需要可读的完整结构时，可以手动写全名。',
+            text: '因此不要把格式化结果当作“另一种语法”——它只是同一棵 AST 的另一种排版。需要可读的完整结构时，使用 `completeMacro`；需要最短可编译源码时，使用 `minifyMacro`。',
           },
         ],
       },

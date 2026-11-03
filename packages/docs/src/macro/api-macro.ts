@@ -166,7 +166,7 @@ console.log(compact)
 // 3,5;LN;8;`,
       }],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，使用最短宏别名，并在不影响语义时把完整的 `GRID`、`ROW`、`CELL`、`MM` 写法降级为顶层分号行、方括号和可省略的 `MM`。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，使用最短宏别名，并在不影响语法与语义时把完整的 `GRID`、`ROW`、`CELL`、`MM` 写法降级为顶层分号行、方括号和可省略的 `MM`。最简化还会省略 GRID、ROW、LINE、CELL 和 STYLE 已知的默认 KV，以及能由当前 GRID 结构推导或已被短除法规则接管的配置。只有首项为文字的 `CELL` 才能改写为方括号；以 `BRACKET`、`DOT` 等定位图元开头的 `CELL` 会保留显式写法。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacro = (source: string) => string` },
