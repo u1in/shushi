@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { computeAddition } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createAdditionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
-import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { AdditionComputation } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -61,6 +60,9 @@ calculate()
   <div class="operation-demo operation-demo--addition" data-operation="addition">
     <section class="workspace" aria-label="加法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
+        <p class="panel-kicker">ADDITION CALCULATOR</p>
+        <h2>加法竖式计算器</h2>
+        <p class="normalization">输入两个加数，逐位查看相加与进位过程。</p>
         <div class="input-grid">
           <label class="field"><span>第一个加数</span><input v-model="firstAddend" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
           <span class="division-operator" aria-hidden="true">+</span>
@@ -87,7 +89,6 @@ calculate()
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
-        <GeneratedMacroSource :source="macroSource" />
       </div></section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />
     </section>

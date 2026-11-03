@@ -3,8 +3,9 @@ import { computed, ref } from 'vue'
 import { createMacroAstInspection } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
+import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 
-/** 示例特意使用完整命令，便于直观看到编辑后输出如何降级为最简宏源码。 */
+/** 示例特意使用完整命令，便于直观看到 AST 修改后仍按当前输入框风格回写源码。 */
 const initialSource = `GRID(
   ROW(MM(3), MM(5), MM(6)),
   ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),
@@ -49,20 +50,20 @@ const selectElement = (elementId: string): void => {
   error.value = canEditSelectedText.value ? '' : '该元素没有可单独修改的文字参数。'
 }
 
-/** 只替换所选元素的第一个文字字面量，再以新 AST 重新编译和输出最简源码。 */
+/** 只替换所选元素的第一个文字字面量，再按输入框当前风格回写源码并重新渲染。 */
 const applyText = (): void => {
   if (!selectedElementId.value) return
   try {
     inspection.value = inspection.value.updateElementText(selectedElementId.value, editedText.value)
-    // 把 AST 单项编辑后的最简源码回填到文本框，让下一次编译继续基于当前结果。
-    source.value = inspection.value.minifiedSource
+    // 完整版保留可读缩进，最简版保留分号行和语法糖，让下一次编译继续基于当前结果。
+    source.value = inspection.value.source
     error.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '无法更新选中的 AST 数据。'
   }
 }
 
-/** 重置为完整源码，方便重复体验“点击 → 修改 → 最简化输出”的链路。 */
+/** 重置为完整源码，方便重复体验“点击 → 修改 → 回写源码”的链路。 */
 const resetInspection = (): void => {
   source.value = initialSource
   inspection.value = createMacroAstInspection(initialSource)
@@ -104,13 +105,6 @@ const resetInspection = (): void => {
         <div class="form-actions">
           <button class="ghost-button" type="button" :disabled="!canEditSelectedText" @click="applyText">应用单项修改</button>
         </div>
-
-        <section class="ast-output-panel" aria-label="最简宏源码输出">
-          <p class="panel-kicker">MINIFIED MACRO</p>
-          <h2>重新输出的最简式</h2>
-          <pre><code>{{ inspection.minifiedSource }}</code></pre>
-          <p>完整 `GRID`、`ROW`、`CELL` 与可省略的 `MM` 会在不改变画面语义时自动降级。</p>
-        </section>
       </section>
 
       <section class="result-card" aria-live="polite">
@@ -124,6 +118,7 @@ const resetInspection = (): void => {
           <GridPreview :scene="inspection.scene" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" />
         </div>
       </section>
+      <VisibleTextRowsPanel :scene="inspection.scene" />
     </section>
   </div>
 </template>

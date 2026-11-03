@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { computeShortDivision } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createShortDivisionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
-import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -94,6 +93,9 @@ calculate()
   <div class="operation-demo operation-demo--short-division" data-operation="short-division">
     <section class="workspace" aria-label="短除法工作区">
       <form class="control-panel" @submit.prevent="calculate">
+        <p class="panel-kicker">SHORT DIVISION CALCULATOR</p>
+        <h2>短除法计算器</h2>
+        <p class="normalization">支持质因数分解、公因数与进制转换的逐步演示。</p>
         <fieldset class="short-division-mode-group" aria-label="短除法用途">
           <label class="mode-option"><input :checked="mode === 'factorization'" type="radio" value="factorization" @change="chooseMode('factorization')" /><span>分解质因数</span></label>
           <label class="mode-option"><input :checked="mode === 'commonFactor'" type="radio" value="commonFactor" @change="chooseMode('commonFactor')" /><span>GCD / LCM</span></label>
@@ -134,7 +136,6 @@ calculate()
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
-          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

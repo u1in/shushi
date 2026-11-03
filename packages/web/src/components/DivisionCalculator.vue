@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { computeDivision } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createDivisionMacroSource, getDivisionPlaybackStepCount } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
-import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { DivisionComputation } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -76,6 +75,9 @@ calculate()
   <div class="operation-demo operation-demo--division" data-operation="division">
     <section class="workspace" aria-label="除法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
+        <p class="panel-kicker">LONG DIVISION CALCULATOR</p>
+        <h2>除法竖式计算器</h2>
+        <p class="normalization">输入被除数和除数，查看试商、减法与商的生成过程。</p>
         <div class="input-grid">
           <label class="field"><span>被除数</span><input v-model="dividend" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
           <span class="division-operator" aria-hidden="true">÷</span>
@@ -110,7 +112,6 @@ calculate()
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
-          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

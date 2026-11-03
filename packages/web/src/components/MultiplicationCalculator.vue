@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { computeMultiplication } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createMultiplicationMacroSource, getMultiplicationStepCount } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
-import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { MultiplicationComputation } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -76,10 +75,13 @@ calculate()
   <div class="operation-demo operation-demo--multiplication" data-operation="multiplication">
     <section class="workspace" aria-label="乘法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
+        <p class="panel-kicker">MULTIPLICATION CALCULATOR</p>
+        <h2>乘法竖式计算器</h2>
+        <p class="normalization">输入两个乘数，查看部分积、进位与最终结果。</p>
         <div class="input-grid">
-          <label class="field"><span>被乘数</span><input v-model="multiplicand" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"><span>第一个乘数</span><input v-model="multiplicand" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
           <span class="division-operator" aria-hidden="true">×</span>
-          <label class="field"><span>乘数</span><input v-model="multiplier" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"><span>第二个乘数</span><input v-model="multiplier" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
         </div>
         <div class="form-actions">
           <button class="ghost-button" type="button" @click="multiplicand = '97'; multiplier = '89'; calculate()">试试 97 × 89</button>
@@ -107,7 +109,6 @@ calculate()
           <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
-          <GeneratedMacroSource :source="macroSource" />
         </div>
       </section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />

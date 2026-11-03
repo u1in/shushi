@@ -32,7 +32,8 @@ export const createShortDivisionMacroSource = (
   children.push(`ROW(${finalGroups.join(', ')})`)
   // DIV 宏自行决定半格轨道和阶梯；columns 对它没有意义，因此不写入普通 GRID 配置。
   const options = [
-    macroOption('autoColor', false),
+    // 短除法也沿用同一套内容级颜色，确保 DOM 与 SVG 不再分叉。
+    macroOption('autoColor', true),
     macroOption('unitWidth', settings.cellWidth),
     macroOption('unitHeight', settings.rowHeight),
     macroOption('fontSizeRatio', settings.fontSizeRatio),

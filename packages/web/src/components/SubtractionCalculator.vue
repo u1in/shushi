@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { computeSubtraction } from '@u1in/shushi-calculators'
 import { compileCalculatorMacro, createSubtractionMacroSource } from '@u1in/shushi-layout'
 import GridPreview from './GridPreview.vue'
-import GeneratedMacroSource from './GeneratedMacroSource.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import type { SubtractionComputation } from '@u1in/shushi-calculators'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -60,6 +59,9 @@ calculate()
   <div class="operation-demo operation-demo--subtraction" data-operation="subtraction">
     <section class="workspace" aria-label="减法竖式工作区">
       <form class="control-panel" @submit.prevent="calculate">
+        <p class="panel-kicker">SUBTRACTION CALCULATOR</p>
+        <h2>减法竖式计算器</h2>
+        <p class="normalization">输入被减数和减数，逐位查看相减与借位过程。</p>
         <div class="input-grid">
           <label class="field"><span>被减数</span><input v-model="minuend" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
           <span class="division-operator" aria-hidden="true">−</span>
@@ -87,7 +89,6 @@ calculate()
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
-        <GeneratedMacroSource :source="macroSource" />
       </div></section>
       <VisibleTextRowsPanel v-if="scene" :scene="scene" />
     </section>

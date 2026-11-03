@@ -1,6 +1,6 @@
 /*
  * Web 首页的主题契约。所有界面容器、表单和渲染器都从这里取语义色；
- * system 模式不设置 data-theme，直接由 prefers-color-scheme 选择这一组变量。
+ * 页面首次加载时由 prefers-color-scheme 选择初始主题，用户选择后由 data-theme 覆盖变量。
  */
 :root {
   --site-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "Latin Modern Math", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif;
@@ -16,9 +16,11 @@
   --surface-raised: #ffffff;
   --surface-soft: #f8faff;
   --surface-muted: #eef2f8;
+  --surface-code: #ffffff;
   --border: rgba(209, 218, 235, 0.88);
   --border-soft: #e3eaf5;
   --border-input: #d5deed;
+  --border-code: #dce5f2;
   --accent: #4166b6;
   --accent-strong: #31539e;
   --accent-soft: #edf2fb;
@@ -31,12 +33,6 @@
   --grid-rule: #4a5f78;
   --grid-guide: #a7bbdd;
   --grid-bracket: #4a5f78;
-  --ast-output-border: var(--border);
-  --ast-output-background: var(--surface-soft);
-  --ast-output-text: var(--text);
-  --ast-output-heading: var(--text-strong);
-  --ast-output-code: var(--accent-strong);
-  --ast-output-note: var(--text-muted);
   font-family: var(--site-font-family);
   color: var(--text-strong);
   background: var(--page-background);
@@ -62,9 +58,11 @@ html[data-theme='dark'] {
   --surface-raised: #18243a;
   --surface-soft: #101a2c;
   --surface-muted: #1b2a43;
+  --surface-code: #0d1728;
   --border: rgba(71, 94, 132, 0.72);
   --border-soft: #2a3a55;
   --border-input: #344866;
+  --border-code: #344866;
   --accent: #8db4ff;
   --accent-strong: #a9c6ff;
   --accent-soft: rgba(65, 102, 182, 0.24);
@@ -77,15 +75,9 @@ html[data-theme='dark'] {
   --grid-rule: #9eb8e4;
   --grid-guide: #526a94;
   --grid-bracket: #a9c6ff;
-  --ast-output-border: var(--border);
-  --ast-output-background: var(--surface-soft);
-  --ast-output-text: var(--text);
-  --ast-output-heading: var(--text-strong);
-  --ast-output-code: var(--accent-strong);
-  --ast-output-note: var(--text-muted);
 }
 
-/* 未设置显式主题时，所有组件随系统变化；显式 light 会阻止这里覆盖变量。 */
+/* Vue 尚未挂载或没有显式属性时，所有组件仍随系统变化，避免首屏闪烁到错误主题。 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
@@ -100,9 +92,11 @@ html[data-theme='dark'] {
     --surface-raised: #18243a;
     --surface-soft: #101a2c;
     --surface-muted: #1b2a43;
+    --surface-code: #0d1728;
     --border: rgba(71, 94, 132, 0.72);
     --border-soft: #2a3a55;
     --border-input: #344866;
+    --border-code: #344866;
     --accent: #8db4ff;
     --accent-strong: #a9c6ff;
     --accent-soft: rgba(65, 102, 182, 0.24);
@@ -115,12 +109,6 @@ html[data-theme='dark'] {
     --grid-rule: #9eb8e4;
     --grid-guide: #526a94;
     --grid-bracket: #a9c6ff;
-    --ast-output-border: var(--border);
-    --ast-output-background: var(--surface-soft);
-    --ast-output-text: var(--text);
-    --ast-output-heading: var(--text-strong);
-    --ast-output-code: var(--accent-strong);
-    --ast-output-note: var(--text-muted);
   }
 }
 
@@ -191,11 +179,6 @@ h1 {
   margin-bottom: 54px;
 }
 
-
-.macro-ast-inspector .result-card {
-  grid-column: 2 / -1;
-}
-
 .ast-selection-details {
   display: grid;
   gap: 10px;
@@ -251,38 +234,6 @@ h1 {
   border-color: #6e8fd2;
   box-shadow: 0 0 0 4px rgba(110, 143, 210, 0.15);
   outline: none;
-}
-
-.ast-output-panel {
-  margin-top: 28px;
-  border: 1px solid var(--ast-output-border);
-  border-radius: 24px;
-  padding: 28px;
-  background: var(--ast-output-background);
-  box-shadow: 0 20px 60px rgba(55, 75, 112, 0.1);
-  color: var(--ast-output-text);
-}
-
-.ast-output-panel h2 {
-  margin: 6px 0 16px;
-  color: var(--ast-output-heading);
-  font-size: 1.2rem;
-}
-
-.ast-output-panel pre {
-  margin: 0;
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: var(--ast-output-code);
-  font: 700 0.78rem/1.65 ui-monospace, "Cascadia Code", Consolas, monospace;
-}
-
-.ast-output-panel p:last-child {
-  margin: 18px 0 0;
-  color: var(--ast-output-note);
-  font-size: 0.82rem;
-  line-height: 1.65;
 }
 
 .renderer-comparison--interactive .grid-svg [data-grid-element-id] {
@@ -1606,10 +1557,6 @@ h2 {
     grid-column: 1 / -1;
   }
 
-  .ast-output-panel {
-    grid-column: 1 / -1;
-  }
-
   .result-content-grid {
     grid-template-columns: 1fr;
   }
@@ -1636,10 +1583,6 @@ h2 {
     padding: 20px;
   }
 
-  .ast-output-panel {
-    padding: 20px;
-  }
-
   .result-mode-group {
     width: 100%;
     margin-left: 0;
@@ -1659,7 +1602,7 @@ h2 {
   }
 }
 
-/* 组件级主题适配：统一覆盖旧版局部样式中的颜色，保证三态主题不会出现半明半暗的卡片。 */
+/* 组件级主题适配：统一覆盖旧版局部样式中的颜色，保证双主题不会出现半明半暗的卡片。 */
 body {
   color: var(--text);
   background:
@@ -1692,7 +1635,6 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 .control-panel,
 .result-card,
 .ocr-panel,
-.ast-output-panel,
 .renderer-panel,
 .data-flow-section {
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
@@ -1767,18 +1709,34 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 .data-flow-section { border-color: var(--border-soft); background: var(--surface-soft); }
 .calculation-json { border-top-color: var(--border-soft); }
 
+/* AST 检查器和自动生成源码面板曾混用旧版高优先级/ Tailwind 浅色类；
+   这些规则必须在组件样式之后落地，确保显式浅色和深色主题都能覆盖它们。 */
+.ast-selection-details dt,
+.macro-insert-group-label,
+.macro-insert-header > span,
+.macro-format-toolbar > span,
+.macro-example-label { color: var(--text-muted); }
+.ast-selection-details dd { color: var(--text); }
+
+.macro-ast-inspector .macro-source-field input,
+.macro-ast-inspector .macro-source-field textarea {
+  border-color: var(--border-input);
+  color: var(--text);
+  background: var(--surface-soft);
+}
+.macro-ast-inspector .macro-source-field input:disabled { color: var(--text-faint); }
+.macro-ast-inspector .macro-source-field textarea:focus,
+.macro-ast-inspector .macro-source-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-focus);
+}
+.range-field input { accent-color: var(--accent); }
+
 .theme-control {
   display: grid;
   justify-items: end;
   gap: 8px;
   min-width: max-content;
-}
-
-.theme-control__label {
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
 }
 
 .theme-control__options {
@@ -1812,7 +1770,6 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 /* 两个渲染器共用的非语义基线在深色背景下必须改为浅色，否则黑色线条和默认文字会消失。 */
 .division-svg .grid-text,
 .division-svg .grid-text[data-style-token="macro.default-text"] { fill: var(--grid-text); }
-.division-dom .grid-text,
 .division-dom .grid-text[data-style-token="macro.default-text"] { color: var(--grid-text); }
 .division-dom .grid-edge { background: var(--grid-rule); }
 .division-dom .grid-corner { border-right-color: var(--grid-rule); border-bottom-color: var(--grid-rule); }

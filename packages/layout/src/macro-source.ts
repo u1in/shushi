@@ -43,7 +43,8 @@ export const macroGrid = (
 ): string => {
   const options = [
     macroOption('columns', columns),
-    macroOption('autoColor', false),
+    // 让计算器生成的 GridScene 携带与 SVG 相同的最终颜色，DOM/CSS 只负责呈现。
+    macroOption('autoColor', true),
     macroOption('unitWidth', settings.cellWidth),
     macroOption('unitHeight', settings.rowHeight),
     macroOption('fontSizeRatio', settings.fontSizeRatio),

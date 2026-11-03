@@ -1,31 +1,28 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
-type ThemeMode = 'light' | 'dark' | 'system'
+type ThemeMode = 'light' | 'dark'
 
 const storageKey = 'shushi-theme-mode'
-const themeMode = ref<ThemeMode>('system')
-const resolvedTheme = ref<'light' | 'dark'>('light')
+const themeMode = ref<ThemeMode>('light')
 let mediaQuery: MediaQueryList | undefined
 
-/** 读取用户偏好；无法访问本地存储时回退到跟随系统，避免阻塞首页渲染。 */
+const resolveSystemTheme = (): ThemeMode => mediaQuery?.matches ? 'dark' : 'light'
+
+/** 读取已保存的显式选择；首次访问或旧版 system 值都按系统偏好初始化。 */
 const readThemeMode = (): ThemeMode => {
   try {
     const stored = window.localStorage.getItem(storageKey)
-    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+    return stored === 'light' || stored === 'dark' ? stored : resolveSystemTheme()
   } catch {
-    return 'system'
+    return resolveSystemTheme()
   }
 }
 
-const resolveSystemTheme = (): 'light' | 'dark' => mediaQuery?.matches ? 'dark' : 'light'
-
-/** 将三态偏好转换成 html 属性；system 通过移除属性交给 prefers-color-scheme。 */
+/** 将当前显式主题写入 html 属性并保存，后续进入页面可恢复用户选择。 */
 const applyTheme = (mode: ThemeMode): void => {
   const root = document.documentElement
-  if (mode === 'system') root.removeAttribute('data-theme')
-  else root.dataset.theme = mode
-  resolvedTheme.value = mode === 'system' ? resolveSystemTheme() : mode
+  root.dataset.theme = mode
   try {
     window.localStorage.setItem(storageKey, mode)
   } catch {
@@ -33,28 +30,19 @@ const applyTheme = (mode: ThemeMode): void => {
   }
 }
 
-const handleSystemThemeChange = (): void => {
-  if (themeMode.value === 'system') resolvedTheme.value = resolveSystemTheme()
-}
-
 mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-mediaQuery.addEventListener('change', handleSystemThemeChange)
 themeMode.value = readThemeMode()
 watch(themeMode, applyTheme, { immediate: true })
-onBeforeUnmount(() => mediaQuery?.removeEventListener('change', handleSystemThemeChange))
 
 const themeOptions: Array<{ value: ThemeMode; label: string; icon: string }> = [
   { value: 'light', label: '浅色', icon: '☼' },
-  { value: 'system', label: '系统', icon: '◐' },
   { value: 'dark', label: '深色', icon: '☾' },
 ]
 
-const currentLabel = computed(() => themeOptions.find(({ value }) => value === themeMode.value)?.label ?? '系统')
 </script>
 
 <template>
   <div class="theme-control" aria-label="主题模式">
-    <span class="theme-control__label">主题 · {{ currentLabel }}</span>
     <div class="theme-control__options" role="group" aria-label="选择主题模式">
       <button
         v-for="option in themeOptions"
@@ -63,7 +51,7 @@ const currentLabel = computed(() => themeOptions.find(({ value }) => value === t
         class="theme-control__button"
         :class="{ 'theme-control__button--active': themeMode === option.value }"
         :aria-pressed="themeMode === option.value"
-        :title="`${option.label}模式${option.value === 'system' ? `（当前${resolvedTheme === 'dark' ? '深色' : '浅色'}）` : ''}`"
+        :title="`${option.label}模式`"
         @click="themeMode = option.value"
       >
         <span aria-hidden="true">{{ option.icon }}</span>
