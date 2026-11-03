@@ -23,6 +23,7 @@
 - 为新运算器添加命名图谱或修改已有图谱时，术语、线框范围、JSON 字段注释和实际网格单元格必须一致。
 - 修改除法计算器返回的 JSON 契约、字段名称、字段含义或示例数据时，必须同步更新 `packages/web/src/pages/DivisionNamingMapPage.vue` 中的 JSON 字段注释与展示说明。
 - `packages/docs/` 是框架无关的唯一文档源，按 `macro/`、`technical/`、`gallery/` 分类；`packages/docs-site/` 只放 VuePress 配置、主题适配和发布脚本。Vite HTML 壳与主应用路由页放在 `packages/web/`；宏文档运行组件放在 `packages/macro-docs/`。
+- 根目录 `README.md` 与 `packages/core/README.md` 是两份需要手动保持同步的项目/npm 包说明；构建脚本不会自动复制 README。凡修改根目录 README 的通用安装、Skill、API 或使用说明，也必须同步修改 `packages/core/README.md` 并在同一提交中提交；VuePress 不从这两份 README 自动生成页面。
 - Git 提交说明使用 Conventional Commits 格式：`<type>(<scope>): <中文说明>`。`type` 使用英文约定（如 `feat`、`fix`、`refactor`、`docs`、`test`、`chore`），`scope` 使用英文文件、模块或功能名，冒号后的说明使用中文，例如 `fix(index): 修复主页渲染问题`。
 - 完成规则或实现修改后，至少执行 `npm run typecheck`、`npm run test` 与 `npm run build`。
 
@@ -50,5 +51,4 @@
 
 - 新写的 JavaScript 和 TypeScript 函数默认使用箭头函数；只有需要独立 `this` 绑定时才使用普通函数。
 - 新增或修改的代码必须补充必要的**中文注释**，说明模块职责、关键状态、算法步骤、边界条件或不直观的实现原因；不得为显而易见的逐行赋值添加无信息量注释。
-- 在 WSL 中运行 Node.js、npm 或 npx 命令前，先执行 `source ~/.zshrc`，加载 fnm 管理的 Node.js 环境。
 - 页面网格采用绝对定位。新增视觉图元优先扩展 `GridCell`、轨道和语义样式 token，不要把运算专属坐标计算散落到渲染器中。

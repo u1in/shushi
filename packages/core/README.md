@@ -10,8 +10,8 @@
 把竖式计算过程接入网页或 Node.js 应用：输入运算数据，得到可编辑的宏源码，编译为统一的 `GridScene`，再渲染为 DOM/CSS 或 SVG。
 
 > 人工录入和计算器自动填写的是同一种宏源码，并经过同一条编译链路得到竖式。
->
-> [在线文档](https://u1in.github.io/shushi/) · [在线演示](https://u1in.github.io/shushi/demo/)
+
+[在线文档](https://u1in.github.io/shushi/) · [在线演示](https://u1in.github.io/shushi/demo/)
 
 ## 安装
 
@@ -231,11 +231,3 @@ npm run build
 ```text
 fix(renderers): 修复 SVG 竖式线条显示
 ```
-
-## 继续阅读
-
-- [安装与运行环境](https://u1in.github.io/shushi/technical/安装)
-- [快速使用：宏编译、SVG、DOM 与文本行](https://u1in.github.io/shushi/technical/快速使用)
-- [宏命令文档](https://u1in.github.io/shushi/macro/语法基础)
-- [GridScene API](https://u1in.github.io/shushi/technical/api/GridScene)
-- [加法、减法、乘法、除法和短除法图例](https://u1in.github.io/shushi/gallery/加法)
