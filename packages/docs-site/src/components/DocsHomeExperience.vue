@@ -196,7 +196,16 @@ const renderFlow = async (): Promise<void> => {
   bindFunctions?.(flowHost.value)
 }
 
+/** 默认主题的 hero 不属于 Markdown 内容树，挂载后将 demo 节点移入 hero，避免依赖 Teleport 初始化时序。 */
+const moveDemoToHero = (): void => {
+  const host = resultHost.value
+  const hero = document.querySelector<HTMLElement>('.vp-hero')
+  if (!host || !hero || host.parentElement === hero) return
+  hero.appendChild(host)
+}
+
 onMounted(() => {
+  moveDemoToHero()
   if (resultHost.value) {
     const stage = renderDomGrid(scene)
     stage.classList.add('docs-home-grid-stage')
@@ -245,7 +254,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
-      <div class="docs-home-install-method">
+      <div class="docs-home-install-method docs-home-install-method--ai">
         <div class="docs-home-install-heading">
           <span>AI 安装</span>
           <small>复制后粘贴到你的 Agent 对话框</small>
@@ -266,7 +275,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
-      <div class="docs-home-install-method">
+      <div class="docs-home-install-method docs-home-install-method--skill">
         <div class="docs-home-install-heading">
           <span>Skill 安装</span>
           <small>在目标项目中执行，安装到当前 Agent 环境</small>
@@ -295,7 +304,6 @@ onBeforeUnmount(() => {
           <p class="docs-home-eyebrow">A SMALL, REAL EXAMPLE</p>
           <h2 id="docs-home-demo-title">几行代码，得到一个可渲染的竖式</h2>
         </div>
-        <span class="docs-home-demo-result">356 + 278 = 634</span>
       </div>
       <div class="docs-home-demo-grid">
         <div class="docs-home-code-panel">
@@ -336,9 +344,8 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
           </button>
           </div>
         </div>
-        <div ref="resultHost" class="docs-home-result" aria-label="356 加 278 的竖式渲染结果"></div>
       </div>
-      <div class="docs-home-install-method docs-home-demo-ai-method">
+      <div class="docs-home-install-method docs-home-demo-ai-method docs-home-demo-ai-method--ai">
         <div class="docs-home-install-heading">
           <span>AI 实现</span>
           <small>复制后修改输入数据，再粘贴到你的 Agent 对话框</small>
@@ -359,9 +366,9 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
           </button>
         </div>
       </div>
-      <div class="docs-home-install-method docs-home-demo-ai-method">
+      <div class="docs-home-install-method docs-home-demo-ai-method docs-home-demo-ai-method--skill">
         <div class="docs-home-install-heading">
-          <span>Skill 使用</span>
+          <span>Skill 实现</span>
           <small>安装完成后复制到你的 Agent 对话框</small>
         </div>
         <div class="docs-home-install-command-row">
@@ -369,8 +376,8 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
           <button
             class="docs-home-copy-button docs-home-icon-button"
             type="button"
-            :aria-label="skillUsageCopyState === 'copied' ? 'Skill 使用指令已复制' : skillUsageCopyState === 'failed' ? '复制 Skill 使用指令失败' : '复制 Skill 使用指令'"
-            :title="skillUsageCopyState === 'copied' ? 'Skill 使用指令已复制' : skillUsageCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 使用指令'"
+            :aria-label="skillUsageCopyState === 'copied' ? 'Skill 实现指令已复制' : skillUsageCopyState === 'failed' ? '复制 Skill 实现指令失败' : '复制 Skill 实现指令'"
+            :title="skillUsageCopyState === 'copied' ? 'Skill 实现指令已复制' : skillUsageCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 实现指令'"
             @click="copySkillUsagePrompt"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -381,6 +388,9 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
         </div>
       </div>
     </section>
+
+    <!-- VuePress 默认 hero 由主题渲染；挂载后将真实竖式节点移动到主标题右侧。 -->
+    <div ref="resultHost" class="docs-home-result docs-home-result--hero" aria-label="356 加 278 的竖式渲染结果"></div>
 
     <section class="docs-home-flow" aria-labelledby="docs-home-flow-title">
       <div class="docs-home-section-heading">
@@ -451,9 +461,18 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
   margin-top: .35rem;
 }
 
+/* 安装方式按“npm → Skill → AI”排列，保持页面阅读顺序与使用流程一致。 */
+.docs-home-install-method--skill { order: 1; }
+.docs-home-install-method--ai { order: 2; }
+
 .docs-home-demo-ai-method {
   margin-top: 1rem;
 }
+
+/* demo 下方的两个 Agent 入口按“Skill 实现 → AI 实现”排列。 */
+.docs-home-demo { display: grid; }
+.docs-home-demo-ai-method--skill { order: 1; }
+.docs-home-demo-ai-method--ai { order: 2; }
 
 .docs-home-install-heading {
   display: flex;
@@ -628,7 +647,7 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
 
 .docs-home-demo-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(260px, .82fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
@@ -679,7 +698,7 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-result {
   display: grid;
-  min-height: 250px;
+  min-height: 300px;
   place-items: center;
   overflow: auto;
   border: 1px solid var(--vp-c-divider);
@@ -694,7 +713,54 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-result .docs-home-grid-stage {
   flex: 0 0 auto;
-  transform: scale(.92);
+  transform: scale(1.3);
+  transform-origin: center;
+}
+
+/* 首页 demo 在挂载后进入默认主题 hero 的第二列；正文中的源码说明仍保持完整宽度。 */
+.vp-home .vp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  column-gap: 3rem;
+  max-width: var(--homepage-width);
+  text-align: left;
+}
+
+.vp-home .vp-hero #main-title {
+  margin-left: 0;
+  margin-right: 0;
+  text-align: left;
+}
+
+.vp-home .vp-hero #main-title,
+.vp-home .vp-hero .vp-hero-description,
+.vp-home .vp-hero .vp-hero-actions {
+  grid-column: 1;
+}
+
+.vp-home .vp-hero .vp-hero-actions {
+  gap: .55rem;
+  justify-content: flex-start;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: .85rem;
+  margin-bottom: 1rem;
+}
+
+.vp-home .vp-hero .vp-hero-action-button {
+  border-radius: 10px;
+  padding: .55rem .9rem;
+  font-size: .84rem;
+}
+
+.vp-home .vp-hero .docs-home-result--hero {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  width: 100%;
+  min-height: 280px;
+  margin: 0;
 }
 
 .docs-home-result .grid-text {
@@ -800,5 +866,17 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   .docs-home-copy-button { padding: 0; }
   .docs-home-feature-grid { grid-template-columns: 1fr; }
   .docs-home-mermaid svg { min-width: 620px; }
+}
+
+@media (max-width: 720px) {
+  .vp-home .vp-hero {
+    display: block;
+  }
+
+  .vp-home .vp-hero .docs-home-result--hero {
+    width: min(100%, 320px);
+    min-height: 280px;
+    margin: 2rem auto 0;
+  }
 }
 </style>
