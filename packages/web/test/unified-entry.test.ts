@@ -4,6 +4,7 @@ import {
   computeAddition,
   createAdditionMacroSource,
   renderDomGrid,
+  renderSvgString,
 } from '@u1in/shushi-core'
 
 describe('统一 npm 入口', () => {
@@ -14,5 +15,6 @@ describe('统一 npm 入口', () => {
 
     expect(scene.rows.length).toBeGreaterThan(0)
     expect(typeof renderDomGrid).toBe('function')
+    expect(typeof renderSvgString).toBe('function')
   })
 })

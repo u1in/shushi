@@ -1,6 +1,6 @@
 {
   "name": "@u1in/shushi-renderers",
-  "description": "把通用竖式行列网格布局渲染为 DOM/CSS 或 SVG。",
+  "description": "把通用竖式行列网格布局渲染为 DOM/CSS、SVG 或 SVG 字符串。",
   "author": "u1in <u1in@qq.com>",
   "repository": {
     "type": "git",
