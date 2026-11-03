@@ -41,9 +41,10 @@ export default defineUserConfig({
       heroText: '@u1in/shushi',
       tagline: '人工录入与计算器自动填写同一份宏源码，并经同一编译链路得到竖式',
       actions: [
-        { text: '查看技术文档', link: '/technical/安装' },
-        { text: '查看宏命令', link: '/macro/语法基础', type: 'primary' },
-        { text: '查看图例文档', link: '/gallery/加法' },
+        { text: '查看演示', link: 'https://u1in.github.io/shushi/demo/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
+        { text: '查看技术文档', link: '/technical/安装', type: 'default' },
+        { text: '查看宏命令', link: '/macro/语法基础', type: 'default' },
+        { text: '查看图例文档', link: '/gallery/加法', type: 'default' },
       ],
       footer: 'Copyright © 2026 u1in · @u1in/shushi · Released under the MIT License',
     })

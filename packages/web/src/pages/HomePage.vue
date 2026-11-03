@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import DivisionCalculator from '../components/DivisionCalculator.vue'
 import MultiplicationCalculator from '../components/MultiplicationCalculator.vue'
 import AdditionCalculator from '../components/AdditionCalculator.vue'
@@ -7,6 +8,26 @@ import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
 import MacroPlayground from '../components/MacroPlayground.vue'
 import MacroAstInspector from '../components/MacroAstInspector.vue'
 import ThemeControl from '../components/ThemeControl.vue'
+
+const showBackToTop = ref(false)
+
+// 仅在页面滚动到主要内容区后显示入口，避免首屏增加无用的固定控件。
+const updateBackToTopVisibility = (): void => {
+  showBackToTop.value = window.scrollY > 480
+}
+
+const scrollToTop = (): void => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  updateBackToTopVisibility()
+  window.addEventListener('scroll', updateBackToTopVisibility, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateBackToTopVisibility)
+})
 </script>
 
 <template>
@@ -18,6 +39,9 @@ import ThemeControl from '../components/ThemeControl.vue'
       </div>
       <h1>竖式运算的可视化工作台</h1>
       <p class="intro">这是一个可交互的竖式计算与宏语言工作台：支持宏源码编译、AST 图元点击修改、SVG 与 DOM/CSS 双渲染对照、OCR 按行识别，以及加法、减法、乘法、除法和短除法的逐步演示；网格尺寸、步骤和主题均可调整。</p>
+      <nav class="hero-actions" aria-label="相关入口">
+        <a class="hero-action-button" href="https://u1in.github.io/shushi/" target="_blank" rel="noopener noreferrer">查看文档</a>
+      </nav>
     </section>
 
     <MacroPlayground />
@@ -27,5 +51,16 @@ import ThemeControl from '../components/ThemeControl.vue'
     <MultiplicationCalculator />
     <DivisionCalculator />
     <ShortDivisionCalculator />
+
+    <button
+      v-if="showBackToTop"
+      class="back-to-top"
+      type="button"
+      aria-label="返回页面顶部"
+      @click="scrollToTop"
+    >
+      <span aria-hidden="true">↑</span>
+      <span>返回顶部</span>
+    </button>
   </main>
 </template>

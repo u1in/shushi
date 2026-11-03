@@ -755,6 +755,19 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   font-size: .84rem;
 }
 
+/* “查看演示”是唯一的外部入口，使用暖色实心按钮与文档按钮区分。 */
+.vp-home .vp-hero .vp-hero-action-button.demo {
+  border-color: #ff4c55;
+  color: #ffffff;
+  background: #ff4c55;
+  --external-link-c-icon: currentColor;
+}
+
+.vp-home .vp-hero .vp-hero-action-button.demo:hover {
+  border-color: #e33c46;
+  background: #e33c46;
+}
+
 .vp-home .vp-hero .docs-home-result--hero {
   grid-column: 2;
   grid-row: 1 / span 3;

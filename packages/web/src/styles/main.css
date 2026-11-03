@@ -3,8 +3,9 @@
  * 页面首次加载时由 prefers-color-scheme 选择初始主题，用户选择后由 data-theme 覆盖变量。
  */
 :root {
-  --site-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "Latin Modern Math", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif;
-  --numeric-font-family: var(--site-font-family);
+  /* 文案字体与 VuePress 默认主题的实际计算值保持一致；数学字段单独保留数学字体回退。 */
+  --site-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", roboto, oxygen, ubuntu, cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --numeric-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "Latin Modern Math", "STIX Two Math", "Cambria Math", math, "Times New Roman", "Noto Serif SC", serif;
   --page-background: #f5f7fb;
   --page-glow: rgba(198, 222, 255, 0.72);
   --text-strong: #14213d;
@@ -120,9 +121,18 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: var(--site-font-family);
   background:
     radial-gradient(circle at 10% 0%, rgba(198, 222, 255, 0.72), transparent 30rem),
     #f5f7fb;
+}
+
+/* 表单控件默认可能使用浏览器字体，这里让所有界面文案先继承同一套字体基线。 */
+button,
+input,
+select,
+textarea {
+  font-family: var(--site-font-family);
 }
 
 .page-shell {
@@ -154,6 +164,66 @@ h1 {
   color: #62708b;
   font-size: 1.05rem;
   line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.hero-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  box-shadow: 0 8px 18px var(--shadow-accent);
+  font-size: .86rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.hero-action-button:hover {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.back-to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: var(--text-strong);
+  background: var(--surface-raised);
+  box-shadow: 0 10px 24px var(--shadow);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.back-to-top:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  transform: translateY(-2px);
+}
+
+.back-to-top:focus-visible {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 3px;
 }
 
 .hero {
@@ -354,7 +424,7 @@ h1 {
   color: #48618f;
   background: #f8faff;
   box-shadow: none;
-  font: 800 0.71rem/1 ui-monospace, "Cascadia Code", Consolas, monospace;
+  font: 800 0.71rem/1 var(--site-font-family);
 }
 
 .macro-insert-button:hover {
@@ -376,7 +446,6 @@ h1 {
 
 .macro-example-button {
   padding: 9px 11px;
-  font-family: var(--numeric-font-family);
 }
 
 .macro-source-field textarea {
@@ -635,10 +704,7 @@ button:disabled {
 .field input,
 .division-operator,
 .range-field output,
-.ghost-button,
-.result-heading h2,
-.answer,
-.normalization {
+.answer {
   font-family: var(--numeric-font-family);
   font-variant-numeric: tabular-nums;
 }
@@ -1221,10 +1287,10 @@ h2 {
   height: 1px !important;
 }
 
-/* Generic variable-track grid renderer. Operation layout select these semantic tokens. */
+/* 竖式渲染层单独覆盖数学字体，避免网格数字跟随全局文案字体变化。 */
 .division-svg .grid-text,
 .division-dom .grid-text {
-  font-family: var(--site-font-family);
+  font-family: var(--numeric-font-family);
   font-size: var(--grid-font-size, 27px);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -1536,6 +1602,11 @@ h2 {
   .page-shell {
     width: min(100% - 24px, 680px);
     padding-top: 40px;
+  }
+
+  .back-to-top {
+    right: 16px;
+    bottom: 16px;
   }
 
   .workspace {
