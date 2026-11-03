@@ -121,7 +121,8 @@ export const createMultiplicationMacroSource = (
     const visibleDigitStepCount = Math.min(remainingVisibleSteps, partialProduct.digitSteps.length)
     remainingVisibleSteps -= visibleDigitStepCount
     const row = createNumberRow()
-    const completedDigitSteps = partialProduct.digitSteps.slice(-visibleDigitStepCount)
+    // slice(-0) 会被 JavaScript 解释为 slice(0)，必须显式保留空步骤。
+    const completedDigitSteps = visibleDigitStepCount === 0 ? [] : partialProduct.digitSteps.slice(-visibleDigitStepCount)
     const firstNonZeroIndex = completedDigitSteps.findIndex(({ resultDigit }) => resultDigit !== '0')
     const displayedSteps = firstNonZeroIndex === -1 ? completedDigitSteps.slice(-1) : completedDigitSteps.slice(firstNonZeroIndex)
     displayedSteps.forEach(({ multiplicandDigitIndex, resultDigit }) => {
