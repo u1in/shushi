@@ -9,13 +9,14 @@ import {
   macroGrid,
   macroLine,
   macroRightBottom,
+  macroRightTop,
   macroRow,
   macroTextCell,
 } from './macro-source'
 
 interface NumberRowContent {
   digits: Map<number, string>
-  annotations: Map<number, { text: string, token: string }[]>
+  annotations: Map<number, { text: string, token: string, position: 'rightTop' | 'rightBottom' }[]>
 }
 
 const createNumberRow = (): NumberRowContent => ({ digits: new Map(), annotations: new Map() })
@@ -24,15 +25,29 @@ const putNumber = (row: NumberRowContent, value: string, rightIndex: number): vo
   ;[...value].forEach((digit, index) => row.digits.set(rightIndex - value.length + index + 1, digit))
 }
 
-const putAnnotation = (row: NumberRowContent, index: number, text: string, token: string): void => {
+/**
+ * 乘法进位默认附着在左侧目标数字的右上角；跨过横线时改附着到上行数字右下角。
+ * 两种情况都复用既有 RB / RT 宏，保证自动生成源码可以直接在宏编辑器中复刻。
+ */
+const putAnnotation = (
+  row: NumberRowContent,
+  index: number,
+  text: string,
+  token: string,
+  position: 'rightTop' | 'rightBottom',
+): void => {
   const annotations = row.annotations.get(index) ?? []
-  annotations.push({ text, token })
+  annotations.push({ text, token, position })
   row.annotations.set(index, annotations)
 }
 
 const renderNumberCells = (row: NumberRowContent, count: number, token: string): string[] => (
   Array.from({ length: count }, (_, index) => {
-    const annotations = (row.annotations.get(index) ?? []).map(({ text, token: annotationToken }) => macroRightBottom(text, annotationToken))
+    const annotations = (row.annotations.get(index) ?? []).map(({ text, token: annotationToken, position }) => (
+      position === 'rightTop'
+        ? macroRightTop(text, annotationToken)
+        : macroRightBottom(text, annotationToken)
+    ))
     const digit = row.digits.get(index)
     return digit === undefined
       ? annotations.length ? macroAnnotationCell(annotations.join(', ')) : macroEmptyCell()
@@ -48,7 +63,7 @@ export const getMultiplicationStepCount = (computation: MultiplicationComputatio
 }
 
 /**
- * 将计算过程写为完整的宏源码。进位使用 RB，而非布局器专用的交点坐标，
+ * 将计算过程写为完整的宏源码。进位按横线相邻关系使用既有 RT / RB，
  * 因而每一帧都可直接复制到宏编辑器复刻。
  */
 export const createMultiplicationMacroSource = (
@@ -83,25 +98,26 @@ export const createMultiplicationMacroSource = (
 
   const multiplicand = createNumberRow()
   putNumber(multiplicand, computation.multiplicandDigits, isTrailingZeroShortcut ? baseRightmostNumberIndex : rightmostNumberIndex)
-  children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
 
   const multiplier = createNumberRow()
   const multiplierToDisplay = isTrailingZeroShortcut && !isComplete
     ? computation.trailingZeroShortcut!.significantMultiplierDigits
     : computation.multiplierDigits
   putNumber(multiplier, multiplierToDisplay, isTrailingZeroShortcut && !isComplete ? baseRightmostNumberIndex : rightmostNumberIndex)
-  children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
-  children.push(macroLine('multiplication.input-bar', 'full'))
 
   if (isTrailingZeroShortcut && !isMultiDigitMultiplier) {
     const product = createNumberRow()
     if (isComplete) putNumber(product, computation.productDigits, computation.productDigits === '0' ? baseRightmostNumberIndex : rightmostNumberIndex)
+    children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
+    children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
+    children.push(macroLine('multiplication.input-bar', 'full'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
     return macroGrid(numberColumnCount + 1, settings, `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的十倍数快捷竖式`, children)
   }
 
   let remainingVisibleSteps = visibleMultiplicationStepCount
-  computation.partialProducts.forEach((partialProduct) => {
+  const partialRows: NumberRowContent[] = []
+  computation.partialProducts.forEach((partialProduct, partialProductIndex) => {
     const visibleDigitStepCount = Math.min(remainingVisibleSteps, partialProduct.digitSteps.length)
     remainingVisibleSteps -= visibleDigitStepCount
     const row = createNumberRow()
@@ -120,26 +136,40 @@ export const createMultiplicationMacroSource = (
       completedDigitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {
         if (carryOut === 0 || multiplicandDigitIndex === 0) return
         const targetColumnFromRight = computation.multiplicandDigits.length - multiplicandDigitIndex
-        putAnnotation(row, arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight, String(carryOut), 'multiplication.carry')
+        const targetIndex = arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight
+        // 第一条部分积紧跟乘法横线；进位改放在横线上方的乘数数字右下角。
+        const anchorRow = partialProductIndex === 0 ? multiplier : row
+        putAnnotation(anchorRow, targetIndex, String(carryOut), 'multiplication.carry', partialProductIndex === 0 ? 'rightBottom' : 'rightTop')
       })
     }
-    children.push(macroRow(renderNumberCells(row, numberColumnCount, isMultiDigitMultiplier ? 'multiplication.partial-product' : 'multiplication.product')))
+    partialRows.push(row)
   })
 
+  children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
+  children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
+  children.push(macroLine('multiplication.input-bar', 'full'))
+
   if (isMultiDigitMultiplier) {
-    if (visibleAdditionStepCount > 0) children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
     const product = createNumberRow()
     if (settings.showCarrySteps && visibleAdditionStepCount > 0) {
       computation.additionSteps.slice(0, visibleAdditionStepCount).forEach((step) => {
         const targetColumnFromRight = step.columnFromRight + 1
         if (step.carryOut === 0 || targetColumnFromRight >= baseProductDigits.length) return
-        putAnnotation(product, arithmeticRightmostNumberIndex - targetColumnFromRight, String(step.carryOut), 'multiplication.addition-carry')
+        // 最终积也紧跟求和横线，进位固定写在最后一条部分积的相应数字右下角。
+        putAnnotation(partialRows.at(-1)!, arithmeticRightmostNumberIndex - targetColumnFromRight, String(step.carryOut), 'multiplication.addition-carry', 'rightBottom')
       })
     }
     const visibleProduct = computation.additionSteps.slice(0, visibleAdditionStepCount).map(({ resultDigit }) => resultDigit).reverse().join('')
     const productToDisplay = isComplete ? computation.productDigits : visibleProduct
     putNumber(product, productToDisplay, isComplete && computation.productDigits !== '0' ? rightmostNumberIndex : arithmeticRightmostNumberIndex)
+    // 求和进位已写入最后部分积后，才序列化该行，避免宏源码遗漏最新标记。
+    partialRows.forEach((row) => {
+      children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.partial-product')))
+    })
+    if (visibleAdditionStepCount > 0) children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
+  } else {
+    children.push(macroRow(renderNumberCells(partialRows[0], numberColumnCount, 'multiplication.product')))
   }
 
   return macroGrid(numberColumnCount + 1, settings, `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的竖式`, children)

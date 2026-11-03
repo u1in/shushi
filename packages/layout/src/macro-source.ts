@@ -24,6 +24,11 @@ export const macroRightBottom = (text: string, styleToken: string): string => (
   `RB(${macroLiteral(text)}, ${macroOption('style', styleToken)})`
 )
 
+/** 乘法进位默认放在目标数字右上角。 */
+export const macroRightTop = (text: string, styleToken: string): string => (
+  `RT(${macroLiteral(text)}, ${macroOption('style', styleToken)})`
+)
+
 export const macroBorrowDot = (styleToken: string): string => `MTD(${macroOption('style', styleToken)})`
 
 export const macroRow = (cells: string[], align: 'left' | 'right' = 'right'): string => (
