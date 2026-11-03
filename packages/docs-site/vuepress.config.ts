@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 
 /**
  * 集中文档站只负责内容组织和发布，不承载计算器业务路由。
- * 四个顶层入口使用独立目录，避免宏说明、技术文档、图例文档与 Agent 公共指南互相混入。
+ * 三个顶层入口使用独立目录，避免宏说明、技术文档与图例文档互相混入。
  */
 export default defineUserConfig({
   lang: 'zh-CN',
@@ -20,6 +20,8 @@ export default defineUserConfig({
     '**/*.md',
     '!.vuepress',
     '!**/README.md',
+    // Agent 指南由部署工作流单独复制为 Markdown，不参与 VuePress 页面生成。
+    '!agent/**',
     '!technical/calculator/**',
     '!technical/layout/**',
     '!technical/grid/**',
@@ -70,7 +72,6 @@ export default defineUserConfig({
       { text: '首页', link: '/' },
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: '技术文档', link: '/technical/安装' },
-      { text: 'Agent 指南', link: '/agent/installation' },
       { text: '图例文档', link: '/gallery/加法' },
       { text: '在线演示', link: 'https://u1in.github.io/shushi/demo/' },
     ],
@@ -83,7 +84,6 @@ export default defineUserConfig({
             { text: '首页', link: '/' },
             { text: '宏命令文档', link: '/macro/语法基础' },
             { text: '技术文档', link: '/technical/安装' },
-            { text: 'Agent 指南', link: '/agent/installation' },
             { text: '图例文档', link: '/gallery/加法' },
           ],
         },
@@ -210,16 +210,6 @@ export default defineUserConfig({
         { text: '乘法竖式元素', link: '/gallery/乘法' },
         { text: '除法竖式元素', link: '/gallery/除法' },
         { text: '短除法元素', link: '/gallery/短除法' },
-      ],
-      '/agent/': [
-        {
-          text: 'Agent 公共指南',
-          collapsible: false,
-          children: [
-            { text: '安装说明', link: '/agent/installation' },
-            { text: '功能说明', link: '/agent/capabilities' },
-          ],
-        },
       ],
     },
   }),
