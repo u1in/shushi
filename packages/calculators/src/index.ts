@@ -1,4 +1,5 @@
 export * from './addition'
+export * from './composite-arithmetic'
 export * from './division'
 export * from './multiplication'
 export * from './subtraction'

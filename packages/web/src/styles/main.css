@@ -623,6 +623,22 @@ h1 {
 
 .input-grid--single { grid-template-columns: minmax(0, 1fr); }
 
+.field-help {
+  margin: 10px 0 0;
+  color: #63718b;
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+
+.field-help code {
+  border-radius: 4px;
+  padding: 1px 4px;
+  color: #35568f;
+  background: #edf2fb;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+
 .answer--short-division {
   max-width: 100%;
   font-size: clamp(1.45rem, 3.5vw, 2.8rem);

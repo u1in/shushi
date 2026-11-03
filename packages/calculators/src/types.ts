@@ -128,6 +128,8 @@ export interface MultiplicationTrailingZeroShortcut {
 /** 乘法器可选行为；未指定时保持教学页面的默认快捷计算。 */
 export interface MultiplicationOptions {
   useTrailingZeroShortcut?: boolean
+  /** 保留调用方输入的上下行顺序；组合运算用它避免为了版面交换操作数。 */
+  preserveOperandOrder?: boolean
 }
 
 export interface MultiplicationComputation {
@@ -182,4 +184,27 @@ export interface SubtractionComputation {
   resultText: string
   isNegative: boolean
   steps: SubtractionColumnStep[]
+}
+
+/** 组合竖式目前由加、减、乘三种已有的单项规则按从左到右串联。 */
+export type CompositeArithmeticOperator = '+' | '-' | '×'
+
+/** 每一步都保留其原始单项计算过程，布局层无需重新解释算法。 */
+interface CompositeArithmeticStepBase {
+  index: number
+  leftOperandDigits: string
+  rightOperandDigits: string
+  resultDigits: string
+}
+
+export type CompositeArithmeticStep =
+  | (CompositeArithmeticStepBase & { operator: '+', computation: AdditionComputation })
+  | (CompositeArithmeticStepBase & { operator: '-', computation: SubtractionComputation })
+  | (CompositeArithmeticStepBase & { operator: '×', computation: MultiplicationComputation })
+
+export interface CompositeArithmeticComputation {
+  expression: string
+  initialValueDigits: string
+  steps: CompositeArithmeticStep[]
+  resultDigits: string
 }

@@ -166,7 +166,7 @@ console.log(compact)
 // 3,5;LN;8;`,
       }],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，使用最短宏别名，并在不影响语法与语义时把完整的 `GRID`、`ROW`、`CELL`、`MM` 写法降级为顶层分号行、方括号和可省略的 `MM`。最简化还会省略 GRID、ROW、LINE、CELL 和 STYLE 已知的默认 KV，以及能由当前 GRID 结构推导或已被短除法规则接管的配置。只有首项为文字的 `CELL` 才能改写为方括号；以 `BRACKET`、`DOT` 等定位图元开头的 `CELL` 会保留显式写法。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它移除不必要的换行和空格，使用最短宏别名，并在不影响语法与语义时把完整的 `GRID`、`ROW`、`CELL`、`MM` 写法降级为顶层分号行、方括号和可省略的 `MM`。最简化还会省略 GRID、ROW、LINE、CELL 和 STYLE 已知的默认 KV，以及能由当前 GRID 结构推导或已被短除法规则接管的配置。方括号首项为裸文字时省略 `MM`；无配置的单图元 CELL 会继续消除外壳，例如 `CELL(MM(1))` / `[1]` 输出 `1`，`CELL(RB(1))` / `[RB(1)]` 输出 `RB(1)`。压缩前后编译得到的 `GridScene` 语义保持一致。' }] },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacro = (source: string) => string` },
@@ -177,6 +177,79 @@ console.log(compact)
       ],
     },
     { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '压缩不是任意删除字符', text: '函数会先解析源码，因此语法错误仍会抛出 Error。它只改变宏源码表达方式，不验证加法、减法、乘法或除法的业务计算结果；不要使用字符串替换自行删除逗号、分号或引号。' }] },
+  ],
+})
+
+export const minifyMacroAstPage = compilePage({
+  slug: 'minifyMacroAst', title: 'minifyMacroAst', navLabel: 'minifyMacroAst', kicker: 'API · MACRO COMPILER', group: 'api',
+  summary: '将已改写的宏 AST 按正式最简化规则输出为宏源码。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`minifyMacroAst`：AST 形式的最简宏生成函数。' }] },
+    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: `import { minifyMacroAst, parseMacro } from '@u1in/shushi-core'
+
+const ast = parseMacro('GRID(ROW(MM(3), MM(5)), LINE, ROW(MM(8)))')
+const source = minifyMacroAst(ast)
+
+console.log(source) // '3,5;LN;8;'` }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它使用与 `minifyMacro` 完全相同的默认配置省略、方括号简写、顶层分号行和别名规则，但调用方可以先在 AST 层完成受控改写。组合竖式布局使用它生成复制到宏试验区的源码，不自行拼接宏字符串。' }] },
+    { id: 'signature', title: '函数签名和属性说明', blocks: [
+      { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroAst = (
+  root: MacroCall,
+  omitDefaults?: boolean,
+) => string` },
+      { type: 'table', columns: ['参数 / 返回值', '类型', '说明'], rows: [
+        ['`root`', '`MacroCall`', '已经解析或由调用方安全改写过的宏 AST。'],
+        ['`omitDefaults`', '`boolean`', '默认 `true`，省略可推导或已知默认配置。'],
+        ['返回值', '`string`', '可重新交给 `compileMacro` 的正式最简宏源码。'],
+      ] },
+    ] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '先确保 AST 合法', text: '函数不验证业务计算；手动改写 AST 时必须保留合法的 GRID、ROW、CELL 与定位宏结构。只有需要 AST 处理时使用它，普通字符串输入请使用 `minifyMacro`。' }] },
+  ],
+})
+
+export const minifyMacroForCopyPage = compilePage({
+  slug: 'minifyMacroForCopy', title: 'minifyMacroForCopy', navLabel: 'minifyMacroForCopy', kicker: 'API · MACRO COMPILER', group: 'api',
+  summary: '为计算器的“复制宏命令”导出可粘贴编辑的最简源码。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`minifyMacroForCopy`：计算器宏的复制导出函数。' }] },
+    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: `import { minifyMacroForCopy } from '@u1in/shushi-core'
+
+const source = 'GRID(KV(ariaLabel,"加法"),ROW(MM(3,KV(style,addition.addend)),MM(5)))'
+const copied = minifyMacroForCopy(source)
+
+console.log(copied) // '3,5;'` }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它先解析原始宏，再移除计算器页面专属的 `ariaLabel` 和 `style` KV，最后通过正式的 AST 最简化 API 输出别名、方括号与分号行。尺寸、辅助网格和其他会影响可见几何的非默认配置会保留；所有首页计算器的“复制宏命令”均使用此 API。' }] },
+    { id: 'signature', title: '函数签名和属性说明', blocks: [
+      { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroForCopy = (source: string) => string` },
+      { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+        ['`source`', '`string`', '计算器布局生成的可解析宏源码。'],
+        ['返回值', '`string`', '适合直接粘贴到宏试验区的最简宏，不含页面专属 aria 或 style KV。'],
+      ] },
+    ] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '仅用于计算器导出', text: '此 API 会有意删除 `style` KV；手写宏若依赖自定义样式 token，应使用 `minifyMacro`，而不是本函数。需要先改写 AST 的布局器可使用 `minifyMacroForCopyAst`。' }] },
+  ],
+})
+
+export const minifyMacroForCopyAstPage = compilePage({
+  slug: 'minifyMacroForCopyAst', title: 'minifyMacroForCopyAst', navLabel: 'minifyMacroForCopyAst', kicker: 'API · MACRO COMPILER', group: 'api',
+  summary: '为已改写的计算器宏 AST 导出可粘贴编辑的最简源码。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`minifyMacroForCopyAst`：计算器 AST 的复制导出函数。' }] },
+    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: `import { minifyMacroForCopyAst, parseMacro } from '@u1in/shushi-core'
+
+const ast = parseMacro('GRID(KV(ariaLabel,"加法"),ROW(MM(3,KV(style,addition.addend)),MM(5)))')
+const copied = minifyMacroForCopyAst(ast)
+
+console.log(copied) // '3,5;'` }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它用于布局器已在 AST 层完成安全改写的情形。函数统一删除页面专属 `ariaLabel`、`style` KV，再沿用 `minifyMacroAst` 的默认配置省略、语法糖与别名规则，避免调用方重新实现字符串序列化。' }] },
+    { id: 'signature', title: '函数签名和属性说明', blocks: [
+      { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroForCopyAst = (root: MacroCall) => string` },
+      { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+        ['`root`', '`MacroCall`', '计算器布局安全改写后的宏 AST 根节点。'],
+        ['返回值', '`string`', '适合直接粘贴到宏试验区的最简宏。'],
+      ] },
+    ] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '不要手写序列化', text: '调用方应只改写 AST 的必要结构，然后交给本函数输出源码。普通字符串输入请使用 `minifyMacroForCopy`；手写宏若依赖自定义样式 token，请使用 `minifyMacro`。' }] },
   ],
 })
 
@@ -230,4 +303,4 @@ interface MacroAstInspection {
 })
 
 /** 宏编译分类的页面顺序同时决定侧栏顺序和技术文档页尾翻页顺序。 */
-export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, minifyMacroPage, createMacroAstInspectionPage]
+export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, minifyMacroPage, minifyMacroAstPage, minifyMacroForCopyPage, minifyMacroForCopyAstPage, createMacroAstInspectionPage]

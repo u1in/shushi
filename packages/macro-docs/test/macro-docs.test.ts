@@ -15,14 +15,15 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
+  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
   'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
   'getGridTextAnchor', 'extractVisibleTextRows',
   'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
   'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
   'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
   'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
-  'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision',
+  'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
+  'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision',
   'syntax',
   'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
   'row-shorthand', 'cell-shorthand', 'zero-argument',
@@ -107,17 +108,18 @@ describe('网格宏文档', () => {
 
     expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
     expect(pagesOf('api')).toEqual([
-      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection',
+      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
       'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
       'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
       'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
       'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
       'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
       'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
-      'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision',
+      'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
+      'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision',
     ])
     expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
-      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'createMacroAstInspection']],
+      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection']],
       ['渲染 API', ['renderSvgGrid', 'renderSvgString', 'renderDomGrid']],
       ['网格和文本 API', [
         'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
@@ -128,8 +130,9 @@ describe('网格宏文档', () => {
         'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
         'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
         'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
+        'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
       ]],
-      ['计算 API', ['computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeShortDivision']],
+      ['计算 API', ['computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision']],
     ])
     expect(pagesOf('orientation')).toEqual([
       'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',

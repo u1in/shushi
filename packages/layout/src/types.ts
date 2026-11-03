@@ -39,3 +39,10 @@ export interface SubtractionRenderSettings extends GridRenderSettings {
 export interface ShortDivisionRenderSettings extends GridRenderSettings {
   showRemainders: boolean
 }
+
+/** 组合运算的所有步骤共用一套网格尺寸，但保留各单项运算自己的教学开关。 */
+export interface CompositeArithmeticRenderSettings extends GridRenderSettings {
+  showCarrySteps: boolean
+  showBorrowSteps: boolean
+  uniformMultiplicationBars: boolean
+}

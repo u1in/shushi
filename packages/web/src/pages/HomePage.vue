@@ -5,6 +5,7 @@ import MultiplicationCalculator from '../components/MultiplicationCalculator.vue
 import AdditionCalculator from '../components/AdditionCalculator.vue'
 import SubtractionCalculator from '../components/SubtractionCalculator.vue'
 import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
+import CompositeArithmeticCalculator from '../components/CompositeArithmeticCalculator.vue'
 import MacroPlayground from '../components/MacroPlayground.vue'
 import MacroAstInspector from '../components/MacroAstInspector.vue'
 import ThemeControl from '../components/ThemeControl.vue'
@@ -49,6 +50,7 @@ onBeforeUnmount(() => {
     <AdditionCalculator />
     <SubtractionCalculator />
     <MultiplicationCalculator />
+    <CompositeArithmeticCalculator />
     <DivisionCalculator />
     <ShortDivisionCalculator />
 

@@ -2,6 +2,16 @@
 
 所有重要变更都会记录在此文件中。
 
+## 0.3.0
+
+### Minor Changes
+
+- 新增可按书写顺序组合加、减、乘为单一连续竖式的计算与布局 API，并支持逐步播放；新增 `minifyMacroForCopy` 系列 API，统一导出可粘贴编辑的最简计算器宏。
+
+### Patch Changes
+
+- 2fed221: 新增不依赖浏览器 DOM 的 `renderSvgString`，支持在 Node.js 和 SSR 环境中将 `GridScene` 输出为 SVG 字符串。
+
 ## 0.2.2
 
 ### Patch Changes

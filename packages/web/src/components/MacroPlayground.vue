@@ -112,7 +112,7 @@ const result = computed(() => {
   }
 })
 
-/** 切换示例时同样展示完整源码，保证每个示例的默认视图都可读。 */
+/** 示例源码由计算器链路生成；载入时同样展示完整源码，保证默认视图可读。 */
 const useExample = ({ source: exampleSource }: MacroExample): void => {
   source.value = formatExampleSource(exampleSource)
 }
@@ -140,7 +140,7 @@ const unformatSource = (): void => { transformSource(unformatMacro) }
       <section class="control-panel">
         <p class="panel-kicker">MACRO PLAYGROUND</p>
         <h2>网格宏试验区</h2>
-        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、DIV、VALUE、STYLE 与 KV；短除法只需在 ROW 中写 DIV，编译器会自动切换半格阶梯，无需 KV(trackUnit, half)。顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。载入示例时会自动按函数层级格式化源码。</p>
+        <p class="normalization">支持 GRID、ROW、CELL、九宫格定位宏、DOT、BRACKET、LINE、DIV、VALUE、STYLE 与 KV；短除法只需在 ROW 中写 DIV，编译器会自动切换半格阶梯，无需 KV(trackUnit, half)。顶层分号行可直接写中心文字，方括号仅首项可省略 MM，编译器会自动补齐 ROW 与无配置的 GRID。下方算术示例由计算器与布局 API 转换生成，载入时会自动按函数层级格式化源码。</p>
         <div class="macro-insert-toolbar" aria-label="快速插入宏">
           <div class="macro-insert-header">
             <span>快速插入</span>

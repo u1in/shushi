@@ -395,6 +395,51 @@ console.log(scene.ariaLabel)`,
   caution: '它不会校验或修正计算结果；源码必须由计算器结果和布局器生成，错误宏源码会沿用 `compileMacro` 的语法错误。',
 })
 
+export const createCompositeArithmeticMacroSourcePage = createLayoutApiPage({
+  slug: 'createCompositeArithmeticMacroSource',
+  summary: '把组合计算的所有步骤连续编排为单份可编辑宏源码。',
+  example: `import {
+  computeCompositeArithmetic,
+  createCompositeArithmeticMacroSource,
+  compileCalculatorMacro,
+} from '@u1in/shushi-core'
+
+const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
+const source = createCompositeArithmeticMacroSource(computation, { visibleStepCount: 4 })
+const scene = compileCalculatorMacro(source)`,
+  purpose: '它把全局播放游标映射为各单项规则的局部帧，再将已到达步骤的行连续写入同一个完整 `GRID(...)` 源码。第二步及后续步骤先有一个独立事件引入运算符和第二操作数，下一帧才开始逐位过程；它们会复用紧邻上方的前一步结果，不重复写出首行操作数。组合宏不写入网页专属 ariaLabel 或页面 style KV，默认设置下可压缩为不含 KV 的顶层分号行；渲染器只接收一个普通 `GridScene`。',
+  signature: `type CreateCompositeArithmeticMacroSource = (
+  computation: CompositeArithmeticComputation,
+  settings?: Partial<CompositeArithmeticRenderSettings>,
+) => string`,
+  parameters: [
+    ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出的各单项过程。'],
+    ['`settings.visibleStepCount`', '`number | undefined`', '组合播放的全局可见事件数；未设置时全部完成。'],
+    ['返回值', '`string`', '包含全部已到达步骤的唯一 GRID 宏源码。'],
+  ],
+  caution: '返回值是一个连续竖式而非多个场景；布局只合并单项宏的行和横线，不在渲染器中重新解释组合步骤。',
+})
+
+export const getCompositeArithmeticStepCountPage = createLayoutApiPage({
+  slug: 'getCompositeArithmeticStepCount',
+  summary: '返回组合表达式所有单项规则串接后的全局播放步数。',
+  example: `import { computeCompositeArithmetic, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
+
+const computation = computeCompositeArithmetic('12 + 8 - 5 × 4')
+const stepCount = getCompositeArithmeticStepCount(computation)
+
+console.log(stepCount)`,
+  purpose: '它将加法/减法列步骤与乘法逐位、列加法步骤相加，并为第二步及后续步骤各加入一个“引入第二操作数”事件，使播放器的全局游标和组合宏源码的局部游标使用同一规则。',
+  signature: `type GetCompositeArithmeticStepCount = (
+  computation: CompositeArithmeticComputation,
+) => number`,
+  parameters: [
+    ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出。'],
+    ['返回值', '`number`', '组合播放事件总数。'],
+  ],
+  caution: '该数不是表达式运算符个数；多位单项竖式会贡献多个教学步骤，且除第一步外的每一段还会额外贡献一次第二操作数引入事件。',
+})
+
 /** 布局公共 API 的页面顺序也用于 API 目录和页尾翻页。 */
 export const layoutApiPages = [
   createAdditionMacroSourcePage,
@@ -410,4 +455,6 @@ export const layoutApiPages = [
   createShortDivisionMacroSourcePage,
   createShortDivisionGridScenePage,
   compileCalculatorMacroPage,
+  createCompositeArithmeticMacroSourcePage,
+  getCompositeArithmeticStepCountPage,
 ]

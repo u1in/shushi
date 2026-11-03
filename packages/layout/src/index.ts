@@ -1,4 +1,5 @@
 export * from './addition-layout'
+export * from './composite-arithmetic-layout'
 export * from './division-layout'
 export * from './multiplication-layout'
 export * from './subtraction-layout'

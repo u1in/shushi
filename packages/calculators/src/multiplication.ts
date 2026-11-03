@@ -122,9 +122,11 @@ export const computeMultiplication = (
   const useTrailingZeroShortcut = options.useTrailingZeroShortcut !== false
   // 只有启用快捷计算时，才为了拆除末尾零而把唯一的十倍数放到第二行。
   // 关闭时始终按“大数在上”，避免展示顺序与完整逐位乘法规则相冲突。
-  const operandsSwapped = useTrailingZeroShortcut && firstIsTrailingZeroMultiple !== secondIsTrailingZeroMultiple
-    ? firstIsTrailingZeroMultiple
-    : compareDigitStrings(firstOperandDigits, secondOperandDigits) < 0
+  const operandsSwapped = options.preserveOperandOrder
+    ? false
+    : useTrailingZeroShortcut && firstIsTrailingZeroMultiple !== secondIsTrailingZeroMultiple
+      ? firstIsTrailingZeroMultiple
+      : compareDigitStrings(firstOperandDigits, secondOperandDigits) < 0
   const multiplicandDigits = operandsSwapped ? secondOperandDigits : firstOperandDigits
   const multiplierDigits = operandsSwapped ? firstOperandDigits : secondOperandDigits
   const trailingZeroShortcut = useTrailingZeroShortcut && isTrailingZeroMultiple(multiplierDigits)

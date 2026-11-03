@@ -5,14 +5,14 @@ description: Use when an agent needs to install or use @u1in/shushi-core for ver
 
 # `u1in-shushi` Skill
 
-这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成竖式运算、教学步骤展示、可编辑宏源码、网格分析、DOM/SVG 渲染以及 SSR SVG 字符串输出任务。
+这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成单项或组合竖式运算、教学步骤展示、可编辑宏源码、网格分析、DOM/SVG 渲染以及 SSR SVG 字符串输出任务。
 
 ## 使用资料
 
 这些资料与本文件一起分发。根据当前任务按需读取，不要在无关任务中加载全部资料：
 
 - [安装说明](references/installation.md)：环境检查、安装、导入验证和安装故障。
-- [完整 API 清单](references/api.md)：函数签名、参数意义、返回结构、AST 检查、网格和渲染 API。
+- [完整 API 清单](references/api.md)：函数签名、参数意义、组合竖式与最简复制导出、AST 检查、网格和渲染 API。
 - [公开出口补充清单](references/public-exports.md)：所有直接导出的辅助函数、完整结果类型、GridScene 类型、宏词表和主题常量。
 - [实现工作流](references/workflows.md)：从用户需求选择计算器、布局器、宏处理和渲染组合。
 - [故障排查](references/troubleshooting.md)：安装、导入、类型、渲染、计算和 AST 编辑问题。
@@ -61,7 +61,7 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
    ```
 
 4. 计算器只负责运算过程和语义数据；布局器把计算结果转换成宏源码；宏编译器生成 `GridScene`；渲染器只消费 `GridScene`。
-5. 用户给出或需要编辑宏源码时，使用 `parseMacro`、`formatMacro`、`completeMacro`、`minifyMacro`、`createMacroAstInspection` 和 `compileMacro`，不要重新实现运算。
+5. 用户给出或需要编辑宏源码时，使用 `parseMacro`、`formatMacro`、`completeMacro`、`minifyMacro`、`createMacroAstInspection` 和 `compileMacro`，不要重新实现运算；计算器宏的复制文本必须用 `minifyMacroForCopy`，不能自行裁剪字符串。
 6. 浏览器渲染需要导入 `@u1in/shushi-core/style.css`；纯计算、宏处理、几何查询和文本提取不需要 CSS。
 7. `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM；Node.js/SSR 场景使用纯数据 API、`compileMacro`、`renderSvgString` 或延迟到浏览器渲染。
 8. `computeDivision` 的参数顺序是 `divisorValue, dividendValue`，即除数在前、被除数在后。
@@ -87,6 +87,7 @@ computeDivision(
   options?: DivisionOptions,
 ): DivisionComputation
 computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
+computeCompositeArithmetic(expression: unknown): CompositeArithmeticComputation
 ```
 
 选项和输入形状：
@@ -94,6 +95,7 @@ computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
 ```ts
 interface MultiplicationOptions {
   useTrailingZeroShortcut?: boolean
+  preserveOperandOrder?: boolean
 }
 
 interface DivisionOptions {
@@ -113,6 +115,7 @@ interface ShortDivisionInput {
 - `computeMultiplication` 返回部分积和逐位步骤；末尾零快捷过程可由 `useTrailingZeroShortcut` 控制。
 - `computeDivision` 的 `remainder` 模式返回整数商和余数；`decimal` 模式使用 `maxDecimalDigits` 限制小数位。
 - `computeShortDivision` 支持质因数分解、公因数和 2–36 进制转换；不同模式对 `values` 数量有不同约束。
+- `computeCompositeArithmetic` 按书写顺序串联 `+`、`-`、`×`；它不使用乘法优先级，且中间负数不能继续计算。
 
 ### 布局器与播放
 
@@ -137,11 +140,16 @@ createShortDivisionMacroSource(
   computation: ShortDivisionComputation,
   settings: ShortDivisionRenderSettings,
 ): string
+createCompositeArithmeticMacroSource(
+  computation: CompositeArithmeticComputation,
+  settings?: Partial<CompositeArithmeticRenderSettings>,
+): string
 getMultiplicationStepCount(computation: MultiplicationComputation): number
 getDivisionPlaybackStepCount(
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
 ): number
+getCompositeArithmeticStepCount(computation: CompositeArithmeticComputation): number
 ```
 
 公共布局设置为：
@@ -158,7 +166,7 @@ interface GridRenderSettings {
 }
 ```
 
-运算专属设置包括：`showCarrySteps`、`showBorrowSteps`、`uniformMultiplicationBars`、`bracketBend`、`uniformSubtractionBars`、`showZeroQuotientSteps` 和 `showRemainders`。播放时使用库提供的步数函数填入 `visibleStepCount`，不要自行用数组长度推算。
+运算专属设置包括：`showCarrySteps`、`showBorrowSteps`、`uniformMultiplicationBars`、`bracketBend`、`uniformSubtractionBars`、`showZeroQuotientSteps` 和 `showRemainders`。`CompositeArithmeticRenderSettings` 组合 `showCarrySteps`、`showBorrowSteps` 和 `uniformMultiplicationBars`。播放时使用库提供的步数函数填入 `visibleStepCount`，不要自行用数组长度推算。
 
 ### 宏处理和 AST 检查
 
@@ -169,6 +177,8 @@ formatMacro(source: string): string
 unformatMacro(source: string): string
 completeMacro(source: string): string
 minifyMacro(source: string, omitDefaults?: boolean): string
+minifyMacroForCopy(source: string): string
+minifyMacroForCopyAst(root: MacroCall): string
 createMacroAstInspection(source: string): MacroAstInspection
 ```
 
@@ -258,6 +268,28 @@ document.querySelector('#app')?.append(element)
 
 替换运算类型时，只替换 `compute*` 和对应的 `create*MacroSource`；宏编译和渲染阶段保持不变。
 
+### 组合运算、播放与复制
+
+用户要求把多次加、减、乘放在同一个连续竖式时，不要将多个单项宏用字符串或页面坐标拼接。表达式按书写顺序计算，使用组合 API：
+
+```ts
+const computation = computeCompositeArithmetic('500 + 1 - 237 × 2')
+const source = createCompositeArithmeticMacroSource(computation, {
+  cellWidth: 30,
+  rowHeight: 46,
+  fontSizeRatio: 1,
+  showGuideGrid: false,
+  showCarrySteps: true,
+  showBorrowSteps: true,
+  uniformMultiplicationBars: false,
+  visibleStepCount: getCompositeArithmeticStepCount(computation),
+})
+const scene = compileMacro(source)
+const copyText = minifyMacroForCopy(source)
+```
+
+`visibleStepCount` 从 `0` 播放到 `getCompositeArithmeticStepCount(computation)`。后续步骤先引入运算符和第二操作数，再播放本步骤；上一结果会复用为下一步第一行。若后续是减法，借位点仍应显示在这条复用结果行。`copyText` 是宏编辑器的复制内容：它不含网页的 `ariaLabel`、`style`，并会把 `CELL(MM(1))`、`CELL(RB(1))` 分别压为 `1`、`RB(1)`；`[RB(1)]` 仍是可接受的显式单元格输入。
+
 ### DOM 和 SVG 使用同一份场景
 
 ```ts
@@ -312,6 +344,8 @@ if (reference?.literalPath) {
 - 除法结果颠倒：确认调用顺序是 `computeDivision(divisor, dividend)`。
 - 大数结果不准确：不要把输入先转换成 `number`，使用字符串。
 - 播放末尾少步骤：使用 `getMultiplicationStepCount` 或 `getDivisionPlaybackStepCount`，不要按数组长度计算。
+- 组合竖式少第二操作数、重复上一结果或缺少借位点：使用 `createCompositeArithmeticMacroSource` 和 `getCompositeArithmeticStepCount`，不要拼接单项宏或自行跳过减法第一行。
+- 复制的计算器宏仍包含页面参数或不是最简：使用 `minifyMacroForCopy`；不要用正则删除 `KV(...)`，也不要把场景或 OCR 文本反向拼成宏。
 - AST 图元没有 `literalPath`：该图元可能是线条、边框或纯符号，不能通过 `updateElementText` 修改文字。
 - AST 更新后画面不变：使用新检查结果的 `scene` 重新渲染，不要复用旧 DOM 或旧场景。
 - 安装任务完成后：只检查包是否在依赖树中、纯数据 API 是否能导入；不要默认执行宿主项目的全量测试、构建或配置修改。

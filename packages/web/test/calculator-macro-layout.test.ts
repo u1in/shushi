@@ -19,7 +19,7 @@ import {
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
 import type { GridScene } from '@u1in/shushi-grid'
-import { compileMacro, formatMacro, minifyMacro, parseMacro } from '@u1in/shushi-macro'
+import { compileMacro, formatMacro, minifyMacroForCopy, parseMacro } from '@u1in/shushi-macro'
 
 /** 自动竖式必须先成为人工可输入的源码，再走同一解析与编译链路。 */
 const expectHumanReproducible = (source: string, scene: unknown): void => {
@@ -29,12 +29,20 @@ const expectHumanReproducible = (source: string, scene: unknown): void => {
   expect(compileMacro(formatMacro(source))).toEqual(scene)
 }
 
-/** 复制按钮使用最简源码；这里验证粘贴回宏输入框后仍能完整复刻当前竖式。 */
+/** 复制按钮调用正式 API 移除网页专属信息；宏试验区应保持同一份可见网格和图元。 */
 const expectCopiedMacroReproducible = (source: string, scene: GridScene): void => {
-  const copiedSource = minifyMacro(source)
+  const copiedSource = minifyMacroForCopy(source)
   expect(copiedSource).not.toBe('')
+  expect(copiedSource).not.toContain('ariaLabel')
+  expect(copiedSource).not.toContain('KV(style')
   expect(() => parseMacro(copiedSource)).not.toThrow()
-  expect(compileMacro(copiedSource)).toEqual(scene)
+  const toVisibleElements = (value: GridScene) => value.elements.map(({ position, content }) => ({
+    position,
+    content: content.kind === 'text' ? (({ styleToken: _, ...visibleContent }) => visibleContent)(content) : content,
+  }))
+  expect(toVisibleElements(compileMacro(copiedSource))).toEqual(
+    toVisibleElements(scene),
+  )
 }
 
 /** 计算器宏必须把最终颜色写进 GridScene，两个渲染器才能消费同一份颜色数据。 */

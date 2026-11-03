@@ -6,6 +6,8 @@ import {
   createMacroAstInspection,
   formatMacro,
   minifyMacro,
+  minifyMacroForCopy,
+  minifyMacroForCopyAst,
   parseMacro,
   unformatMacro,
 } from '@u1in/shushi-macro'
@@ -46,11 +48,23 @@ describe('网格宏编译器', () => {
     ]))
   })
 
+  test('方括号首项可直接使用完整定位宏，表示没有正文的同格标记', () => {
+    const scene = compileMacro('[RB(1)];')
+
+    expect(scene.elements).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
+        content: expect.objectContaining({ kind: 'text', text: '1', horizontalAlign: 'right', verticalAlign: 'bottom' }),
+      }),
+    ]))
+    expect(minifyMacro('CELL(RB(1));')).toBe('RB(1);')
+  })
+
   test('方括号只允许首项省略 MM，后续文字与定位宏必须完整书写', () => {
     expect(() => compileMacro('[5,1];')).toThrow(/只有首项可以省略 MM/)
     expect(() => compileMacro('[5,RB];')).toThrow(/只有首项可以省略 MM/)
-    expect(() => compileMacro('[RB(1),5];')).toThrow(/首项必须是 MM/)
-    expect(() => compileMacro('[];')).toThrow(/至少需要首项文字/)
+    expect(() => compileMacro('[RB(1),5];')).toThrow(/只有首项可以省略 MM/)
+    expect(() => compileMacro('[];')).toThrow(/至少需要一个图元/)
   })
 
   test('EP、LN 与 BK 会在解析时还原为完整的结构宏', () => {
@@ -395,6 +409,12 @@ CELL(
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
+  test('最简化会去除只含一个图元的 CELL 外壳', () => {
+    expect(minifyMacro('[1];')).toBe('1;')
+    expect(minifyMacro('CELL(MM(1));')).toBe('1;')
+    expect(minifyMacro('[RB(1)];')).toBe('RB(1);')
+  })
+
   test('最简化带 GRID 配置的完整宏时保留必要的 GRID 根节点', () => {
     expect(minifyMacro(` GRID(
   KV(showGrid, true),
@@ -402,11 +422,11 @@ CELL(
  ) `)).toBe('GRID(KV(showGrid,true),ROW(MM(5),[6,MT(·)]))')
   })
 
-  test('最简化不会把非文字首项的 CELL 错写成无效方括号', () => {
+  test('最简化会把纯图元 CELL 缩为以图元开头的方括号', () => {
     const source = 'GRID(ROW(CELL(BRACKET, KV(style, division.bracket)), CELL(DOT, KV(style, division.decimal-separator))))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('CELL(BK,KV(style,division.bracket)),CELL(DOT,KV(style,division.decimal-separator));')
+    expect(compact).toBe('[BK,KV(style,division.bracket)],[DOT,KV(style,division.decimal-separator)];')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
@@ -421,8 +441,27 @@ CELL(
 )`
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('5,6;LN;[7];')
+    expect(compact).toBe('5,6;LN;7;')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('复制导出 API 会移除计算器页面专属 aria 与 style，并保留自动配色后的可见结果', () => {
+    const source = 'GRID(KV(columns,2),KV(autoColor,true),KV(ariaLabel,"加法 5 加 6"),ROW(MM(5,KV(style,addition.addend)),CELL(MM(6,KV(style,addition.addend)),RB(1,KV(style,addition.carry)))))'
+    const compact = minifyMacroForCopy(source)
+
+    expect(compact).toBe('5,[6,RB(1)];')
+    expect(minifyMacroForCopyAst(parseMacro(source))).toBe(compact)
+    expect(compact).not.toContain('KV(')
+    const toVisibleElements = (value: string) => compileMacro(value).elements.map(({ position, content }) => ({
+      position,
+      content: content.kind === 'text' ? (({ styleToken: _, ...visibleContent }) => visibleContent)(content) : content,
+    }))
+    expect(toVisibleElements(compact)).toEqual(
+      toVisibleElements(source),
+    )
+    expect(minifyMacroForCopy('GRID(KV(unitWidth,44),KV(ariaLabel,"演示"),ROW(MM(5,KV(style,addition.addend))))')).toBe(
+      'GRID(KV(unitWidth,44),ROW(MM(5)))',
+    )
   })
 
   test('最简化会保留非默认 GRID 配置和 ROW 左对齐', () => {

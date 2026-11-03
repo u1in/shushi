@@ -22,7 +22,7 @@ title: Agent 功能说明
 
 | 层 | 主要 API | 输出 | 适合的任务 |
 | --- | --- | --- | --- |
-| 计算 | `computeAddition`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
+| 计算 | `computeAddition`、`computeCompositeArithmetic`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
 | 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
 | 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
 | 场景工具 | `resolveGridMetrics`、`extractVisibleTextRows` | 几何数据或视觉文本行 | 测量、OCR 对照、无 DOM 分析 |
@@ -50,6 +50,7 @@ computeDivision(
   options?: DivisionOptions,
 ): DivisionComputation
 computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
+computeCompositeArithmetic(expression: unknown): CompositeArithmeticComputation
 ```
 
 | API | 参数 | 参数含义 | 返回值重点 |
@@ -59,6 +60,7 @@ computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
 | `computeMultiplication` | `multiplicandValue`、`multiplierValue` | 被乘数、乘数；都应是非负整数字符串 | `productDigits`、`partialProducts`、加法汇总步骤 |
 | `computeDivision` | `divisorValue`、`dividendValue` | 除数、被除数；顺序是除数在前 | `quotientText`、`remainder`、试商步骤 |
 | `computeShortDivision` | `input` | 包含 `mode`、`values` 和可选 `targetBase` 的对象 | 按模式返回质因数、公因数或进制转换过程 |
+| `computeCompositeArithmetic` | `expression` | 至少两个非负整数，以 `+`、`-` 或 `×` 连接 | 原表达式、每步单项过程和最终 `resultDigits` |
 
 计算器共用以下输入约定：传入字符串可以避免长整数转换为 JavaScript `number` 后丢失精度；非法字符、负数和空值会抛出输入错误。计算结果只包含语义过程，不包含 DOM、CSS 或像素坐标。
 
@@ -67,6 +69,7 @@ computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
 ```ts
 interface MultiplicationOptions {
   useTrailingZeroShortcut?: boolean
+  preserveOperandOrder?: boolean
 }
 
 interface DivisionOptions {
@@ -82,6 +85,7 @@ interface ShortDivisionInput {
 ```
 
 - `useTrailingZeroShortcut`：乘法是否把乘数末尾零拆出后再计算，默认开启；关闭后使用完整逐位过程。
+- `preserveOperandOrder`：是否保持调用方给出的上下行顺序；组合竖式会固定开启，AI 不应为排版自行交换两个乘数。
 - `resultMode`：除法使用有限小数模式或整数余数模式；默认是 `'remainder'`。
 - `maxDecimalDigits`：有限小数模式最多尝试的小数位数，必须是正整数。
 - `ShortDivisionInput.mode`：`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
@@ -115,6 +119,11 @@ createShortDivisionMacroSource(
   computation: ShortDivisionComputation,
   settings: ShortDivisionRenderSettings,
 ): string
+
+createCompositeArithmeticMacroSource(
+  computation: CompositeArithmeticComputation,
+  settings?: Partial<CompositeArithmeticRenderSettings>,
+): string
 ```
 
 所有布局设置都包含以下公共字段：
@@ -140,8 +149,9 @@ interface GridRenderSettings {
 | `MultiplicationRenderSettings` | `uniformMultiplicationBars`、`showCarrySteps` | 部分积横线是否等宽；是否显示进位 |
 | `RenderSettings` | `bracketBend`、`uniformSubtractionBars`、`showZeroQuotientSteps` | 除法弯折参数；减法横线是否等宽；是否显示试商为 0 的步骤 |
 | `ShortDivisionRenderSettings` | `showRemainders` | 进制转换时是否显示每步余数 |
+| `CompositeArithmeticRenderSettings` | `showCarrySteps`、`showBorrowSteps`、`uniformMultiplicationBars` | 为组合内每个单项步骤控制进位、借位和乘法横线 |
 
-`cellWidth`、`rowHeight` 使用 CSS 像素；`fontSizeRatio` 是相对于单元格字号的比例；`visibleStepCount` 从 0 开始表示显示到哪一个教学步骤，省略时生成完整结果。除加法外，其他 `create*MacroSource` 需要传入完整的运算设置对象。
+`cellWidth`、`rowHeight` 使用 CSS 像素；`fontSizeRatio` 是相对于单元格字号的比例；`visibleStepCount` 从 0 开始表示显示到哪一个教学步骤，省略时生成完整结果。加法和组合竖式可传入部分设置；减法、乘法、除法和短除法需要完整的运算设置对象。
 
 播放步数 API：
 
@@ -151,6 +161,7 @@ getDivisionPlaybackStepCount(
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
 ): number
+getCompositeArithmeticStepCount(computation: CompositeArithmeticComputation): number
 ```
 
 步数应传给布局设置的 `visibleStepCount`；不要自行根据数组长度推算乘法或除法的播放步数，因为快捷计算、零商步骤和小数分隔符都会影响播放事件数量。
@@ -164,6 +175,8 @@ formatMacro(source: string): string
 unformatMacro(source: string): string
 completeMacro(source: string): string
 minifyMacro(source: string, omitDefaults?: boolean): string
+minifyMacroForCopy(source: string): string
+minifyMacroForCopyAst(root: MacroCall): string
 createMacroAstInspection(source: string): MacroAstInspection
 ```
 
@@ -175,9 +188,15 @@ createMacroAstInspection(source: string): MacroAstInspection
 | `unformatMacro` | 宏源码 | 压成单行，但不主动省略完整结构 |
 | `completeMacro` | 宏源码 | 展开为显式 `GRID`、`ROW`、`CELL` 和完整宏名 |
 | `minifyMacro` | 宏源码、是否省略默认值 | 生成最简合法宏源码；`omitDefaults` 默认是 `true` |
+| `minifyMacroForCopy` | 计算器布局生成的宏源码 | 移除网页专属 `ariaLabel`、`style` 后生成可粘贴编辑的最简宏；手写自定义样式宏应继续使用 `minifyMacro` |
+| `minifyMacroForCopyAst` | 计算器安全改写后的宏 AST | 按复制导出规则生成最简宏，供布局器避免手写字符串序列化 |
 | `createMacroAstInspection` | 宏源码 | AST 节点、元素引用和可编辑定位信息 |
 
-`formatMacro`、`completeMacro` 和 `minifyMacro` 都会先解析源码；源码非法时应把解析错误反馈给用户，不要猜测或静默修复运算含义。
+`formatMacro`、`completeMacro`、`minifyMacro` 和 `minifyMacroForCopy` 都会先解析源码；源码非法时应把解析错误反馈给用户，不要猜测或静默修复运算含义。
+
+计算器布局生成的源码要提供给用户复制时，调用 `minifyMacroForCopy(source)`，不要自行正则删除 `KV(...)` 或手写拼接结果；它会删除网页渲染专用的 `ariaLabel`、`style`，再按官方语法糖输出最简、可解析源码。手工宏若需要保留自定义样式，则继续使用 `minifyMacro`。
+
+最简输出会省略单元素单元格的容器：`CELL(MM(1))` 输出为 `1`，`CELL(RB(1))` 输出为 `RB(1)`。编辑器仍接受方括号单元格写法，例如 `[RB(1)]`；方括号表示一个显式单元格，不是复制导出的强制形式。
 
 #### `createMacroAstInspection` 返回结构
 
@@ -280,7 +299,7 @@ renderSvgString(scene: GridScene): string
 
 `GridScene` 的关键字段是：`columns`、`rows`（轨道）；`padding`、`unitWidth`、`unitHeight`（几何尺寸）；`fontSize`、默认文本样式和对齐方式；`elements`（文字、线条、圆角图元）；`showGuideGrid`；`ariaLabel`。渲染器只消费这些通用字段，不识别具体运算。
 
-## 2. 五类运算能力
+## 2. 六类运算能力
 
 ### 2.1 加法
 
@@ -383,6 +402,28 @@ const source = createShortDivisionMacroSource(computation, {
 
 短除法结果的 `steps`、`finalValues` 和模式专属字段可直接用于教学面板或结果摘要。
 
+### 2.6 组合运算竖式
+
+```ts
+const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
+const totalSteps = getCompositeArithmeticStepCount(computation)
+const source = createCompositeArithmeticMacroSource(computation, {
+  cellWidth: 30,
+  rowHeight: 46,
+  fontSizeRatio: 1,
+  showGuideGrid: false,
+  showCarrySteps: true,
+  showBorrowSteps: true,
+  uniformMultiplicationBars: false,
+  visibleStepCount: totalSteps,
+})
+```
+
+- 表达式按书写顺序从左到右计算，不采用通常的乘法优先级；上例依次计算 `(125 + 75) - 20`，再乘以 `3`。
+- 每一步委托给原有加、减、乘计算器，所以进位、借位、部分积规则保持一致；组合内乘法关闭末尾零快捷计算，并保留表达式给出的操作数顺序。
+- 源码是一个连续的 `GRID`：上一步结果复用为下一步第一行，下一步的运算符和第二操作数会在自己的引入帧出现，不会提前混到上一帧。
+- 后续减法即使复用上一结果行，也会把该减法的借位点合并到结果行；不要为了去重删掉这些借位标记。
+
 ## 3. 最常用的完整组合
 
 ### 3.1 从数值生成并显示加法竖式
@@ -412,7 +453,37 @@ document.querySelector('#result')?.append(stage)
 - `source`：用户可以复制、修改的宏源码；
 - `scene`/`stage`：可直接交给页面显示的统一场景和 DOM。
 
-### 3.2 同一份场景切换 DOM 与 SVG
+### 3.2 生成可复制、可播放的组合竖式
+
+AI 收到“先加后减再乘”或任意 `+`、`-`、`×` 排列时，优先直接使用组合 API，而不是调用多个布局器后自行连接行：
+
+```ts
+import {
+  compileMacro,
+  computeCompositeArithmetic,
+  createCompositeArithmeticMacroSource,
+  getCompositeArithmeticStepCount,
+  minifyMacroForCopy,
+} from '@u1in/shushi-core'
+
+const computation = computeCompositeArithmetic('500 + 1 - 237 × 2')
+const source = createCompositeArithmeticMacroSource(computation, {
+  cellWidth: 30,
+  rowHeight: 46,
+  fontSizeRatio: 1,
+  showGuideGrid: false,
+  showCarrySteps: true,
+  showBorrowSteps: true,
+  uniformMultiplicationBars: false,
+  visibleStepCount: getCompositeArithmeticStepCount(computation),
+})
+const scene = compileMacro(source)
+const copyText = minifyMacroForCopy(source)
+```
+
+播放从 `0` 到 `getCompositeArithmeticStepCount(computation)` 逐帧重建 `source` 和 `scene`。`copyText` 是粘贴到网格宏编辑器的文本；不要从 `scene`、OCR 文本或页面 HTML 反向构造宏。
+
+### 3.3 同一份场景切换 DOM 与 SVG
 
 计算和编译只做一次，渲染器可以按宿主环境选择：
 
@@ -430,7 +501,7 @@ const svgStage = renderSvgGrid(scene)
 - 三个渲染入口消费同一个 `GridScene`，不要为 DOM、SVG 节点和 SVG 字符串分别计算一套布局。
 - `renderSvgGrid` 与 `renderSvgString` 还共享无 DOM SVG 渲染树；它们保证结构、坐标、属性和图元顺序一致，但不承诺浏览器重新序列化后的字符串与 SSR 输出逐字节相同。
 
-### 3.3 教学播放或逐步显示
+### 3.4 教学播放或逐步显示
 
 计算器保留完整过程，布局器通过 `visibleStepCount` 生成某一帧：
 
@@ -453,7 +524,7 @@ const scene = compileMacro(source)
 
 播放时只改变 `visibleStepCount` 并重新生成宏源码和场景，不要修改已经渲染出的 DOM 图元来模拟运算规则。
 
-### 3.4 取得视觉文本行
+### 3.5 取得视觉文本行
 
 ```ts
 const rows = extractVisibleTextRows(scene)
@@ -465,7 +536,7 @@ const rows = extractVisibleTextRows(scene)
 - 给无障碍或纯文本面板提供内容；
 - 检查进位、借位、商和余数是否出现在预期行。
 
-### 3.5 手工宏源码的编辑和检查
+### 3.6 手工宏源码的编辑和检查
 
 当用户直接提供宏源码，而不是数值输入时，使用宏 API：
 
@@ -515,7 +586,9 @@ const scene = compileMacro(source)
 | --- | --- |
 | 只要计算答案 | 对应的 `compute*` |
 | 要展示标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` 或 `renderSvgGrid` |
+| 要把多个 `+`、`-`、`×` 放进一个连续竖式 | `computeCompositeArithmetic` → `getCompositeArithmeticStepCount` → `createCompositeArithmeticMacroSource` → `compileMacro` |
 | 要用户可以继续编辑 | 返回 `create*MacroSource` 的源码，并允许再次 `compileMacro` |
+| 要复制计算器生成的宏 | `create*MacroSource` → `minifyMacroForCopy`；不手写字符串裁剪 |
 | 要播放计算步骤 | `compute*` → `get*StepCount` → 带 `visibleStepCount` 的 `create*MacroSource` |
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
 | 要做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
@@ -526,6 +599,7 @@ const scene = compileMacro(source)
 
 - 数值运算优先传入字符串，例如 `'12345678901234567890'`，避免 JavaScript `number` 的精度损失。
 - 加法至少需要两个加数；减法、乘法和长除法各需要两个操作数。
+- 组合表达式至少有一个运算符，只接受非负整数以及 `+`、`-`、`×`（`x`、`X`、`*` 会被识别为 `×`）；按文本从左到右执行。中间结果为负数时不能继续组合。
 - 长除法调用顺序是“除数在前、被除数在后”：`computeDivision(divisor, dividend)`。
 - 除法的除数不能为 0；短除法的公因数模式至少需要两个正整数。
 - 短除法的质因数分解和公因数模式输入不超过 `1,000,000,000`；进制转换支持任意长度的十进制字符串。

@@ -40,11 +40,11 @@ const serializeCellArgument = (node: MacroNode, index: number, usesCellShorthand
   })
 }
 
-/** 方括号首项只能承载文字；BRACKET、DOT 等定位图元必须继续使用显式 CELL。 */
+/** 方括号首项可承载文字或完整图元宏；纯进位单元格可由 CELL(RB(1)) 缩为 [RB(1)]。 */
 const canUseCellShorthand = (node: MacroCall): boolean => {
   const [firstArgument] = node.arguments
-  return firstArgument?.kind === 'literal'
-    || (firstArgument?.kind === 'call' && firstArgument.name === 'MM')
+  if (firstArgument?.kind === 'literal' || firstArgument?.kind === 'call') return true
+  return firstArgument?.kind === 'symbol' && ['DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'].includes(firstArgument.name)
 }
 
 /** 读取简单 KV 的键值；复杂表达式不参与自动省略，避免压缩器误判。 */
@@ -61,6 +61,15 @@ const readMacroKv = (node: MacroNode): MacroKv | undefined => {
 }
 
 const isMacroCall = (node: MacroNode, name: string): node is MacroCall => node.kind === 'call' && node.name === name
+
+/** 这些单图元在 ROW 中本来就可独立作为一个单元格，最简化时无需保留无配置的 CELL 外壳。 */
+const CELL_ELIDABLE_CALLS = new Set(['LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL', 'MTD', 'BRACKET'])
+const CELL_ELIDABLE_SYMBOLS = new Set(['DOT', 'MTD', 'BRACKET'])
+
+const canElideSingletonCell = (node: MacroNode): boolean => (
+  node.kind === 'call' && CELL_ELIDABLE_CALLS.has(node.name)
+  || node.kind === 'symbol' && CELL_ELIDABLE_SYMBOLS.has(node.name)
+)
 
 const getOptionValue = (nodes: MacroNode[], key: string): string | undefined => (
   nodes.map(readMacroKv).find((option) => option?.key === key)?.value
@@ -120,9 +129,12 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
   if (node.name === 'CELL' || node.name === 'EMPTY') {
     const hasBracket = node.arguments.some((child) => isMacroCall(child, 'BRACKET') || child.kind === 'symbol' && child.name === 'BRACKET')
     const defaultSpan = hasBracket || context.hasDivider ? 1 : context.trackUnit === 'half' ? 2 : 1
+    const argumentsList = filterDefaultOptions(node.arguments, { columnSpan: String(defaultSpan) }).map((child) => pruneMinifyNode(child, context))
+    // CELL 只包裹一个本可直接放进 ROW 的图元时不提供额外语义；例如 [1] → 1、[RB(1)] → RB(1)。
+    if (node.name === 'CELL' && argumentsList.length === 1 && canElideSingletonCell(argumentsList[0])) return argumentsList[0]
     return {
       ...node,
-      arguments: filterDefaultOptions(node.arguments, { columnSpan: String(defaultSpan) }).map((child) => pruneMinifyNode(child, context)),
+      arguments: argumentsList,
     }
   }
   if (node.name === 'STYLE') {
@@ -324,6 +336,30 @@ export const minifyMacroAst = (root: MacroCall, omitDefaults = true): string => 
     : formatRowShorthand(normalizedRoot, false, { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true })
 }
 
+/**
+ * 计算器导出的宏不应携带网页朗读文案或仅供页面着色的语义 token。
+ * 保留尺寸、辅助网格等会影响可见几何的配置，确保粘贴到宏试验区仍可复刻当前竖式。
+ */
+const removeCopyOnlyOptions = (node: MacroNode): MacroNode => {
+  if (node.kind !== 'call') return node
+  return {
+    ...node,
+    arguments: node.arguments
+      .filter((argument) => {
+        const option = readMacroKv(argument)
+        return option?.key !== 'ariaLabel' && option?.key !== 'style'
+      })
+      .map(removeCopyOnlyOptions),
+  }
+}
+
+/** 生成适合复制到宏试验区的最简 AST 宏，移除页面专属朗读和样式配置。 */
+export const minifyMacroForCopyAst = (root: MacroCall): string => {
+  const cleanedRoot = removeCopyOnlyOptions(root)
+  if (cleanedRoot.kind !== 'call') throw new Error('复制宏的根节点必须是 GRID(...)。')
+  return minifyMacroAst(cleanedRoot)
+}
+
 /** 将已更新的 AST 按调用方选择的输入框风格重新输出，避免编辑后被强制降级为最简式。 */
 export const formatMacroAst = (root: MacroCall, style: 'formatted' | 'minified' = 'formatted'): string => (
   style === 'minified' ? minifyMacroAst(root) : formatRoot(root, 'GRID(', true)
@@ -344,4 +380,7 @@ export const completeMacro = (source: string): string => formatRoot(parseMacro(s
 
 /** 将完整宏源码压缩为最简合法写法，并在可行时降级为分号行与方括号语法糖。 */
 export const minifyMacro = (source: string, omitDefaults = true): string => minifyRoot(parseMacro(source), source, omitDefaults)
+
+/** 生成适合复制到宏试验区的最简源码；由计算器页面统一调用，避免各页面自行裁剪字符串。 */
+export const minifyMacroForCopy = (source: string): string => minifyMacroForCopyAst(parseMacro(source))
 

@@ -92,7 +92,17 @@ node --input-type=module -e "import { computeAddition, createAdditionMacroSource
 
 命令应正常退出，并输出安装验证结果。出现 `ERR_MODULE_NOT_FOUND` 时，先回到“依赖和发布状态检查”，确认当前工作目录和安装命令是否正确。
 
-### 4.2 在前端项目中使用
+### 4.2 可选：验证组合竖式与最简复制宏
+
+需要在 AI 工作流中使用“先加后减再乘”的连续竖式时，可运行下面的纯数据检查；它同时验证组合计算、布局、最简复制导出和宏编译，不依赖 DOM：
+
+```bash
+node --input-type=module -e "import { compileMacro, computeCompositeArithmetic, createCompositeArithmeticMacroSource, getCompositeArithmeticStepCount, minifyMacroForCopy } from '@u1in/shushi-core'; const computation = computeCompositeArithmetic('500 + 1 - 237 × 2'); const source = createCompositeArithmeticMacroSource(computation, { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showCarrySteps: true, showBorrowSteps: true, uniformMultiplicationBars: false, visibleStepCount: getCompositeArithmeticStepCount(computation) }); const copy = minifyMacroForCopy(source); if (compileMacro(copy).elements.length === 0) throw new Error('组合 GridScene 没有元素'); console.log('组合宏验证通过：', computation.resultDigits)"
+```
+
+组合表达式按文本从左至右计算，且复制导出文本不带网页渲染专用的 `ariaLabel`、`style`。不要从页面、OCR 或场景对象反向拼接宏；始终使用 `minifyMacroForCopy`。
+
+### 4.3 在前端项目中使用
 
 统一入口使用 ESM 导入：
 
@@ -115,7 +125,7 @@ document.querySelector('#result')?.append(stage)
 
 `renderDomGrid` 返回一个 DOM 元素；`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。浏览器中可使用 `renderSvgGrid(scene)` 生成 SVG；服务端或脚本环境使用 `renderSvgString(scene)` 生成 SVG 字符串。
 
-### 4.3 TypeScript 检查
+### 4.4 TypeScript 检查
 
 本包自带类型声明，不需要额外安装 `@types` 包。宿主项目的 TypeScript 编辑器或类型检查器应能直接解析 `@u1in/shushi-core` 的类型；如果出现类型解析错误，告知用户具体错误，不要为了安装本包擅自修改宿主项目的 TypeScript 配置。
 

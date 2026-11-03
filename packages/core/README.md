@@ -111,10 +111,11 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 
 | 需求 | 推荐链路 |
 | --- | --- |
-| 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision` 或 `computeShortDivision` |
+| 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
 | 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
 | 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |
 | 逐步展示计算过程 | 使用布局 API 的 `visibleStepCount`，每次生成新的宏源码和 `GridScene` |
+| 按书写顺序组合加、减、乘 | `computeCompositeArithmetic` → `createCompositeArithmeticMacroSource` → `compileMacro` |
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
 | 做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
 | 测量网格或图元 | `resolveGridMetrics`、`getGridPositionRect`、`getGridElementRect` |
@@ -126,6 +127,33 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 - 乘法：部分积、进位和逐步展示；
 - 长除法：试商、部分被除数、乘积、减法线和余数；
 - 短除法：质因数分解、公因数/公倍数以及 2–36 进制转换。
+- 组合运算：按书写顺序串联加、减、乘；每一步保留对应单项竖式与播放过程。
+
+### 组合加、减、乘竖式
+
+组合表达式以书写顺序执行，不采用通常的乘法优先级。所有步骤会连续编排为**同一份**可编辑宏源码与同一个 `GridScene`；上一步结果直接复用为下一步第一操作数，不重复抄写。播放时，下一步的运算符和第二操作数会在上一步完成后的独立一步才出现。组合乘法会自动关闭十倍数快捷计算，并保留表达式中操作数的上下顺序。
+
+```ts
+import {
+  compileMacro,
+  computeCompositeArithmetic,
+  createCompositeArithmeticMacroSource,
+  getCompositeArithmeticStepCount,
+} from '@u1in/shushi-core'
+
+const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
+const source = createCompositeArithmeticMacroSource(computation, {
+  visibleStepCount: 4,
+})
+const scene = compileMacro(source)
+
+console.log(computation.resultDigits) // '540'
+console.log(getCompositeArithmeticStepCount(computation))
+```
+
+中间结果需要继续参与下一步时必须为非负整数；最后一步减法可以得到负数。这保证每段仍严格使用既有的小学竖式规则。
+
+所有计算器页面的“复制宏命令”统一调用 `minifyMacroForCopy` API 生成最简形式：移除网页专属无障碍标签和页面语义样式，保留会影响当前可见网格的非默认设置；默认设置下导出内容不含 `KV`，可直接粘贴到网格宏试验区继续编辑。
 
 ## 宏源码与 `GridScene`
 

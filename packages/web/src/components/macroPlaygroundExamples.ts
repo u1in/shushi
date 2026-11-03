@@ -1,42 +1,104 @@
-import { formatMacro } from '@u1in/shushi-macro'
+import {
+  computeAddition,
+  computeDivision,
+  computeMultiplication,
+  computeShortDivision,
+  computeSubtraction,
+} from '@u1in/shushi-calculators'
+import {
+  createAdditionMacroSource,
+  createDivisionMacroSource,
+  createMultiplicationMacroSource,
+  createShortDivisionMacroSource,
+  createSubtractionMacroSource,
+} from '@u1in/shushi-layout'
+import { formatMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 
 export interface MacroExample {
   label: string
   source: string
 }
 
-/** 与主页下方运算器的默认题目对应；GRID 默认启用自动配色，因此无需额外配置。 */
+/** 宏试验区示例与首页计算器共用默认显示设置，避免维护第二份版式源码。 */
+const DEFAULT_GRID_SETTINGS = {
+  cellWidth: 30,
+  rowHeight: 46,
+  fontSizeRatio: 1,
+  showGuideGrid: false,
+}
+
+/** 示例均从“计算 → 布局 → 官方复制导出 API”生成，页面不保留人工拼接的宏字符串。 */
+const toPlaygroundSource = (source: string): string => minifyMacroForCopy(source)
+
+const createAdditionExample = (): MacroExample => {
+  const computation = computeAddition('356', '278')
+  return {
+    label: `356 + 278 = ${computation.sumDigits}`,
+    source: toPlaygroundSource(createAdditionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true })),
+  }
+}
+
+const createSubtractionExample = (): MacroExample => {
+  const computation = computeSubtraction('502', '137')
+  return {
+    label: `502 − 137 = ${computation.differenceDigits}`,
+    source: toPlaygroundSource(createSubtractionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showBorrowSteps: true })),
+  }
+}
+
+const createMultiplicationExample = (): MacroExample => {
+  const computation = computeMultiplication('97', '89')
+  return {
+    label: `97 × 89 = ${computation.productDigits}`,
+    source: toPlaygroundSource(createMultiplicationMacroSource(computation, {
+      ...DEFAULT_GRID_SETTINGS,
+      showCarrySteps: true,
+      uniformMultiplicationBars: false,
+    })),
+  }
+}
+
+const createDivisionExample = (): MacroExample => {
+  const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
+  return {
+    label: `10230 ÷ 25 = ${computation.quotientText}`,
+    source: toPlaygroundSource(createDivisionMacroSource(computation, {
+      ...DEFAULT_GRID_SETTINGS,
+      bracketBend: 1,
+      uniformSubtractionBars: false,
+      showZeroQuotientSteps: false,
+    })),
+  }
+}
+
+const createFactorizationExample = (): MacroExample => {
+  const computation = computeShortDivision({ mode: 'factorization', values: ['60'] })
+  if (computation.mode !== 'factorization') throw new Error('短除法分解示例未返回质因数分解结果。')
+  return {
+    label: `短除法 · 60 = ${computation.factorizationText}`,
+    source: toPlaygroundSource(createShortDivisionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showRemainders: false })),
+  }
+}
+
+const createCommonFactorExample = (): MacroExample => {
+  const computation = computeShortDivision({ mode: 'commonFactor', values: ['60', '84'] })
+  return {
+    label: `最大公约数 · ${computation.inputValues.join(' 与 ')}`,
+    source: toPlaygroundSource(createShortDivisionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showRemainders: false })),
+  }
+}
+
+/** 每个示例题目都由对应计算器与布局器实时转换，保证复制链路和首页演示同源。 */
 export const arithmeticExamples: MacroExample[] = [
-  {
-    label: '356 + 278 = 634',
-    source: '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;',
-  },
-  {
-    label: '502 − 137 = 365',
-    source: '[5,MTD],[0,MTD],2;−,1,3,7;LN;3,6,5;',
-  },
-  {
-    label: '97 × 89 = 8633',
-    source: '9,7;×,EP,[8,RB(6)],9;LN;8,7,3;[7,RB(1)],[7,RB(1)],[6,LT(5)],EP;LN;8,6,3,3;',
-  },
-  {
-    label: '10230 ÷ 25 = 409.2',
-    source: '4,0,[9,DOT],2;2,5,BK,1,0,2,3,[0,DOT],0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
-  },
-  {
-    label: '短除法 · 60 = 2 × 2 × 3 × 5',
-    source: '2,DIV,VALUE(60);2,DIV,VALUE(30);3,DIV,VALUE(15);VALUE(5);',
-  },
-  {
-    label: '最大公约数 · 60 与 84',
-    source: '2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);',
-  },
+  createAdditionExample(),
+  createSubtractionExample(),
+  createMultiplicationExample(),
+  createDivisionExample(),
+  createFactorizationExample(),
+  createCommonFactorExample(),
 ]
 
-/**
- * 首页示例在编写时保持紧凑，载入时再统一格式化。
- * 这样示例维护只需保留一份紧凑源码；格式化失败时退回原串，保证示例按钮始终可用。
- */
+/** 示例载入后统一格式化；格式化失败时退回原串，保证示例按钮始终可用。 */
 export const formatExampleSource = (source: string): string => {
   try {
     return formatMacro(source)

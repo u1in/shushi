@@ -31,9 +31,14 @@
       settings: ShortDivisionRenderSettings,
     ): GridScene
 
+    createCompositeArithmeticGridScene(
+      computation: CompositeArithmeticComputation,
+      settings?: Partial<CompositeArithmeticRenderSettings>,
+    ): GridScene
+
     compileCalculatorMacro(source: string): GridScene
 
-这些函数仍然通过宏编译链路生成 GridScene，不会绕过宏语言直接拼装渲染器数据。加法设置可省略，其他运算的设置必须完整提供。
+这些函数仍然通过宏编译链路生成 GridScene，不会绕过宏语言直接拼装渲染器数据。加法与组合竖式设置可省略或部分提供，其他运算的设置必须完整提供。
 
 ## 2. 完整布局设置
 
@@ -70,6 +75,12 @@
       showRemainders: boolean
     }
 
+    interface CompositeArithmeticRenderSettings extends GridRenderSettings {
+      showCarrySteps: boolean
+      showBorrowSteps: boolean
+      uniformMultiplicationBars: boolean
+    }
+
 参数含义：
 
 - cellWidth 和 rowHeight 是 CSS 像素尺寸。
@@ -79,6 +90,7 @@
 - bracketBend 控制长除法弯折轨道。
 - showZeroQuotientSteps 必须与 getDivisionPlaybackStepCount 的参数保持一致。
 - showRemainders 只对短除法进制转换的余数展示有意义。
+- 组合竖式用 showCarrySteps、showBorrowSteps 和 uniformMultiplicationBars 控制内部各单项步骤；它的 visibleStepCount 必须来自 getCompositeArithmeticStepCount。
 
 ## 3. 布局宏片段辅助函数
 
@@ -298,6 +310,45 @@ quotientTokens 适合布局器定位商位和小数点；steps 记录试商、�
 
 短除法 steps 中的 remainders 只有进制转换实际使用；其他模式的余数为 '0'。baseConversion 的 convertedText 按目标进制输出，remaindersBottomUp 按短除法从下往上的读取顺序保存。
 
+### 4.6 组合运算
+
+    type CompositeArithmeticOperator = '+' | '-' | '×'
+
+    type CompositeArithmeticStep =
+      | {
+          index: number
+          leftOperandDigits: string
+          rightOperandDigits: string
+          resultDigits: string
+          operator: '+'
+          computation: AdditionComputation
+        }
+      | {
+          index: number
+          leftOperandDigits: string
+          rightOperandDigits: string
+          resultDigits: string
+          operator: '-'
+          computation: SubtractionComputation
+        }
+      | {
+          index: number
+          leftOperandDigits: string
+          rightOperandDigits: string
+          resultDigits: string
+          operator: '×'
+          computation: MultiplicationComputation
+        }
+
+    interface CompositeArithmeticComputation {
+      expression: string
+      initialValueDigits: string
+      steps: CompositeArithmeticStep[]
+      resultDigits: string
+    }
+
+`computeCompositeArithmetic` 将表达式按文本顺序计算；步骤内仍是已有单项计算器的过程对象。`createCompositeArithmeticGridScene` 是兼容的直接场景入口；用户需要复制或编辑宏时，优先 `createCompositeArithmeticMacroSource`，再使用 `minifyMacroForCopy` 导出。
+
 ## 5. GridScene、几何和图元类型
 
     type GridTextHorizontalAlign = 'left' | 'center' | 'right'
@@ -473,6 +524,7 @@ parseMacro 适合从源码取得 AST；compileMacroAst 适合在已有 MacroCall
 
 - 仅计算：只导入 compute* 和对应结果类型。
 - 自动竖式：优先 compute*、create*MacroSource、compileMacro、render*。
+- 组合竖式：使用 computeCompositeArithmetic、getCompositeArithmeticStepCount 和 createCompositeArithmeticMacroSource，不手工连接各单项宏。
 - 自定义宏：使用 macro* 辅助函数或直接写宏，再通过 parseMacro 和 compileMacro 校验。
 - AST 编辑器：使用 createMacroAstInspection，不要从字符串偏移量自行猜图元位置。
 - 只需要场景：使用 create*GridScene；需要源码可编辑性时改用 create*MacroSource。

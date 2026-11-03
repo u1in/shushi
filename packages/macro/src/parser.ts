@@ -3,6 +3,8 @@ import { getCanonicalMacroName } from './macro-aliases'
 
 /** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
 const CELL_ZERO_ARGUMENT_SYMBOLS = new Set(['DOT', 'MTD', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
+/** 方括号首项可以直接承载的零参数图元；EMPTY/STYLE 只能作为单元格结构或配置，不能充当图元。 */
+const CELL_SHORTHAND_FIRST_SYMBOLS = new Set(['DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'])
 
 /** 带位置的错误信息让主页输入框能直接指出宏源码的问题。 */
 const createSyntaxError = (source: string, index: number, message: string): Error => (
@@ -69,16 +71,18 @@ export const parseMacro = (source: string): MacroCall => {
     index += 1
 
     if (argumentsList.length === 0) {
-      throw createSyntaxError(source, start, 'CELL 简写至少需要首项文字')
+      throw createSyntaxError(source, start, 'CELL 简写至少需要一个图元')
     }
 
     const [firstArgument, ...remainingArguments] = argumentsList
-    // 方括号的首项固定为单元格中心文字。裸文本只在这个明确位置补成 MM，避免把其他参数误当文字。
+    // 首项为裸文本时才补成 MM；已经是定位或边框图元时直接保留，以支持 [RB(1)] 等纯标记单元格。
     const normalizedFirstArgument = firstArgument.kind === 'literal'
       ? { kind: 'call' as const, name: 'MM', arguments: [firstArgument] }
       : firstArgument
-    if (normalizedFirstArgument.kind !== 'call' || normalizedFirstArgument.name !== 'MM') {
-      throw createSyntaxError(source, start, 'CELL 简写首项必须是 MM(text) 或可省略 MM 的文字值')
+    const isFirstCellGraphic = normalizedFirstArgument.kind === 'call'
+      || normalizedFirstArgument.kind === 'symbol' && CELL_SHORTHAND_FIRST_SYMBOLS.has(normalizedFirstArgument.name)
+    if (!isFirstCellGraphic) {
+      throw createSyntaxError(source, start, 'CELL 简写首项必须是文字、完整图元宏或允许的零参数图元')
     }
 
     for (const argument of remainingArguments) {

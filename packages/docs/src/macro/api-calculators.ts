@@ -126,9 +126,31 @@ console.log(computation.partialProducts)`,
     ['`multiplicandValue`', '`unknown`', '被乘数，要求为非负十进制整数。'],
     ['`multiplierValue`', '`unknown`', '乘数，要求为非负十进制整数。'],
     ['`options.useTrailingZeroShortcut`', '`boolean`', '是否启用乘数末尾零的教学快捷计算，默认开启。'],
+    ['`options.preserveOperandOrder`', '`boolean`', '为 `true` 时不为排版交换两个操作数；组合运算乘法固定使用该选项。'],
     ['返回值', '`MultiplicationComputation`', '包含部分积、列加法步骤、最终积和快捷计算信息。'],
   ],
   caution: '输入不会转换为 JavaScript number；不要把 `productDigits` 之外的过程字段当作布局坐标。',
+})
+
+export const computeCompositeArithmeticPage = createCalculatorApiPage({
+  slug: 'computeCompositeArithmetic',
+  summary: '按书写顺序把加、减、乘单项竖式串联为可播放的组合计算过程。',
+  example: `import { computeCompositeArithmetic } from '@u1in/shushi-core'
+
+// 组合表达式从左到右执行，不使用通常的乘法优先级。
+const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
+
+console.log(computation.resultDigits) // '540'
+console.log(computation.steps)`,
+  purpose: '它为每个运算符委托现有加法、减法或乘法计算器，返回带 `operator` 判别字段的单项过程。组合乘法固定关闭十倍数快捷计算并保留输入顺序。',
+  signature: `type ComputeCompositeArithmetic = (
+  expression: unknown,
+) => CompositeArithmeticComputation`,
+  parameters: [
+    ['`expression`', '`unknown`', '由非负整数和 `+`、`-`、`×` 连接的表达式；也接受 `*` 与 `x`。'],
+    ['返回值', '`CompositeArithmeticComputation`', '包含原表达式、每一步的判别联合过程和最终结果。'],
+  ],
+  caution: '表达式至少包含一个运算符且按左到右执行；中间负数不能继续接下一步，避免违背现有非负整数单项竖式规则。',
 })
 
 export const computeShortDivisionPage = createCalculatorApiPage({
@@ -160,5 +182,6 @@ export const calculatorApiPages = [
   computeSubtractionPage,
   computeDivisionPage,
   computeMultiplicationPage,
+  computeCompositeArithmeticPage,
   computeShortDivisionPage,
 ]

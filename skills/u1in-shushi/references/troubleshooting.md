@@ -75,11 +75,19 @@ computeDivision(divisorValue, dividendValue, options?)
 
 检查 `mode`：`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要十进制整数和 2–36 的 `targetBase`。具体边界以 `references/api.md` 为准。
 
+### 组合运算结果顺序不符合预期
+
+`computeCompositeArithmetic('125 + 75 - 20 × 3')` 按书写顺序计算，即 `((125 + 75) - 20) × 3`，不使用通常的乘法优先级。表达式只能包含非负整数和 `+`、`-`、`×`；`x`、`X`、`*` 会识别为乘号。中间结果一旦为负数就不能继续组合，应调整表达式或拆成独立计算，而不是自行交换减数与被减数。
+
 ## 宏与 AST
 
 ### 宏解析失败
 
 保留原始错误，先用 `parseMacro(source)` 定位语法问题，再选择 `formatMacro`、`completeMacro` 或 `minifyMacro`。不要静默修复可能改变运算含义的源码。
+
+### 复制出的计算器宏有网页参数或不是最简形式
+
+对布局器返回的源码调用 `minifyMacroForCopy(source)`，不要用正则删除 `KV(...)`、也不要从页面、OCR 或 `GridScene` 反向拼接宏。该 API 会移除渲染专用的 `ariaLabel`、`style` 并做官方最简化；例如 `CELL(MM(1))` 导出为 `1`，`CELL(RB(1))` 导出为 `RB(1)`。`[RB(1)]` 是可解析的显式单元格输入，但导出器不需要保留这层包裹。
 
 ### 图元没有 AST 引用
 
@@ -105,7 +113,11 @@ computeDivision(divisorValue, dividendValue, options?)
 
 ### 教学播放少一步或多一步
 
-乘法使用 `getMultiplicationStepCount`，除法使用 `getDivisionPlaybackStepCount`。除法是否显示零商步骤必须与布局器的 `showZeroQuotientSteps` 保持一致；不要用任意数组长度替代播放步数。
+乘法使用 `getMultiplicationStepCount`，除法使用 `getDivisionPlaybackStepCount`，组合竖式使用 `getCompositeArithmeticStepCount`。除法是否显示零商步骤必须与布局器的 `showZeroQuotientSteps` 保持一致；组合步骤还包含“引入第二操作数”的事件。不要用任意数组长度替代播放步数。
+
+### 组合竖式出现重复结果、过早显示第二操作数或后续减法没有借位点
+
+不要依次调用多个单项布局器再手工拼接字符串。只使用 `createCompositeArithmeticMacroSource(computation, settings)`，并在每帧都用同一份 `visibleStepCount` 重新生成。该布局器会复用上一结果作为下一步第一行、延迟引入下一步的运算符和第二操作数，并把后续减法的借位标记合并到复用结果行。
 
 ## 副作用边界
 

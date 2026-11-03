@@ -143,7 +143,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '方括号 []',
     kicker: 'SYNTAX SUGAR · 02',
     group: 'sugar',
-    summary: '方括号是 CELL 的短写形式：[5, RB(1)] 等价于 CELL(MM(5), RB(1))。只有首项可以省略 MM，后续项必须是完整宏或零参数宏。',
+    summary: '方括号是 CELL 的短写形式：[5, RB(1)] 等价于 CELL(MM(5), RB(1))，纯标记也可写为 [RB(1)]。裸文字只在首项自动补 MM，后续项必须是完整宏或零参数宏。',
     sections: [
       {
         id: 'purpose',
@@ -151,7 +151,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '同一个格子里叠数字、进位点或小数点时，完整写法需要 `CELL(MM(...), ...)`。方括号把 `CELL` 和首项的 `MM` 一起省掉，只保留真正的图元差异。',
+            text: '同一个格子里叠数字、进位点或小数点时，完整写法需要 `CELL(MM(...), ...)`。方括号把 `CELL` 和首项可省略的 `MM` 一起省掉；没有正文的纯定位图元也可直接写成 `[RB(1)]`。',
           },
           {
             type: 'compare',
@@ -171,9 +171,9 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'table',
             columns: ['位置', '允许的写法', '说明'],
             rows: [
-              ['第一项', '`MM(text)` 或裸文字', '裸文字会自动补成 `MM(text)`；这是唯一能省略 MM 的位置。'],
+              ['第一项', '`MM(text)`、裸文字或完整图元宏', '裸文字会自动补成 `MM(text)`；`[RB(1)]` 等纯图元写法会直接保留。'],
               ['后续项', '完整宏调用', '例如 `RB(1)`、`TBD()`、`KV(columnSpan, 2)`。'],
-              ['后续项', '零参数图元', '`DOT`、`MTD`、`BK`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；`EP` 是 ROW 的单元格，不能放进 CELL。'],
+              ['后续项', '零参数图元', '`DOT`、`MTD`、`BK`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；它们也可作为没有正文的方括号首项；`EP` 是 ROW 的单元格，不能放进 CELL。'],
             ],
           },
           {
@@ -182,8 +182,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
               '方括号内部同样用逗号分隔，不能使用分号。',
               '`[5, 1]` 无效：后续的 1 不是完整宏调用，也不会自动补 MM。',
               '`[5, RB]` 无效：`RB` 需要文字参数，不能按零参数宏处理。',
-              '`[RB(1), 5]` 无效：首项必须是文字或 `MM(text)`。',
-              '`[]` 无效：至少需要首项文字。',
+              '`[RB(1), 5]` 无效：`RB(1)` 可作为首项，但后续裸文字不会自动补 `MM`。',
+              '`[]` 无效：至少需要一个图元。',
               '方括号不能嵌套：后续项不能是另一个 `[...]`。',
             ],
           },
@@ -230,6 +230,12 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             code: 'GRID(\n  ROW([7, DOT])\n)',
             note: '`DOT` 是零参数宏，可以不带括号写在后续项中。',
           },
+          {
+            type: 'example',
+            title: '没有正文的进位标记',
+            code: 'GRID(\n  ROW(MM(5), [RB(1)])\n)',
+            note: '`[RB(1)]` 等价于 `CELL(RB(1))`，适用于进位落在空格中的情况；最简化导出会继续省掉无配置 CELL，输出 `RB(1)`。',
+          },
         ],
       },
       {
@@ -240,9 +246,9 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`CELL 简写首项必须是 MM(text) 或可省略 MM 的文字值`', '首项写了 `RB(1)` 或其他定位宏。', '把文字放在首项，定位宏放到后面。'],
+              ['`CELL 简写首项必须是文字、完整图元宏或允许的零参数图元`', '首项写了裸 `RB`、`EP` 或其他不能作为 CELL 图元的符号。', '写成带参数的 `RB(1)`，或使用文字、`DOT`、`MTD`、`BK` 等允许的首项。'],
               ['`CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用`', '后续项写了裸文字或裸的 `RB`。', '写成 `RB(1)`，或把文字移到首项。'],
-              ['`CELL 简写至少需要首项文字`', '写了 `[]`。', '至少补一个文字，例如 `[5]`。'],
+              ['`CELL 简写至少需要一个图元`', '写了 `[]`。', '至少补一个文字或图元，例如 `[5]`、`[RB(1)]`。'],
               ['`CELL 简写参数之间必须使用逗号分隔`', '用了空格或分号。', '改成逗号。'],
             ],
           },
@@ -336,7 +342,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '`completeMacro` 会显式展开 `GRID`、`ROW`、`CELL`、`MM` 和完整宏名；`formatMacro` 保留当前结构并增加可读的换行缩进；`unformatMacro` 只移除空白；最简化（`minifyMacro`）还会省略已知默认 KV，并在不改变语法边界时把完整写法降级为分号行和方括号。方括号首项必须是文字，因此以 `BRACKET`、`DOT` 等定位图元开头的 `CELL` 会保留显式写法，前后语义保持一致。',
+            text: '`completeMacro` 会显式展开 `GRID`、`ROW`、`CELL`、`MM` 和完整宏名；`formatMacro` 保留当前结构并增加可读的换行缩进；`unformatMacro` 只移除空白；最简化（`minifyMacro`）还会省略已知默认 KV，并在不改变语法边界时把完整写法降级为分号行和方括号。无配置且只含一个图元的 CELL 会进一步消失：`CELL(MM(1))` / `[1]` 输出 `1`，`CELL(RB(1))` / `[RB(1)]` 输出 `RB(1)`，前后语义保持一致。',
           },
           {
             type: 'code',
