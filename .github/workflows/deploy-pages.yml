@@ -43,6 +43,8 @@ jobs:
           mkdir -p site/demo
           cp -R packages/docs/.vuepress/dist/. site/
           cp -R packages/web/dist/. site/demo/
+          cp packages/docs/agent/installation.md site/agent-installation.md
+          cp packages/docs/agent/capabilities.md site/agent-capabilities.md
           touch site/.nojekyll
 
       - name: Configure Pages
