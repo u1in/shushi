@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeSubtraction } from '@u1in/shushi-calculators'
-import { compileCalculatorMacro, createSubtractionMacroSource } from '@u1in/shushi-layout'
+import { createVerticalArithmetic } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
-import type { SubtractionComputation } from '@u1in/shushi-calculators'
-import type { GridScene } from '@u1in/shushi-grid'
+import type { GridScene, SubtractionComputation } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -24,14 +22,18 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.resultText ?? '—')
 
 const renderScene = (): void => {
-  if (!computation.value) return
-  const settings = {
-    cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
-    showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
-    visibleStepCount: visibleStepCount.value,
-  }
-  macroSource.value = createSubtractionMacroSource(computation.value, settings)
-  scene.value = compileCalculatorMacro(macroSource.value)
+  const result = createVerticalArithmetic({
+    operation: 'subtraction',
+    operands: [minuend.value, subtrahend.value],
+    settings: {
+      cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
+      showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
+      visibleStepCount: visibleStepCount.value,
+    },
+  })
+  computation.value = result.computation
+  macroSource.value = result.source
+  scene.value = result.scene
 }
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
@@ -43,8 +45,6 @@ const canNext = playback.canNext
 
 const calculate = (): void => {
   try {
-    const result = computeSubtraction(minuend.value, subtrahend.value)
-    computation.value = result
     visibleStepCount.value = undefined
     renderScene()
     error.value = ''

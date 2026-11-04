@@ -1,17 +1,4 @@
-import {
-  computeAddition,
-  computeDivision,
-  computeMultiplication,
-  computeShortDivision,
-  computeSubtraction,
-} from '@u1in/shushi-calculators'
-import {
-  createAdditionMacroSource,
-  createDivisionMacroSource,
-  createMultiplicationMacroSource,
-  createShortDivisionMacroSource,
-  createSubtractionMacroSource,
-} from '@u1in/shushi-layout'
+import { createVerticalArithmetic } from '@u1in/shushi-core'
 import { formatMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 
 export interface MacroExample {
@@ -31,60 +18,94 @@ const DEFAULT_GRID_SETTINGS = {
 const toPlaygroundSource = (source: string): string => minifyMacroForCopy(source)
 
 const createAdditionExample = (): MacroExample => {
-  const computation = computeAddition('356', '278')
+  const result = createVerticalArithmetic({
+    operation: 'addition',
+    values: ['356', '278'],
+    settings: { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true },
+  })
+  const computation = result.computation
   return {
     label: `356 + 278 = ${computation.sumDigits}`,
-    source: toPlaygroundSource(createAdditionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true })),
+    source: toPlaygroundSource(result.source),
   }
 }
 
 const createSubtractionExample = (): MacroExample => {
-  const computation = computeSubtraction('502', '137')
+  const result = createVerticalArithmetic({
+    operation: 'subtraction',
+    operands: ['502', '137'],
+    settings: { ...DEFAULT_GRID_SETTINGS, showBorrowSteps: true },
+  })
+  const computation = result.computation
   return {
     label: `502 − 137 = ${computation.differenceDigits}`,
-    source: toPlaygroundSource(createSubtractionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showBorrowSteps: true })),
+    source: toPlaygroundSource(result.source),
   }
 }
 
 const createMultiplicationExample = (): MacroExample => {
-  const computation = computeMultiplication('97', '89')
-  return {
-    label: `97 × 89 = ${computation.productDigits}`,
-    source: toPlaygroundSource(createMultiplicationMacroSource(computation, {
+  const result = createVerticalArithmetic({
+    operation: 'multiplication',
+    operands: ['97', '89'],
+    settings: {
       ...DEFAULT_GRID_SETTINGS,
       showCarrySteps: true,
       uniformMultiplicationBars: false,
-    })),
+    },
+  })
+  const computation = result.computation
+  return {
+    label: `97 × 89 = ${computation.productDigits}`,
+    source: toPlaygroundSource(result.source),
   }
 }
 
 const createDivisionExample = (): MacroExample => {
-  const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
-  return {
-    label: `10230 ÷ 25 = ${computation.quotientText}`,
-    source: toPlaygroundSource(createDivisionMacroSource(computation, {
+  const result = createVerticalArithmetic({
+    operation: 'division',
+    divisor: '25',
+    dividend: '10230',
+    calculation: { resultMode: 'decimal' },
+    settings: {
       ...DEFAULT_GRID_SETTINGS,
       bracketBend: 1,
       uniformSubtractionBars: false,
       showZeroQuotientSteps: false,
-    })),
+    },
+  })
+  const computation = result.computation
+  return {
+    label: `10230 ÷ 25 = ${computation.quotientText}`,
+    source: toPlaygroundSource(result.source),
   }
 }
 
 const createFactorizationExample = (): MacroExample => {
-  const computation = computeShortDivision({ mode: 'factorization', values: ['60'] })
+  const result = createVerticalArithmetic({
+    operation: 'shortDivision',
+    mode: 'factorization',
+    values: ['60'],
+    settings: { ...DEFAULT_GRID_SETTINGS, showRemainders: false },
+  })
+  const computation = result.computation
   if (computation.mode !== 'factorization') throw new Error('短除法分解示例未返回质因数分解结果。')
   return {
     label: `短除法 · 60 = ${computation.factorizationText}`,
-    source: toPlaygroundSource(createShortDivisionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showRemainders: false })),
+    source: toPlaygroundSource(result.source),
   }
 }
 
 const createCommonFactorExample = (): MacroExample => {
-  const computation = computeShortDivision({ mode: 'commonFactor', values: ['60', '84'] })
+  const result = createVerticalArithmetic({
+    operation: 'shortDivision',
+    mode: 'commonFactor',
+    values: ['60', '84'],
+    settings: { ...DEFAULT_GRID_SETTINGS, showRemainders: false },
+  })
+  const computation = result.computation
   return {
     label: `最大公约数 · ${computation.inputValues.join(' 与 ')}`,
-    source: toPlaygroundSource(createShortDivisionMacroSource(computation, { ...DEFAULT_GRID_SETTINGS, showRemainders: false })),
+    source: toPlaygroundSource(result.source),
   }
 }
 

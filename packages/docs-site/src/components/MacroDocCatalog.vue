@@ -33,6 +33,7 @@ const pageRoutes: Record<string, string> = {
   install: '/technical/安装', quickstart: '/technical/快速使用',
   compileMacro: '/technical/api/compileMacro', parseMacro: '/technical/api/parseMacro',
   computeCompositeArithmetic: '/technical/api/computeCompositeArithmetic',
+  createVerticalArithmetic: '/technical/api/createVerticalArithmetic',
   createCompositeArithmeticMacroSource: '/technical/api/createCompositeArithmeticMacroSource',
   getCompositeArithmeticStepCount: '/technical/api/getCompositeArithmeticStepCount',
   formatMacro: '/technical/api/formatMacro', minifyMacro: '/technical/api/minifyMacro', minifyMacroAst: '/technical/api/minifyMacroAst', minifyMacroForCopy: '/technical/api/minifyMacroForCopy', minifyMacroForCopyAst: '/technical/api/minifyMacroForCopyAst',

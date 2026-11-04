@@ -111,6 +111,7 @@ describe('网格宏文档', () => {
       'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
       'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
       'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
+      'createVerticalArithmetic',
       'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
       'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
       'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
@@ -126,6 +127,7 @@ describe('网格宏文档', () => {
         'extractVisibleTextRows',
       ]],
       ['布局 API', [
+        'createVerticalArithmetic',
         'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
         'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
         'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',

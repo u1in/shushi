@@ -1,14 +1,45 @@
 import type { MacroDocPage } from './types'
 
-/** 技术文档第二页：用最短链路跑通编译、三种渲染输出和文本行提取。 */
+/** 技术文档第二页：先用门户 API 跑通数值竖式，再介绍宏编译和三种渲染输出。 */
 export const quickStartPage: MacroDocPage = {
   slug: 'quickstart',
   title: '快速使用',
   navLabel: '快速使用',
   kicker: 'GETTING STARTED · QUICKSTART',
   group: 'technical',
-  summary: '从统一入口完成宏源码到 SVG 字符串、SVG/DOM，并提取可直接比对的可见文本行。',
+  summary: '从一个统一入口生成竖式，再完成宏源码到 SVG 字符串、SVG/DOM，并提取可直接比对的可见文本行。',
   sections: [
+    {
+      id: 'vertical-arithmetic',
+      title: '从数值创建竖式',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: '数值输入通常使用 `createVerticalArithmetic`。它固定串联计算器、宏源码布局和宏编译器，但仍返回每一层的 computation、source 与 scene，因此既可直接渲染，也能继续编辑源码。',
+        },
+        {
+          type: 'code',
+          title: 'TypeScript',
+          language: 'typescript',
+          code: `import { createVerticalArithmetic, renderSvgString } from '@u1in/shushi-core'
+
+const { computation, source, scene } = createVerticalArithmetic({
+  operation: 'addition',
+  values: ['356', '278'],
+})
+
+console.log(computation.sumDigits) // '634'
+console.log(source)
+const svg = renderSvgString(scene)`,
+        },
+        {
+          type: 'callout',
+          tone: 'tip',
+          title: '长除法不猜参数顺序',
+          text: '长除法请求使用 `divisor` 与 `dividend` 两个具名字段；短除法使用 `operation: \'shortDivision\'`、`mode` 与 `values`，组合竖式使用 `operation: \'composite\'` 和 `expression`。',
+        },
+      ],
+    },
     {
       id: 'compile',
       title: '编译宏',
@@ -130,6 +161,7 @@ console.log(rows)
         {
           type: 'cards',
           items: [
+            { title: '统一竖式门户 API', text: '一个调用完成计算、宏源码与 GridScene。', to: '/macro-api/createVerticalArithmetic' },
             { title: '宏编译 API', text: 'compileMacro、parseMacro、minifyMacro 与 createMacroAstInspection。', to: '/macro-api/compileMacro' },
             { title: '渲染 API', text: 'SVG 字符串、SVG 节点和 DOM 舞台的返回值与样式职责。', to: '/macro-api/renderSvgGrid' },
             { title: '网格和文本 API', text: 'GridScene、extractVisibleTextRows 与 resolveGridMetrics。', to: '/macro-api/GridScene' },

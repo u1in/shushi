@@ -194,6 +194,7 @@ export default defineUserConfig({
             { text: 'createShortDivisionMacroSource', link: '/technical/api/createShortDivisionMacroSource' },
             { text: 'createSubtractionGridScene', link: '/technical/api/createSubtractionGridScene' },
             { text: 'createSubtractionMacroSource', link: '/technical/api/createSubtractionMacroSource' },
+            { text: 'createVerticalArithmetic', link: '/technical/api/createVerticalArithmetic' },
             { text: 'extractVisibleTextRows', link: '/technical/api/extractVisibleTextRows' },
             { text: 'formatMacro', link: '/technical/api/formatMacro' },
             { text: 'getDivisionPlaybackStepCount', link: '/technical/api/getDivisionPlaybackStepCount' },

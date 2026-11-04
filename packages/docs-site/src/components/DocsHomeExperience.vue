@@ -60,19 +60,16 @@ const codeCopyTimer: CopyTimer = {}
 const heroMacroSource = ref('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const heroMacroError = ref('')
 const exampleCode = `import {
-  computeAddition,
-  createAdditionMacroSource,
-  compileMacro,
+  createVerticalArithmetic,
   renderDomGrid,
 } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-// 计算层：只生成与渲染无关的逐列过程
-const computation = computeAddition('356', '278')
-// 布局层：把计算过程填写为可编辑的宏源码
-const source = createAdditionMacroSource(computation)
-// 宏编译层：统一生成渲染器消费的 GridScene
-const scene = compileMacro(source)
+// 门户 API 固定完成计算、宏源码与场景编译。
+const { computation, source, scene } = createVerticalArithmetic({
+  operation: 'addition',
+  values: ['356', '278'],
+})
 // 渲染层：把同一份 GridScene 转为 DOM 舞台
 const stage = renderDomGrid(scene)
 // 挂载到页面
@@ -363,19 +360,16 @@ onBeforeUnmount(() => {
           </div>
           <div class="docs-home-code-block">
             <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> {
-  <span class="docs-code-function">computeAddition</span>,
-  <span class="docs-code-function">createAdditionMacroSource</span>,
-  <span class="docs-code-function">compileMacro</span>,
+  <span class="docs-code-function">createVerticalArithmetic</span>,
   <span class="docs-code-function">renderDomGrid</span>,
 } <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
 <span class="docs-code-keyword">import</span> <span class="docs-code-string">'@u1in/shushi-core/style.css'</span>
 
-<span class="docs-code-comment">// 计算层：只生成与渲染无关的逐列过程</span>
-<span class="docs-code-keyword">const</span> computation = <span class="docs-code-function">computeAddition</span>(<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>)
-<span class="docs-code-comment">// 布局层：把计算过程填写为可编辑的宏源码</span>
-<span class="docs-code-keyword">const</span> source = <span class="docs-code-function">createAdditionMacroSource</span>(computation)
-<span class="docs-code-comment">// 宏编译层：统一生成渲染器消费的 GridScene</span>
-<span class="docs-code-keyword">const</span> scene = <span class="docs-code-function">compileMacro</span>(source)
+<span class="docs-code-comment">// 门户 API 固定完成计算、宏源码与场景编译。</span>
+<span class="docs-code-keyword">const</span> { computation, source, scene } = <span class="docs-code-function">createVerticalArithmetic</span>({
+  operation: <span class="docs-code-string">'addition'</span>,
+  values: [<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>],
+})
 <span class="docs-code-comment">// 渲染层：把同一份 GridScene 转为 DOM 舞台</span>
 <span class="docs-code-keyword">const</span> stage = <span class="docs-code-function">renderDomGrid</span>(scene)
 <span class="docs-code-comment">// 挂载到页面</span>

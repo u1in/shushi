@@ -87,7 +87,7 @@ yarn add @u1in/shushi-core@latest
 下面的 smoke test 不依赖浏览器 DOM，可以验证包解析、计算、布局和宏编译链路：
 
 ```bash
-node --input-type=module -e "import { computeAddition, createAdditionMacroSource, compileMacro } from '@u1in/shushi-core'; const computation = computeAddition('2', '3'); const scene = compileMacro(createAdditionMacroSource(computation)); if (scene.elements.length === 0) throw new Error('GridScene 没有元素'); console.log('安装验证通过：', scene.ariaLabel)"
+node --input-type=module -e "import { createVerticalArithmetic } from '@u1in/shushi-core'; const { computation, scene } = createVerticalArithmetic({ operation: 'addition', values: ['2', '3'] }); if (computation.sumDigits !== '5' || scene.elements.length === 0) throw new Error('门户 API 未生成有效 GridScene'); console.log('安装验证通过：', scene.ariaLabel)"
 ```
 
 命令应正常退出，并输出安装验证结果。出现 `ERR_MODULE_NOT_FOUND` 时，先回到“依赖和发布状态检查”，确认当前工作目录和安装命令是否正确。
@@ -108,16 +108,15 @@ node --input-type=module -e "import { compileMacro, computeCompositeArithmetic, 
 
 ```ts
 import {
-  compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
+  createVerticalArithmetic,
   renderDomGrid,
 } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const computation = computeAddition('356', '278')
-const source = createAdditionMacroSource(computation)
-const scene = compileMacro(source)
+const { scene } = createVerticalArithmetic({
+  operation: 'addition',
+  values: ['356', '278'],
+})
 const stage = renderDomGrid(scene)
 
 document.querySelector('#result')?.append(stage)

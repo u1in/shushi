@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeShortDivision } from '@u1in/shushi-calculators'
-import { compileCalculatorMacro, createShortDivisionMacroSource } from '@u1in/shushi-layout'
+import { createVerticalArithmetic } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
-import type { ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-calculators'
-import type { GridScene } from '@u1in/shushi-grid'
+import type { GridScene, ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -26,17 +24,27 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 
 const renderScene = (): void => {
-  if (!computation.value) return
-  const settings = {
-    cellWidth: cellWidth.value,
-    rowHeight: rowHeight.value,
-    fontSizeRatio: fontSizeRatio.value,
-    showGuideGrid: showGuideGrid.value,
-    showRemainders: showRemainders.value,
-    visibleStepCount: visibleStepCount.value,
-  }
-  macroSource.value = createShortDivisionMacroSource(computation.value, settings)
-  scene.value = compileCalculatorMacro(macroSource.value)
+  const result = createVerticalArithmetic({
+    operation: 'shortDivision',
+    mode: mode.value,
+    values: mode.value === 'factorization'
+      ? [factorValue.value]
+      : mode.value === 'commonFactor'
+        ? splitValues(commonValues.value)
+        : [conversionValue.value],
+    targetBase: mode.value === 'baseConversion' ? targetBase.value : undefined,
+    settings: {
+      cellWidth: cellWidth.value,
+      rowHeight: rowHeight.value,
+      fontSizeRatio: fontSizeRatio.value,
+      showGuideGrid: showGuideGrid.value,
+      showRemainders: showRemainders.value,
+      visibleStepCount: visibleStepCount.value,
+    },
+  })
+  computation.value = result.computation
+  macroSource.value = result.source
+  scene.value = result.scene
 }
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
@@ -59,12 +67,6 @@ const answer = computed(() => {
 
 const calculate = (): void => {
   try {
-    const result = mode.value === 'factorization'
-      ? computeShortDivision({ mode: 'factorization', values: [factorValue.value] })
-      : mode.value === 'commonFactor'
-        ? computeShortDivision({ mode: 'commonFactor', values: splitValues(commonValues.value) })
-        : computeShortDivision({ mode: 'baseConversion', values: [conversionValue.value], targetBase: targetBase.value })
-    computation.value = result
     visibleStepCount.value = undefined
     renderScene()
     error.value = ''

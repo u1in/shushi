@@ -18,10 +18,13 @@ title: Agent 功能说明
   → DOM 或 SVG 渲染器
 ```
 
+数值输入的默认入口是 `createVerticalArithmetic`。它在内部固定执行上述前三步，并把 `computation`、可编辑 `source` 与 `scene` 一并返回；只有需要只计算、逐层调试或手写宏时，才直接选择下层 API。
+
 每一层职责不同：
 
 | 层 | 主要 API | 输出 | 适合的任务 |
 | --- | --- | --- | --- |
+| 门户 | `createVerticalArithmetic` | 计算过程、可编辑宏源码、`GridScene` | 根据数值直接生成并渲染标准竖式 |
 | 计算 | `computeAddition`、`computeCompositeArithmetic`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
 | 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
 | 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
@@ -33,6 +36,12 @@ title: Agent 功能说明
 ## API 技术签名与参数
 
 以下签名均从 `@u1in/shushi-core` 统一导入。类型名称用于说明参数和返回值，不需要在 JavaScript 运行时导入。
+
+### 竖式门户签名
+
+`createVerticalArithmetic(request: VerticalArithmeticRequest): VerticalArithmeticResult<Computation>`
+
+`request.operation` 可为 `'addition'`、`'subtraction'`、`'multiplication'`、`'division'`、`'shortDivision'` 或 `'composite'`。加法传 `values`，减/乘法传 `operands`；长除法使用具名 `divisor` 与 `dividend`，短除法使用 `mode` 与 `values`，组合竖式使用 `expression`。所有请求可传 `settings` 覆盖布局默认值；乘法与长除法还可传 `calculation` 覆盖计算选项。返回值不省略中间数据：需要播放、复制宏或分析场景时，继续使用其 `computation`、`source` 和 `scene`。
 
 ### 计算器签名
 
@@ -584,6 +593,7 @@ const scene = compileMacro(source)
 
 | 用户需求 | 推荐组合 |
 | --- | --- |
+| 根据数值展示标准竖式 | `createVerticalArithmetic({ operation, ... })` → `renderDomGrid` 或 `renderSvgGrid` |
 | 只要计算答案 | 对应的 `compute*` |
 | 要展示标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` 或 `renderSvgGrid` |
 | 要把多个 `+`、`-`、`×` 放进一个连续竖式 | `computeCompositeArithmetic` → `getCompositeArithmeticStepCount` → `createCompositeArithmeticMacroSource` → `compileMacro` |
@@ -610,6 +620,6 @@ const scene = compileMacro(source)
 
 ## 7. 最小可用判断
 
-如果用户只给出两个数和一个运算，Agent 应优先使用对应的 `compute*`、`create*MacroSource`、`compileMacro` 和渲染器组合。如果用户给出的是宏源码，直接走宏解析与编译链路。除非用户只需要答案，否则应保留宏源码或 `GridScene`，这样后续可以继续编辑、播放、分析或切换渲染方式。
+如果用户只给出数值和运算，Agent 应优先使用 `createVerticalArithmetic`，再按需要将返回的 `scene` 交给渲染器；用户只需要答案时才选择对应的 `compute*`。如果用户给出的是宏源码，直接走宏解析与编译链路。除非用户只需要答案，否则应保留宏源码或 `GridScene`，这样后续可以继续编辑、播放、分析或切换渲染方式。
 
 

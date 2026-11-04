@@ -50,29 +50,38 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 
 ### 源代码实现
 
-下面的链路会把 `356 + 278` 计算、排版并显示为 DOM 竖式：
+通常只需要调用一个门户 API，就能把 `356 + 278` 计算、生成可编辑宏源码并显示为 DOM 竖式：
 
 ```ts
 import {
-  compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
+  createVerticalArithmetic,
   renderDomGrid,
 } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-// 计算层：输出答案、进位和逐列过程，不关心页面如何绘制。
-const computation = computeAddition('356', '278')
-
-// 布局层：把计算过程填写为可编辑的网格宏源码。
-const source = createAdditionMacroSource(computation)
-
-// 编译层：把宏源码转换为统一的 GridScene。
-const scene = compileMacro(source)
+const { computation, source, scene } = createVerticalArithmetic({
+  operation: 'addition',
+  values: ['356', '278'],
+})
 
 // 渲染层：将同一份 GridScene 转为 DOM 舞台。
 const stage = renderDomGrid(scene)
 document.querySelector('#result')?.append(stage)
+
+console.log(computation.sumDigits) // '634'
+console.log(source) // 可保存、复制或交给宏编辑器继续修改
+```
+
+`createVerticalArithmetic` 会固定执行“计算 → 宏源码 → GridScene”，但完整保留三层产物。`operation` 决定输入字段：加法用 `values`，减/乘法用两个元素的 `operands`，长除法明确使用 `divisor` 与 `dividend`，短除法使用 `mode` 和 `values`，组合竖式使用 `expression`。`settings` 可覆盖网格和教学显示，`calculation` 可传入乘法或长除法的计算选项。
+
+需要逐层检查、保存中间宏或实现高级定制时，也可以显式调用底层链路：
+
+```ts
+import { compileMacro, computeAddition, createAdditionMacroSource } from '@u1in/shushi-core'
+
+const computation = computeAddition('356', '278')
+const source = createAdditionMacroSource(computation)
+const scene = compileMacro(source)
 ```
 
 如果需要 SVG，把最后一步替换为：
@@ -111,6 +120,7 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 
 | 需求 | 推荐链路 |
 | --- | --- |
+| 根据输入直接得到过程、可编辑宏和场景 | `createVerticalArithmetic({ operation, ... })` |
 | 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
 | 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
 | 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |

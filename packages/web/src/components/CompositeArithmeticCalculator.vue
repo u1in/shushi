@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeCompositeArithmetic } from '@u1in/shushi-calculators'
-import { compileCalculatorMacro, createCompositeArithmeticMacroSource, getCompositeArithmeticStepCount } from '@u1in/shushi-layout'
-import type { CompositeArithmeticComputation } from '@u1in/shushi-calculators'
-import type { GridScene } from '@u1in/shushi-grid'
+import { createVerticalArithmetic, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
+import type { CompositeArithmeticComputation, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -20,19 +18,25 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 const answer = computed(() => computation.value?.resultDigits ?? '—')
 
-const renderScene = (): void => {
-  if (!computation.value) return
-  macroSource.value = createCompositeArithmeticMacroSource(computation.value, {
-    cellWidth: 30,
-    rowHeight: 46,
-    fontSizeRatio: 1,
-    showGuideGrid: showGuideGrid.value,
-    showCarrySteps: showCarrySteps.value,
-    showBorrowSteps: showBorrowSteps.value,
-    uniformMultiplicationBars: false,
-    visibleStepCount: visibleStepCount.value,
+const renderScene = (shouldRenderWithoutComputation = false): void => {
+  if (!shouldRenderWithoutComputation && !computation.value) return
+  const result = createVerticalArithmetic({
+    operation: 'composite',
+    expression: expression.value,
+    settings: {
+      cellWidth: 30,
+      rowHeight: 46,
+      fontSizeRatio: 1,
+      showGuideGrid: showGuideGrid.value,
+      showCarrySteps: showCarrySteps.value,
+      showBorrowSteps: showBorrowSteps.value,
+      uniformMultiplicationBars: false,
+      visibleStepCount: visibleStepCount.value,
+    },
   })
-  scene.value = compileCalculatorMacro(macroSource.value)
+  computation.value = result.computation
+  macroSource.value = result.source
+  scene.value = result.scene
 }
 
 const playback = useCalculatorStepPlayback({
@@ -48,9 +52,8 @@ const canNext = playback.canNext
 
 const calculate = (): void => {
   try {
-    computation.value = computeCompositeArithmetic(expression.value)
     visibleStepCount.value = undefined
-    renderScene()
+    renderScene(true)
     error.value = ''
   } catch (reason) {
     computation.value = undefined

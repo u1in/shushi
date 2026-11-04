@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeAddition } from '@u1in/shushi-calculators'
-import { compileCalculatorMacro, createAdditionMacroSource } from '@u1in/shushi-layout'
+import { createVerticalArithmetic } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
-import type { AdditionComputation } from '@u1in/shushi-calculators'
-import type { GridScene } from '@u1in/shushi-grid'
+import type { AdditionComputation, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -24,14 +22,18 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.sumDigits ?? '—')
 
 const renderScene = (): void => {
-  if (!computation.value) return
-  const settings = {
-    cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
-    showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
-    visibleStepCount: visibleStepCount.value,
-  }
-  macroSource.value = createAdditionMacroSource(computation.value, settings)
-  scene.value = compileCalculatorMacro(macroSource.value)
+  const result = createVerticalArithmetic({
+    operation: 'addition',
+    values: [firstAddend.value, secondAddend.value],
+    settings: {
+      cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
+      showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
+      visibleStepCount: visibleStepCount.value,
+    },
+  })
+  computation.value = result.computation
+  macroSource.value = result.source
+  scene.value = result.scene
 }
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
@@ -44,8 +46,6 @@ const canNext = playback.canNext
 /** 首页先提供双加数练习；计算器 API 仍支持传入三个及以上加数实现连加。 */
 const calculate = (): void => {
   try {
-    const result = computeAddition(firstAddend.value, secondAddend.value)
-    computation.value = result
     visibleStepCount.value = undefined
     renderScene()
     error.value = ''

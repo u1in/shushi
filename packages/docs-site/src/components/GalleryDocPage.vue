@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { galleryPageByOperation, type GalleryOperation } from '@u1in/shushi-docs/gallery'
-import { computeAddition, computeDivision, computeMultiplication, computeShortDivision, computeSubtraction, createAdditionGridScene, createDivisionGridScene, createMultiplicationGridScene, createShortDivisionGridScene, createSubtractionGridScene } from '@u1in/shushi-core'
+import { createVerticalArithmetic } from '@u1in/shushi-core'
 import GalleryNamingMap from './GalleryNamingMap.vue'
 import type { GridScene } from '@u1in/shushi-core'
 
@@ -10,11 +10,11 @@ const page = computed(() => galleryPageByOperation.get(props.operation))
 const scenario = computed<GridScene>(() => {
   switch (props.operation) {
     // 图例页采用紧凑的展示尺寸，保证左栏在常见桌面高度内能同时容纳画布和全部开关。
-    case 'addition': { const computation = computeAddition('356', '278'); return createAdditionGridScene(computation, { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showCarrySteps: true }) }
-    case 'subtraction': { const computation = computeSubtraction('502', '137'); return createSubtractionGridScene(computation, { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showBorrowSteps: true }) }
-    case 'multiplication': { const computation = computeMultiplication('97', '89'); return createMultiplicationGridScene(computation, { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, uniformMultiplicationBars: false, showCarrySteps: true }) }
-    case 'division': { const computation = computeDivision('25', '10230', { resultMode: 'decimal' }); return createDivisionGridScene(computation, { cellWidth: 44, rowHeight: 42, fontSizeRatio: 0.82, bracketBend: 1, showGuideGrid: true, uniformSubtractionBars: false, showZeroQuotientSteps: false }) }
-    case 'short-division': { const computation = computeShortDivision({ mode: 'baseConversion', values: ['13'], targetBase: 2 }); return createShortDivisionGridScene(computation, { cellWidth: 44, rowHeight: 48, fontSizeRatio: 0.82, showGuideGrid: true, showRemainders: true }) }
+    case 'addition': return createVerticalArithmetic({ operation: 'addition', values: ['356', '278'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showCarrySteps: true } }).scene
+    case 'subtraction': return createVerticalArithmetic({ operation: 'subtraction', operands: ['502', '137'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showBorrowSteps: true } }).scene
+    case 'multiplication': return createVerticalArithmetic({ operation: 'multiplication', operands: ['97', '89'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, uniformMultiplicationBars: false, showCarrySteps: true } }).scene
+    case 'division': return createVerticalArithmetic({ operation: 'division', divisor: '25', dividend: '10230', calculation: { resultMode: 'decimal' }, settings: { cellWidth: 44, rowHeight: 42, fontSizeRatio: 0.82, bracketBend: 1, showGuideGrid: true, uniformSubtractionBars: false, showZeroQuotientSteps: false } }).scene
+    case 'short-division': return createVerticalArithmetic({ operation: 'shortDivision', mode: 'baseConversion', values: ['13'], targetBase: 2, settings: { cellWidth: 44, rowHeight: 48, fontSizeRatio: 0.82, showGuideGrid: true, showRemainders: true } }).scene
   }
 })
 </script>

@@ -441,8 +441,52 @@ console.log(stepCount)`,
   caution: '该数不是表达式运算符个数；多位单项竖式会贡献多个教学步骤，且除第一步外的每一段还会额外贡献一次第二操作数引入事件。',
 })
 
+export const createVerticalArithmeticPage = createLayoutApiPage({
+  slug: 'createVerticalArithmetic',
+  summary: '用一个入口完成计算、可编辑宏源码生成和 GridScene 编译。',
+  example: `import { createVerticalArithmetic, renderSvgString } from '@u1in/shushi-core'
+
+const { computation, source, scene } = createVerticalArithmetic({
+  operation: 'division',
+  divisor: '25',
+  dividend: '10230',
+  calculation: { resultMode: 'decimal' },
+  settings: { showZeroQuotientSteps: true },
+})
+
+console.log(computation.quotientText) // '409.2'
+console.log(source) // 可复制、编辑后再调用 compileMacro
+const svg = renderSvgString(scene)`,
+  purpose: '这是 `@u1in/shushi-core` 面向大多数应用的门户 API。它按 operation 委托现有计算器和布局器，再把生成的源码交给 `compileCalculatorMacro`；因此便利入口不会绕过可编辑宏源码或另建一套 GridScene。返回值保留 computation、source 和 scene，调用方仍可按需检查每层结果。',
+  signature: `type CreateVerticalArithmetic = {
+  (request: AdditionVerticalArithmeticRequest): AdditionVerticalArithmeticResult
+  (request: SubtractionVerticalArithmeticRequest): SubtractionVerticalArithmeticResult
+  (request: MultiplicationVerticalArithmeticRequest): MultiplicationVerticalArithmeticResult
+  (request: DivisionVerticalArithmeticRequest): DivisionVerticalArithmeticResult
+  (request: ShortDivisionVerticalArithmeticRequest): ShortDivisionVerticalArithmeticResult
+  (request: CompositeVerticalArithmeticRequest): CompositeVerticalArithmeticResult
+}
+
+type VerticalArithmeticResult<T> = {
+  computation: T
+  source: string
+  scene: GridScene
+}`,
+  parameters: [
+    ['`request.operation`', "`'addition' | 'subtraction' | 'multiplication' | 'division' | 'shortDivision' | 'composite'`", '判别运算类型，并决定其他输入字段和 computation 返回类型。'],
+    ['`request.values` / `operands`', '`unknown[]` / `[unknown, unknown]`', '加法及短除法使用 values；减法和乘法使用两个操作数。'],
+    ['`request.divisor` / `dividend`', '`unknown`', '长除法专用输入；除数在前、被除数在后。'],
+    ['`request.expression`', '`unknown`', '组合竖式专用表达式，按书写顺序执行 +、-、×。'],
+    ['`request.calculation`', '`DivisionOptions | MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
+    ['`request.settings`', '`Partial<…RenderSettings>`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
+    ['返回值', '`VerticalArithmeticResult<T>`', '对应的计算过程、可编辑完整宏源码和统一 GridScene。'],
+  ],
+  caution: '门户只减少调用步骤，不合并领域职责；需要人工输入宏、只计算过程，或定制某一层时，继续使用 `compileMacro`、`compute*` 或 `create*MacroSource`。组合竖式默认关闭借位提示，传入 `settings: { showBorrowSteps: true }` 才会显示。',
+})
+
 /** 布局公共 API 的页面顺序也用于 API 目录和页尾翻页。 */
 export const layoutApiPages = [
+  createVerticalArithmeticPage,
   createAdditionMacroSourcePage,
   createAdditionGridScenePage,
   createSubtractionMacroSourcePage,

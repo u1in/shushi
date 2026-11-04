@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { computeDivision } from '@u1in/shushi-calculators'
-import { compileCalculatorMacro, createDivisionMacroSource, getDivisionPlaybackStepCount } from '@u1in/shushi-layout'
+import { createVerticalArithmetic, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
-import type { DivisionComputation } from '@u1in/shushi-calculators'
-import type { GridScene } from '@u1in/shushi-grid'
+import type { DivisionComputation, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -25,19 +23,25 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 
 const renderScene = (): void => {
-  if (!computation.value) return
-  const settings = {
-    cellWidth: cellWidth.value,
-    rowHeight: rowHeight.value,
-    fontSizeRatio: fontSizeRatio.value,
-    bracketBend: 1,
-    showGuideGrid: showGuideGrid.value,
-    uniformSubtractionBars: uniformSubtractionBars.value,
-    showZeroQuotientSteps: showZeroQuotientSteps.value,
-    visibleStepCount: visibleStepCount.value,
-  }
-  macroSource.value = createDivisionMacroSource(computation.value, settings)
-  scene.value = compileCalculatorMacro(macroSource.value)
+  const result = createVerticalArithmetic({
+    operation: 'division',
+    divisor: divisor.value,
+    dividend: dividend.value,
+    calculation: { resultMode: resultMode.value },
+    settings: {
+      cellWidth: cellWidth.value,
+      rowHeight: rowHeight.value,
+      fontSizeRatio: fontSizeRatio.value,
+      bracketBend: 1,
+      showGuideGrid: showGuideGrid.value,
+      uniformSubtractionBars: uniformSubtractionBars.value,
+      showZeroQuotientSteps: showZeroQuotientSteps.value,
+      visibleStepCount: visibleStepCount.value,
+    },
+  })
+  computation.value = result.computation
+  macroSource.value = result.source
+  scene.value = result.scene
 }
 const playback = useCalculatorStepPlayback({
   getStepCount: () => {
@@ -59,8 +63,6 @@ const answer = computed(() => computation.value
 
 const calculate = (): void => {
   try {
-    const result = computeDivision(divisor.value, dividend.value, { resultMode: resultMode.value })
-    computation.value = result
     visibleStepCount.value = undefined
     renderScene()
     error.value = ''
