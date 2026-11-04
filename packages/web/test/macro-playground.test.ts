@@ -13,7 +13,7 @@ import {
   createShortDivisionMacroSource,
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
-import { compileMacro, formatMacro, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
+import { compileMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples, formatExampleSource } from '../src/components/macroPlaygroundExamples'
 import { createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
 
@@ -62,6 +62,15 @@ describe('首页网格宏试验区示例', () => {
     arithmeticExamples.forEach(({ source }) => {
       expect(source).not.toContain('ariaLabel')
       expect(source).not.toContain('KV(style')
+    })
+  })
+
+  test('宏试验区的全部示例也可以直接载入 AST 检查器', () => {
+    arithmeticExamples.forEach(({ source }) => {
+      const inspection = createMacroAstInspection(formatExampleSource(source))
+
+      expect(inspection.scene.elements.length).toBeGreaterThan(0)
+      expect(Object.keys(inspection.references).length).toBeGreaterThan(0)
     })
   })
 

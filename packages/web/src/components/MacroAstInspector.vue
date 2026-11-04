@@ -6,9 +6,10 @@ import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { implementationSnippets } from './implementationSnippets'
+import { arithmeticExamples, formatExampleSource, type MacroExample } from './macroPlaygroundExamples'
 
 /** 示例使用最简宏命令，便于直接演示 AST 修改后仍按当前输入框风格回写源码。 */
-const initialSource = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
+const initialSource = arithmeticExamples[0].source
 
 const source = ref(initialSource)
 const inspection = ref<MacroAstInspection>(createMacroAstInspection(initialSource))
@@ -38,6 +39,14 @@ const compileSource = (): void => {
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '宏源码无法编译。'
   }
+}
+
+/** 输入宏源码时立即尝试编译，错误源码保留上一次可渲染结果。 */
+const handleSourceInput = (event: Event): void => {
+  const input = event.target
+  if (!(input instanceof HTMLTextAreaElement)) return
+  source.value = input.value
+  compileSource()
 }
 
 /** 点击渲染元素后读取其 AST 引用；没有文字参数的线条和厂字弯仍可查看但不能改文本。 */
@@ -70,13 +79,10 @@ const handleEditedTextInput = (event: Event): void => {
   if (canEditSelectedText.value) applyText()
 }
 
-/** 重置为最简源码，方便重复体验“点击 → 修改 → 回写源码”的链路。 */
-const resetInspection = (): void => {
-  source.value = initialSource
-  inspection.value = createMacroAstInspection(initialSource)
-  selectedElementId.value = ''
-  editedText.value = ''
-  error.value = ''
+/** 与宏试验区共用示例；载入后格式化源码，方便继续点击图元检查 AST。 */
+const useExample = ({ source: exampleSource }: MacroExample): void => {
+  source.value = formatExampleSource(exampleSource)
+  compileSource()
 }
 </script>
 
@@ -90,11 +96,11 @@ const resetInspection = (): void => {
 
         <label class="macro-source-field">
           <span>宏源码</span>
-          <textarea v-model="source" aria-label="宏源码" spellcheck="false" @keydown.ctrl.enter.prevent="compileSource" />
+          <textarea :value="source" aria-label="宏源码" spellcheck="false" @input="handleSourceInput" />
         </label>
         <div class="form-actions">
-          <button class="primary-button" type="button" @click="compileSource">编译宏</button>
-          <button class="ghost-button" type="button" @click="resetInspection">356 + 278 = 634</button>
+          <span class="macro-example-label">示例</span>
+          <button v-for="example in arithmeticExamples" :key="example.label" class="ghost-button macro-example-button" type="button" @click="useExample(example)">{{ example.label }}</button>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
       </section>
