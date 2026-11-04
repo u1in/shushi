@@ -5,7 +5,7 @@
  */
 
 /** 文档分组：决定左侧导航的章节顺序，也用于面包屑。 */
-export type DocGroupId = 'guide' | 'technical' | 'api' | 'basic' | 'orientation' | 'symbol' | 'sugar' | 'practice'
+export type DocGroupId = 'guide' | 'api' | 'basic' | 'orientation' | 'symbol' | 'sugar' | 'practice'
 
 /** API 参考的使用分层；常用 API 面向日常调用，高级 API 面向定制和框架内部扩展。 */
 export type ApiTierId = 'common' | 'advanced'

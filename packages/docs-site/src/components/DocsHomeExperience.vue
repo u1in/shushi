@@ -15,16 +15,16 @@ const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/doc/agent-capab
 // 展示 Skill 安装后的最小使用方式，由 Skill 先询问运算式、渲染方式和相关配置。
 const skillUsagePrompt = '$u1in-shushi 请开始交互式竖式实现。'
 // 安装规则集中在公开 Markdown；这里的复制文案只保留任务目标，避免多处漂移。
-const aiInstallPrompt = `请阅读并严格遵循 ${agentInstallGuideUrl}，按其中说明完成 @u1in/shushi-core 的安装与验证。`
+const agentInstallPrompt = `请阅读并严格遵循 ${agentInstallGuideUrl}，按其中说明完成 @u1in/shushi-core 的安装与验证。`
 // 先确认计算式和输出形态，避免 Agent 在缺少宿主上下文时直接修改代码。
-const aiCapabilitiesPrompt = `请阅读并严格遵循 ${agentCapabilitiesGuideUrl}，按其中流程完成本次实现。`
+const agentCapabilitiesPrompt = `请阅读并严格遵循 ${agentCapabilitiesGuideUrl}，按其中流程完成本次实现。`
 type CopyState = 'idle' | 'copied' | 'failed'
 type CopyTimer = { id?: number }
 
 const copyState = ref<CopyState>('idle')
 const skillInstallCopyState = ref<CopyState>('idle')
-const aiInstallCopyState = ref<CopyState>('idle')
-const aiCapabilitiesCopyState = ref<CopyState>('idle')
+const agentInstallCopyState = ref<CopyState>('idle')
+const agentCapabilitiesCopyState = ref<CopyState>('idle')
 const skillUsageCopyState = ref<CopyState>('idle')
 const codeCopyState = ref<CopyState>('idle')
 let flowRenderCount = 0
@@ -33,8 +33,8 @@ let themeObserver: MutationObserver | undefined
 let stageResizeObserver: ResizeObserver | undefined
 const installCopyTimer: CopyTimer = {}
 const skillInstallCopyTimer: CopyTimer = {}
-const aiInstallCopyTimer: CopyTimer = {}
-const aiCapabilitiesCopyTimer: CopyTimer = {}
+const agentInstallCopyTimer: CopyTimer = {}
+const agentCapabilitiesCopyTimer: CopyTimer = {}
 const skillUsageCopyTimer: CopyTimer = {}
 const codeCopyTimer: CopyTimer = {}
 
@@ -91,12 +91,12 @@ const copySkillInstallCommand = async (): Promise<void> => {
   updateCopyState(skillInstallCopyState, skillInstallCopyTimer, await copyText(skillInstallCommand))
 }
 
-const copyAiInstallPrompt = async (): Promise<void> => {
-  updateCopyState(aiInstallCopyState, aiInstallCopyTimer, await copyText(aiInstallPrompt))
+const copyAgentInstallPrompt = async (): Promise<void> => {
+  updateCopyState(agentInstallCopyState, agentInstallCopyTimer, await copyText(agentInstallPrompt))
 }
 
-const copyAiCapabilitiesPrompt = async (): Promise<void> => {
-  updateCopyState(aiCapabilitiesCopyState, aiCapabilitiesCopyTimer, await copyText(aiCapabilitiesPrompt))
+const copyAgentCapabilitiesPrompt = async (): Promise<void> => {
+  updateCopyState(agentCapabilitiesCopyState, agentCapabilitiesCopyTimer, await copyText(agentCapabilitiesPrompt))
 }
 
 const copySkillUsagePrompt = async (): Promise<void> => {
@@ -245,8 +245,8 @@ onBeforeUnmount(() => {
   stageResizeObserver?.disconnect()
   if (installCopyTimer.id) window.clearTimeout(installCopyTimer.id)
   if (skillInstallCopyTimer.id) window.clearTimeout(skillInstallCopyTimer.id)
-  if (aiInstallCopyTimer.id) window.clearTimeout(aiInstallCopyTimer.id)
-  if (aiCapabilitiesCopyTimer.id) window.clearTimeout(aiCapabilitiesCopyTimer.id)
+  if (agentInstallCopyTimer.id) window.clearTimeout(agentInstallCopyTimer.id)
+  if (agentCapabilitiesCopyTimer.id) window.clearTimeout(agentCapabilitiesCopyTimer.id)
   if (skillUsageCopyTimer.id) window.clearTimeout(skillUsageCopyTimer.id)
   if (codeCopyTimer.id) window.clearTimeout(codeCopyTimer.id)
 })
@@ -278,19 +278,19 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
-      <div class="docs-home-install-method docs-home-install-method--ai">
+      <div class="docs-home-install-method docs-home-install-method--agent">
         <div class="docs-home-install-heading">
-          <span>AI 安装</span>
+          <span>Agent 安装</span>
           <small>复制后粘贴到你的 Agent 对话框</small>
         </div>
-        <div class="docs-home-install-command-row docs-home-ai-install-row">
-          <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiInstallPrompt }}</code></pre>
+        <div class="docs-home-install-command-row docs-home-agent-install-row">
+          <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ agentInstallPrompt }}</code></pre>
           <button
             class="docs-home-copy-button docs-home-icon-button"
             type="button"
-            :aria-label="aiInstallCopyState === 'copied' ? 'AI 安装指令已复制' : aiInstallCopyState === 'failed' ? '复制 AI 安装指令失败' : '复制 AI 安装指令'"
-            :title="aiInstallCopyState === 'copied' ? 'AI 安装指令已复制' : aiInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 安装指令'"
-            @click="copyAiInstallPrompt"
+            :aria-label="agentInstallCopyState === 'copied' ? 'Agent 安装指令已复制' : agentInstallCopyState === 'failed' ? '复制 Agent 安装指令失败' : '复制 Agent 安装指令'"
+            :title="agentInstallCopyState === 'copied' ? 'Agent 安装指令已复制' : agentInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 Agent 安装指令'"
+            @click="copyAgentInstallPrompt"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <rect x="8" y="8" width="11" height="11" rx="2" />
@@ -361,19 +361,19 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
           </div>
         </div>
       </div>
-      <div class="docs-home-install-method docs-home-demo-ai-method docs-home-demo-ai-method--ai">
+      <div class="docs-home-install-method docs-home-demo-agent-method docs-home-demo-agent-method--agent">
         <div class="docs-home-install-heading">
-          <span>AI 实现</span>
+          <span>Agent 实现</span>
           <small>复制后回答 Agent 的确认问题，再开始实现</small>
         </div>
-        <div class="docs-home-install-command-row docs-home-ai-install-row">
-          <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiCapabilitiesPrompt }}</code></pre>
+        <div class="docs-home-install-command-row docs-home-agent-install-row">
+          <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ agentCapabilitiesPrompt }}</code></pre>
           <button
             class="docs-home-copy-button docs-home-icon-button"
             type="button"
-            :aria-label="aiCapabilitiesCopyState === 'copied' ? 'AI 实现指令已复制' : aiCapabilitiesCopyState === 'failed' ? '复制 AI 实现指令失败' : '复制 AI 实现指令'"
-            :title="aiCapabilitiesCopyState === 'copied' ? 'AI 实现指令已复制' : aiCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 AI 实现指令'"
-            @click="copyAiCapabilitiesPrompt"
+            :aria-label="agentCapabilitiesCopyState === 'copied' ? 'Agent 实现指令已复制' : agentCapabilitiesCopyState === 'failed' ? '复制 Agent 实现指令失败' : '复制 Agent 实现指令'"
+            :title="agentCapabilitiesCopyState === 'copied' ? 'Agent 实现指令已复制' : agentCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 Agent 实现指令'"
+            @click="copyAgentCapabilitiesPrompt"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <rect x="8" y="8" width="11" height="11" rx="2" />
@@ -382,7 +382,7 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
           </button>
         </div>
       </div>
-      <div class="docs-home-install-method docs-home-demo-ai-method docs-home-demo-ai-method--skill">
+      <div class="docs-home-install-method docs-home-demo-agent-method docs-home-demo-agent-method--skill">
         <div class="docs-home-install-heading">
           <span>Skill 实现</span>
           <small>安装完成后复制到你的 Agent 对话框</small>
@@ -490,18 +490,18 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   margin-top: .35rem;
 }
 
-/* 安装方式按“npm → Skill → AI”排列，保持页面阅读顺序与使用流程一致。 */
+/* 安装方式按“npm → Skill → Agent”排列，保持页面阅读顺序与使用流程一致。 */
 .docs-home-install-method--skill { order: 1; }
-.docs-home-install-method--ai { order: 2; }
+.docs-home-install-method--agent { order: 2; }
 
-.docs-home-demo-ai-method {
+.docs-home-demo-agent-method {
   margin-top: 1rem;
 }
 
-/* demo 下方的两个 Agent 入口按“Skill 实现 → AI 实现”排列。 */
+/* demo 下方的两个 Agent 入口按“Skill 实现 → Agent 实现”排列。 */
 .docs-home-demo { display: grid; }
-.docs-home-demo-ai-method--skill { order: 1; }
-.docs-home-demo-ai-method--ai { order: 2; }
+.docs-home-demo-agent-method--skill { order: 1; }
+.docs-home-demo-agent-method--agent { order: 2; }
 
 .docs-home-install-heading {
   display: flex;
@@ -578,26 +578,26 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   white-space: pre;
 }
 
-.docs-home-ai-install-row {
+.docs-home-agent-install-row {
   position: relative;
   width: 100%;
 }
 
-.docs-home-ai-install-row .docs-home-install-command {
+.docs-home-agent-install-row .docs-home-install-command {
   width: 100%;
   max-width: none;
   box-sizing: border-box;
   padding-right: 4.25rem;
 }
 
-.docs-home-ai-install-row .docs-home-icon-button {
+.docs-home-agent-install-row .docs-home-icon-button {
   position: absolute;
   top: .75rem;
   right: .75rem;
   z-index: 1;
 }
 
-.docs-home-ai-install-prompt {
+.docs-home-agent-install-prompt {
   flex: 1 1 auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

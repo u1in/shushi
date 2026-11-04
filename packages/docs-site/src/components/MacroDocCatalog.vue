@@ -18,19 +18,18 @@ const props = defineProps<{
   /** 单页模式：只渲染一个宏或 API 页面，供 VuePress 逐页发布。 */
   slug?: string
 }>()
-const technicalGroups: DocGroupId[] = ['technical', 'api']
+const apiGroups: DocGroupId[] = ['api']
 const requestedGroups = computed(() => props.groups?.split(',').map((group) => group.trim()).filter(Boolean) as DocGroupId[] | undefined)
 
 const visibleGroups = computed(() => macroDocNavGroups.filter(({ id }) => {
   if (requestedGroups.value) return requestedGroups.value.includes(id)
-  return props.area === 'technical' ? technicalGroups.includes(id) : !technicalGroups.includes(id)
+  return props.area === 'technical' ? apiGroups.includes(id) : !apiGroups.includes(id)
 }))
 
 const singlePage = computed(() => props.slug ? macroDocPageBySlug.get(props.slug) : undefined)
 
 const pageRoutes: Record<string, string> = {
   intro: '/macro/语法基础', syntax: '/macro/语法基础',
-  install: '/technical/安装', quickstart: '/technical/快速使用',
   compileMacro: '/technical/api/compileMacro', parseMacro: '/technical/api/parseMacro', completeMacro: '/technical/api/completeMacro', unformatMacro: '/technical/api/unformatMacro',
   computeCompositeArithmetic: '/technical/api/computeCompositeArithmetic',
   shushi: '/technical/api/shushi',
@@ -53,10 +52,10 @@ const pageRoutes: Record<string, string> = {
 const resolveLink = (path: string): string => {
   const technical = path.startsWith('/macro-api')
   const rawSlug = path.replace(/^\/macro-(?:rules|api)\/?/, '')
-  const slug = rawSlug || (technical ? 'install' : 'intro')
+  const slug = rawSlug || (technical ? 'shushi' : 'intro')
   const page = macroDocPageBySlug.get(slug)
-  if (!page) return technical ? '/technical/安装' : '/macro/语法基础'
-  return pageRoutes[page.slug] ?? (technical ? '/technical/安装' : '/macro/语法基础')
+  if (!page) return technical ? '/technical/api/shushi' : '/macro/语法基础'
+  return pageRoutes[page.slug] ?? (technical ? `/technical/api/${page.slug}` : '/macro/语法基础')
 }
 
 /** 用户手册只保留可直接阅读的示例；旧版交互练习不进入 VuePress 页面。 */

@@ -42,7 +42,7 @@ export default defineUserConfig({
       tagline: '人工录入与计算器自动填写同一份宏源码，并经同一编译链路得到竖式',
       actions: [
         { text: '查看主页', link: 'https://u1in.github.io/shushi/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
-        { text: '查看技术文档', link: '/technical/安装', type: 'default' },
+        { text: '查看 API 文档', link: '/technical/api/shushi', type: 'default' },
         { text: '查看宏命令', link: '/macro/语法基础', type: 'default' },
         { text: '查看图例文档', link: '/gallery/加法', type: 'default' },
       ],
@@ -73,7 +73,7 @@ export default defineUserConfig({
       { text: '项目主页', link: 'https://u1in.github.io/shushi/' },
       { text: '文档首页', link: '/' },
       { text: '宏命令文档', link: '/macro/语法基础' },
-      { text: '技术文档', link: '/technical/安装' },
+      { text: 'API 文档', link: '/technical/api/shushi' },
       { text: '图例文档', link: '/gallery/加法' },
       { text: '更新日志', link: '/更新日志' },
     ],
@@ -85,7 +85,7 @@ export default defineUserConfig({
           children: [
             { text: '文档首页', link: '/' },
             { text: '宏命令文档', link: '/macro/语法基础' },
-            { text: '技术文档', link: '/technical/安装' },
+            { text: 'API 文档', link: '/technical/api/shushi' },
             { text: '图例文档', link: '/gallery/加法' },
             { text: '更新日志', link: '/更新日志' },
           ],
@@ -161,15 +161,7 @@ export default defineUserConfig({
       ],
       '/technical/': [
         {
-          text: '使用教程',
-          collapsible: false,
-          children: [
-            { text: '安装', link: '/technical/安装' },
-            { text: '快速使用', link: '/technical/快速使用' },
-          ],
-        },
-        {
-          text: 'API',
+          text: 'API 文档',
           collapsible: false,
           children: [
             {

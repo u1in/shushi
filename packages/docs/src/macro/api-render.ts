@@ -120,5 +120,5 @@ document.querySelector('#app')?.append(stage)`,
   ],
 })
 
-/** 渲染分类的页面顺序同时决定侧栏顺序和技术文档页尾翻页顺序。 */
+/** 渲染分类的页面顺序同时决定 API 文档侧栏顺序和页尾翻页顺序。 */
 export const renderApiPages = [renderSvgGridPage, renderSvgStringPage, renderDomGridPage]

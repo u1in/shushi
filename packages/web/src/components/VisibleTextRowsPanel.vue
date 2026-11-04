@@ -31,7 +31,7 @@ const closeDialog = (): void => {
       :aria-expanded="isOpen"
       @click="openDialog"
     >
-      查看 OCR 结果
+      计算可见行
     </button>
     <Teleport to="body">
       <div

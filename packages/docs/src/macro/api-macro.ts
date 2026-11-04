@@ -354,5 +354,5 @@ interface MacroAstInspection {
   ],
 })
 
-/** 宏编译分类的页面顺序同时决定侧栏顺序和技术文档页尾翻页顺序。 */
+/** 宏编译分类的页面顺序同时决定 API 文档侧栏顺序和页尾翻页顺序。 */
 export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, completeMacroPage, unformatMacroPage, minifyMacroPage, minifyMacroAstPage, minifyMacroForCopyPage, minifyMacroForCopyAstPage, createMacroAstInspectionPage]

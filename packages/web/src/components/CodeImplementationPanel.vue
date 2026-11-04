@@ -123,14 +123,28 @@ onBeforeUnmount(() => {
     <p class="normalization">{{ description }}</p>
     <div class="code-panel__toolbar">
       <span class="code-panel__language">{{ language }}</span>
-      <button class="outline-button code-panel__copy" type="button" :aria-label="copyLabel" @click="copyCode">{{ copyLabel }}</button>
     </div>
-    <pre class="code-panel__source"><code><span
-      v-for="(line, lineIndex) in highlightedLines"
-      :key="flashKey + '-' + lineIndex"
-      class="code-panel__line"
-      :class="{ 'code-panel__line--changed': flashedLineIndices.includes(lineIndex) }"
-      v-html="line"
-    ></span></code></pre>
+    <div class="code-panel__source-wrap">
+      <pre class="code-panel__source"><code><span
+        v-for="(line, lineIndex) in highlightedLines"
+        :key="flashKey + '-' + lineIndex"
+        class="code-panel__line"
+        :class="{ 'code-panel__line--changed': flashedLineIndices.includes(lineIndex) }"
+        v-html="line"
+      ></span></code></pre>
+      <button
+        class="code-panel__copy"
+        type="button"
+        :aria-label="copyLabel"
+        :title="copyLabel"
+        @click="copyCode"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="8" y="8" width="11" height="11" rx="2" />
+          <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+        </svg>
+        <span class="visually-hidden">{{ copyLabel }}</span>
+      </button>
+    </div>
   </section>
 </template>

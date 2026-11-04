@@ -9,7 +9,7 @@ import {
 
 /**
  * 单个文档入口的外壳：固定顶栏、可滚动侧边目录与内容区。
- * 宏语言参考与技术文档分别使用自己的包装页面，传入固定的 area。
+ * 宏语言参考与 API 文档分别使用自己的包装页面，传入固定的 area。
  */
 const props = defineProps<{ area: 'macro' | 'technical' }>()
 const route = useRoute()
@@ -21,10 +21,10 @@ const currentArea = computed(() => props.area)
 const currentSlug = computed(() => {
   const path = route.path.replace(/\/+$/, '')
   if (currentArea.value === 'technical') {
-    if (path === '/macro-api') return 'install'
+    if (path === '/macro-api') return 'shushi'
     const slug = path.startsWith('/macro-api/') ? path.slice('/macro-api/'.length) : ''
     const page = macroDocPageBySlug.get(slug)
-    return page?.group === 'technical' || page?.group === 'api' ? slug : 'install'
+    return page?.group === 'api' ? slug : 'shushi'
   }
   if (path === '/macro-rules') return 'intro'
   const slug = path.startsWith('/macro-rules/') ? path.slice('/macro-rules/'.length) : ''
@@ -35,7 +35,7 @@ const currentPage = computed(() => macroDocPageBySlug.get(currentSlug.value))
 
 /** 每个入口只显示自己的分组，编号在各入口内从 01 开始。 */
 const visibleGroups = computed(() => macroDocNavGroups.filter(({ id }) => (
-  currentArea.value === 'technical' ? id === 'technical' || id === 'api' : id !== 'technical' && id !== 'api'
+  currentArea.value === 'technical' ? id === 'api' : id !== 'api'
 )))
 const visiblePages = computed(() => visibleGroups.value.flatMap(({ pages }) => pages))
 const pageNumbers = computed(() => new Map(
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
 
         <RouterLink :to="brandPath" class="mdocs-brand">
           <span class="mdocs-brand-text">
-            <strong>{{ currentArea === 'technical' ? '网格宏技术文档' : '网格宏文档' }}</strong>
+            <strong>{{ currentArea === 'technical' ? '网格宏 API 文档' : '网格宏文档' }}</strong>
             <small>{{ currentArea === 'technical' ? 'GRID MACRO API' : 'GRID MACRO DOCS' }}</small>
           </span>
         </RouterLink>

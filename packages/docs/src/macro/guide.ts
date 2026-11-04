@@ -103,7 +103,7 @@ export const guidePages: MacroDocPage[] = [
           {
             type: 'cards',
             items: [
-              { title: '安装与快速使用', text: 'npm 安装、编译宏、SVG/DOM 渲染与可见文本行提取。', to: '/macro-api' },
+              { title: 'API 文档', text: '查阅门户调用、宏编译、SVG/DOM 渲染与可见文本行提取等公共 API。', to: '/macro-api/shushi' },
               { title: '基础语法规则', text: '调用形式、分隔符、引号、隐式 GRID、配置优先级与语法速查。', to: '/macro-rules/syntax' },
               { title: '基础宏命令', text: '从 GRID 到 KV 共九个结构宏；每页都列出参数、规则、错误与可运行示例。', to: '/macro-rules/grid' },
               { title: '方位宏命令', text: 'LT 到 RBL 共十个文本定位宏；每页说明锚点、字号与配色约定。', to: '/macro-rules/lt' },

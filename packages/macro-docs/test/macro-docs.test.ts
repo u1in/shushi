@@ -15,7 +15,7 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
+  'intro', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
   'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
   'getGridTextAnchor', 'extractVisibleTextRows',
   'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
@@ -106,7 +106,9 @@ describe('网格宏文档', () => {
       macroDocNavGroups.find(({ id }) => id === groupId)?.pages.map(({ slug }) => slug) ?? []
     )
 
-    expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
+    expect(pagesOf('technical')).toEqual([])
+    expect(macroDocPageBySlug.has('install')).toBe(false)
+    expect(macroDocPageBySlug.has('quickstart')).toBe(false)
     expect(pagesOf('api')).toEqual([
       'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
       'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
@@ -198,10 +200,10 @@ describe('网格宏文档', () => {
       }
     }
 
-    const isTechnical = (group: string): boolean => group === 'technical' || group === 'api'
+    const isApi = (group: string): boolean => group === 'api'
     const areas = [
-      macroDocPages.filter(({ group }) => !isTechnical(group)),
-      macroDocPages.filter(({ group }) => isTechnical(group)),
+      macroDocPages.filter(({ group }) => !isApi(group)),
+      macroDocPages.filter(({ group }) => isApi(group)),
     ]
     for (const areaPages of areas) {
       areaPages.forEach((page, index) => {
@@ -212,9 +214,8 @@ describe('网格宏文档', () => {
     }
 
     expect(getMacroDocPath('intro')).toBe('/macro-rules')
-    expect(getMacroDocPath('install')).toBe('/macro-api')
-    expect(getMacroDocPath('quickstart')).toBe('/macro-api/quickstart')
-    expect(getMacroDocNeighbors('install').previous).toBeUndefined()
+    expect(getMacroDocPath('shushi')).toBe('/macro-api/shushi')
+    expect(getMacroDocNeighbors('shushi').previous).toBeUndefined()
     expect(getMacroDocNeighbors('getCompositeArithmeticStepCount').next).toBeUndefined()
   })
 

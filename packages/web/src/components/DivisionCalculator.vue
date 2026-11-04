@@ -12,7 +12,8 @@ import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const dividend = ref('10230')
 const divisor = ref('25')
-const resultMode = ref<'decimal' | 'remainder'>('decimal')
+const showRemainderMode = ref(false)
+const resultMode = computed<'decimal' | 'remainder'>(() => showRemainderMode.value ? 'remainder' : 'decimal')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
@@ -108,10 +109,6 @@ calculate()
         </div>
         <div class="form-actions">
           <button class="ghost-button" type="button" @click="dividend = '10230'; divisor = '25'; calculate()">试试 10230 ÷ 25</button>
-          <fieldset class="result-mode-group" aria-label="结果模式">
-            <label class="mode-option"><input v-model="resultMode" type="radio" value="decimal" @change="calculate" /><span>小数模式</span></label>
-            <label class="mode-option"><input v-model="resultMode" type="radio" value="remainder" @change="calculate" /><span>余数模式</span></label>
-          </fieldset>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
         <div class="settings-panel">
@@ -122,6 +119,7 @@ calculate()
               <label class="range-field"><span>字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate" /></label>
             </div>
             <div class="settings-switch-group">
+              <label class="switch-field"><input v-model="showRemainderMode" type="checkbox" @change="calculate" aria-label="余数模式，关闭时为小数模式" /><span class="switch-ui" aria-hidden="true"></span><span>余数模式</span></label>
               <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
               <label class="switch-field"><input v-model="uniformSubtractionBars" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>减法横线等宽</span></label>
               <label class="switch-field"><input v-model="showZeroQuotientSteps" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示试商为 0 的步骤</span></label>

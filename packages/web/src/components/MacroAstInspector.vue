@@ -1,18 +1,62 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createMacroAstInspection } from '@u1in/shushi-macro'
+import { shushi } from '@u1in/shushi-core'
+import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy, unformatMacro } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { implementationSnippets } from './implementationSnippets'
-import { arithmeticExamples, formatExampleSource, type MacroExample } from './macroPlaygroundExamples'
+import { arithmeticExamples, type MacroExample } from './macroPlaygroundExamples'
 
-/** 示例使用最简宏命令，便于直接演示 AST 修改后仍按当前输入框风格回写源码。 */
-const initialSource = arithmeticExamples[0].source
+const DEFAULT_GRID_SETTINGS = {
+  cellWidth: 30,
+  rowHeight: 46,
+  fontSizeRatio: 1,
+  showGuideGrid: false,
+}
 
-const source = ref(initialSource)
-const inspection = ref<MacroAstInspection>(createMacroAstInspection(initialSource))
+/** 算式输入只负责选择现有门户 API；生成的源码随后仍可在下方 textarea 中继续编辑。 */
+const createInspectionFromExpression = (inputExpression: string): MacroAstInspection => {
+  const normalizedExpression = inputExpression.trim().replace(/\s+/g, '').replace(/[xX*]/g, '×').replace(/÷/g, '/').replace(/−/g, '-')
+  const divisionCount = (normalizedExpression.match(/\//g) ?? []).length
+  if (divisionCount > 0) {
+    if (divisionCount !== 1 || /[+\-×]/.test(normalizedExpression) || !/^\d+\/\d+$/.test(normalizedExpression)) {
+      throw new Error('除法算式只能包含一组被除数和除数，例如 10230 ÷ 25。')
+    }
+    const [dividend, divisor] = normalizedExpression.split('/')
+    const result = shushi({
+      operation: 'division',
+      divisor,
+      dividend,
+      calculation: { resultMode: 'decimal' },
+      settings: {
+        ...DEFAULT_GRID_SETTINGS,
+        bracketBend: 1,
+        uniformSubtractionBars: false,
+        showZeroQuotientSteps: false,
+      },
+    })
+    return createMacroAstInspection(minifyMacroForCopy(result.source))
+  }
+
+  const result = shushi({
+    operation: 'composite',
+    expression: normalizedExpression,
+    settings: {
+      ...DEFAULT_GRID_SETTINGS,
+      showCarrySteps: true,
+      showBorrowSteps: false,
+      uniformMultiplicationBars: false,
+    },
+  })
+  return createMacroAstInspection(minifyMacroForCopy(result.source))
+}
+
+const expression = ref(arithmeticExamples[0].expression)
+const initialInspection = createInspectionFromExpression(expression.value)
+const source = ref(initialInspection.source)
+const inspection = ref<MacroAstInspection>(initialInspection)
 const selectedElementId = ref('')
 const editedText = ref('')
 const error = ref('')
@@ -29,6 +73,20 @@ const selectedNodeLabel = computed(() => {
 const selectedPath = computed(() => selectedReference.value?.nodePath.join(' → ') || '—')
 const canEditSelectedText = computed(() => selectedReference.value?.literalPath !== undefined)
 
+/** 由算式重新生成最简宏；失败时保留上一次源码和 AST 预览，方便用户修正输入。 */
+const generateFromExpression = (): void => {
+  try {
+    const nextInspection = createInspectionFromExpression(expression.value)
+    source.value = nextInspection.source
+    inspection.value = nextInspection
+    selectedElementId.value = ''
+    editedText.value = ''
+    error.value = ''
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '算式无法生成宏源码。'
+  }
+}
+
 /** 重新解析用户输入的宏；解析失败时保留上一次可渲染结果，避免画布突然消失。 */
 const compileSource = (): void => {
   try {
@@ -41,12 +99,37 @@ const compileSource = (): void => {
   }
 }
 
+/** 格式化或切换源码形式后立即重建 AST，确保画布和源码保持同一版本。 */
+const transformSource = (transform: (value: string) => string): boolean => {
+  try {
+    source.value = transform(source.value)
+    compileSource()
+    return true
+  } catch {
+    // 源码不完整时不改写输入，避免用户丢失正在编辑的内容。
+    return false
+  }
+}
+
+const formatSource = (): void => { transformSource(formatMacro) }
+const completeSource = (): void => { transformSource(completeMacro) }
+const minifySource = (): void => { transformSource(minifyMacro) }
+const unformatSource = (): void => { transformSource(unformatMacro) }
+
 /** 输入宏源码时立即尝试编译，错误源码保留上一次可渲染结果。 */
 const handleSourceInput = (event: Event): void => {
   const input = event.target
   if (!(input instanceof HTMLTextAreaElement)) return
   source.value = input.value
   compileSource()
+}
+
+/** 算式输入变化时走统一门户 API，不直接拼接宏源码。 */
+const handleExpressionInput = (event: Event): void => {
+  const input = event.target
+  if (!(input instanceof HTMLInputElement)) return
+  expression.value = input.value
+  generateFromExpression()
 }
 
 /** 点击渲染元素后读取其 AST 引用；没有文字参数的线条和厂字弯仍可查看但不能改文本。 */
@@ -79,20 +162,39 @@ const handleEditedTextInput = (event: Event): void => {
   if (canEditSelectedText.value) applyText()
 }
 
-/** 与宏试验区共用示例；载入后格式化源码，方便继续点击图元检查 AST。 */
-const useExample = ({ source: exampleSource }: MacroExample): void => {
-  source.value = formatExampleSource(exampleSource)
-  compileSource()
+/** 示例只填入算式输入框，再复用算式生成链路更新宏源码和预览。 */
+const useExample = ({ expression: exampleExpression }: MacroExample): void => {
+  expression.value = exampleExpression
+  generateFromExpression()
 }
 </script>
 
 <template>
   <div class="operation-demo macro-ast-inspector" data-operation="macro-ast-inspector">
-    <section class="workspace" aria-label="宏 AST 元素检查器">
+    <section class="workspace" aria-label="输入宏">
       <section class="control-panel">
-        <p class="panel-kicker">AST ELEMENT INSPECTOR</p>
-        <h2>AST检查</h2>
-        <p class="normalization">检查宏图元对应的 AST 节点，并直接修改可编辑的文字数据。</p>
+        <p class="panel-kicker">MACRO EXPERIMENT</p>
+        <h2>输入宏</h2>
+        <p class="normalization">输入宏源码渲染竖式，点击图元即可单独修改。</p>
+
+        <label class="macro-source-field macro-expression-field">
+          <span>算式输入</span>
+          <input :value="expression" aria-label="算式输入" autocomplete="off" spellcheck="false" @input="handleExpressionInput" />
+          <small class="field-help">支持 +、-、×、*、x、÷、/；含除法时只能输入单个除法。</small>
+        </label>
+
+        <div class="macro-format-row">
+          <div class="macro-format-toolbar" aria-label="源码形式">
+            <span>源码形式</span>
+            <button class="macro-insert-button" type="button" @click="minifySource">最简形式</button>
+            <button class="macro-insert-button" type="button" @click="completeSource">完整形式</button>
+          </div>
+          <div class="macro-format-toolbar" aria-label="格式化宏源码">
+            <span>格式化</span>
+            <button class="macro-insert-button" type="button" @click="formatSource">格式化</button>
+            <button class="macro-insert-button" type="button" @click="unformatSource">去格式化</button>
+          </div>
+        </div>
 
         <label class="macro-source-field">
           <span>宏源码</span>
@@ -109,28 +211,31 @@ const useExample = ({ source: exampleSource }: MacroExample): void => {
         <div class="calculation-result">
           <div class="result-heading">
             <div>
-              <p class="panel-kicker">CLICKABLE DOM / SVG RESULT</p>
-              <h2>点击任一宏图元</h2>
+              <p class="panel-kicker">MACRO PREVIEW</p>
+              <h2>预览区</h2>
             </div>
             <VisibleTextRowsPanel :scene="inspection.scene" />
           </div>
-          <dl class="ast-selection-details">
-            <div><dt>渲染元素</dt><dd>{{ selectedElementId || '—' }}</dd></div>
-            <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
-            <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
-            <div class="ast-edit-cell">
-              <dt>局部修改</dt>
-              <dd>
-                <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="局部修改 AST 文字" @input="handleEditedTextInput" />
-              </dd>
-            </div>
-          </dl>
+          <section class="ast-inspection-panel" aria-label="图元 AST 定位修改">
+            <p class="ast-inspection-panel__hint">点击任一宏图元，可查看 AST 并单独修改。</p>
+            <dl class="ast-selection-details">
+              <div><dt>渲染元素</dt><dd>{{ selectedElementId || '—' }}</dd></div>
+              <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
+              <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
+              <div class="ast-edit-cell">
+                <dt>局部修改</dt>
+                <dd>
+                  <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="局部修改 AST 文字" @input="handleEditedTextInput" />
+                </dd>
+              </div>
+            </dl>
+          </section>
           <GridPreview :scene="inspection.scene" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" />
         </div>
       </section>
       <CodeImplementationPanel
-        title="AST 检查与单项回写"
-        description="宏源码解析成可定位的 AST 引用，选中文字修改后再由检查器回写为当前源码。"
+        title="宏渲染及AST定位修改"
+        description="宏源码先渲染为网格，再通过 AST 定位图元并回写单项文字。"
         :code="implementationSnippets.macroAstInspector"
       />
     </section>
