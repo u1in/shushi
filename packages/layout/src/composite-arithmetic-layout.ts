@@ -128,7 +128,7 @@ export const getCompositeArithmeticStepCount = (computation: CompositeArithmetic
 )
 
 /**
- * 组合宏不是一段伪造的超级 GRID：每一步都产生可独立复制回宏试验区的源码。
+ * 组合宏不是一段伪造的超级 GRID：每一步都产生可独立复制回宏实验的宏源码框的源码。
  * 这样组合功能不会给宏语言或渲染器引入运算专属分支。
  */
 const createCompositeArithmeticMacroStages = (

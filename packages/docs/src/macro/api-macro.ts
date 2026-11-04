@@ -243,7 +243,7 @@ const ast = parseMacro('GRID(ROW(MM(3), MM(5)), LINE, ROW(MM(8)))')
 const source = minifyMacroAst(ast)
 
 console.log(source) // '3,5;LN;8;'` }] },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它使用与 `minifyMacro` 完全相同的默认配置省略、方括号简写、顶层分号行和别名规则，但调用方可以先在 AST 层完成受控改写。组合竖式布局使用它生成复制到宏试验区的源码，不自行拼接宏字符串。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它使用与 `minifyMacro` 完全相同的默认配置省略、方括号简写、顶层分号行和别名规则，但调用方可以先在 AST 层完成受控改写。组合竖式布局使用它生成复制到宏实验的宏源码框的源码，不自行拼接宏字符串。' }] },
     { id: 'signature', title: '函数签名和属性说明', blocks: [
       { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroAst = (
   root: MacroCall,
@@ -275,7 +275,7 @@ console.log(copied) // '3,5;'` }] },
       { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroForCopy = (source: string) => string` },
       { type: 'table', columns: ['项目', '类型', '说明'], rows: [
         ['`source`', '`string`', '计算器布局生成的可解析宏源码。'],
-        ['返回值', '`string`', '适合直接粘贴到宏试验区的最简宏，不含页面专属 aria 或 style KV。'],
+        ['返回值', '`string`', '适合直接粘贴到宏实验的宏源码框的最简宏，不含页面专属 aria 或 style KV。'],
       ] },
     ] },
     { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '仅用于计算器导出', text: '此 API 会有意删除 `style` KV；手写宏若依赖自定义样式 token，应使用 `minifyMacro`，而不是本函数。需要先改写 AST 的布局器可使用 `minifyMacroForCopyAst`。' }] },
@@ -298,7 +298,7 @@ console.log(copied) // '3,5;'` }] },
       { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroForCopyAst = (root: MacroCall) => string` },
       { type: 'table', columns: ['项目', '类型', '说明'], rows: [
         ['`root`', '`MacroCall`', '计算器布局安全改写后的宏 AST 根节点。'],
-        ['返回值', '`string`', '适合直接粘贴到宏试验区的最简宏。'],
+        ['返回值', '`string`', '适合直接粘贴到宏实验的宏源码框的最简宏。'],
       ] },
     ] },
     { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '不要手写序列化', text: '调用方应只改写 AST 的必要结构，然后交给本函数输出源码。普通字符串输入请使用 `minifyMacroForCopy`；手写宏若依赖自定义样式 token，请使用 `minifyMacro`。' }] },
