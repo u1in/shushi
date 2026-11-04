@@ -27,6 +27,7 @@
   --accent-soft: #edf2fb;
   --accent-focus: rgba(110, 143, 210, 0.35);
   --accent-contrast: #ffffff;
+  --code-flash: rgba(220, 38, 38, 0.28);
   --danger: #c04c62;
   --shadow: rgba(55, 75, 112, 0.1);
   --shadow-accent: rgba(65, 102, 182, 0.24);
@@ -74,6 +75,7 @@ html[data-theme='dark'] {
   --accent-soft: rgba(65, 102, 182, 0.24);
   --accent-focus: rgba(141, 180, 255, 0.32);
   --accent-contrast: #10203d;
+  --code-flash: rgba(248, 113, 113, 0.42);
   --danger: #ff9db3;
   --shadow: rgba(0, 0, 0, 0.28);
   --shadow-accent: rgba(65, 102, 182, 0.38);
@@ -108,6 +110,7 @@ html[data-theme='dark'] {
     --accent-soft: rgba(65, 102, 182, 0.24);
     --accent-focus: rgba(141, 180, 255, 0.32);
     --accent-contrast: #10203d;
+    --code-flash: rgba(248, 113, 113, 0.42);
     --danger: #ff9db3;
     --shadow: rgba(0, 0, 0, 0.28);
     --shadow-accent: rgba(65, 102, 182, 0.38);
@@ -1094,6 +1097,27 @@ button:disabled {
   display: block;
   max-width: 100%;
   font: inherit;
+}
+
+.code-panel__line {
+  display: block;
+  min-height: 1.65em;
+}
+
+.code-panel__line--changed {
+  animation: code-panel-line-flash 900ms ease-out;
+}
+
+@keyframes code-panel-line-flash {
+  0%, 100% { background-color: transparent; }
+  35% { background-color: var(--code-flash); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-panel__line--changed {
+    animation: none;
+    background-color: var(--code-flash);
+  }
 }
 
 .code-token--comment { color: #7b879b; }

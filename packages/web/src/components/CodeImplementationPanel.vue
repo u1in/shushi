@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   title: string
@@ -12,6 +12,9 @@ const props = withDefaults(defineProps<{
 
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 let resetTimer: ReturnType<typeof setTimeout> | undefined
+const flashedLineIndices = ref<number[]>([])
+const flashKey = ref(0)
+let flashTimer: ReturnType<typeof setTimeout> | undefined
 
 const escapeHtml = (value: string): string => value
   .replaceAll('&', '&amp;')
@@ -51,7 +54,29 @@ const highlightCode = (code: string): string => {
 }
 
 const highlightedCode = computed(() => highlightCode(props.code))
+const highlightedLines = computed(() => highlightedCode.value.split('\n'))
 const copyLabel = computed(() => copyState.value === 'copied' ? '已复制全部代码' : copyState.value === 'error' ? '复制失败，请重试' : '复制全部代码')
+
+/** 对比前后源码行，只短暂标记发生变化的行，帮助用户定位配置带来的代码变化。 */
+watch(() => props.code, (nextCode, previousCode) => {
+  if (previousCode === undefined) return
+
+  const nextLines = nextCode.split('\n')
+  const previousLines = previousCode.split('\n')
+  const changedLines = nextLines.reduce<number[]>((indices, line, index) => {
+    if (line !== previousLines[index]) indices.push(index)
+    return indices
+  }, [])
+
+  if (changedLines.length === 0) return
+
+  flashedLineIndices.value = changedLines
+  flashKey.value += 1
+  if (flashTimer) clearTimeout(flashTimer)
+  flashTimer = setTimeout(() => {
+    flashedLineIndices.value = []
+  }, 900)
+})
 
 /** 优先使用 Clipboard API，非安全上下文再回退到浏览器原生复制命令。 */
 const writeClipboard = async (text: string): Promise<void> => {
@@ -87,6 +112,7 @@ const copyCode = async (): Promise<void> => {
 
 onBeforeUnmount(() => {
   if (resetTimer) clearTimeout(resetTimer)
+  if (flashTimer) clearTimeout(flashTimer)
 })
 </script>
 
@@ -99,6 +125,12 @@ onBeforeUnmount(() => {
       <span class="code-panel__language">{{ language }}</span>
       <button class="outline-button code-panel__copy" type="button" :aria-label="copyLabel" @click="copyCode">{{ copyLabel }}</button>
     </div>
-    <pre class="code-panel__source"><code v-html="highlightedCode"></code></pre>
+    <pre class="code-panel__source"><code><span
+      v-for="(line, lineIndex) in highlightedLines"
+      :key="flashKey + '-' + lineIndex"
+      class="code-panel__line"
+      :class="{ 'code-panel__line--changed': flashedLineIndices.includes(lineIndex) }"
+      v-html="line"
+    ></span></code></pre>
   </section>
 </template>
