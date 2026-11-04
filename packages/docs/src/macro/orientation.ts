@@ -173,7 +173,114 @@ export const orientationPages: MacroDocPage[] = [
     extraTips: [
       '**MTD 简写**：`MTD` 等价于 `MT(·)`，可写成 `MTD` 或 `MTD()`；在方括号中写作 `[5, MTD]`，不接受文字参数。',
     ],
+    related: [
+      { title: 'MTD · 顶部借位点', text: 'MT(·) 的零参数借位点简写。', to: '/macro-rules/mtd' },
+      { title: 'CELL · 单元格', text: '把借位点与数字放在同一格。', to: '/macro-rules/cell' },
+      { title: '方括号 []', text: '`[5, MTD]` 的同格短写形式。', to: '/macro-rules/cell-shorthand' },
+    ],
   }),
+  {
+    slug: 'mtd',
+    title: 'MTD · 顶部借位点',
+    navLabel: 'MTD',
+    kicker: 'ORIENTATION MACRO · BORROW DOT',
+    group: 'orientation',
+    summary: 'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格的中上位置。它用于竖式减法的借位提示，不接受自定义文字参数。',
+    sections: [
+      {
+        id: 'position',
+        title: '位置与作用',
+        blocks: [
+          {
+            type: 'paragraph',
+            text: 'MTD 在当前单元格的顶部中央显示一个教学用圆点（`·`）。它与同格数字叠放，不新增列，也不改变行高；在减法竖式中表示该位发生了借位。',
+          },
+          { type: 'position-board', active: 'MT', note: 'MTD 与 MT 使用同一个中上锚点；图中的 MT 位置就是 MTD 的实际落点。' },
+          { type: 'paragraph', text: 'MTD 的锚点是单元格的中上位置：水平居中、垂直上对齐。默认字号比例为 0.42，并沿用 MT 的借位色。' },
+        ],
+      },
+      {
+        id: 'signature',
+        title: '签名与参数',
+        blocks: [
+          { type: 'code', title: '签名', code: 'MTD()' },
+          {
+            type: 'table',
+            columns: ['写法', '含义'],
+            rows: [
+              ['`MTD`', '零参数简写，等价于 `MTD()`。'],
+              ['`MTD()`', '显式空参数写法，同样等价于 `MT(·)`。'],
+              ['`MTD(KV(style, token))`', '可以附加单元格图元支持的配置，但不能加入文字参数。'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'behavior',
+        title: '排版规则',
+        blocks: [
+          {
+            type: 'list',
+            items: [
+              '**必须同格**：要让点显示在数字上方，使用 `CELL(MM(5), MTD)` 或 `[5, MTD]`。',
+              '**只表示提示**：MTD 不会计算借位，也不会自动决定应该在哪一位显示；借位位置由计算器或调用方提供。',
+              '**禁止文字参数**：`MTD(·)` 无效；需要显示其他文字时使用 `MT(text)`。',
+              '**可以省略括号**：`MTD` 与 `MTD()` 编译为同一个图元；格式化和最简化时会保留合适的短写形式。',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'examples',
+        title: '示例',
+        blocks: [
+          {
+            type: 'example',
+            title: '在数字上方添加借位点',
+            code: 'GRID(\n  ROW(CELL(MM(3), MTD), CELL(MM(5), MTD), MM(6)),\n  ROW(MM(−), MM(2), MM(7), MM(8)),\n  LINE,\n  ROW(MM(7), MM(8))\n)',
+            note: '两个 MTD 分别叠在 3 与 5 的单元格内，借位点位于数字顶部中央。',
+          },
+          {
+            type: 'compare',
+            leftTitle: 'MTD 简写',
+            leftCode: 'GRID(ROW([5, MTD]))',
+            rightTitle: 'MT 完整写法',
+            rightCode: 'GRID(ROW(CELL(MM(5), MT(·))))',
+            note: '两种写法都表示同一个中上借位点。',
+          },
+        ],
+      },
+      {
+        id: 'errors',
+        title: '常见错误',
+        blocks: [
+          {
+            type: 'table',
+            columns: ['错误写法', '原因', '修正'],
+            rows: [
+              ['`MTD(·)`', 'MTD 是零参数宏，不接受文字参数。', '使用 `MTD` / `MTD()`，或改用 `MT(·)`。'],
+              ['`ROW(MM(5), MTD)`', 'MTD 被当成了独立单元格，点不会与 5 同格。', '写成 `ROW([5, MTD])` 或 `ROW(CELL(MM(5), MTD))`。'],
+              ['`GRID(MTD)`', 'MTD 只能作为 ROW 的单元格内容或 CELL 内图元。', '把它放进 `ROW(...)` 或 `CELL(...)`。'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'related',
+        title: '相关页面',
+        blocks: [
+          {
+            type: 'cards',
+            items: [
+              { title: 'MT · 中上文字', text: 'MTD 的完整定位宏，可显示自定义文字。', to: '/macro-rules/mt' },
+              { title: 'CELL · 单元格', text: '把数字与借位点组合在同一个单元格。', to: '/macro-rules/cell' },
+              { title: '方括号 []', text: '`[5, MTD]` 的同格短写形式。', to: '/macro-rules/cell-shorthand' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
   createPositionPage({
     slug: 'rt',
     name: 'RT',

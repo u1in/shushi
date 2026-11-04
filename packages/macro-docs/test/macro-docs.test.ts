@@ -27,7 +27,7 @@ const requiredSlugs = [
   'syntax',
   'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
   'row-shorthand', 'cell-shorthand', 'zero-argument',
-  'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
+  'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
   'dot', 'bracket', 'tbd', 'rbd', 'bbd', 'lbd',
   'examples', 'cautions',
 ]
@@ -137,7 +137,7 @@ describe('网格宏文档', () => {
       ['计算 API', ['computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision']],
     ])
     expect(pagesOf('orientation')).toEqual([
-      'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
+      'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
     ])
     expect(pagesOf('symbol')).toEqual(['dot', 'bracket', 'tbd', 'rbd', 'bbd', 'lbd'])
     expect(pagesOf('sugar')).toEqual(['row-shorthand', 'cell-shorthand', 'zero-argument'])

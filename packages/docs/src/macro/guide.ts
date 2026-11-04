@@ -308,7 +308,7 @@ export const guidePages: MacroDocPage[] = [
             type: 'table',
             columns: ['宏命令分组', '包含', '详见'],
             rows: [
-              ['方位宏命令', '`LT`、`MT`、`RT`、`ML`、`MM`、`MR`、`LB`、`MB`、`RB`、`RBL`', '`/macro-rules/lt`'],
+              ['方位宏命令', '`LT`、`MT`、`MTD`、`RT`、`ML`、`MM`、`MR`、`LB`、`MB`、`RB`、`RBL`', '九宫格定位、减法借位点和右边界文字，详见 `/macro-rules/lt` 与 `/macro-rules/mtd`'],
               ['符号与边框宏命令', '`DOT`、`BRACKET`、`TBD`、`RBD`、`BBD`、`LBD`', '`/macro-rules/dot`'],
             ],
           },

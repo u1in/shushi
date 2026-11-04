@@ -118,6 +118,7 @@ export default defineUserConfig({
           children: [
             { text: 'LT · 左上', link: '/macro/orientation/LT' },
             { text: 'MT · 中上', link: '/macro/orientation/MT' },
+            { text: 'MTD · 顶部借位点', link: '/macro/orientation/MTD' },
             { text: 'RT · 右上', link: '/macro/orientation/RT' },
             { text: 'ML · 左中', link: '/macro/orientation/ML' },
             { text: 'MM · 居中', link: '/macro/orientation/MM' },
