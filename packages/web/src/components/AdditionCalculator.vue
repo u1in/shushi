@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic } from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import type { AdditionComputation, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -22,7 +24,7 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.sumDigits ?? '—')
 
 const renderScene = (): void => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'addition',
     values: [firstAddend.value, secondAddend.value],
     settings: {
@@ -42,6 +44,18 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'addition',
+  fields: [['values', [firstAddend.value, secondAddend.value]]],
+  settings: [
+    ['cellWidth', cellWidth.value],
+    ['rowHeight', rowHeight.value],
+    ['fontSizeRatio', fontSizeRatio.value],
+    ['showGuideGrid', showGuideGrid.value],
+    ['showCarrySteps', showCarrySteps.value],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 /** 首页先提供双加数练习；计算器 API 仍支持传入三个及以上加数实现连加。 */
 const calculate = (): void => {
@@ -86,12 +100,16 @@ calculate()
         </div></div>
       </form>
       <section class="result-card" aria-live="polite"><div class="calculation-result">
-        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ firstAddend }} + {{ secondAddend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ firstAddend }} + {{ secondAddend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
       </div></section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="加法计算与场景生成"
+        description="统一入口返回计算过程、可复制宏源码和供 SVG / DOM 渲染的 GridScene。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

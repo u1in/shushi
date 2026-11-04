@@ -15,6 +15,7 @@ import {
 } from '@u1in/shushi-layout'
 import { compileMacro, formatMacro, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples, formatExampleSource } from '../src/components/macroPlaygroundExamples'
+import { createShushiImplementationSnippet } from '../src/components/implementationSnippets'
 
 const DEFAULT_GRID_SETTINGS = {
   cellWidth: 30,
@@ -66,5 +67,25 @@ describe('首页网格宏试验区示例', () => {
 
   test('源码无法格式化时保留原文', () => {
     expect(formatExampleSource('GRID(')).toBe('GRID(')
+  })
+
+  test('门户源码示例包含当前渲染挂载配置和完整返回值', () => {
+    const code = createShushiImplementationSnippet({
+      operation: 'addition',
+      fields: [['values', ['123', '456']]],
+      settings: [
+        ['cellWidth', 42],
+        ['showGuideGrid', true],
+        ['visibleStepCount', 3],
+      ],
+    })
+
+    expect(code).toContain("renderMode: 'div'")
+    expect(code).toContain("el: document.querySelector('#result') ?? undefined")
+    expect(code).toContain("values: ['123', '456']")
+    expect(code).toContain('cellWidth: 42')
+    expect(code).toContain('showGuideGrid: true')
+    expect(code).toContain('visibleStepCount: 3')
+    expect(code).toContain('const { computation, source, scene, rendered, inspection } = shushi({')
   })
 })

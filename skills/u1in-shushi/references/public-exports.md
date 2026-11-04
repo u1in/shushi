@@ -2,7 +2,22 @@
 
 本文件补充统一入口实际 re-export 的辅助函数、类型和常量。类型只用于 TypeScript 类型标注；JavaScript 运行时只导入函数或常量。不要依赖包内部源码目录中的未导出函数。
 
-## 1. 布局器的直接场景 API
+## 1. 数值门户 API
+
+    type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
+
+    shushi(
+      request: ShushiRequest<VerticalArithmeticRequest>,
+    ): VerticalArithmeticResult
+
+数值输入优先使用 `shushi`。它返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`：
+
+- `renderMode: 'div'` 返回客户端 `HTMLElement`，可用 `el` 自动挂载。
+- `renderMode: 'svg'` 返回客户端 `SVGSVGElement`，可用 `el` 自动挂载。
+- `renderMode: 'svg-string'` 返回客户端和 SSR/Node.js 都可用的 SVG 字符串。
+- 省略 `renderMode` 时默认为 `'svg-string'`；`el` 仅可用于客户端模式。
+
+## 2. 布局器的直接场景 API
 
 如果不需要保留可编辑宏源码，可以直接取得 GridScene；需要用户编辑、保存或复制宏时，优先使用对应的 create*MacroSource。
 
@@ -40,7 +55,7 @@
 
 这些函数仍然通过宏编译链路生成 GridScene，不会绕过宏语言直接拼装渲染器数据。加法与组合竖式设置可省略或部分提供，其他运算的设置必须完整提供。
 
-## 2. 完整布局设置
+## 3. 完整布局设置
 
     interface GridRenderSettings {
       cellWidth: number
@@ -92,7 +107,7 @@
 - showRemainders 只对短除法进制转换的余数展示有意义。
 - 组合竖式用 showCarrySteps、showBorrowSteps 和 uniformMultiplicationBars 控制内部各单项步骤；它的 visibleStepCount 必须来自 getCompositeArithmeticStepCount。
 
-## 3. 布局宏片段辅助函数
+## 4. 布局宏片段辅助函数
 
 这些函数用于生成合法宏片段，适合自定义布局器或拼装宏源码；它们不负责解析完整用户源码。
 
@@ -126,7 +141,7 @@
 - macroLine 的 span 默认是 previous，也支持 longest 和 full。
 - macroGrid 写入列数、尺寸、字号、内边距、自动配色、网格显示和无障碍标签。
 
-## 4. 计算结果完整字段
+## 5. 计算结果完整字段
 
 ### 4.1 加法
 
@@ -349,7 +364,7 @@ quotientTokens 适合布局器定位商位和小数点；steps 记录试商、�
 
 `computeCompositeArithmetic` 将表达式按文本顺序计算；步骤内仍是已有单项计算器的过程对象。`createCompositeArithmeticGridScene` 是兼容的直接场景入口；用户需要复制或编辑宏时，优先 `createCompositeArithmeticMacroSource`，再使用 `minifyMacroForCopy` 导出。
 
-## 5. GridScene、几何和图元类型
+## 6. GridScene、几何和图元类型
 
     type GridTextHorizontalAlign = 'left' | 'center' | 'right'
     type GridTextVerticalAlign = 'top' | 'center' | 'bottom'
@@ -479,7 +494,7 @@ GridPosition 是声明式位置：cell 表示单元格区域，intersection 表�
 
 轨道可能是可变尺寸，因此几何查询必须先调用 resolveGridMetrics，再把结果传给 getGridPositionRect、getGridElementRect 和 getGridTextAnchor；不要手工用 unitWidth 和 unitHeight 推算跨轨道位置。
 
-## 6. 宏 AST、编译器和类型
+## 7. 宏 AST、编译器和类型
 
     interface MacroCall {
       kind: 'call'
@@ -508,7 +523,7 @@ GridPosition 是声明式位置：cell 表示单元格区域，intersection 表�
 
 parseMacro 适合从源码取得 AST；compileMacroAst 适合在已有 MacroCall 上直接编译。通常用户输入应先走 parseMacro，再调用 compileMacro；只有 AST 已经经过合法性保证时才直接使用 compileMacroAst。
 
-## 7. 公开词表与主题常量
+## 8. 公开词表与主题常量
 
 - BASIC_MACRO_NAMES：GRID、ROW、CELL、EMPTY、LINE、DIV、VALUE、STYLE、KV。
 - BASIC_ZERO_ARGUMENT_MACROS：可省略空括号的基础宏集合，包括 LINE、EMPTY、STYLE、DIV。
@@ -520,10 +535,10 @@ parseMacro 适合从源码取得 AST；compileMacroAst 适合在已有 MacroCall
 
 这些常量适合宏编辑器做补全、语法高亮或能力提示。不要修改集合后把它当作包运行时配置；宏解析和编译仍以库内固定词表为准。
 
-## 8. API 选择边界
+## 9. API 选择边界
 
 - 仅计算：只导入 compute* 和对应结果类型。
-- 自动竖式：优先 compute*、create*MacroSource、compileMacro、render*。
+- 自动竖式：优先 `shushi({ operation, renderMode, el })`；只有需要拆层调试时才使用 compute*、create*MacroSource、compileMacro、render*。
 - 组合竖式：使用 computeCompositeArithmetic、getCompositeArithmeticStepCount 和 createCompositeArithmeticMacroSource，不手工连接各单项宏。
 - 自定义宏：使用 macro* 辅助函数或直接写宏，再通过 parseMacro 和 compileMacro 校验。
 - AST 编辑器：使用 createMacroAstInspection，不要从字符串偏移量自行猜图元位置。

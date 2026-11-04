@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic } from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import type { GridScene, SubtractionComputation } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -22,7 +24,7 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.resultText ?? '—')
 
 const renderScene = (): void => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'subtraction',
     operands: [minuend.value, subtrahend.value],
     settings: {
@@ -42,6 +44,18 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'subtraction',
+  fields: [['operands', [minuend.value, subtrahend.value]]],
+  settings: [
+    ['cellWidth', cellWidth.value],
+    ['rowHeight', rowHeight.value],
+    ['fontSizeRatio', fontSizeRatio.value],
+    ['showGuideGrid', showGuideGrid.value],
+    ['showBorrowSteps', showBorrowSteps.value],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 const calculate = (): void => {
   try {
@@ -85,13 +99,17 @@ calculate()
         </div></div>
       </form>
       <section class="result-card" aria-live="polite"><div class="calculation-result">
-        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
         <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
         <GridPreview v-if="scene" :scene="scene" mode="both" />
       </div></section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="减法计算与借位过程"
+        description="通过 settings 控制借位提示和播放步骤，计算层仍只负责过程数据，布局层负责场景。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

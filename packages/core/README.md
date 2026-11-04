@@ -47,25 +47,26 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 
 ```ts
 import {
-  createVerticalArithmetic,
-  renderDomGrid,
+  shushi,
 } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const { computation, source, scene } = createVerticalArithmetic({
+const host = document.querySelector('#result')
+const { computation, source, rendered, inspection } = shushi({
   operation: 'addition',
   values: ['356', '278'],
+  renderMode: 'div',
+  el: host ?? undefined,
 })
-
-// 渲染层：将同一份 GridScene 转为 DOM 舞台。
-const stage = renderDomGrid(scene)
-document.querySelector('#result')?.append(stage)
 
 console.log(computation.sumDigits) // '634'
 console.log(source) // 可保存、复制或交给宏编辑器继续修改
+console.log(rendered) // HTMLElement；已自动挂载到 host
+const updated = inspection.updateElementText('grid-element-id', '9')
+console.log(updated.source) // AST 更新后的宏源码
 ```
 
-`createVerticalArithmetic` 会固定执行“计算 → 宏源码 → GridScene”，但完整保留三层产物。`operation` 决定输入字段：加法用 `values`，减/乘法用两个元素的 `operands`，长除法明确使用 `divisor` 与 `dividend`，短除法使用 `mode` 和 `values`，组合竖式使用 `expression`。`settings` 可覆盖网格和教学显示，`calculation` 可传入乘法或长除法的计算选项。
+`shushi` 会固定执行“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
 
 需要逐层检查、保存中间宏或实现高级定制时，也可以显式调用底层链路：
 
@@ -77,21 +78,25 @@ const source = createAdditionMacroSource(computation)
 const scene = compileMacro(source)
 ```
 
-如果需要 SVG，把最后一步替换为：
+如果需要 SVG DOM，把渲染模式改为：
 
 ```ts
-import { renderSvgGrid } from '@u1in/shushi-core'
-
-const stage = renderSvgGrid(scene)
-document.querySelector('#result')?.append(stage)
+const { rendered } = shushi({
+  operation: 'addition',
+  values: ['356', '278'],
+  renderMode: 'svg',
+  el: document.querySelector('#result') ?? undefined,
+})
 ```
+
+服务端或 SSR 使用 `renderMode: 'svg-string'`，读取返回值中的 `rendered` 字符串即可。
 
 ### Skill 实现
 
 安装 Skill 后，将下面的指令复制到你的代码 Agent：
 
 ```text
-$u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。
+$u1in-shushi 请开始交互式竖式实现。
 ```
 
 ### AI 实现
@@ -106,7 +111,7 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 
 | 需求 | 推荐链路 |
 | --- | --- |
-| 根据输入直接得到过程、可编辑宏和场景 | `createVerticalArithmetic({ operation, ... })` |
+| 根据输入直接得到过程、可编辑宏和场景 | `shushi({ operation, ... })` |
 | 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
 | 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
 | 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |

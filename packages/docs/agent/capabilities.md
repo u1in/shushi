@@ -26,6 +26,8 @@ title: Agent 功能说明
 - 修改宿主项目时遵守项目根目录或相关路径中的 `AGENTS.md`；需要时同步更新技术文档、测试和示例。
 - 实现完成后说明改动文件、选择的 API、渲染输出和验证结果；若同步了文档、测试或示例，也一并列出。
 
+配置确认应只展示当前运算相关的选项，并允许用户直接选择“默认”：通用默认值为 `cellWidth=30`、`rowHeight=46`、`fontSizeRatio=1`、`showGuideGrid=false`、完整 `visibleStepCount`；加法默认显示进位，减法默认显示借位，乘法默认显示进位且不使用等宽横线，长除法默认使用余数模式并隐藏零商步骤，短除法默认显示余数。用户没有要求覆盖时，不要强迫其逐项填写默认值。
+
 ## 1. 核心工作流
 
 `@u1in/shushi-core` 把“算出结果”和“画出竖式”拆成可组合的步骤：
@@ -38,13 +40,13 @@ title: Agent 功能说明
   → DOM 或 SVG 渲染器
 ```
 
-数值输入的默认入口是 `createVerticalArithmetic`。它在内部固定执行上述前三步，并把 `computation`、可编辑 `source` 与 `scene` 一并返回；只有需要只计算、逐层调试或手写宏时，才直接选择下层 API。
+数值输入的默认入口是 `shushi`。它在内部固定执行上述前三步，并把 `computation`、可编辑 `source`、`scene`、`rendered` 与 `inspection` 一并返回；默认 `renderMode` 为 SSR 安全的 `svg-string`。只有需要只计算、逐层调试或手写宏时，才直接选择下层 API。
 
 每一层职责不同：
 
 | 层 | 主要 API | 输出 | 适合的任务 |
 | --- | --- | --- | --- |
-| 门户 | `createVerticalArithmetic` | 计算过程、可编辑宏源码、`GridScene` | 根据数值直接生成并渲染标准竖式 |
+| 门户 | `shushi` | 计算过程、可编辑宏源码、`GridScene`、渲染结果、AST 检查器 | 根据数值直接生成并渲染标准竖式 |
 | 计算 | `computeAddition`、`computeCompositeArithmetic`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
 | 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
 | 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
@@ -59,9 +61,17 @@ title: Agent 功能说明
 
 ### 竖式门户签名
 
-`createVerticalArithmetic(request: VerticalArithmeticRequest): VerticalArithmeticResult<Computation>`
+`shushi<TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): VerticalArithmeticResult<Computation, ShushiRendered<TMode>>`
 
-`request.operation` 可为 `'addition'`、`'subtraction'`、`'multiplication'`、`'division'`、`'shortDivision'` 或 `'composite'`。加法传 `values`，减/乘法传 `operands`；长除法使用具名 `divisor` 与 `dividend`，短除法使用 `mode` 与 `values`，组合竖式使用 `expression`。所有请求可传 `settings` 覆盖布局默认值；乘法与长除法还可传 `calculation` 覆盖计算选项。返回值不省略中间数据：需要播放、复制宏或分析场景时，继续使用其 `computation`、`source` 和 `scene`。
+`request.operation` 可为 `'addition'`、`'subtraction'`、`'multiplication'`、`'division'`、`'shortDivision'` 或 `'composite'`。加法传 `values`，减/乘法传 `operands`；长除法使用具名 `divisor` 与 `dividend`，短除法使用 `mode` 与 `values`，组合竖式使用 `expression`。所有请求可传 `settings` 覆盖布局默认值；乘法与长除法还可传 `calculation` 覆盖计算选项。
+
+门户渲染相关参数如下：
+
+- `renderMode: 'div'`：客户端返回 `HTMLElement`；传入 `el` 时自动挂载到该元素下。
+- `renderMode: 'svg'`：客户端返回 `SVGSVGElement`；传入 `el` 时自动挂载到该元素下。
+- `renderMode: 'svg-string'`：返回 SVG 字符串，客户端和 SSR/Node.js 都可使用；该模式不能传 `el`。
+
+返回值的 `rendered` 类型会随 `renderMode` 收窄；`inspection` 是与 `source` 对应的 `MacroAstInspection`，可通过 `references` 找到图元并调用 `updateElementText` 生成新的源码、场景和检查结果。
 
 ### 计算器签名
 
@@ -613,7 +623,7 @@ const scene = compileMacro(source)
 
 | 用户需求 | 推荐组合 |
 | --- | --- |
-| 根据数值展示标准竖式 | `createVerticalArithmetic({ operation, ... })` → `renderDomGrid` 或 `renderSvgGrid` |
+| 根据数值展示标准竖式 | `shushi({ operation, renderMode: 'div' | 'svg', el })` |
 | 只要计算答案 | 对应的 `compute*` |
 | 要展示标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` 或 `renderSvgGrid` |
 | 要把多个 `+`、`-`、`×` 放进一个连续竖式 | `computeCompositeArithmetic` → `getCompositeArithmeticStepCount` → `createCompositeArithmeticMacroSource` → `compileMacro` |
@@ -623,7 +633,7 @@ const scene = compileMacro(source)
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
 | 要做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
 | 要导出或缩放图像 | 浏览器用 `compileMacro` → `renderSvgGrid`；服务端用 `compileMacro` → `renderSvgString` |
-| 要在网页中交互显示 | `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
+| 要在网页中交互显示 | 数值输入用 `shushi({ renderMode: 'div', el })`；宏源码用 `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
 
 ## 6. 输入与边界规则
 
@@ -640,6 +650,6 @@ const scene = compileMacro(source)
 
 ## 7. 最小可用判断
 
-如果用户只给出数值和运算，Agent 应优先使用 `createVerticalArithmetic`，再按需要将返回的 `scene` 交给渲染器；用户只需要答案时才选择对应的 `compute*`。如果用户给出的是宏源码，直接走宏解析与编译链路。除非用户只需要答案，否则应保留宏源码或 `GridScene`，这样后续可以继续编辑、播放、分析或切换渲染方式。
+如果用户只给出数值和运算，Agent 应优先使用 `shushi`，按宿主环境选择 `renderMode`；客户端交互显示使用 `renderMode: 'div'` 或 `'svg'`，SSR/Node.js 使用 `'svg-string'`。用户只需要答案时才选择对应的 `compute*`。如果用户给出的是宏源码，直接走宏解析与编译链路。除非用户只需要答案，否则应保留宏源码、`GridScene` 或 `inspection`，这样后续可以继续编辑、播放、分析或切换渲染方式。
 
 

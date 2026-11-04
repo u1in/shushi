@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
+import { shushi, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import type { DivisionComputation, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -23,7 +25,7 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 
 const renderScene = (): void => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'division',
     divisor: divisor.value,
     dividend: dividend.value,
@@ -56,6 +58,24 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'division',
+  fields: [
+    ['divisor', divisor.value],
+    ['dividend', dividend.value],
+  ],
+  calculation: [['resultMode', resultMode.value]],
+  settings: [
+    ['cellWidth', cellWidth.value],
+    ['rowHeight', rowHeight.value],
+    ['fontSizeRatio', fontSizeRatio.value],
+    ['bracketBend', 1],
+    ['showGuideGrid', showGuideGrid.value],
+    ['uniformSubtractionBars', uniformSubtractionBars.value],
+    ['showZeroQuotientSteps', showZeroQuotientSteps.value],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 const answer = computed(() => computation.value
   ? computation.value.remainder === '0' ? computation.value.quotientText : `${computation.value.quotientText} …… ${computation.value.remainder}`
@@ -111,13 +131,17 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ dividend }} ÷ {{ divisor }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ dividend }} ÷ {{ divisor }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="长除法过程与商"
+        description="长除法显式区分除数和被除数，计算结果、宏源码与网格场景保持同一份输入设置。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

@@ -39,6 +39,28 @@ import {
   createShortDivisionMacroSource,
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
+import type { MacroAstInspection } from '@u1in/shushi-macro'
+import { createMacroAstInspection } from '@u1in/shushi-macro'
+import { renderDomGrid, renderSvgGrid, renderSvgString } from '@u1in/shushi-renderers'
+
+export type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
+
+/** 按渲染模式收窄门户返回的 rendered 字段，默认模式为 SSR 安全的 svg-string。 */
+export type ShushiRendered<TMode extends ShushiRenderMode> = TMode extends 'div'
+  ? HTMLElement
+  : TMode extends 'svg'
+    ? SVGSVGElement
+    : string
+
+/** 客户端挂载点只对 DOM 渲染有效；svg-string 不能直接挂载到元素。 */
+export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
+  renderMode?: TMode
+  el?: TMode extends 'svg-string' ? never : Element
+}
+
+export type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> = (
+  TRequest & ShushiRenderOptions<TMode>
+)
 
 /** 所有门户调用共享的视觉尺寸；专项开关由各运算的默认设置补齐。 */
 const DEFAULT_GRID_SETTINGS = {
@@ -138,71 +160,99 @@ export type VerticalArithmeticRequest =
   | CompositeVerticalArithmeticRequest
 
 /** 门户始终保留三层产物，方便调用方按需要读取过程、保存宏或直接渲染场景。 */
-export interface VerticalArithmeticResult<TComputation> {
+export interface VerticalArithmeticResult<TComputation, TRendered = ShushiRendered<ShushiRenderMode>> {
   computation: TComputation
   source: string
   scene: GridScene
+  rendered: TRendered
+  inspection: MacroAstInspection
 }
 
-export type AdditionVerticalArithmeticResult = VerticalArithmeticResult<AdditionComputation>
-export type SubtractionVerticalArithmeticResult = VerticalArithmeticResult<SubtractionComputation>
-export type MultiplicationVerticalArithmeticResult = VerticalArithmeticResult<MultiplicationComputation>
-export type DivisionVerticalArithmeticResult = VerticalArithmeticResult<DivisionComputation>
-export type ShortDivisionVerticalArithmeticResult = VerticalArithmeticResult<ShortDivisionComputation>
-export type CompositeVerticalArithmeticResult = VerticalArithmeticResult<CompositeArithmeticComputation>
+export type AdditionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<AdditionComputation, ShushiRendered<TMode>>
+export type SubtractionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<SubtractionComputation, ShushiRendered<TMode>>
+export type MultiplicationVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<MultiplicationComputation, ShushiRendered<TMode>>
+export type DivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<DivisionComputation, ShushiRendered<TMode>>
+export type ShortDivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<ShortDivisionComputation, ShushiRendered<TMode>>
+export type CompositeVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<CompositeArithmeticComputation, ShushiRendered<TMode>>
 
-export type AnyVerticalArithmeticResult =
-  | AdditionVerticalArithmeticResult
-  | SubtractionVerticalArithmeticResult
-  | MultiplicationVerticalArithmeticResult
-  | DivisionVerticalArithmeticResult
-  | ShortDivisionVerticalArithmeticResult
-  | CompositeVerticalArithmeticResult
+export type AnyVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  | AdditionVerticalArithmeticResult<TMode>
+  | SubtractionVerticalArithmeticResult<TMode>
+  | MultiplicationVerticalArithmeticResult<TMode>
+  | DivisionVerticalArithmeticResult<TMode>
+  | ShortDivisionVerticalArithmeticResult<TMode>
+  | CompositeVerticalArithmeticResult<TMode>
 
 /** 用调用签名保留 operation 与 computation 类型之间的窄化关系。 */
-export interface CreateVerticalArithmetic {
-  (request: AdditionVerticalArithmeticRequest): AdditionVerticalArithmeticResult
-  (request: SubtractionVerticalArithmeticRequest): SubtractionVerticalArithmeticResult
-  (request: MultiplicationVerticalArithmeticRequest): MultiplicationVerticalArithmeticResult
-  (request: DivisionVerticalArithmeticRequest): DivisionVerticalArithmeticResult
-  (request: ShortDivisionVerticalArithmeticRequest): ShortDivisionVerticalArithmeticResult
-  (request: CompositeVerticalArithmeticRequest): CompositeVerticalArithmeticResult
-  (request: VerticalArithmeticRequest): AnyVerticalArithmeticResult
+export interface Shushi {
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<AdditionVerticalArithmeticRequest, TMode>): AdditionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<SubtractionVerticalArithmeticRequest, TMode>): SubtractionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<MultiplicationVerticalArithmeticRequest, TMode>): MultiplicationVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<DivisionVerticalArithmeticRequest, TMode>): DivisionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<ShortDivisionVerticalArithmeticRequest, TMode>): ShortDivisionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<CompositeVerticalArithmeticRequest, TMode>): CompositeVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): AnyVerticalArithmeticResult<TMode>
 }
 
-const createResult = <TComputation>(computation: TComputation, source: string): VerticalArithmeticResult<TComputation> => ({
-  computation,
-  source,
+/** 执行客户端挂载或 SSR 字符串渲染，并保持三种渲染器共用同一 GridScene。 */
+const renderPortalResult = (scene: GridScene, renderMode: ShushiRenderMode, el: Element | undefined): ShushiRendered<ShushiRenderMode> => {
+  if (renderMode === 'svg-string') {
+    if (el) throw new Error('renderMode 为 svg-string 时不能传入 el；请使用 div 或 svg 客户端渲染模式。')
+    return renderSvgString(scene)
+  }
+
+  if (typeof document === 'undefined') {
+    throw new Error(`renderMode 为 ${renderMode} 时需要客户端 DOM 环境；服务端请使用 svg-string。`)
+  }
+
+  const rendered = renderMode === 'div' ? renderDomGrid(scene) : renderSvgGrid(scene)
+  el?.append(rendered)
+  return rendered
+}
+
+const createResult = <TComputation>(
+  computation: TComputation,
+  source: string,
+  options: ShushiRenderOptions<ShushiRenderMode>,
+): VerticalArithmeticResult<TComputation> => {
   // 自动生成和人工录入都使用相同的宏编译器，不能由门户直接拼装 GridScene。
-  scene: compileCalculatorMacro(source),
-})
+  const scene = compileCalculatorMacro(source)
+  const inspection = createMacroAstInspection(source)
+  return {
+    computation,
+    source,
+    scene,
+    rendered: renderPortalResult(scene, options.renderMode ?? 'svg-string', options.el),
+    inspection,
+  }
+}
 
 /**
  * 用一个入口创建加、减、乘、长除、短除或组合竖式。
  * 返回值完整保留中间过程和源码，既适合直接交给渲染器，也可继续编辑 `source`。
  */
-export const createVerticalArithmetic = ((
-  request: VerticalArithmeticRequest,
+export const shushi = ((
+  request: ShushiRequest<VerticalArithmeticRequest, ShushiRenderMode>,
 ): AnyVerticalArithmeticResult => {
   switch (request.operation) {
     case 'addition': {
       const computation = computeAddition(...request.values)
-      return createResult(computation, createAdditionMacroSource(computation, request.settings))
+      return createResult(computation, createAdditionMacroSource(computation, request.settings), request)
     }
     case 'subtraction': {
       const computation = computeSubtraction(...request.operands)
       const settings = mergeSettings(DEFAULT_SUBTRACTION_SETTINGS, request.settings)
-      return createResult(computation, createSubtractionMacroSource(computation, settings))
+      return createResult(computation, createSubtractionMacroSource(computation, settings), request)
     }
     case 'multiplication': {
       const computation = computeMultiplication(...request.operands, request.calculation)
       const settings = mergeSettings(DEFAULT_MULTIPLICATION_SETTINGS, request.settings)
-      return createResult(computation, createMultiplicationMacroSource(computation, settings))
+      return createResult(computation, createMultiplicationMacroSource(computation, settings), request)
     }
     case 'division': {
       const computation = computeDivision(request.divisor, request.dividend, request.calculation)
       const settings = mergeSettings(DEFAULT_DIVISION_SETTINGS, request.settings)
-      return createResult(computation, createDivisionMacroSource(computation, settings))
+      return createResult(computation, createDivisionMacroSource(computation, settings), request)
     }
     case 'shortDivision': {
       const computation = computeShortDivision({
@@ -211,12 +261,12 @@ export const createVerticalArithmetic = ((
         targetBase: request.targetBase,
       })
       const settings = mergeSettings(DEFAULT_SHORT_DIVISION_SETTINGS, request.settings)
-      return createResult(computation, createShortDivisionMacroSource(computation, settings))
+      return createResult(computation, createShortDivisionMacroSource(computation, settings), request)
     }
     case 'composite': {
       const computation = computeCompositeArithmetic(request.expression)
       const settings = mergeSettings(DEFAULT_COMPOSITE_SETTINGS, request.settings)
-      return createResult(computation, createCompositeArithmeticMacroSource(computation, settings))
+      return createResult(computation, createCompositeArithmeticMacroSource(computation, settings), request)
     }
   }
-}) as CreateVerticalArithmetic
+}) as Shushi

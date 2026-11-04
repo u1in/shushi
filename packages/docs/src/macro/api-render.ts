@@ -1,7 +1,7 @@
 import type { MacroDocPage } from './types'
 
 /** 渲染 API 页面只描述输出适配，不把 DOM 判断混入宏编译或网格计算。 */
-const renderPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiArea: 'render' })
+const renderPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiTier: 'common' })
 
 export const renderSvgGridPage = renderPage({
   slug: 'renderSvgGrid', title: 'renderSvgGrid', navLabel: 'renderSvgGrid',

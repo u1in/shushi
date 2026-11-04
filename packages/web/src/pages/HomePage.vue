@@ -32,11 +32,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main class="page-shell">
+  <header class="site-header">
+    <a class="site-header__brand" href="#top" aria-label="返回首页顶部">@u1in/shushi</a>
+    <nav class="site-header__nav" aria-label="演示板块导航">
+      <a href="#macro-playground">宏试验区</a>
+      <a href="#macro-ast-inspector">AST 检查器</a>
+      <a href="#addition">加法</a>
+      <a href="#subtraction">减法</a>
+      <a href="#multiplication">乘法</a>
+      <a href="#division">长除法</a>
+      <a href="#short-division">短除法</a>
+      <a href="#composite-arithmetic">组合竖式</a>
+    </nav>
+    <ThemeControl />
+  </header>
+
+  <main id="top" class="page-shell">
     <section class="hero">
       <div class="hero-topline">
         <p class="eyebrow">@u1in/shushi · SVG · DOM</p>
-        <ThemeControl />
       </div>
       <h1>竖式运算的可视化工作台</h1>
       <p class="intro">这是一个可交互的竖式计算与宏语言工作台：支持宏源码编译、AST 图元点击修改、SVG 与 DOM/CSS 双渲染对照、OCR 按行识别，以及加法、减法、乘法、除法和短除法的逐步演示；网格尺寸、步骤和主题均可调整。</p>
@@ -45,14 +59,14 @@ onBeforeUnmount(() => {
       </nav>
     </section>
 
-    <MacroPlayground />
-    <MacroAstInspector />
-    <AdditionCalculator />
-    <SubtractionCalculator />
-    <MultiplicationCalculator />
-    <CompositeArithmeticCalculator />
-    <DivisionCalculator />
-    <ShortDivisionCalculator />
+    <MacroPlayground id="macro-playground" />
+    <MacroAstInspector id="macro-ast-inspector" />
+    <AdditionCalculator id="addition" />
+    <SubtractionCalculator id="subtraction" />
+    <MultiplicationCalculator id="multiplication" />
+    <DivisionCalculator id="division" />
+    <ShortDivisionCalculator id="short-division" />
+    <CompositeArithmeticCalculator id="composite-arithmetic" />
 
     <button
       v-if="showBackToTop"

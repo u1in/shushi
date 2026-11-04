@@ -34,6 +34,35 @@ title: Agent 功能说明
 
 以下签名均从 `@u1in/shushi-core` 统一导入。类型名称用于说明参数和返回值，不需要在 JavaScript 运行时导入。
 
+### 门户 API 签名
+
+```ts
+type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
+
+shushi(request: ShushiRequest<VerticalArithmeticRequest>): VerticalArithmeticResult
+```
+
+数值输入优先调用 `shushi`。它按 `operation` 选择加法、减法、乘法、长除法、短除法或组合竖式，并返回 `computation`、可编辑的 `source`、统一 `scene`、按 `renderMode` 生成的 `rendered` 和可注入的 `inspection`。
+
+| 参数 | 说明 |
+| --- | --- |
+| `renderMode: 'div'` | 客户端返回 `HTMLElement`；传入 `el` 时自动挂载。 |
+| `renderMode: 'svg'` | 客户端返回 `SVGSVGElement`；传入 `el` 时自动挂载。 |
+| `renderMode: 'svg-string'` | 客户端和 SSR/Node.js 都可用，返回 SVG 字符串；不能传 `el`。 |
+| 省略 `renderMode` | 默认为 `'svg-string'`。 |
+
+```ts
+import { shushi } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
+
+const result = shushi({
+  operation: 'addition',
+  values: ['356', '278'],
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
+})
+```
+
 ### 计算器签名
 
 ```ts

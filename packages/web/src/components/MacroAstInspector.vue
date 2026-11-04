@@ -4,6 +4,8 @@ import { createMacroAstInspection } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { implementationSnippets } from './implementationSnippets'
 
 /** 示例使用最简宏命令，便于直接演示 AST 修改后仍按当前输入框风格回写源码。 */
 const initialSource = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
@@ -65,6 +67,7 @@ const handleEditedTextInput = (event: Event): void => {
   const normalizedText = Array.from(input.value).slice(0, 1).join('')
   input.value = normalizedText
   editedText.value = normalizedText
+  if (canEditSelectedText.value) applyText()
 }
 
 /** 重置为最简源码，方便重复体验“点击 → 修改 → 回写源码”的链路。 */
@@ -82,8 +85,8 @@ const resetInspection = (): void => {
     <section class="workspace" aria-label="宏 AST 元素检查器">
       <section class="control-panel">
         <p class="panel-kicker">AST ELEMENT INSPECTOR</p>
-        <h2>输入宏，点击元素修改 AST 数据</h2>
-        <p class="normalization">先输入或修改宏源码并编译；再点击右侧 DOM/CSS 或 SVG 中的数字、运算符或注记，即可反查并单独修改对应的 AST 节点。</p>
+        <h2>AST检查</h2>
+        <p class="normalization">检查宏图元对应的 AST 节点，并直接修改可编辑的文字数据。</p>
 
         <label class="macro-source-field">
           <span>宏源码</span>
@@ -91,24 +94,9 @@ const resetInspection = (): void => {
         </label>
         <div class="form-actions">
           <button class="primary-button" type="button" @click="compileSource">编译宏</button>
-          <button class="ghost-button" type="button" @click="resetInspection">恢复最简示例</button>
+          <button class="ghost-button" type="button" @click="resetInspection">356 + 278 = 634</button>
         </div>
-        <p class="normalization">提示：在源码框中按 Ctrl + Enter 也可以编译。</p>
         <p class="error-message" role="alert">{{ error }}</p>
-
-        <dl class="ast-selection-details">
-          <div><dt>渲染元素</dt><dd>{{ selectedElementId || '—' }}</dd></div>
-          <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
-          <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
-        </dl>
-
-        <label class="macro-source-field">
-          <span>所选文字</span>
-          <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="所选 AST 文字" @input="handleEditedTextInput" @keyup.enter="applyText" />
-        </label>
-        <div class="form-actions">
-          <button class="ghost-button" type="button" :disabled="!canEditSelectedText" @click="applyText">应用单项修改</button>
-        </div>
       </section>
 
       <section class="result-card" aria-live="polite">
@@ -118,11 +106,27 @@ const resetInspection = (): void => {
               <p class="panel-kicker">CLICKABLE DOM / SVG RESULT</p>
               <h2>点击任一宏图元</h2>
             </div>
+            <VisibleTextRowsPanel :scene="inspection.scene" />
           </div>
+          <dl class="ast-selection-details">
+            <div><dt>渲染元素</dt><dd>{{ selectedElementId || '—' }}</dd></div>
+            <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
+            <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
+            <div class="ast-edit-cell">
+              <dt>局部修改</dt>
+              <dd>
+                <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="局部修改 AST 文字" @input="handleEditedTextInput" />
+              </dd>
+            </div>
+          </dl>
           <GridPreview :scene="inspection.scene" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" />
         </div>
       </section>
-      <VisibleTextRowsPanel :scene="inspection.scene" />
+      <CodeImplementationPanel
+        title="AST 检查与单项回写"
+        description="宏源码解析成可定位的 AST 引用，选中文字修改后再由检查器回写为当前源码。"
+        :code="implementationSnippets.macroAstInspector"
+      />
     </section>
   </div>
 </template>

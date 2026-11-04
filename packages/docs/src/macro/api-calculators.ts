@@ -17,7 +17,7 @@ const createCalculatorApiPage = ({ slug, summary, example, purpose, signature, p
   navLabel: slug,
   kicker: 'API · CALCULATORS',
   group: 'api',
-  apiArea: 'calculator',
+  apiTier: 'advanced',
   summary,
   sections: [
     { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: `\`${slug}\`：${summary}` }] },

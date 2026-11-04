@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic, getMultiplicationStepCount } from '@u1in/shushi-core'
+import { shushi, getMultiplicationStepCount } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import type { GridScene, MultiplicationComputation } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -24,7 +26,7 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.productDigits ?? '—')
 
 const renderScene = (): void => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'multiplication',
     operands: [multiplicand.value, multiplier.value],
     calculation: { useTrailingZeroShortcut: useTrailingZeroShortcut.value },
@@ -57,6 +59,20 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'multiplication',
+  fields: [['operands', [multiplicand.value, multiplier.value]]],
+  calculation: [['useTrailingZeroShortcut', useTrailingZeroShortcut.value]],
+  settings: [
+    ['cellWidth', cellWidth.value],
+    ['rowHeight', rowHeight.value],
+    ['fontSizeRatio', fontSizeRatio.value],
+    ['showGuideGrid', showGuideGrid.value],
+    ['uniformMultiplicationBars', uniformMultiplicationBars.value],
+    ['showCarrySteps', showCarrySteps.value],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 const calculate = (): void => {
   try {
@@ -105,13 +121,17 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ multiplicand }} × {{ multiplier }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ multiplicand }} × {{ multiplier }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="乘法计算与部分积"
+        description="计算选项控制快捷计算和过程展示，返回结果后统一交给布局与渲染链路。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

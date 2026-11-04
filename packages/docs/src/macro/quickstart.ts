@@ -15,22 +15,25 @@ export const quickStartPage: MacroDocPage = {
       blocks: [
         {
           type: 'paragraph',
-          text: '数值输入通常使用 `createVerticalArithmetic`。它固定串联计算器、宏源码布局和宏编译器，但仍返回每一层的 computation、source 与 scene，因此既可直接渲染，也能继续编辑源码。',
+          text: '数值输入通常使用 `shushi`。它固定串联计算器、宏源码布局、宏编译器和渲染器，并返回 computation、source、scene、rendered 与 inspection，因此既可直接渲染，也能继续编辑 AST。',
         },
         {
           type: 'code',
           title: 'TypeScript',
           language: 'typescript',
-          code: `import { createVerticalArithmetic, renderSvgString } from '@u1in/shushi-core'
+          code: `import { shushi } from '@u1in/shushi-core'
 
-const { computation, source, scene } = createVerticalArithmetic({
+const { computation, source, rendered, inspection } = shushi({
   operation: 'addition',
   values: ['356', '278'],
+  renderMode: 'svg-string',
 })
 
 console.log(computation.sumDigits) // '634'
 console.log(source)
-const svg = renderSvgString(scene)`,
+console.log(rendered) // SVG 字符串，可用于客户端或 SSR
+const updated = inspection.updateElementText('grid-element-id', '9')
+console.log(updated.source)`,
         },
         {
           type: 'callout',
@@ -161,10 +164,8 @@ console.log(rows)
         {
           type: 'cards',
           items: [
-            { title: '统一竖式门户 API', text: '一个调用完成计算、宏源码与 GridScene。', to: '/macro-api/createVerticalArithmetic' },
-            { title: '宏编译 API', text: 'compileMacro、parseMacro、minifyMacro 与 createMacroAstInspection。', to: '/macro-api/compileMacro' },
-            { title: '渲染 API', text: 'SVG 字符串、SVG 节点和 DOM 舞台的返回值与样式职责。', to: '/macro-api/renderSvgGrid' },
-            { title: '网格和文本 API', text: 'GridScene、extractVisibleTextRows 与 resolveGridMetrics。', to: '/macro-api/GridScene' },
+            { title: '常用 API', text: 'shushi、compileMacro、parseMacro、AST 编辑和直接渲染。', to: '/macro-api/shushi' },
+            { title: '高级 API', text: 'AST 底层编译、计算器过程、布局源码和网格几何。', to: '/macro-api/compileMacroAst' },
           ],
         },
       ],

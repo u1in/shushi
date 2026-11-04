@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic } from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import type { GridScene, ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -24,7 +26,7 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 
 const renderScene = (): void => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'shortDivision',
     mode: mode.value,
     values: mode.value === 'factorization'
@@ -56,6 +58,27 @@ const canNext = playback.canNext
 
 /** 将教学页面中的逗号或空格分隔输入转为计算器的多数字数组。 */
 const splitValues = (value: string): string[] => value.split(/[,，\s]+/).filter(Boolean)
+
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'shortDivision',
+  fields: [
+    ['mode', mode.value],
+    ['values', mode.value === 'factorization'
+      ? [factorValue.value]
+      : mode.value === 'commonFactor'
+        ? splitValues(commonValues.value)
+        : [conversionValue.value]],
+    ['targetBase', mode.value === 'baseConversion' ? targetBase.value : undefined],
+  ],
+  settings: [
+    ['cellWidth', cellWidth.value],
+    ['rowHeight', rowHeight.value],
+    ['fontSizeRatio', fontSizeRatio.value],
+    ['showGuideGrid', showGuideGrid.value],
+    ['showRemainders', showRemainders.value],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 const answer = computed(() => {
   const result = computation.value
@@ -135,13 +158,17 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><output class="answer answer--short-division">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><output class="answer answer--short-division">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="短除法模式分派"
+        description="短除法根据 mode 选择分解、公因数或进制转换，仍通过统一入口生成过程和场景。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

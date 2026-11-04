@@ -1,9 +1,15 @@
 import type { MacroDocPage } from './types'
 
-/** 宏编译 API 页面共用的固定阅读顺序：名称、例子、作用、签名和属性、注意事项。 */
+/** 宏处理 API 页面共用的固定阅读顺序：名称、例子、作用、签名和属性、注意事项。 */
 const compilePage = (page: MacroDocPage): MacroDocPage => ({
   ...page,
-  apiArea: 'compile',
+  apiTier: 'common',
+})
+
+/** AST 直编译和 AST 序列化属于高级 API，普通源码调用优先使用字符串入口。 */
+const advancedCompilePage = (page: MacroDocPage): MacroDocPage => ({
+  ...page,
+  apiTier: 'advanced',
 })
 
 export const compileMacroPage = compilePage({
@@ -46,7 +52,7 @@ console.log(scene.elements.length) // 文本与线条图元数量`,
   ],
 })
 
-export const compileMacroAstPage = compilePage({
+export const compileMacroAstPage = advancedCompilePage({
   slug: 'compileMacroAst', title: 'compileMacroAst', navLabel: 'compileMacroAst',
   kicker: 'API · MACRO COMPILER', group: 'api',
   summary: '把已经解析完成的 MacroCall AST 编译为 GridScene。',
@@ -144,6 +150,52 @@ console.log(formatted)`,
   ],
 })
 
+export const completeMacroPage = compilePage({
+  slug: 'completeMacro', title: 'completeMacro', navLabel: 'completeMacro', kicker: 'API · MACRO COMPILER', group: 'api',
+  summary: '把宏源码补全为显式 GRID、ROW、CELL 和定位宏结构。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`completeMacro`：宏源码完整化函数。' }] },
+    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: `import { completeMacro } from '@u1in/shushi-core'
+
+const source = '3,5;LN;8;'
+const completed = completeMacro(source)
+
+console.log(completed) // 显式展开为 GRID / ROW / CELL 结构` }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它把适合输入和复制的简写宏展开为更适合调试、审阅和二次改写的完整结构，同时保留宏的语义。需要阅读或修改 AST 前，可以先用它查看完整源码。' }] },
+    { id: 'signature', title: '函数签名和属性说明', blocks: [
+      { type: 'code', title: '函数签名', language: 'typescript', code: `type CompleteMacro = (source: string) => string` },
+      { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+        ['`source`', '`string`', '可解析的宏源码，允许使用分号行、方括号和零参数简写。'],
+        ['返回值', '`string`', '显式展开后的可读宏源码。'],
+      ] },
+    ] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'info', title: '只改变表达形式', text: '`completeMacro` 不计算运算结果，也不生成 `GridScene`；只想得到场景时使用 `compileMacro`，只想格式化空白时使用 `formatMacro`。' }] },
+  ],
+})
+
+export const unformatMacroPage = compilePage({
+  slug: 'unformatMacro', title: 'unformatMacro', navLabel: 'unformatMacro', kicker: 'API · MACRO COMPILER', group: 'api',
+  summary: '移除宏源码中的格式化空白，并保留原有宏结构表达。',
+  sections: [
+    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`unformatMacro`：宏源码去格式化函数。' }] },
+    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: `import { unformatMacro } from '@u1in/shushi-core'
+
+const formatted = 'GRID(\\n  ROW(MM(3), MM(5)),\\n  LINE\\n)'
+const compact = unformatMacro(formatted)
+
+console.log(compact) // 移除换行和缩进，但不启用额外语法糖` }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它只移除换行、缩进和不影响语义的空白，适合在保留完整宏名称和调用层级的前提下压缩日志或传输文本。需要启用别名、方括号和默认值省略时，应改用 `minifyMacro`。' }] },
+    { id: 'signature', title: '函数签名和属性说明', blocks: [
+      { type: 'code', title: '函数签名', language: 'typescript', code: `type UnformatMacro = (source: string) => string` },
+      { type: 'table', columns: ['项目', '类型', '说明'], rows: [
+        ['`source`', '`string`', '可解析的带缩进或换行宏源码。'],
+        ['返回值', '`string`', '去除格式化空白后的宏源码。'],
+      ] },
+    ] },
+    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'info', title: '不要把它当作最简化', text: '`unformatMacro` 不会主动降级宏名称或删除默认配置；需要最短可编译源码时使用 `minifyMacro`。' }] },
+  ],
+})
+
 export const minifyMacroPage = compilePage({
   slug: 'minifyMacro', title: 'minifyMacro', navLabel: 'minifyMacro', kicker: 'API · MACRO COMPILER', group: 'api',
   summary: '把完整宏源码转换为去除空白、启用语法糖的最简形式。',
@@ -180,7 +232,7 @@ console.log(compact)
   ],
 })
 
-export const minifyMacroAstPage = compilePage({
+export const minifyMacroAstPage = advancedCompilePage({
   slug: 'minifyMacroAst', title: 'minifyMacroAst', navLabel: 'minifyMacroAst', kicker: 'API · MACRO COMPILER', group: 'api',
   summary: '将已改写的宏 AST 按正式最简化规则输出为宏源码。',
   sections: [
@@ -230,7 +282,7 @@ console.log(copied) // '3,5;'` }] },
   ],
 })
 
-export const minifyMacroForCopyAstPage = compilePage({
+export const minifyMacroForCopyAstPage = advancedCompilePage({
   slug: 'minifyMacroForCopyAst', title: 'minifyMacroForCopyAst', navLabel: 'minifyMacroForCopyAst', kicker: 'API · MACRO COMPILER', group: 'api',
   summary: '为已改写的计算器宏 AST 导出可粘贴编辑的最简源码。',
   sections: [
@@ -303,4 +355,4 @@ interface MacroAstInspection {
 })
 
 /** 宏编译分类的页面顺序同时决定侧栏顺序和技术文档页尾翻页顺序。 */
-export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, minifyMacroPage, minifyMacroAstPage, minifyMacroForCopyPage, minifyMacroForCopyAstPage, createMacroAstInspectionPage]
+export const macroApiPages = [compileMacroPage, compileMacroAstPage, parseMacroPage, formatMacroPage, completeMacroPage, unformatMacroPage, minifyMacroPage, minifyMacroAstPage, minifyMacroForCopyPage, minifyMacroForCopyAstPage, createMacroAstInspectionPage]

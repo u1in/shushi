@@ -98,7 +98,7 @@ yarn add @u1in/shushi-core@latest
 下面的 smoke test 不依赖浏览器 DOM，可以验证包解析、计算、布局和宏编译链路：
 
 ```bash
-node --input-type=module -e "import { createVerticalArithmetic } from '@u1in/shushi-core'; const { computation, scene } = createVerticalArithmetic({ operation: 'addition', values: ['2', '3'] }); if (computation.sumDigits !== '5' || scene.elements.length === 0) throw new Error('门户 API 未生成有效 GridScene'); console.log('安装验证通过：', scene.ariaLabel)"
+node --input-type=module -e "import { shushi } from '@u1in/shushi-core'; const { computation, scene } = shushi({ operation: 'addition', values: ['2', '3'] }); if (computation.sumDigits !== '5' || scene.elements.length === 0) throw new Error('门户 API 未生成有效 GridScene'); console.log('安装验证通过：', scene.ariaLabel)"
 ```
 
 命令应正常退出，并输出安装验证结果。出现 `ERR_MODULE_NOT_FOUND` 时，先回到“依赖和发布状态检查”，确认当前工作目录和安装命令是否正确。
@@ -118,22 +118,19 @@ node --input-type=module -e "import { compileMacro, computeCompositeArithmetic, 
 统一入口使用 ESM 导入：
 
 ```ts
-import {
-  createVerticalArithmetic,
-  renderDomGrid,
-} from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const { scene } = createVerticalArithmetic({
+const { rendered, inspection } = shushi({
   operation: 'addition',
   values: ['356', '278'],
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
 })
-const stage = renderDomGrid(scene)
-
-document.querySelector('#result')?.append(stage)
+console.log(rendered, inspection)
 ```
 
-`renderDomGrid` 返回一个 DOM 元素；`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。浏览器中可使用 `renderSvgGrid(scene)` 生成 SVG；服务端或脚本环境使用 `renderSvgString(scene)` 生成 SVG 字符串。
+`shushi({ renderMode: 'div' })` 返回一个 DOM 元素；传入 `el` 后会自动挂载。`renderMode: 'svg'` 返回并可挂载 `SVGSVGElement`，`renderMode: 'svg-string'` 返回适合客户端或 SSR 的 SVG 字符串。`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。
 
 ### 4.4 TypeScript 检查
 

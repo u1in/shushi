@@ -1,4 +1,4 @@
-import type { ApiAreaId, DocGroup, MacroDocApiNavGroup, MacroDocNavGroup, MacroDocPage } from './types'
+import type { ApiTierId, DocGroup, MacroDocApiNavGroup, MacroDocNavGroup, MacroDocPage } from './types'
 import { guidePages } from './guide'
 import { installPage } from './install'
 import { quickStartPage } from './quickstart'
@@ -24,7 +24,7 @@ export type * from './types'
 export const macroDocGroups: DocGroup[] = [
   { id: 'guide', title: '宏语言参考', description: '宏语言的目标、基础语法与阅读路线。' },
   { id: 'technical', title: '入门', description: '安装与快速使用；先跑通从源码到画面的链路。' },
-  { id: 'api', title: '宏 API', description: '按宏编译、渲染、网格和文本三个分组组织具体 API 页面。' },
+  { id: 'api', title: '宏 API', description: '按常用 API 与高级 API 两个使用层级组织具体 API 页面。' },
   { id: 'basic', title: '基础宏命令', description: '结构、配置与短除法；每个宏一页。' },
   { id: 'orientation', title: '方位宏命令', description: '九宫格文本定位、借位点简写与右边界文字；每个宏一页。' },
   { id: 'symbol', title: '符号与边框宏命令', description: '小数点、厂字弯与单元格边框；每个宏一页。' },
@@ -38,10 +38,27 @@ const removePracticeSections = (pages: MacroDocPage[]): MacroDocPage[] => pages.
   sections: page.sections.filter(({ id }) => id !== 'practice'),
 }))
 
+/** 按调用频率和使用门槛维护 API 页面顺序，顺序同时用于目录和页尾翻页。 */
+const apiTierOrder: Record<ApiTierId, string[]> = {
+  common: [
+    'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
+    'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
+  ],
+  advanced: [
+    'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
+    'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
+    'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
+    'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
+    'compileCalculatorMacro',
+    'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
+    'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
+  ],
+}
+
 const pagesByGroup: Record<DocGroup['id'], MacroDocPage[]> = {
   guide: removePracticeSections(guidePages),
   technical: removePracticeSections([installPage, quickStartPage]),
-  // API 页面在 technical/api 目录平铺；apiArea 只负责内容分类和覆盖检查。
+  // API 页面在 technical/api 目录平铺；apiTier 负责可见分层、顺序和覆盖检查。
   api: removePracticeSections([
     ...macroApiPages,
     ...renderApiPages,
@@ -56,27 +73,32 @@ const pagesByGroup: Record<DocGroup['id'], MacroDocPage[]> = {
   practice: removePracticeSections(practicePages),
 }
 
+const apiPagesBySlug = new Map(pagesByGroup.api.map((page) => [page.slug, page]))
+const orderedApiPages = (Object.values(apiTierOrder).flat()).map((slug) => apiPagesBySlug.get(slug)).filter((page): page is MacroDocPage => Boolean(page))
+const orderedPagesByGroup: Record<DocGroup['id'], MacroDocPage[]> = { ...pagesByGroup, api: orderedApiPages }
+
 /** 按导航顺序展开的全部页面。 */
-export const macroDocPages: MacroDocPage[] = macroDocGroups.flatMap(({ id }) => pagesByGroup[id])
+export const macroDocPages: MacroDocPage[] = macroDocGroups.flatMap(({ id }) => orderedPagesByGroup[id])
 
 /** 侧边栏使用的分组页面清单。 */
 export const macroDocNavGroups: MacroDocNavGroup[] = macroDocGroups.map((group) => ({
   ...group,
-  pages: pagesByGroup[group.id],
+  pages: orderedPagesByGroup[group.id],
 }))
 
-const apiAreaMeta: Record<ApiAreaId, Omit<MacroDocApiNavGroup, 'pages'>> = {
-  compile: { id: 'compile', title: '宏编译 API', description: '从源码解析、编译到格式化和压缩。' },
-  render: { id: 'render', title: '渲染 API', description: '将 GridScene 输出为 SVG 字符串、SVG 或 DOM/CSS 节点。' },
-  grid: { id: 'grid', title: '网格和文本 API', description: '描述场景、解析几何尺寸并提取视觉文本行。' },
-  layout: { id: 'layout', title: '布局 API', description: '把计算过程转换为宏源码或 GridScene。' },
-  calculator: { id: 'calculator', title: '计算 API', description: '输出与布局无关的逐步计算结果。' },
+const apiTierMeta: Record<ApiTierId, Omit<MacroDocApiNavGroup, 'pages'>> = {
+  common: { id: 'common', title: '常用 API', description: '大多数应用从这里开始：门户调用、宏源码处理、AST 交互和直接渲染。' },
+  advanced: { id: 'advanced', title: '高级 API', description: '面向定制渲染、逐层调试和框架内部扩展；普通调用通常不需要直接使用。' },
 }
 
-/** API 内部分类清单；可供测试和内容工具使用，但不生成可见的二级目录。 */
-export const macroDocApiNavGroups: MacroDocApiNavGroup[] = (Object.keys(apiAreaMeta) as ApiAreaId[]).map((id) => ({
-  ...apiAreaMeta[id],
-  pages: pagesByGroup.api.filter((page) => page.apiArea === id),
+const getOrderedApiPages = (tier: ApiTierId): MacroDocPage[] => apiTierOrder[tier]
+  .map((slug) => apiPagesBySlug.get(slug))
+  .filter((page): page is MacroDocPage => Boolean(page?.apiTier === tier))
+
+/** API 可见分层清单；每组内部已按预估使用频率从高到低排列。 */
+export const macroDocApiNavGroups: MacroDocApiNavGroup[] = (Object.keys(apiTierMeta) as ApiTierId[]).map((id) => ({
+  ...apiTierMeta[id],
+  pages: getOrderedApiPages(id),
 }))
 
 export const macroDocPageBySlug = new Map(macroDocPages.map((page) => [page.slug, page]))

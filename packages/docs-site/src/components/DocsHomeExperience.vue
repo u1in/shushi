@@ -12,8 +12,8 @@ const installCommand = 'npm install @u1in/shushi-core'
 const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y'
 const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.md'
 const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
-// 展示 Skill 安装后的最小使用方式，直接复用首页竖式示例中的 356 + 278 输入。
-const skillUsagePrompt = '$u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。'
+// 展示 Skill 安装后的最小使用方式，由 Skill 先询问运算式、渲染方式和相关配置。
+const skillUsagePrompt = '$u1in-shushi 请开始交互式竖式实现。'
 // 安装规则集中在公开 Markdown；这里的复制文案只保留任务目标，避免多处漂移。
 const aiInstallPrompt = `请阅读并严格遵循 ${agentInstallGuideUrl}，按其中说明完成 @u1in/shushi-core 的安装与验证。`
 // 先确认计算式和输出形态，避免 Agent 在缺少宿主上下文时直接修改代码。
@@ -41,21 +41,16 @@ const codeCopyTimer: CopyTimer = {}
 /** Hero demo 唯一使用这一份输入源码；输入变化后直接复用同一宏编译入口更新竖式。 */
 const heroMacroSource = ref('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const heroMacroError = ref('')
-const exampleCode = `import {
-  createVerticalArithmetic,
-  renderDomGrid,
-} from '@u1in/shushi-core'
+const exampleCode = `import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-// 门户 API 固定完成计算、宏源码与场景编译。
-const { computation, source, scene } = createVerticalArithmetic({
+const { computation, source, rendered, inspection } = shushi({
   operation: 'addition',
   values: ['356', '278'],
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
 })
-// 渲染层：把同一份 GridScene 转为 DOM 舞台
-const stage = renderDomGrid(scene)
-// 挂载到页面
-document.querySelector('#result')?.append(stage)`
+console.log(computation, source, rendered, inspection)`
 
 /** 复制文本；Clipboard API 不可用时回退到浏览器原生复制能力。 */
 const copyText = async (text: string): Promise<boolean> => {
@@ -341,21 +336,16 @@ onBeforeUnmount(() => {
             <small>展示从计算到渲染的最小完整链路</small>
           </div>
           <div class="docs-home-code-block">
-            <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> {
-  <span class="docs-code-function">createVerticalArithmetic</span>,
-  <span class="docs-code-function">renderDomGrid</span>,
-} <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
+            <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> { <span class="docs-code-function">shushi</span> } <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
 <span class="docs-code-keyword">import</span> <span class="docs-code-string">'@u1in/shushi-core/style.css'</span>
 
-<span class="docs-code-comment">// 门户 API 固定完成计算、宏源码与场景编译。</span>
-<span class="docs-code-keyword">const</span> { computation, source, scene } = <span class="docs-code-function">createVerticalArithmetic</span>({
+<span class="docs-code-keyword">const</span> { computation, source, rendered, inspection } = <span class="docs-code-function">shushi</span>({
   operation: <span class="docs-code-string">'addition'</span>,
   values: [<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>],
+  renderMode: <span class="docs-code-string">'div'</span>,
+  el: document.<span class="docs-code-function">querySelector</span>(<span class="docs-code-string">'#result'</span>) ?? <span class="docs-code-keyword">undefined</span>,
 })
-<span class="docs-code-comment">// 渲染层：把同一份 GridScene 转为 DOM 舞台</span>
-<span class="docs-code-keyword">const</span> stage = <span class="docs-code-function">renderDomGrid</span>(scene)
-<span class="docs-code-comment">// 挂载到页面</span>
-document.<span class="docs-code-function">querySelector</span>(<span class="docs-code-string">'#result'</span>)?.<span class="docs-code-function">append</span>(stage)</code></pre>
+console.<span class="docs-code-function">log</span>(computation, source, rendered, inspection)</code></pre>
           <button
             class="docs-home-copy-button docs-home-icon-button docs-home-code-copy-button"
             type="button"

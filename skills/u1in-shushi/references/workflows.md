@@ -6,12 +6,15 @@
 
 需要修改宿主项目时，先向用户确认完整运算式、接入的页面/组件/容器或是否仅导出 SVG，以及页面渲染采用 DOM/CSS 还是 SVG。若涉及宏编辑、播放步骤或图元交互，也要一并确认；用户已经提供的信息不要重复询问。确认前不要选择宿主文件或直接开工。
 
+识别运算类型后，列出当前运算相关的布局和计算配置，并为每项给出默认值；用户回复“默认”时直接采用默认配置。通用默认值为 `cellWidth=30`、`rowHeight=46`、`fontSizeRatio=1`、`showGuideGrid=false`、完整 `visibleStepCount`。加法默认显示进位，减法默认显示借位，乘法默认显示进位且不使用等宽横线，长除法默认余数模式且不显示零商步骤，短除法默认显示余数；只有用户要求时才逐项覆盖。
+
 如果只导出 SVG，还要区分浏览器 SVG 节点和 SSR/Node.js SVG 字符串；纯计算或 SVG 字符串导出不引入 DOM 依赖。确认后再按“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”实现，并保持各层职责边界。修改宿主项目时遵守项目 `AGENTS.md`，完成后说明改动文件和验证结果。
 
 ## 1. 先判断需求类型
 
 | 用户需求 | 首选流程 |
 | --- | --- |
+| 根据数值直接生成并显示标准竖式 | `shushi({ operation, ..., renderMode, el })` |
 | 只要计算结果或计算过程 | `compute*`，不引入渲染器 |
 | 要显示标准竖式 | `compute* → create*MacroSource → compileMacro → render*` |
 | 要逐步教学播放 | 先取得 `get*StepCount`，再把 `visibleStepCount` 传给布局器 |
@@ -24,6 +27,10 @@
 | 要服务端生成数据或 SVG | 不调用 `renderDomGrid` / `renderSvgGrid`；使用纯数据 API、`compileMacro` 或 `renderSvgString` |
 
 ## 2. 标准数值竖式流程
+
+数值输入优先使用 `shushi`：客户端交互显示传 `renderMode: 'div'` 或 `'svg'`，可选传 `el` 自动挂载；SSR/Node.js 传 `renderMode: 'svg-string'`。门户返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`，需要图元编辑时直接使用返回的 `inspection`。
+
+只有需要拆层调试、完全手写宏或使用高级布局设置时，才展开以下底层步骤：
 
 1. 保留用户输入为字符串，先调用对应的 `compute*`。
 2. 用计算结果调用对应的 `create*MacroSource`。

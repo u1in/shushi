@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createVerticalArithmetic, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
+import { shushi, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
 import type { CompositeArithmeticComputation, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
+import CodeImplementationPanel from './CodeImplementationPanel.vue'
+import { createShushiImplementationSnippet } from './implementationSnippets'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 
 const expression = ref('125 + 75 - 20 × 3')
@@ -20,7 +22,7 @@ const answer = computed(() => computation.value?.resultDigits ?? '—')
 
 const renderScene = (shouldRenderWithoutComputation = false): void => {
   if (!shouldRenderWithoutComputation && !computation.value) return
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'composite',
     expression: expression.value,
     settings: {
@@ -49,6 +51,20 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
+const implementationCode = computed(() => createShushiImplementationSnippet({
+  operation: 'composite',
+  fields: [['expression', expression.value]],
+  settings: [
+    ['cellWidth', 30],
+    ['rowHeight', 46],
+    ['fontSizeRatio', 1],
+    ['showGuideGrid', showGuideGrid.value],
+    ['showCarrySteps', showCarrySteps.value],
+    ['showBorrowSteps', showBorrowSteps.value],
+    ['uniformMultiplicationBars', false],
+    ['visibleStepCount', visibleStepCount.value],
+  ],
+}))
 
 const calculate = (): void => {
   try {
@@ -86,15 +102,15 @@ calculate()
         <p class="error-message" role="alert">{{ error }}</p>
         <div class="settings-panel">
           <div class="settings-switch-group">
-            <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="renderScene" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
-            <label class="switch-field"><input v-model="showCarrySteps" type="checkbox" @change="renderScene" /><span class="switch-ui" aria-hidden="true"></span><span>显示加法/乘法进位</span></label>
-            <label class="switch-field"><input v-model="showBorrowSteps" type="checkbox" @change="renderScene" /><span class="switch-ui" aria-hidden="true"></span><span>显示减法借位</span></label>
+            <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
+            <label class="switch-field"><input v-model="showCarrySteps" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示加法/乘法进位</span></label>
+            <label class="switch-field"><input v-model="showBorrowSteps" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示减法借位</span></label>
           </div>
         </div>
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">SINGLE VERTICAL EXPRESSION</p><h2>{{ expression }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /></div>
+          <div class="result-heading"><div><p class="panel-kicker">SINGLE VERTICAL EXPRESSION</p><h2>{{ expression }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">组合乘法固定关闭 10 倍数快捷计算，也不会为了排版调换上下操作数；每一步结果会紧接下一步继续计算。</p>
           <StepPlaybackControls
             :current-step="currentStep"
@@ -110,7 +126,11 @@ calculate()
           <GridPreview v-if="scene" :scene="scene" mode="both" />
         </div>
       </section>
-      <VisibleTextRowsPanel v-if="scene" :scene="scene" />
+      <CodeImplementationPanel
+        title="组合表达式与连续竖式"
+        description="组合入口按表达式生成一个连续 GridScene，并用全局 visibleStepCount 控制播放进度。"
+        :code="implementationCode"
+      />
     </section>
   </div>
 </template>

@@ -7,8 +7,8 @@
 /** 文档分组：决定左侧导航的章节顺序，也用于面包屑。 */
 export type DocGroupId = 'guide' | 'technical' | 'api' | 'basic' | 'orientation' | 'symbol' | 'sugar' | 'practice'
 
-/** API 参考的内部分类；不会单独生成页面或可见的二级目录。 */
-export type ApiAreaId = 'compile' | 'render' | 'grid' | 'layout' | 'calculator'
+/** API 参考的使用分层；常用 API 面向日常调用，高级 API 面向定制和框架内部扩展。 */
+export type ApiTierId = 'common' | 'advanced'
 
 export interface DocGroup {
   id: DocGroupId
@@ -60,8 +60,8 @@ export interface MacroDocPage {
   kicker: string
   group: DocGroupId
   summary: string
-  /** 仅 API 页面使用；用于维护 API 分类和测试覆盖范围。 */
-  apiArea?: ApiAreaId
+  /** 仅 API 页面使用；用于维护 API 分层、侧边栏顺序和测试覆盖范围。 */
+  apiTier?: ApiTierId
   sections: DocSection[]
 }
 
@@ -70,9 +70,9 @@ export interface MacroDocNavGroup extends DocGroup {
   pages: MacroDocPage[]
 }
 
-/** API 的内部分类清单，页面仍复用统一的 MacroDocPage 数据模型。 */
+/** API 的可见分层清单，页面仍复用统一的 MacroDocPage 数据模型。 */
 export interface MacroDocApiNavGroup {
-  id: ApiAreaId
+  id: ApiTierId
   title: string
   description: string
   pages: MacroDocPage[]

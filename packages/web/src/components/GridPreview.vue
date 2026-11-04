@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { resolveGridMetrics } from '@u1in/shushi-grid'
 import { renderDomGrid, renderSvgGrid } from '@u1in/shushi-renderers'
 import type { GridScene } from '@u1in/shushi-grid'
@@ -16,7 +16,11 @@ const emit = defineEmits<{ elementClick: [elementId: string] }>()
 
 const svgHost = ref<HTMLElement>()
 const domHost = ref<HTMLElement>()
+const svgViewport = ref<HTMLElement>()
+const domViewport = ref<HTMLElement>()
 const metrics = computed(() => resolveGridMetrics(props.scene))
+const viewportWidths = ref({ svg: 0, dom: 0 })
+let resizeObserver: ResizeObserver | undefined
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
@@ -47,6 +51,37 @@ const syncSelectedElement = (): void => {
   svg.appendChild(border)
 }
 
+/** 窄容器时缩小固定坐标的 GridScene，宽容器时保持原始字号，避免数字被意外放大。 */
+const getStageScale = (viewportWidth: number): number => {
+  if (!viewportWidth || !metrics.value.width) return 1
+  return Math.min(1, viewportWidth / metrics.value.width)
+}
+
+const svgScale = computed(() => getStageScale(viewportWidths.value.svg))
+const domScale = computed(() => getStageScale(viewportWidths.value.dom))
+const svgStageHeight = computed(() => metrics.value.height * svgScale.value)
+const domStageHeight = computed(() => metrics.value.height * domScale.value)
+
+const syncStageScale = (): void => {
+  const stages: Array<[HTMLElement | SVGElement | undefined, number]> = [
+    [svgHost.value?.querySelector('.grid-svg') as SVGElement | undefined, svgScale.value],
+    [domHost.value?.querySelector('.grid-dom-stage') as HTMLElement | undefined, domScale.value],
+  ]
+  stages.forEach(([stage, scale]) => {
+    if (!stage) return
+    stage.style.transformOrigin = 'top left'
+    stage.style.transform = 'scale(' + scale + ')'
+  })
+}
+
+const updateViewportWidths = (): void => {
+  viewportWidths.value = {
+    svg: svgViewport.value?.clientWidth ?? 0,
+    dom: domViewport.value?.clientWidth ?? 0,
+  }
+  syncStageScale()
+}
+
 /**
  * 渲染器直接返回创建好的 SVG/DOM 舞台；这里只负责挂载，并补充主应用的样式类。
  */
@@ -62,12 +97,27 @@ const render = async (): Promise<void> => {
     stage.classList.add('division-dom')
     domHost.value.replaceChildren(stage)
   }
+  syncStageScale()
   syncSelectedElement()
 }
 
-onMounted(render)
+onMounted(() => {
+  render()
+  if (typeof ResizeObserver === 'undefined') {
+    updateViewportWidths()
+    return
+  }
+  resizeObserver = new ResizeObserver(updateViewportWidths)
+  if (svgViewport.value) resizeObserver.observe(svgViewport.value)
+  if (domViewport.value) resizeObserver.observe(domViewport.value)
+  updateViewportWidths()
+})
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+})
 watch(() => props.scene, render)
 watch(() => props.selectedElementId, syncSelectedElement)
+watch([svgScale, domScale], syncStageScale)
 
 /** 通过渲染器写入的通用元素 ID 向上抛出事件，AST 查询由调用方自行处理。 */
 const handleElementClick = (event: MouseEvent): void => {
@@ -81,15 +131,15 @@ const handleElementClick = (event: MouseEvent): void => {
   <div class="renderer-comparison" :class="{ 'renderer-comparison--both': mode === 'both', 'renderer-comparison--interactive': interactive }">
     <section v-if="mode !== 'dom'" class="renderer-panel">
       <h3>SVG</h3>
-      <div class="stage-scroll">
+      <div ref="svgViewport" class="stage-scroll">
         <!-- 该相对定位容器为渲染器返回的绝对定位图元提供统一坐标系。 -->
-        <div ref="svgHost" class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }" @click="handleElementClick"></div>
+        <div ref="svgHost" class="division-stage" :style="{ width: '100%', height: svgStageHeight + 'px' }" @click="handleElementClick"></div>
       </div>
     </section>
     <section v-if="mode !== 'svg'" class="renderer-panel">
       <h3>DIV + CSS</h3>
-      <div class="stage-scroll">
-        <div ref="domHost" class="division-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }" @click="handleElementClick"></div>
+      <div ref="domViewport" class="stage-scroll">
+        <div ref="domHost" class="division-stage" :style="{ width: '100%', height: domStageHeight + 'px' }" @click="handleElementClick"></div>
       </div>
     </section>
   </div>

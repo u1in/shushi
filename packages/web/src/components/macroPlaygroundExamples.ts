@@ -1,4 +1,4 @@
-import { createVerticalArithmetic } from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import { formatMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 
 export interface MacroExample {
@@ -18,7 +18,7 @@ const DEFAULT_GRID_SETTINGS = {
 const toPlaygroundSource = (source: string): string => minifyMacroForCopy(source)
 
 const createAdditionExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'addition',
     values: ['356', '278'],
     settings: { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true },
@@ -31,7 +31,7 @@ const createAdditionExample = (): MacroExample => {
 }
 
 const createSubtractionExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'subtraction',
     operands: ['502', '137'],
     settings: { ...DEFAULT_GRID_SETTINGS, showBorrowSteps: true },
@@ -44,7 +44,7 @@ const createSubtractionExample = (): MacroExample => {
 }
 
 const createMultiplicationExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'multiplication',
     operands: ['97', '89'],
     settings: {
@@ -61,7 +61,7 @@ const createMultiplicationExample = (): MacroExample => {
 }
 
 const createDivisionExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'division',
     divisor: '25',
     dividend: '10230',
@@ -81,7 +81,7 @@ const createDivisionExample = (): MacroExample => {
 }
 
 const createFactorizationExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'shortDivision',
     mode: 'factorization',
     values: ['60'],
@@ -96,7 +96,7 @@ const createFactorizationExample = (): MacroExample => {
 }
 
 const createCommonFactorExample = (): MacroExample => {
-  const result = createVerticalArithmetic({
+  const result = shushi({
     operation: 'shortDivision',
     mode: 'commonFactor',
     values: ['60', '84'],

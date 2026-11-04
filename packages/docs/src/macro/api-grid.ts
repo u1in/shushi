@@ -1,7 +1,10 @@
 import type { MacroDocPage } from './types'
 
 /** 网格与文本 API 页面共用的固定阅读顺序。 */
-const gridPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiArea: 'grid' })
+const gridPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiTier: 'common' })
+
+/** 几何计算属于渲染器和调试工具的扩展接口，普通调用方不需要直接拆解。 */
+const advancedGridPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiTier: 'advanced' })
 
 export const gridScenePage = gridPage({
   slug: 'GridScene', title: 'GridScene', navLabel: 'GridScene',
@@ -53,7 +56,7 @@ console.log(scene.columns.length, scene.rows.length)`,
   ],
 })
 
-export const resolveGridMetricsPage = gridPage({
+export const resolveGridMetricsPage = advancedGridPage({
   slug: 'resolveGridMetrics', title: 'resolveGridMetrics', navLabel: 'resolveGridMetrics',
   kicker: 'API · GRID AND TEXT', group: 'api',
   summary: '把 GridScene 的轨道和留白解析为三个渲染入口共用的像素尺寸。',
@@ -93,7 +96,7 @@ interface GridMetrics {
   ],
 })
 
-export const getGridPositionRectPage = gridPage({
+export const getGridPositionRectPage = advancedGridPage({
   slug: 'getGridPositionRect', title: 'getGridPositionRect', navLabel: 'getGridPositionRect',
   kicker: 'API · GRID AND TEXT', group: 'api',
   summary: '把单元格、交点、边或边中点位置解析为网格矩形。',
@@ -127,7 +130,7 @@ console.log(rect.left, rect.top, rect.width, rect.height)`,
   ],
 })
 
-export const getGridElementRectPage = gridPage({
+export const getGridElementRectPage = advancedGridPage({
   slug: 'getGridElementRect', title: 'getGridElementRect', navLabel: 'getGridElementRect',
   kicker: 'API · GRID AND TEXT', group: 'api',
   summary: '根据 GridElement 自带的位置声明解析其几何矩形。',
@@ -162,7 +165,7 @@ console.log(rect)`,
   ],
 })
 
-export const getGridTextAnchorPage = gridPage({
+export const getGridTextAnchorPage = advancedGridPage({
   slug: 'getGridTextAnchor', title: 'getGridTextAnchor', navLabel: 'getGridTextAnchor',
   kicker: 'API · GRID AND TEXT', group: 'api',
   summary: '根据矩形和文本对齐方式计算渲染器共用的文本锚点。',

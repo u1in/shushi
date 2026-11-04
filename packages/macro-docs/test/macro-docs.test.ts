@@ -15,7 +15,7 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
+  'intro', 'install', 'quickstart', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
   'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
   'getGridTextAnchor', 'extractVisibleTextRows',
   'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
@@ -108,33 +108,28 @@ describe('网格宏文档', () => {
 
     expect(pagesOf('technical')).toEqual(['install', 'quickstart'])
     expect(pagesOf('api')).toEqual([
-      'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
-      'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect',
-      'getGridElementRect', 'getGridTextAnchor', 'extractVisibleTextRows',
-      'createVerticalArithmetic',
-      'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
-      'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
-      'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
-      'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
-      'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
-      'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision',
+      'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
+      'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
+      'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
+      'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
+      'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
+      'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
+      'compileCalculatorMacro', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
+      'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
     ])
     expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
-      ['宏编译 API', ['compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection']],
-      ['渲染 API', ['renderSvgGrid', 'renderSvgString', 'renderDomGrid']],
-      ['网格和文本 API', [
-        'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
-        'extractVisibleTextRows',
+      ['常用 API', [
+        'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
+        'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
       ]],
-      ['布局 API', [
-        'createVerticalArithmetic',
-        'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
-        'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
-        'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
-        'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
-        'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
+      ['高级 API', [
+        'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
+        'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
+        'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
+        'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
+        'compileCalculatorMacro', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
+        'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
       ]],
-      ['计算 API', ['computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision']],
     ])
     expect(pagesOf('orientation')).toEqual([
       'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
@@ -220,7 +215,7 @@ describe('网格宏文档', () => {
     expect(getMacroDocPath('install')).toBe('/macro-api')
     expect(getMacroDocPath('quickstart')).toBe('/macro-api/quickstart')
     expect(getMacroDocNeighbors('install').previous).toBeUndefined()
-    expect(getMacroDocNeighbors('computeShortDivision').next).toBeUndefined()
+    expect(getMacroDocNeighbors('getCompositeArithmeticStepCount').next).toBeUndefined()
   })
 
   test('页面内“继续阅读”链接都能落到文档页', () => {

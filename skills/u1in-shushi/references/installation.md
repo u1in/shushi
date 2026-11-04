@@ -118,23 +118,21 @@ node --input-type=module -e "import { compileMacro, computeCompositeArithmetic, 
 统一入口使用 ESM 导入：
 
 ```ts
-import {
-  compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
-  renderDomGrid,
-} from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const computation = computeAddition('356', '278')
-const source = createAdditionMacroSource(computation)
-const scene = compileMacro(source)
-const stage = renderDomGrid(scene)
+const host = document.querySelector('#result')
+const { computation, source, rendered, inspection } = shushi({
+  operation: 'addition',
+  values: ['356', '278'],
+  renderMode: 'div',
+  el: host ?? undefined,
+})
 
-document.querySelector('#result')?.append(stage)
+console.log(computation, source, rendered, inspection)
 ```
 
-`renderDomGrid` 返回一个 DOM 元素；`@u1in/shushi-core/style.css` 提供 `.grid-text`、`.grid-edge`、`.grid-corner` 和辅助网格的基础定位与视觉样式。应用可以在此基础上覆盖主题变量。浏览器中可使用 `renderSvgGrid(scene)` 生成 SVG；服务端或脚本环境使用 `renderSvgString(scene)` 生成 SVG 字符串。
+`shushi({ renderMode: 'div' })` 返回一个 DOM 元素；传入 `el` 后会自动挂载。使用 `renderMode: 'svg'` 返回并可挂载 SVG DOM，使用 `renderMode: 'svg-string'` 返回适合客户端或 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `svg-string`。浏览器入口仍需导入 `@u1in/shushi-core/style.css`。
 
 ### 4.4 TypeScript 检查
 

@@ -1,11 +1,37 @@
 ---
 name: u1in-shushi
-description: Use when an agent needs to install or use @u1in/shushi-core for vertical arithmetic calculation, teaching layouts, editable macro source, GridScene inspection, playback, DOM rendering, SVG rendering, or SSR SVG string output.
+description: Use when an agent needs to install or use @u1in/shushi-core for vertical arithmetic calculation, teaching layouts, editable macro source, GridScene inspection, playback, DOM rendering, SVG rendering, or SSR SVG string output; implementation requests begin with an interactive requirements check.
 ---
 
 # `u1in-shushi` Skill
 
 这个 Skill 用于让 agent 使用 npm 包 `@u1in/shushi-core` 完成单项或组合竖式运算、教学步骤展示、可编辑宏源码、网格分析、DOM/SVG 渲染以及 SSR SVG 字符串输出任务。
+
+## 0. 交互式启动流程（优先）
+
+当用户通过 `$u1in-shushi` 请求新建或接入竖式时，先完成需求确认，再选择 API、读取实现资料或修改宿主代码。用户已经明确提供的信息不要重复询问；必要信息未齐全时，先提问并等待回答。
+
+第一轮确认以下内容：
+
+1. **计算式**：要计算的完整表达式或输入数据。长除法需明确除数和被除数；短除法需明确 `factorization`、`commonFactor` 或 `baseConversion` 模式。
+2. **输出方式**：
+   - 页面中的 DOM/CSS：需要页面、组件或 DOM 容器；
+   - 浏览器 SVG 节点：需要页面或组件挂载位置；
+   - SVG 字符串：用于 SSR、Node.js 或导出文件；
+   - 仅返回计算结果、宏源码或 `GridScene`，不渲染。
+3. **教学与交互**：是否保留可编辑宏源码，是否需要播放步骤、图元交互或完整结果。未指定时默认保留 `source` 和 `scene`，显示完整结果，不额外实现播放和交互。
+
+识别运算类型后，向用户列出当前运算相关的配置并标注默认值；用户回复“默认”即可采用默认配置。不要要求用户重复填写不需要修改的选项：
+
+- **通用网格**：`cellWidth=30`、`rowHeight=46`、`fontSizeRatio=1`、`showGuideGrid=false`、`visibleStepCount=完整结果`。
+- **加法**：`showCarrySteps=true`。
+- **减法**：`showBorrowSteps=true`。
+- **乘法**：`showCarrySteps=true`、`uniformMultiplicationBars=false`；计算选项 `useTrailingZeroShortcut=true`、`preserveOperandOrder=false`。
+- **长除法**：`resultMode=remainder`、`maxDecimalDigits=24`、`bracketBend=1`、`uniformSubtractionBars=false`、`showZeroQuotientSteps=false`。
+- **短除法**：`showRemainders=true`。
+- **组合竖式**：`showCarrySteps=true`、`showBorrowSteps=false`、`uniformMultiplicationBars=false`。
+
+确认前不要选择宿主文件、决定渲染器或开始实现。数值竖式优先使用 `shushi` 门户 API；只有需要拆层调试、手写宏或高级几何时，才展开“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”链路。遵守宿主项目 `AGENTS.md`，并在完成后说明改动文件、使用的 API、输出方式和验证结果。
 
 ## 使用资料
 
@@ -54,22 +80,59 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
 
 1. 统一从 `@u1in/shushi-core` 导入公开 API，不依赖包内部路径或内部工作区。
 2. 运算输入优先使用十进制字符串，避免大整数转换为 JavaScript `number` 后丢失精度。
-3. 标准数值流程是：
+3. 标准数值流程优先是：
+
+   ```ts
+   const result = shushi({
+     operation: 'addition',
+     values: ['356', '278'],
+     renderMode: 'div',
+     el: document.querySelector('#result') ?? undefined,
+   })
+   ```
+
+   `result` 包含 `computation`、`source`、`scene`、`rendered` 和 `inspection`。省略 `renderMode` 时返回 SSR 安全的 SVG 字符串；浏览器 DOM 使用 `div` 或 `svg`，服务端使用 `svg-string`。
+
+4. 需要拆层调试或手写宏时，标准底层流程是：
 
    ```text
    compute* → create*MacroSource → compileMacro → renderDomGrid/renderSvgGrid/renderSvgString
    ```
 
-4. 计算器只负责运算过程和语义数据；布局器把计算结果转换成宏源码；宏编译器生成 `GridScene`；渲染器只消费 `GridScene`。
-5. 用户给出或需要编辑宏源码时，使用 `parseMacro`、`formatMacro`、`completeMacro`、`minifyMacro`、`createMacroAstInspection` 和 `compileMacro`，不要重新实现运算；计算器宏的复制文本必须用 `minifyMacroForCopy`，不能自行裁剪字符串。
-6. 浏览器渲染需要导入 `@u1in/shushi-core/style.css`；纯计算、宏处理、几何查询和文本提取不需要 CSS。
-7. `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM；Node.js/SSR 场景使用纯数据 API、`compileMacro`、`renderSvgString` 或延迟到浏览器渲染。
-8. `computeDivision` 的参数顺序是 `divisorValue, dividendValue`，即除数在前、被除数在后。
-9. `createMacroAstInspection` 是不可变 API：`updateElementText` 返回新的检查结果，不修改旧对象；更新后必须用新结果的 `scene` 重新渲染。
+5. 计算器只负责运算过程和语义数据；布局器把计算结果转换成宏源码；宏编译器生成 `GridScene`；渲染器只消费 `GridScene`。
+6. 用户给出或需要编辑宏源码时，使用 `parseMacro`、`formatMacro`、`completeMacro`、`minifyMacro`、`createMacroAstInspection` 和 `compileMacro`，不要重新实现运算；计算器宏的复制文本必须用 `minifyMacroForCopy`，不能自行裁剪字符串。
+7. 浏览器渲染需要导入 `@u1in/shushi-core/style.css`；纯计算、宏处理、几何查询和文本提取不需要 CSS。
+8. `renderDomGrid` 与 `renderSvgGrid` 需要浏览器 DOM；Node.js/SSR 场景使用纯数据 API、`compileMacro`、`renderSvgString` 或延迟到浏览器渲染。
+9. `computeDivision` 的参数顺序是 `divisorValue, dividendValue`，即除数在前、被除数在后。
+10. `createMacroAstInspection` 是不可变 API：`updateElementText` 返回新的检查结果，不修改旧对象；更新后必须用新结果的 `scene` 重新渲染。
 
 ## 3. 公开 API 速查
 
 以下函数都从 `@u1in/shushi-core` 统一导入。完整字段、边界和返回结构见 [完整 API 清单](references/api.md)。
+
+### 门户 API
+
+```ts
+type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
+
+shushi(request: ShushiRequest<VerticalArithmeticRequest>): VerticalArithmeticResult
+```
+
+数值输入优先调用 `shushi`。请求按 `operation` 选择加法、减法、乘法、长除法、短除法或组合竖式；`renderMode: 'div'` 返回并可挂载 `HTMLElement`，`'svg'` 返回并可挂载 `SVGSVGElement`，`'svg-string'` 返回可用于客户端和 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `'svg-string'`；`el` 仅可与客户端模式一起使用。返回的 `inspection` 可通过 `references` 定位图元，再调用 `updateElementText` 产生新的源码、场景和检查结果。
+
+```ts
+import { shushi } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
+
+const result = shushi({
+  operation: 'addition',
+  values: ['356', '278'],
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
+})
+
+console.log(result.computation, result.source, result.rendered, result.inspection)
+```
 
 ### 计算器
 

@@ -42,6 +42,11 @@
   text-rendering: optimizeLegibility;
 }
 
+html {
+  scroll-padding-top: 104px;
+  scroll-behavior: smooth;
+}
+
 html[data-theme='light'] {
   color-scheme: light;
 }
@@ -138,7 +143,7 @@ textarea {
 .page-shell {
   width: min(1820px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 70px 0 90px;
+  padding: 88px 0 90px;
 }
 
 .eyebrow {
@@ -230,10 +235,79 @@ h1 {
   margin-bottom: 38px;
 }
 
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  right: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0;
+  padding: 10px max(20px, calc((100vw - 1820px) / 2 + 14px));
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  box-shadow: 0 14px 36px var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.site-header__brand {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header__brand:hover {
+  color: var(--accent);
+}
+
+.site-header__nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.site-header__nav a {
+  flex: 0 0 auto;
+  border-radius: 9px;
+  padding: 8px 9px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header__nav a:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.site-header__nav a:focus-visible,
+.site-header__brand:focus-visible {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 2px;
+}
+
 /* Reusable container for one operation's controls, result, and operation-specific links. */
 .operation-demo {
   display: grid;
   gap: 16px;
+  scroll-margin-top: 104px;
 }
 
 .operation-demo + .operation-demo {
@@ -251,13 +325,17 @@ h1 {
 
 .ast-selection-details {
   display: grid;
-  gap: 10px;
-  margin: 22px 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
 }
 
 .ast-selection-details div {
   display: grid;
   gap: 3px;
+  min-width: 0;
 }
 
 .ast-selection-details dt {
@@ -271,6 +349,34 @@ h1 {
   overflow-wrap: anywhere;
   color: #253657;
   font: 700 0.77rem/1.45 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.ast-selection-details .ast-edit-cell dd {
+  display: grid;
+  gap: 8px;
+  overflow: visible;
+}
+
+.ast-selection-details input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  padding: 9px 11px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font: 700 0.84rem/1.4 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.ast-selection-details input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-focus);
+  outline: none;
+}
+
+.ast-selection-details input:disabled {
+  cursor: not-allowed;
+  color: var(--text-faint);
 }
 
 .macro-ast-inspector .macro-source-field input {
@@ -361,12 +467,11 @@ h1 {
   font-weight: 700;
 }
 
-.macro-insert-toolbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 20px 0 10px;
+.macro-format-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 10px;
 }
 
 .macro-format-toolbar {
@@ -374,47 +479,15 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 10px 0;
+  min-width: 0;
 }
 
-.macro-insert-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
-
-.macro-insert-header > span,
 .macro-format-toolbar > span {
   margin-right: 3px;
   color: #63718b;
   font-size: 0.78rem;
   font-weight: 800;
-}
-
-.macro-format-toolbar > span {
   flex-basis: 100%;
-}
-
-.macro-insert-groups {
-  flex-basis: 100%;
-  display: grid;
-  gap: 8px;
-}
-
-.macro-insert-group {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.macro-insert-group-label {
-  flex: 0 0 4.5rem;
-  color: #63718b;
-  font-size: 0.72rem;
-  font-weight: 800;
 }
 
 .macro-insert-button {
@@ -469,14 +542,14 @@ h1 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(400px, 0.86fr) minmax(0, 2.1fr) minmax(280px, 0.7fr);
+  grid-template-columns: minmax(360px, 0.86fr) minmax(0, 2fr) 600px;
   gap: 18px;
 }
 
 .control-panel,
 .settings-panel,
 .result-card,
-.ocr-panel {
+.code-panel {
   border: 1px solid rgba(209, 218, 235, 0.88);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.84);
@@ -717,6 +790,17 @@ button:disabled {
   background: #edf2fb;
 }
 
+.outline-button {
+  border: 1px solid var(--accent);
+  color: var(--accent-strong);
+  background: transparent;
+}
+
+.outline-button:hover {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
 .field input,
 .division-operator,
 .range-field output,
@@ -953,6 +1037,72 @@ button:disabled {
   overflow: hidden;
 }
 
+.code-panel {
+  align-self: stretch;
+  min-width: 0;
+  width: 600px;
+  max-width: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-panel h2 {
+  margin-top: 6px;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+
+.code-panel__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.code-panel__language {
+  color: var(--text-subtle);
+  font: 700 0.75rem/1 ui-monospace, "Cascadia Code", Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.code-panel__copy {
+  padding: 8px 11px;
+  font-size: 0.76rem;
+}
+
+.code-panel__source {
+  max-height: 520px;
+  margin: 10px 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--border-code);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--surface-code);
+  color: var(--text);
+  font: 0.78rem/1.65 ui-monospace, "Cascadia Code", Consolas, monospace;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.code-panel__source code {
+  display: block;
+  max-width: 100%;
+  font: inherit;
+}
+
+.code-token--comment { color: #7b879b; }
+.code-token--keyword { color: #9b4c9b; }
+.code-token--string { color: #ad6426; }
+.code-token--literal { color: #317a8c; }
+.code-token--number { color: #3e6da6; }
+.code-token--function { color: #31539e; }
+
 .result-content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.22fr) minmax(330px, .78fr);
@@ -1002,24 +1152,19 @@ h2 {
   font-size: 0.84rem;
 }
 
-/* 首页示例复用同一块 API 输出面板，作为结果卡之外的独立 OCR 板块。 */
-.ocr-panel {
-  align-self: start;
-  min-width: 0;
-  padding: 24px;
-}
-
-.ocr-panel h2 {
-  margin-top: 6px;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
-}
-
 .visible-text-rows__button {
-  width: 100%;
-  margin-top: 16px;
   padding: 9px 12px;
   font-size: 0.78rem;
+}
+
+.result-heading .visible-text-rows__button {
+  width: auto;
+  margin-top: 0;
+}
+
+.macro-playground .result-heading > .visible-text-rows,
+.macro-ast-inspector .result-heading > .visible-text-rows {
+  margin-left: auto;
 }
 
 .visible-text-rows__output {
@@ -1030,6 +1175,60 @@ h2 {
   border-radius: 12px;
   padding: 12px;
   background: #f8faff;
+}
+
+.ocr-modal {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(16, 28, 52, 0.58);
+}
+
+.ocr-modal__content {
+  width: min(560px, 100%);
+  max-height: min(640px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--surface-raised);
+  box-shadow: 0 24px 80px rgba(8, 18, 38, 0.32);
+}
+
+.ocr-modal__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.ocr-modal__header h2 {
+  margin-top: 6px;
+  font-size: 1.35rem;
+}
+
+.ocr-modal__close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.ocr-modal__close:hover {
+  color: var(--text-strong);
+  background: var(--surface-soft);
+}
+
+.ocr-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
 }
 
 .visible-text-rows__output p {
@@ -1110,14 +1309,16 @@ h2 {
 }
 
 .stage-scroll {
+  min-width: 0;
   margin: 12px 0 0;
-  overflow-x: auto;
+  overflow: hidden;
   padding: 8px 0;
 }
 
 .division-stage {
   position: relative;
-  min-width: 440px;
+  width: 100%;
+  min-width: 0;
   min-height: 220px;
   color: #172033;
   /* 厂字弯与厂字横是同一视觉部件，固定共用颜色，避免两个渲染器分色。 */
@@ -1128,11 +1329,13 @@ h2 {
   position: absolute;
   inset: 0;
   display: block;
+  transform-origin: top left;
 }
 
 .division-dom {
   position: absolute;
   inset: 0;
+  transform-origin: top left;
 }
 
 .division-line-layer,
@@ -1617,7 +1820,22 @@ h2 {
 @media (max-width: 800px) {
   .page-shell {
     width: min(100% - 24px, 680px);
-    padding-top: 40px;
+    padding-top: 124px;
+  }
+
+  html {
+    scroll-padding-top: 140px;
+  }
+
+  .site-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .site-header__nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
   }
 
   .back-to-top {
@@ -1637,6 +1855,10 @@ h2 {
     grid-column: auto;
   }
 
+  .macro-ast-inspector .ast-selection-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .settings-controls {
     grid-template-columns: 1fr;
   }
@@ -1654,13 +1876,12 @@ h2 {
   }
 }
 
-@media (max-width: 1180px) and (min-width: 801px) {
+@media (max-width: 1380px) and (min-width: 801px) {
   .workspace {
     grid-template-columns: minmax(320px, 0.9fr) minmax(0, 2fr);
   }
 
-  /* 中等宽度下第三列放不下，OCR 板块落到工作区下方并横跨两列。 */
-  .ocr-panel {
+  .code-panel {
     grid-column: 1 / -1;
   }
 
@@ -1686,7 +1907,7 @@ h2 {
 
   .control-panel,
   .result-card,
-  .ocr-panel {
+  .code-panel {
     padding: 20px;
   }
 
@@ -1709,6 +1930,10 @@ h2 {
   }
 
   .short-division-mode-group {
+    grid-template-columns: 1fr;
+  }
+
+  .macro-ast-inspector .ast-selection-details {
     grid-template-columns: 1fr;
   }
 }
@@ -1737,7 +1962,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 /* 设置控件是外层控制面板内部的截图区域，沿用基础样式的透明背景与无边界状态。 */
 .control-panel,
 .result-card,
-.ocr-panel {
+.code-panel {
   border-color: var(--border);
   background: var(--surface);
   box-shadow: 0 20px 60px var(--shadow);
@@ -1745,7 +1970,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 
 .control-panel,
 .result-card,
-.ocr-panel,
+.code-panel,
 .renderer-panel,
 .data-flow-section {
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
@@ -1785,6 +2010,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 .answer { color: var(--accent); }
 .primary-button { color: var(--accent-contrast); background: var(--accent); box-shadow: 0 8px 18px var(--shadow-accent); }
 .ghost-button { color: var(--accent-strong); background: var(--accent-soft); }
+.outline-button { color: var(--accent-strong); border-color: var(--accent); background: transparent; }
 .macro-insert-button { color: var(--accent-strong); }
 .macro-insert-button:hover { color: var(--accent-contrast); background: var(--accent); }
 .macro-insert-button:focus-visible,
@@ -1814,6 +2040,13 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 }
 .visible-text-rows__output p { color: var(--text-muted); }
 .visible-text-rows__output pre { color: var(--text); }
+.code-panel__source { border-color: var(--border-code); background: var(--surface-code); color: var(--text); }
+.code-token--comment { color: var(--text-subtle); }
+.code-token--keyword { color: #d494e0; }
+.code-token--string { color: #e7ad72; }
+.code-token--literal { color: #7ec6d6; }
+.code-token--number { color: #9dbef0; }
+.code-token--function { color: var(--accent-strong); }
 .renderer-panel { border-color: var(--border-soft); background: var(--surface-soft); }
 .renderer-panel h3 { color: var(--accent-strong); }
 .division-stage { color: var(--grid-text); --division-bracket-color: var(--grid-bracket); }
@@ -1823,8 +2056,6 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 /* AST 检查器和自动生成源码面板曾混用旧版高优先级/ Tailwind 浅色类；
    这些规则必须在组件样式之后落地，确保显式浅色和深色主题都能覆盖它们。 */
 .ast-selection-details dt,
-.macro-insert-group-label,
-.macro-insert-header > span,
 .macro-format-toolbar > span,
 .macro-example-label { color: var(--text-muted); }
 .ast-selection-details dd { color: var(--text); }
@@ -1905,4 +2136,5 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 @media (max-width: 700px) {
   .hero-topline { align-items: stretch; flex-direction: column; gap: 18px; }
   .theme-control { justify-items: start; }
+  .site-header .theme-control { justify-items: end; }
 }
