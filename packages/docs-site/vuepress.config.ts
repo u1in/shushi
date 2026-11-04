@@ -5,13 +5,13 @@ import { resolve } from 'node:path'
 
 /**
  * 集中文档站只负责内容组织和发布，不承载计算器业务路由。
- * 三个顶层入口使用独立目录，避免宏说明、技术文档与图例文档互相混入。
+ * 文档站独立挂在 /doc/，避免与根路径的竖式·Shushi 首页混在一起。
  */
 export default defineUserConfig({
   lang: 'zh-CN',
-  // 项目 Pages 将文档站发布在仓库根路径；本地开发保持根路径，便于直接访问。
-  base: process.env.GITHUB_ACTIONS ? '/shushi/' : '/',
-  title: '@u1in/shushi',
+  // GitHub Pages 将演示首页发布在仓库根路径，VuePress 文档在本地和发布环境都使用 /doc/。
+  base: process.env.GITHUB_ACTIONS ? '/shushi/doc/' : '/doc/',
+  title: '竖式·Shushi',
   description: '计算规则、网格宏语言、技术契约与竖式图例。',
   clientConfigFile: resolve(process.cwd(), 'vuepress.client.ts'),
   // README 是文档包维护者说明，不是用户手册页面；VuePress 使用专门的 index.md 作为首页。
@@ -38,15 +38,15 @@ export default defineUserConfig({
     Object.assign(page.frontmatter, {
       home: true,
       sidebar: false,
-      heroText: '@u1in/shushi',
+      heroText: '竖式·Shushi',
       tagline: '人工录入与计算器自动填写同一份宏源码，并经同一编译链路得到竖式',
       actions: [
-        { text: '查看演示', link: 'https://u1in.github.io/shushi/demo/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
+        { text: '查看主页', link: 'https://u1in.github.io/shushi/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
         { text: '查看技术文档', link: '/technical/安装', type: 'default' },
         { text: '查看宏命令', link: '/macro/语法基础', type: 'default' },
         { text: '查看图例文档', link: '/gallery/加法', type: 'default' },
       ],
-      footer: 'Copyright © 2026 u1in · @u1in/shushi · Released under the MIT License',
+      footer: 'Copyright © 2026 u1in · 竖式·Shushi · Released under the MIT License',
     })
   },
   bundler: viteBundler(),
@@ -70,12 +70,12 @@ export default defineUserConfig({
     // 侧边栏完全由下方显式目录管理，避免把正文 h2/h3 再复制成嵌套菜单。
     sidebarDepth: 0,
     navbar: [
-      { text: '首页', link: '/' },
+      { text: '项目主页', link: 'https://u1in.github.io/shushi/' },
+      { text: '文档首页', link: '/' },
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: '技术文档', link: '/technical/安装' },
       { text: '图例文档', link: '/gallery/加法' },
       { text: '更新日志', link: '/更新日志' },
-      { text: '在线演示', link: 'https://u1in.github.io/shushi/demo/' },
     ],
     sidebar: {
       '/': [
@@ -83,7 +83,7 @@ export default defineUserConfig({
           text: '文档分类',
           collapsible: false,
           children: [
-            { text: '首页', link: '/' },
+            { text: '文档首页', link: '/' },
             { text: '宏命令文档', link: '/macro/语法基础' },
             { text: '技术文档', link: '/technical/安装' },
             { text: '图例文档', link: '/gallery/加法' },

@@ -10,8 +10,8 @@ const stageHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
 const installCommand = 'npm install @u1in/shushi-core'
 const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y'
-const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.md'
-const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
+const agentInstallGuideUrl = 'https://u1in.github.io/shushi/doc/agent-installation.md'
+const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/doc/agent-capabilities.md'
 // 展示 Skill 安装后的最小使用方式，由 Skill 先询问运算式、渲染方式和相关配置。
 const skillUsagePrompt = '$u1in-shushi 请开始交互式竖式实现。'
 // 安装规则集中在公开 Markdown；这里的复制文案只保留任务目标，避免多处漂移。
@@ -435,7 +435,7 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
     <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
       <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
       <h2 id="docs-home-overview-title">把“怎么算、怎么排、怎么画”拆成可验证的三层</h2>
-      <p class="docs-home-lead">@u1in/shushi面向教学、调试和前端集成：用户可以人工录入网格宏源码，也可以输入数值让计算器自动填写同一种源码；两者都由同一个宏编译器生成统一场景，DOM/CSS 与 SVG 最后消费同一份数据。</p>
+      <p class="docs-home-lead">竖式·Shushi 面向教学、调试和前端集成：用户可以人工录入网格宏源码，也可以输入数值让计算器自动填写同一种源码；两者都由同一个宏编译器生成统一场景，DOM/CSS 与 SVG 最后消费同一份数据。</p>
       <div class="docs-home-feature-grid">
         <article class="docs-home-feature">
           <span class="docs-home-feature-index">01</span>

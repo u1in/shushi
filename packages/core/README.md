@@ -11,7 +11,7 @@
 
 > 人工录入和计算器自动填写的是同一种宏源码，并经过同一条编译链路得到竖式。
 
-[在线文档](https://u1in.github.io/shushi/) · [在线演示](https://u1in.github.io/shushi/demo/)
+[在线主页](https://u1in.github.io/shushi/) · [在线文档](https://u1in.github.io/shushi/doc/)
 
 ## 安装
 
@@ -36,7 +36,7 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 将下面的指令复制到你的代码 Agent 对话框：
 
 ```text
-请阅读并严格遵循 https://u1in.github.io/shushi/agent-installation.md，按其中说明完成 @u1in/shushi-core 的安装与验证。
+请阅读并严格遵循 https://u1in.github.io/shushi/doc/agent-installation.md，按其中说明完成 @u1in/shushi-core 的安装与验证。
 ```
 
 ## 使用
@@ -104,7 +104,7 @@ $u1in-shushi 请开始交互式竖式实现。
 将下面的指令复制到代码 Agent，并回答它开始实现前的确认问题：
 
 ```text
-请阅读并严格遵循 https://u1in.github.io/shushi/agent-capabilities.md，按其中流程完成本次实现。
+请阅读并严格遵循 https://u1in.github.io/shushi/doc/agent-capabilities.md，按其中流程完成本次实现。
 ```
 
 ## 选择合适的 API

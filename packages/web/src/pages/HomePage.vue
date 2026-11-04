@@ -11,6 +11,8 @@ import MacroAstInspector from '../components/MacroAstInspector.vue'
 import ThemeControl from '../components/ThemeControl.vue'
 
 const showBackToTop = ref(false)
+// 使用相对路径兼容本地根路径与 GitHub Pages 的 /shushi/ 仓库路径。
+const docsUrl = './doc/'
 
 // 仅在页面滚动到主要内容区后显示入口，避免首屏增加无用的固定控件。
 const updateBackToTopVisibility = (): void => {
@@ -33,7 +35,7 @@ onBeforeUnmount(() => {
 
 <template>
   <header class="site-header">
-    <a class="site-header__brand" href="#top" aria-label="返回首页顶部">@u1in/shushi</a>
+    <a class="site-header__brand" href="#top" aria-label="返回首页顶部">竖式·Shushi</a>
     <nav class="site-header__nav" aria-label="演示板块导航">
       <a href="#macro-playground">宏试验区</a>
       <a href="#macro-ast-inspector">AST 检查器</a>
@@ -50,12 +52,12 @@ onBeforeUnmount(() => {
   <main id="top" class="page-shell">
     <section class="hero">
       <div class="hero-topline">
-        <p class="eyebrow">@u1in/shushi · SVG · DOM</p>
+        <p class="eyebrow">竖式·Shushi · SVG · DOM</p>
       </div>
-      <h1>竖式运算的可视化工作台</h1>
-      <p class="intro">这是一个可交互的竖式计算与宏语言工作台：支持宏源码编译、AST 图元点击修改、SVG 与 DOM/CSS 双渲染对照、OCR 按行识别，以及加法、减法、乘法、除法和短除法的逐步演示；网格尺寸、步骤和主题均可调整。</p>
+      <h1>竖式·Shushi</h1>
+      <p class="intro">竖式运算的可视化工作台：支持宏源码编译、AST 图元点击修改、SVG 与 DOM/CSS 双渲染对照、OCR 按行识别，以及加法、减法、乘法、除法和短除法的逐步演示；网格尺寸、步骤和主题均可调整。</p>
       <nav class="hero-actions" aria-label="相关入口">
-        <a class="hero-action-button" href="https://u1in.github.io/shushi/" target="_blank" rel="noopener noreferrer">查看文档</a>
+        <a class="hero-action-button" :href="docsUrl">查看文档</a>
       </nav>
     </section>
 
