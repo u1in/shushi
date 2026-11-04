@@ -15,7 +15,7 @@ import {
 } from '@u1in/shushi-layout'
 import { compileMacro, formatMacro, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples, formatExampleSource } from '../src/components/macroPlaygroundExamples'
-import { createShushiImplementationSnippet } from '../src/components/implementationSnippets'
+import { createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
 
 const DEFAULT_GRID_SETTINGS = {
   cellWidth: 30,
@@ -67,6 +67,30 @@ describe('首页网格宏试验区示例', () => {
 
   test('源码无法格式化时保留原文', () => {
     expect(formatExampleSource('GRID(')).toBe('GRID(')
+  })
+
+  test('宏源码示例包含编译后的 DOM 渲染和挂载流程', () => {
+    const code = implementationSnippets.macroPlayground
+
+    expect(code).toContain('renderDomGrid(scene)')
+    expect(code).toContain("document.querySelector('#result')?.append(rendered)")
+    expect(code).toContain('render(source)')
+    expect(code).not.toContain('formatMacro')
+  })
+
+  test('AST 示例从宏源码创建 inspection 并重新挂载修改后的场景', () => {
+    const code = implementationSnippets.macroAstInspector
+
+    expect(code).toContain("import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'")
+    expect(code).toContain('const inspection = createMacroAstInspection(source)')
+    expect(code).toContain('const rendered = renderDomGrid(inspection.scene)')
+    expect(code).toContain("document.querySelector('#result')?.append(rendered)")
+    expect(code).toContain('const { inspection, rendered } = render(source)')
+    expect(code).toContain('const update = (')
+    expect(code).toContain('  inspection: MacroAstInspection,')
+    expect(code).toContain('const updated = inspection.updateElementText(elementId, text)')
+    expect(code).toContain('const updatedRendered = renderDomGrid(updated.scene)')
+    expect(code).toContain('inspection: updated')
   })
 
   test('门户源码示例包含当前渲染挂载配置和完整返回值', () => {
