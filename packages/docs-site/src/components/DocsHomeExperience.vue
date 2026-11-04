@@ -14,28 +14,10 @@ const agentInstallGuideUrl = 'https://u1in.github.io/shushi/agent-installation.m
 const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/agent-capabilities.md'
 // 展示 Skill 安装后的最小使用方式，直接复用首页竖式示例中的 356 + 278 输入。
 const skillUsagePrompt = '$u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可编辑宏源码，编译为 GridScene，并渲染为 DOM。请说明使用的 API 和结果。'
-// 将 Agent 的执行范围和安全边界分点写入可复制文案，避免安装时遗漏关键要求。
-const aiInstallPrompt = [
-  `请阅读并严格遵循 ${agentInstallGuideUrl} 的内容，并按以下要求执行：`,
-  '- 在当前项目根目录操作。',
-  '- 使用项目现有的包管理器安装并验证 @u1in/shushi-core。',
-  '- 保留现有依赖、配置和锁文件改动。',
-  '- 不要擅自安装或切换 Node.js、registry 或包管理器。',
-  '- 不要覆盖或回滚用户文件。',
-  '- 如果文档无法访问或安装受阻，先说明原因。',
-  '- 完成后汇报实际执行的命令、版本和验证结果。',
-].join('\n')
-// 使用一行可替换的输入表达式作为模板，让 Agent 自动识别运算并计算结果。
-const aiCapabilitiesPrompt = [
-  `请先阅读并理解 ${agentCapabilitiesGuideUrl} 的完整内容，然后直接实现下面这组输入数据对应的竖式，不要先询问用户：`,
-  '- 输入数据：356 + 278',
-  '- 根据输入数据中的运算符自动识别运算类型，自行计算并校验结果，不要求用户填写运算类型或期望结果。',
-  '- 根据这行输入表达式直接执行，并选择对应的计算器、竖式布局、宏编译、GridScene、播放或 DOM/SVG 渲染能力。',
-  '- 如果没有说明渲染目标或渲染模式，先询问要接入哪个页面或容器，以及使用 DOM/CSS 还是 SVG；其他参数按文案直接执行。',
-  '- 保持计算层、布局层、GridScene 与渲染器的职责边界，不要把运算规则写进通用渲染器。',
-  '- 修改代码时遵守项目 AGENTS.md，必要时同步更新技术文档、测试和示例。',
-  '- 除渲染目标和渲染模式外，不要重复询问已经给出的参数；完成后说明实现内容、涉及文件和验证结果。',
-].join('\n')
+// 安装规则集中在公开 Markdown；这里的复制文案只保留任务目标，避免多处漂移。
+const aiInstallPrompt = `请阅读并严格遵循 ${agentInstallGuideUrl}，按其中说明完成 @u1in/shushi-core 的安装与验证。`
+// 先确认计算式和输出形态，避免 Agent 在缺少宿主上下文时直接修改代码。
+const aiCapabilitiesPrompt = `请阅读并严格遵循 ${agentCapabilitiesGuideUrl}，按其中流程完成本次实现。`
 type CopyState = 'idle' | 'copied' | 'failed'
 type CopyTimer = { id?: number }
 
@@ -392,7 +374,7 @@ document.<span class="docs-code-function">querySelector</span>(<span class="docs
       <div class="docs-home-install-method docs-home-demo-ai-method docs-home-demo-ai-method--ai">
         <div class="docs-home-install-heading">
           <span>AI 实现</span>
-          <small>复制后修改输入数据，再粘贴到你的 Agent 对话框</small>
+          <small>复制后回答 Agent 的确认问题，再开始实现</small>
         </div>
         <div class="docs-home-install-command-row docs-home-ai-install-row">
           <pre class="docs-home-install-command docs-home-ai-install-prompt"><code>{{ aiCapabilitiesPrompt }}</code></pre>

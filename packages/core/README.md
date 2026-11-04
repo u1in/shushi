@@ -36,14 +36,7 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 将下面的指令复制到你的代码 Agent 对话框：
 
 ```text
-请阅读并严格遵循 https://u1in.github.io/shushi/agent-installation.md 的内容，并按以下要求执行：
-- 在当前项目根目录操作。
-- 使用项目现有的包管理器安装并验证 @u1in/shushi-core。
-- 保留现有依赖、配置和锁文件改动。
-- 不要擅自安装或切换 Node.js、registry 或包管理器。
-- 不要覆盖或回滚用户文件。
-- 如果文档无法访问或安装受阻，先说明原因。
-- 完成后汇报实际执行的命令、版本和验证结果。
+请阅读并严格遵循 https://u1in.github.io/shushi/agent-installation.md，按其中说明完成 @u1in/shushi-core 的安装与验证。
 ```
 
 ## 使用
@@ -103,17 +96,10 @@ $u1in-shushi 请使用 @u1in/shushi-core 完成 356 + 278 的竖式：生成可�
 
 ### AI 实现
 
-将下面的指令复制到代码 Agent，并按需替换输入数据：
+将下面的指令复制到代码 Agent，并回答它开始实现前的确认问题：
 
 ```text
-请先阅读并理解 https://u1in.github.io/shushi/agent-capabilities.md 的完整内容，然后直接实现下面这组输入数据对应的竖式，不要先询问用户：
-- 输入数据：356 + 278
-- 根据输入数据中的运算符自动识别运算类型，自行计算并校验结果，不要求用户填写运算类型或期望结果。
-- 根据这行输入表达式直接执行，并选择对应的计算器、竖式布局、宏编译、GridScene、播放或 DOM/SVG 渲染能力。
-- 如果没有说明渲染目标或渲染模式，先询问要接入哪个页面或容器，以及使用 DOM/CSS 还是 SVG；其他参数按文案直接执行。
-- 保持计算层、布局层、GridScene 与渲染器的职责边界，不要把运算规则写进通用渲染器。
-- 修改代码时遵守项目自身的 AGENTS.md，必要时同步更新技术文档、测试和示例。
-- 除渲染目标和渲染模式外，不要重复询问已经给出的参数；完成后说明实现内容、涉及文件和验证结果。
+请阅读并严格遵循 https://u1in.github.io/shushi/agent-capabilities.md，按其中流程完成本次实现。
 ```
 
 ## 选择合适的 API
