@@ -120,12 +120,8 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
       arguments: filterDefaultOptions(node.arguments, { align: 'right' }).map((child) => pruneMinifyNode(child, context)),
     }
   }
-  if (node.name === 'LINE') {
-    return {
-      ...node,
-      arguments: filterDefaultOptions(node.arguments, { span: 'previous' }).map((child) => pruneMinifyNode(child, context)),
-    }
-  }
+  // 横线的共同跨度需要在 GRID 层归并，不能在这里按旧的 previous 默认值提前删除。
+  if (node.name === 'LINE') return { ...node, arguments: node.arguments.map((child) => pruneMinifyNode(child, context)) }
   if (node.name === 'CELL' || node.name === 'EMPTY') {
     const hasBracket = node.arguments.some((child) => isMacroCall(child, 'BRACKET') || child.kind === 'symbol' && child.name === 'BRACKET')
     const defaultSpan = hasBracket || context.hasDivider ? 1 : context.trackUnit === 'half' ? 2 : 1
@@ -171,6 +167,8 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
   const filteredOptions = root.arguments.filter((node) => {
     const option = readMacroKv(node)
     if (!option) return false
+    // lineSpan 在过滤完所有 LINE 后统一决定，避免根配置与行级配置重复。
+    if (option.key === 'lineSpan') return false
     if (option.key === 'columns' && (hasDivider || isPositiveInteger(option.value) && Number(option.value) === inferredColumns)) return false
     if (option.key === 'paddingX' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '20') return false
     if (option.key === 'paddingY' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '12') return false
@@ -180,7 +178,50 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
     return gridDefaults[option.key] !== option.value
   }).map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
   const filteredContent = content.map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
-  return { ...root, arguments: [...filteredOptions, ...filteredContent] }
+  const lineNodes = filteredContent.filter((node): node is MacroCall => isMacroCall(node, 'LINE'))
+  const configuredLineSpan = getOptionValue(root.arguments, 'lineSpan')
+  const fallbackLineSpan = configuredLineSpan ?? (lineNodes.length === 1 ? 'full' : 'previous')
+  const resolvedColumns = Math.max(inferredColumns ?? 0, Number(getOptionValue(root.arguments, 'columns') ?? 0))
+  const getLineSpan = (line: MacroCall): string => getOptionValue(line.arguments, 'span') ?? fallbackLineSpan
+  const replaceLineSpan = (line: MacroCall, span: string | undefined): MacroCall => {
+    const argumentsWithoutSpan = line.arguments.filter((argument) => readMacroKv(argument)?.key !== 'span')
+    if (span === undefined) return { ...line, arguments: argumentsWithoutSpan }
+    return {
+      ...line,
+      arguments: [...argumentsWithoutSpan, {
+        kind: 'call',
+        name: 'KV',
+        arguments: [{ kind: 'literal', value: 'span' }, { kind: 'literal', value: span }],
+      }],
+    }
+  }
+  const resolvedLineSpans = lineNodes.map(getLineSpan)
+  const sharedLineSpan = lineNodes.length > 1 && resolvedLineSpans.length > 0 && resolvedLineSpans.every((span) => span === resolvedLineSpans[0])
+    ? resolvedLineSpans[0]
+    : undefined
+  const canElideSinglePreviousSpan = (line: MacroCall): boolean => {
+    const lineIndex = filteredContent.indexOf(line)
+    const previousRow = filteredContent.slice(0, lineIndex).reverse().find((node): node is MacroCall => isMacroCall(node, 'ROW'))
+    return previousRow !== undefined && inferGridColumns([previousRow], trackUnit) === resolvedColumns
+  }
+  const normalizedContent = filteredContent.map((node) => {
+    if (!isMacroCall(node, 'LINE')) return node
+    const span = getLineSpan(node)
+    if (lineNodes.length === 1) {
+      const canUseSingleLineDefault = span === 'full' || span === 'previous' && canElideSinglePreviousSpan(node)
+      return replaceLineSpan(node, canUseSingleLineDefault ? undefined : span)
+    }
+    if (sharedLineSpan !== undefined) return replaceLineSpan(node, undefined)
+    return replaceLineSpan(node, span === 'previous' ? undefined : span)
+  })
+  const normalizedOptions: MacroNode[] = sharedLineSpan !== undefined && sharedLineSpan !== 'previous'
+    ? [...filteredOptions, {
+      kind: 'call',
+      name: 'KV',
+      arguments: [{ kind: 'literal', value: 'lineSpan' }, { kind: 'literal', value: sharedLineSpan }],
+    }]
+    : filteredOptions
+  return { ...root, arguments: [...normalizedOptions, ...normalizedContent] }
 }
 
 /** 分号行无法承载 ROW 的非默认对齐配置，保留显式 GRID 以避免生成不可编译的源码。 */

@@ -13,7 +13,7 @@ import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 const expression = ref('125 + 75 - 20 × 3')
 const showGuideGrid = ref(false)
 const showCarrySteps = ref(true)
-const showBorrowSteps = ref(true)
+const showBorrowSteps = ref(false)
 const error = ref('')
 const computation = ref<CompositeArithmeticComputation>()
 const scene = ref<GridScene>()

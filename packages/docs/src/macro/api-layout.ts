@@ -415,6 +415,7 @@ const scene = compileCalculatorMacro(source)`,
   parameters: [
     ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出的各单项过程。'],
     ['`settings.visibleStepCount`', '`number | undefined`', '组合播放的全局可见事件数；未设置时全部完成。'],
+    ['`settings.showBorrowSteps`', '`boolean`', '是否显示减法借位点；默认 `false`，传入 `true` 后显示。'],
     ['返回值', '`string`', '包含全部已到达步骤的唯一 GRID 宏源码。'],
   ],
   caution: '返回值是一个连续竖式而非多个场景；布局只合并单项宏的行和横线，不在渲染器中重新解释组合步骤。',

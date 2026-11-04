@@ -399,13 +399,37 @@ CELL(
     expect(minifyMacro('MM(5), [MM(6), RB(1)];')).toBe('5,[6,RB(1)];')
   })
 
-  test('最简化会把完整 GRID 写法降级为分号行和语法糖', () => {
+  test('最简化会省略单条全宽横线的 span，并降级为分号行和语法糖', () => {
     const source = ` GRID(
   ROW( MM(5), CELL( MM(6), MT(·) ) ),
   LINE(KV(span, full))
 ) `
     const compact = minifyMacro(source)
-    expect(compact).toBe('5,[6,MT(·)];LN(KV(span,full));')
+    expect(compact).toBe('5,[6,MT(·)];LN;')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化会把多条共同的全宽横线提升为 GRID 的 lineSpan', () => {
+    const source = 'GRID(ROW(MM(5)),LINE(KV(span,full)),ROW(MM(6)),LINE(KV(span,full)),ROW(MM(7)))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('GRID(KV(lineSpan,full),ROW(MM(5)),LN,ROW(MM(6)),LN,ROW(MM(7)))')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化只为多条横线中跨度不同的横线保留 span', () => {
+    const source = 'GRID(ROW(MM(5)),LINE(KV(span,full)),ROW(MM(6)),LINE(KV(span,previous)),ROW(MM(7)))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('5;LN(KV(span,full));6;LN;7;')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化保留单条横线中与全宽不同的 previous span', () => {
+    const source = 'GRID(KV(columns,3),ROW(MM(5),MM(6)),LINE(KV(span,previous)))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('GRID(KV(columns,3),ROW(MM(5),MM(6)),LN(KV(span,previous)))')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
@@ -468,7 +492,7 @@ CELL(
     const source = 'GRID(KV(columns, 3), KV(showGrid, true), ROW(MM(5), MM(6), KV(align, left)), LINE(KV(span, full)))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('GRID(KV(columns,3),KV(showGrid,true),ROW(MM(5),MM(6),KV(align,left)),LN(KV(span,full)))')
+    expect(compact).toBe('GRID(KV(columns,3),KV(showGrid,true),ROW(MM(5),MM(6),KV(align,left)),LN)')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 

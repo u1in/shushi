@@ -48,7 +48,10 @@
   --vp-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "STIX Two Math", "Cambria Math", "Noto Serif SC", serif;
   /* VuePress 默认侧边栏为 20rem，这里缩窄 80px，正文会相应获得更多宽度。 */
   --sidebar-width: 15rem;
-  --homepage-width: 1120px;
+  /* VuePress 默认把 --homepage-width 同时用于首页外壳和内容宽度。
+     首页外壳需要铺满视口以承接背景，内容宽度则由独立变量控制。 */
+  --homepage-width: none;
+  --homepage-content-width: 1120px;
 }
 
 html,
@@ -120,6 +123,13 @@ html[data-theme='dark'] .vp-navbar {
 }
 
 .vp-home {
+  /* 覆盖默认主题的限宽外壳，避免竖屏时右侧露出 body 背景。 */
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0;
+  /* 两侧同时预留可触达的安全边距，代码框和复制按钮不会贴住屏幕边缘。 */
+  padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
   min-height: calc(100vh - var(--navbar-height));
 }
 
@@ -416,7 +426,8 @@ html[data-theme='dark'] .mdocs-example-stats {
 }
 
 .vp-home [vp-content] {
-  max-width: var(--homepage-width);
+  width: min(100%, var(--homepage-content-width));
+  max-width: var(--homepage-content-width);
   margin: .8rem auto 0;
   color: var(--vp-c-text-mute);
 }
@@ -432,6 +443,11 @@ html[data-theme='dark'] .mdocs-example-stats {
 }
 
 @media (max-width: 720px) {
+  .vp-home {
+    /* 窄屏略增大正文留白，兼顾阅读密度与复制按钮的触控空间。 */
+    padding-inline: max(1.25rem, env(safe-area-inset-left)) max(1.25rem, env(safe-area-inset-right));
+  }
+
   .vp-hero {
     padding-top: 3.7rem;
   }

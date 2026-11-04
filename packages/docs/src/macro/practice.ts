@@ -56,15 +56,15 @@ export const practicePages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '乘法包含部分积、错位和最终结果。这里用 `KV(span, full)` 让两条横线贯穿四列：横线后的进位写在上行数字的 `RB`，其他过程进位写在目标数字的 `RT`，并用 `EP` 空出最后一列。',
+            text: '乘法包含部分积、错位和最终结果。这里在根 `GRID` 用 `KV(lineSpan, full)` 让两条横线贯穿四列：横线后的进位写在上行数字的 `RB`，其他过程进位写在目标数字的 `RT`，并用 `EP` 空出最后一列。',
           },
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  ROW(MM(9), MM(7)),\n  ROW(MM(×), CELL(MM(8), RB(6)), MM(9)),\n  LINE(KV(span, full)),\n  ROW(MM(8), MM(7), MM(3)),\n  ROW(CELL(MM(7), RB(1)), CELL(MM(7), RB(1), RT(5)), MM(6), EMPTY()),\n  LINE(KV(span, full)),\n  ROW(MM(8), MM(6), MM(3), MM(3))\n)',
-            rightTitle: '语法糖版',
-            rightCode: '9,7;\n×,[8,RB(6)],9;\nLN(KV(span,full));\n8,7,3;\n[7,RB(1)],[7,RB(1),RT(5)],6,EP;\nLN(KV(span,full));\n8,6,3,3;',
-            note: '`LN(KV(span, full))` 在分号行中仍然是横线，不会被包成数字行。',
+            leftCode: 'GRID(\n  KV(lineSpan, full),\n  ROW(MM(9), MM(7)),\n  ROW(MM(×), CELL(MM(8), RB(6)), MM(9)),\n  LINE,\n  ROW(MM(8), MM(7), MM(3)),\n  ROW(CELL(MM(7), RB(1)), CELL(MM(7), RB(1), RT(5)), MM(6), EMPTY()),\n  LINE,\n  ROW(MM(8), MM(6), MM(3), MM(3))\n)',
+            rightTitle: '最简版',
+            rightCode: 'GRID(KV(lineSpan,full),ROW(MM(9),MM(7)),ROW(MM(×),CELL(MM(8),RB(6)),MM(9)),LN,ROW(MM(8),MM(7),MM(3)),ROW(CELL(MM(7),RB(1)),CELL(MM(7),RB(1),RT(5)),MM(6),EP),LN,ROW(MM(8),MM(6),MM(3),MM(3)))',
+            note: '多条横线共享全宽时，最简宏将 `span` 提升到根 GRID；LN 本身不需要属性。',
           },
         ],
       },

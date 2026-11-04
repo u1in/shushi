@@ -879,7 +879,9 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   grid-template-rows: auto auto auto;
   align-items: center;
   column-gap: 3rem;
-  max-width: var(--homepage-width);
+  width: min(100%, var(--homepage-content-width));
+  max-width: var(--homepage-content-width);
+  margin-inline: auto;
   text-align: left;
 }
 

@@ -26,7 +26,8 @@ const DEFAULT_SETTINGS: CompositeArithmeticRenderSettings = {
   fontSizeRatio: 1,
   showGuideGrid: false,
   showCarrySteps: true,
-  showBorrowSteps: true,
+  // 组合竖式默认突出连续计算结果；需要教学借位时由调用方显式开启。
+  showBorrowSteps: false,
   uniformMultiplicationBars: false,
 }
 

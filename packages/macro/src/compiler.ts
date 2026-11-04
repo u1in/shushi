@@ -180,11 +180,16 @@ const readShortDivisionRow = (node: MacroCall): NormalizedShortDivisionRow => {
   }
 }
 
-const readLine = (node: MacroCall, afterRow: number, sourceNode: MacroNode = node): NormalizedLine => {
+const readLine = (
+  node: MacroCall,
+  afterRow: number,
+  defaultSpan: NormalizedLine['span'],
+  sourceNode: MacroNode = node,
+): NormalizedLine => {
   const { content, options } = splitOptions(node.arguments)
   const styleNode = content.at(0)
   if (content.length > 1) throw new Error('LINE 最多接受一个 STYLE 参数，其余请用 KV 配置。')
-  const span = options.get('span') ?? 'previous'
+  const span = options.get('span') ?? defaultSpan
   if (span !== 'previous' && span !== 'longest' && span !== 'full') {
     throw new Error('LINE 的 span 只能是 previous、longest 或 full。')
   }
@@ -399,7 +404,7 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
     return compileShortDivisionMacro(rowCalls, options, autoColor, onElement)
   }
   const rows: NormalizedRow[] = []
-  const lines: NormalizedLine[] = []
+  const lineCalls: Array<{ call: MacroCall, afterRow: number, sourceNode: MacroNode }> = []
   content.forEach((node) => {
     const call = getCall(node)
     if (!call) throw new Error('GRID 只能包含 ROW、LINE 或 KV 配置。')
@@ -409,7 +414,7 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
     }
     if (call.name === 'LINE') {
       if (rows.length === 0) throw new Error('LINE 前必须先有一个 ROW。')
-      lines.push(readLine(call, rows.length - 1, node))
+      lineCalls.push({ call, afterRow: rows.length - 1, sourceNode: node })
       return
     }
     throw new Error(`GRID 不支持子节点 ${call.name}。`)
@@ -418,6 +423,13 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
   if (autoColor && rows.length > AUTO_COLOR_MAX_ROWS) {
     throw new Error(`GRID 的 autoColor 最多支持 ${AUTO_COLOR_MAX_ROWS} 行。`)
   }
+  const configuredLineSpan = options.get('lineSpan')
+  if (configuredLineSpan !== undefined && configuredLineSpan !== 'previous' && configuredLineSpan !== 'longest' && configuredLineSpan !== 'full') {
+    throw new Error('GRID 的 lineSpan 只能是 previous、longest 或 full。')
+  }
+  // 单条横线是竖式最常见情形，默认贯穿推导后的完整列宽；多条横线仍默认各自贴合上一行。
+  const defaultLineSpan: NormalizedLine['span'] = configuredLineSpan ?? (lineCalls.length === 1 ? 'full' : 'previous')
+  const lines = lineCalls.map(({ call, afterRow, sourceNode }) => readLine(call, afterRow, defaultLineSpan, sourceNode))
 
   const inferredColumns = Math.max(...rows.map(({ cells }) => cells.reduce((sum, cell) => sum + cell.columnSpan, 0)))
   const columns = getPositiveInteger(options.get('columns'), 'GRID 的 columns', inferredColumns)

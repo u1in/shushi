@@ -73,6 +73,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
               ['`fontSizeRatio`', '正数', '1', '字号比例：实际字号 = `unitWidth × fontSizeRatio`。'],
               ['`fontSize`', '正数（px）', '未设置', '绝对字号覆盖；设置后优先于比例计算。'],
               ['`showGrid`', '`true` 或 `false`', '`false`', '显示辅助网格轨道。旧写法 `showGuideGrid` 仍兼容。'],
+              ['`lineSpan`', '`previous`、`longest` 或 `full`', '单条 LINE 为 `full`；多条 LINE 为 `previous`', '为多条横线设置共同跨度；个别横线可用自身的 `span` 覆盖。'],
               ['`autoColor`', '`true` 或 `false`', '`true`', '启用高饱和、中明度的屏幕教学向固定自动配色；最多支持 40 条 ROW，并覆盖线条的显式颜色与粗细。'],
               ['`style`', '语义样式 token', '未设置', '场景默认文本样式 token；单元格或图元可以覆盖。'],
               ['`ariaLabel`', '文本', '`宏公式预览`', '渲染结果的 ARIA 标签；短除法模式默认是 `短除法宏公式预览`。'],

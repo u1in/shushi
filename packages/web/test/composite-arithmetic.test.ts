@@ -59,11 +59,16 @@ describe('组合竖式', () => {
     expect(scene.rows.length).toBeGreaterThan(3)
   })
 
-  it('后续减法把借位点叠加到复用的上一段结果行', () => {
+  it('默认隐藏后续减法借位，但可显式叠加到复用的上一段结果行', () => {
     const computation = computeCompositeArithmetic('500 + 1 - 237')
-    const source = createCompositeArithmeticMacroSource(computation)
+    const defaultSource = createCompositeArithmeticMacroSource(computation)
+    const defaultScene = compileMacro(defaultSource)
+    const source = createCompositeArithmeticMacroSource(computation, { showBorrowSteps: true })
     const scene = compileMacro(source)
 
+    expect(extractVisibleTextRows(defaultScene).filter((row) => row === '501')).toHaveLength(1)
+    expect(defaultSource).not.toContain('MTD')
+    expect(defaultScene.elements.some(({ content }) => content.kind === 'text' && content.text === '·')).toBe(false)
     expect(extractVisibleTextRows(scene).filter((row) => row === '501')).toHaveLength(1)
     expect(source).toContain('MTD')
     expect(scene.elements.some(({ content }) => content.kind === 'text' && content.text === '·')).toBe(true)

@@ -43,7 +43,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             columns: ['项', '类型', '默认值', '说明'],
             rows: [
               ['`STYLE(...)`', '受限样式', '黑色 2px', '颜色与线宽；最多一个。自动配色开启时会被主题覆盖。'],
-              ['`KV(span, ...)`', '`previous`、`longest` 或 `full`', '`previous`', '横线跨度：上一行、所有行最小包围范围、整个已解析列宽。'],
+              ['`KV(span, ...)`', '`previous`、`longest` 或 `full`', '继承 `GRID(lineSpan)`', '仅在当前横线需要覆盖根节点共同跨度时设置；横线跨度可取上一行、所有行最小包围范围或整个已解析列宽。'],
               ['`KV(style, token)`', '语义样式 token', '未设置', '交给渲染器主题控制颜色；与 `STYLE` 同时出现时 token 仍会保留。'],
             ],
           },
@@ -65,7 +65,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
           {
             type: 'list',
             items: [
-              '默认样式是黑色、2px；写 `STYLE(KV(thickness, 3))` 可以改粗。',
+              '默认样式是黑色、2px；单条 LINE 默认贯穿整个场景，多条 LINE 默认各自贴合上一行。写 `GRID(KV(lineSpan, full), ...)` 可让多条横线共用全宽；写 `STYLE(KV(thickness, 3))` 可以改粗。',
               '`autoColor` 开启时，LINE 使用主题的 `rule.color` 与 `rule.thickness`，显式 `STYLE` 不参与最终输出。',
               '`LINE` 前面没有 ROW 时会报错；放在两个 ROW 之间时，它贴的是**前一个** ROW。',
               '横线不改变行数：`ROW`、`LINE`、`ROW` 仍然是两行。',
@@ -79,15 +79,15 @@ export const basicPagesPartTwo: MacroDocPage[] = [
         blocks: [
           {
             type: 'example',
-            title: '默认跨度',
+            title: '单条横线的默认全宽跨度',
             code: 'GRID(\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2)),\n  LINE\n)',
-            note: '横线只覆盖第二行（1、2）的宽度，默认 `span=previous`。',
+            note: '只有一条横线时无需写属性，会自动覆盖推导出的完整列宽。',
           },
           {
             type: 'example',
             title: '贯穿整个场景',
-            code: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5)),\n  LINE(KV(span, full))\n)',
-            note: '虽然内容只占一列，横线仍从第 0 列延伸到第 4 列。',
+            code: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5)),\n  LINE\n)',
+            note: '虽然内容只占一列，单条横线仍从第 0 列延伸到第 4 列。',
           },
           {
             type: 'example',
@@ -122,8 +122,8 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             title: '补一条贯穿横线',
             task: '在第二行下方补一条横线，并让它覆盖整个四列场景。',
             starter: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2))\n)',
-            answer: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2)),\n  LINE(KV(span, full))\n)',
-            hint: '`LINE` 必须放在第二行之后；`span=full` 才会覆盖四列。',
+            answer: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2)),\n  LINE\n)',
+            hint: '`LINE` 必须放在第二行之后；单条横线会自动覆盖四列。',
           },
         ],
       },
