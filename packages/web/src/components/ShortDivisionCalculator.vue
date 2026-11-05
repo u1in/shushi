@@ -28,7 +28,7 @@ const macroSource = ref('')
 /** 三个教学模式各自映射到可读的表达式语法，再统一交给 shushi 解析。 */
 const createShortDivisionExpression = (): string => {
   if (mode.value === 'factorization') return `|${factorValue.value}`
-  if (mode.value === 'commonFactor') return `1|${splitValues(commonValues.value).join(' ')}`
+  if (mode.value === 'commonFactor') return `|${splitValues(commonValues.value).join(' ')}`
   return `(${conversionValue.value})${targetBase.value}`
 }
 
@@ -149,7 +149,8 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
+          <p class="panel-kicker result-heading__kicker">SHORT DIVISION</p>
+          <div class="result-heading"><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
@@ -157,7 +158,7 @@ calculate()
       </section>
       <CodeImplementationPanel
         title="短除法表达式解析"
-        description="使用 |48 分解质因数、1|12 18 求公因数、(13)2 转换进制；全部由 shushi 解析为统一场景。"
+        description="使用 |48 分解质因数、|12 18 自动求公因数、(13)2 转换进制；全部由 shushi 解析为统一场景。"
         :code="implementationCode"
       />
     </section>

@@ -297,7 +297,6 @@ const compileShortDivisionMacro = (
 ): GridScene => {
   const normalizedRows = rows.map(readShortDivisionRow)
   const processRows = normalizedRows.filter(({ divisor }) => divisor !== undefined)
-  if (processRows.length === 0) throw new Error('含 VALUE 的半格网格至少需要一行 DIV 过程。')
   if (normalizedRows.some(({ divisor }, index) => divisor === undefined && index !== normalizedRows.length - 1)) {
     throw new Error('短除法不含 DIV 的底行只能位于最后一行。')
   }
@@ -310,7 +309,7 @@ const compileShortDivisionMacro = (
     ...normalizedRows.map(({ valueGroups }) => valueGroups[groupIndex].length),
   ))
   const dividerOffsets = getDividerOffsets(normalizedRows, groupWidths[0])
-  const leftHalfTrackCount = Math.max(2, 2 - Math.min(...dividerOffsets, 0))
+  const leftHalfTrackCount = processRows.length === 0 ? 0 : Math.max(2, 2 - Math.min(...dividerOffsets, 0))
   const columns = Array.from({ length: leftHalfTrackCount }, (_, index) => ({ id: `macro-div-stagger-${index}`, size: 0.5 }))
   const groupColumns: number[][] = []
   groupWidths.forEach((width, groupIndex) => {
@@ -396,10 +395,12 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
   if (trackUnit !== 'full' && trackUnit !== 'half') throw new Error('GRID 的 trackUnit 只能是 full 或 half。')
   const rowCalls = content.map((node) => getCall(node, 'ROW')).filter((node): node is MacroCall => node !== undefined)
   const hasDivider = content.some((node) => getCall(node, 'ROW')?.arguments.some((child) => getCall(child, 'DIV')))
-  if (hasDivider) {
-    // DIV 自动提升为半格短除法模式：无需 KV(trackUnit, half)，显式 full 也不会降回整格。
+  // 没有公共质因数时，短除法只剩 VALUE 底行；仍需进入短除法编译分支，不能被普通 ROW 校验误判。
+  const hasValue = content.some((node) => getCall(node, 'ROW')?.arguments.some((child) => getCall(child, 'VALUE')))
+  if (hasDivider || hasValue) {
+    // DIV / VALUE 自动提升为半格短除法模式：无需 KV(trackUnit, half)，显式 full 也不会降回整格。
     if (!content.every((node) => getCall(node, 'ROW') || getCall(node, 'KV'))) {
-      throw new Error('包含 DIV 的 GRID 只能包含 ROW 与 KV。')
+      throw new Error('包含 DIV 或 VALUE 的短除法 GRID 只能包含 ROW 与 KV。')
     }
     return compileShortDivisionMacro(rowCalls, options, autoColor, onElement)
   }

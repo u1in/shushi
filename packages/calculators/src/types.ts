@@ -52,7 +52,7 @@ interface ShortDivisionBaseComputation {
   finalValues: string[]
 }
 
-/** 指定左侧除数的一次短除法；适用于 `2|12` 这类课堂写法。 */
+/** 指定左侧除数的一次短除法；通过结构化 `division` mode 调用。 */
 export interface DivisionShortDivisionComputation extends ShortDivisionBaseComputation {
   mode: 'division'
   divisor: string

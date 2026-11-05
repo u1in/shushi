@@ -306,17 +306,6 @@ const createExpressionOptions = <TMode extends ShushiRenderMode>(
   el: options?.el,
 })
 
-/** 校验 `a|b c` 中显式写出的首个公因数，避免左侧除数只是被静默忽略。 */
-const assertCommonDivisor = (divisor: string, values: string[]): void => {
-  const parsedDivisor = BigInt(divisor)
-  if (parsedDivisor <= 0n) {
-    throw new Error('短除法左侧除数必须是 1 到 1000000000 的正整数。')
-  }
-  if (!values.every((value) => BigInt(value) % parsedDivisor === 0n)) {
-    throw new Error(`短除法左侧的 ${divisor} 必须能同时整除右侧所有数字。`)
-  }
-}
-
 /**
  * 将用户友好的算式语法转为结构化 `shushiCore` 请求。
  * 除法不与加减乘混排，避免一条表达式混用两种教学排版规则。
@@ -341,6 +330,18 @@ export const shushi = ((
     })
   }
 
+  // 多个右值表示公因数短除法；算法从最小质数开始自动试除。
+  const commonFactor = /^\|\s*(\d+(?:\s+\d+)+)$/.exec(source)
+  if (commonFactor) {
+    return shushiCore({
+      operation: 'shortDivision',
+      mode: 'commonFactor',
+      values: commonFactor[1].trim().split(/\s+/),
+      settings: options.settings,
+      ...renderOptions,
+    })
+  }
+
   const baseConversion = /^\((\d+)\)\s*(\d+)$/.exec(source)
   if (baseConversion) {
     return shushiCore({
@@ -351,17 +352,6 @@ export const shushi = ((
       settings: options.settings,
       ...renderOptions,
     })
-  }
-
-  const shortDivision = /^(\d+)\s*\|\s*(\d+(?:\s+\d+)*)$/.exec(source)
-  if (shortDivision) {
-    const divisor = shortDivision[1]
-    const values = shortDivision[2].trim().split(/\s+/)
-    if (values.length === 1) {
-      return shushiCore({ operation: 'shortDivision', mode: 'division', divisor, values, settings: options.settings, ...renderOptions })
-    }
-    assertCommonDivisor(divisor, values)
-    return shushiCore({ operation: 'shortDivision', mode: 'commonFactor', values, settings: options.settings, ...renderOptions })
   }
 
   const division = /^(\d+)\s*[÷/]\s*(\d+)$/.exec(source)
@@ -378,7 +368,7 @@ export const shushi = ((
   }
 
   if (/[÷/|]/.test(source)) {
-    throw new Error('长除法必须单独书写为“被除数 ÷ 除数”；短除法请使用“除数|被除数”。')
+    throw new Error('长除法必须单独书写为“被除数 ÷ 除数”；短除法请使用“|待分解数”或“|数1 数2”。')
   }
 
   const arithmetic = source.replace(/\s+/g, '').replace(/[xX*]/g, '×')

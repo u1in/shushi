@@ -198,6 +198,14 @@ describe('网格宏编译器', () => {
     expect(secondGroupFirstDigit).toMatchObject({ position: { kind: 'cell', column: 7, row: 0, columnSpan: 2 } })
   })
 
+  test('没有公共质因数时，只有 VALUE 底行也按短除法场景编译', () => {
+    const scene = compileMacro('GRID(KV(autoColor, false), ROW(VALUE(12), VALUE(28), VALUE(33)))')
+
+    expect(scene.rows).toHaveLength(1)
+    expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
+    expect(scene.elements.filter(({ content }) => content.kind === 'text').map(({ content }) => content.kind === 'text' ? content.text : '')).toEqual(['1', '2', '2', '8', '3', '3'])
+  })
+
   test('非单元格中心的文本默认使用进位教学字号，但不改写颜色 token', () => {
     const scene = compileMacro('GRID(ROW(MM(9), MT(·)))')
     const [middle, annotation] = scene.elements
