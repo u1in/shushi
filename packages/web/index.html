@@ -3,8 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="用于展示加法、减法、乘法、除法和短除法计算过程与竖式的 Vue 应用。" />
-    <title>竖式·Shushi</title>
+    <meta name="description" content="竖式·Shushi 是一个开源的在线竖式计算与渲染工具，支持加法、减法、乘法、长除法、短除法和组合表达式。" />
+    <meta name="keywords" content="竖式计算,竖式,小学数学,加法,减法,乘法,长除法,短除法,vertical arithmetic,Shushi" />
+    <meta name="author" content="u1in" />
+    <meta name="application-name" content="竖式·Shushi" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#f6f0e8" />
+    <link rel="canonical" href="https://u1in.github.io/shushi/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="竖式·Shushi" />
+    <meta property="og:title" content="竖式·Shushi｜在线竖式计算与渲染工具" />
+    <meta property="og:description" content="在线生成加法、减法、乘法、长除法、短除法和组合表达式的完整竖式过程，也可用宏命令自由编辑。" />
+    <meta property="og:url" content="https://u1in.github.io/shushi/" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="竖式·Shushi｜在线竖式计算与渲染工具" />
+    <meta name="twitter:description" content="在线生成完整的竖式计算过程，支持加减乘除、短除法和可编辑宏源码。" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://u1in.github.io/shushi/#website",
+            "url": "https://u1in.github.io/shushi/",
+            "name": "竖式·Shushi",
+            "description": "开源的在线竖式计算与渲染工具。",
+            "inLanguage": "zh-CN",
+            "publisher": {
+              "@id": "https://u1in.github.io/shushi/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://u1in.github.io/shushi/#application",
+            "name": "竖式·Shushi",
+            "url": "https://u1in.github.io/shushi/",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web browser",
+            "description": "支持加法、减法、乘法、长除法、短除法和组合表达式的在线竖式计算与渲染工具。",
+            "isAccessibleForFree": true,
+            "license": "https://opensource.org/licenses/MIT",
+            "codeRepository": "https://github.com/u1in/shushi"
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://u1in.github.io/shushi/#organization",
+            "name": "u1in",
+            "url": "https://github.com/u1in"
+          }
+        ]
+      }
+    </script>
+    <title>竖式·Shushi｜在线竖式计算与渲染工具</title>
     <script>
       // 首屏先恢复主题属性，避免 Vue 挂载前出现一次错误的浅色闪烁。
       (() => {
@@ -19,6 +70,11 @@
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <h1>竖式·Shushi：在线竖式计算与渲染工具</h1>
+      <p>支持加法、减法、乘法、长除法、短除法和组合表达式的竖式计算，并提供可编辑的宏源码。</p>
+      <p><a href="https://u1in.github.io/shushi/doc/">阅读技术文档</a> · <a href="https://github.com/u1in/shushi">查看 GitHub 源码</a></p>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
