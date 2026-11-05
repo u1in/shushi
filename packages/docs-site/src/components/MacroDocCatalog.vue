@@ -5,11 +5,11 @@ import {
   macroDocNavGroups,
   type DocGroupId,
 } from '@u1in/shushi-docs/macro'
-import { MacroDocBlocks } from '@u1in/shushi-macro-docs'
+import MacroDocBlocks from '../macro-docs-components/MacroDocBlocks.vue'
 
 /**
- * 把宏文档包的唯一内容清单嵌入 VuePress。
- * 站点只负责分区和发布，宏命令示例与图例仍由文档包统一维护并测试。
+ * 把集中式宏文档内容清单嵌入 VuePress。
+ * 站点负责分区、发布和展示，宏命令示例与图例仍由 docs 包统一维护并测试。
  */
 const props = defineProps<{
   area: 'macro' | 'technical'

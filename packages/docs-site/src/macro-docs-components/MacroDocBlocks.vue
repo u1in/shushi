@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import type { DocBlock } from '../content/types'
+import type { DocBlock } from '@u1in/shushi-docs/macro/types'
 import DocText from './DocText.vue'
 import MacroCodeBlock from './MacroCodeBlock.vue'
 import MacroCompare from './MacroCompare.vue'

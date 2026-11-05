@@ -17,9 +17,8 @@
 - `@u1in/shushi`：工作区根包，私有，仅用于组织多包项目。
 - `@u1in/shushi-core`：面向 npm 使用者的唯一公开入口，提供字符串表达式门户 `shushi`、结构化请求门户 `shushiCore`，并汇总计算、布局、宏编译、网格工具和渲染器。
 - `packages/docs/`：框架无关的唯一文档内容源。
-- `packages/docs-site/`：VuePress 发布适配层、主题配置和导航，不是规则文档的权威来源。
+- `packages/docs-site/`：VuePress 发布适配层、主题配置、导航以及宏文档展示组件，不是规则文档的权威来源。
 - `packages/web/`：Vite 首页演示应用和计算器页面。
-- `packages/macro-docs/`：宏语言文档的 Vue 展示组件、交互预览、图例和样式。
 
 ## 项目术语约定
 
@@ -55,8 +54,8 @@
 | `packages/renderers/src/` | 只消费 `GridScene`，提供 DOM/CSS 和 SVG 渲染 | 重新计算运算过程、布局坐标或运算专属规则 |
 | `packages/core/` | 汇总公开导出、构建 npm 入口和公共 CSS | 形成与底层包不一致的第二套 API |
 | `packages/docs/` | 维护框架无关的规则、API、宏和图例内容 | 依赖 Vue 组件才能成立的页面逻辑 |
-| `packages/macro-docs/src/` | 把宏文档源转换为 Vue 页面、预览和交互组件 | 成为宏语言规则的另一份事实来源 |
-| `packages/docs-site/` | 配置 VuePress、主题、导航和发布 | 直接维护计算规则或宏语义 |
+| `packages/docs-site/src/macro-docs-components/` | 把宏文档源转换为 Vue 页面、预览和交互组件 | 成为宏语言规则的另一份事实来源 |
+| `packages/docs-site/` | 配置 VuePress、主题、导航、宏文档展示和发布 | 直接维护计算规则或宏语义 |
 | `packages/web/src/` | 首页、路由、计算器页面和宿主交互 | 把运算规则散落到页面或通用渲染器 |
 
 必须保持以下数据流：
@@ -125,7 +124,7 @@
 - 更新 `packages/docs/macro/` 中对应的宏说明；
 - 更新 `packages/docs/technical/macro/网格宏文档包.md`，说明文档源、运行组件和测试关系；
 - 更新 `packages/docs/src/macro/` 中的页面数据、示例、类型或 API 内容；
-- 同步检查 `packages/macro-docs/src/` 的展示组件、图例和样式；
+- 同步检查 `packages/docs-site/src/macro-docs-components/` 与 `packages/docs-site/src/macro-docs-styles/` 的展示组件、图例和样式；
 - 更新宏解析、编译、格式化或文档测试。
 
 ### 网格、样式与渲染器

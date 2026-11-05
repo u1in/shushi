@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { compileMacro } from '@u1in/shushi-macro'
-import type { DocBlock } from '@u1in/shushi-macro-docs'
+import type { DocBlock } from '@u1in/shushi-docs/macro/types'
 import {
   getMacroDocNeighbors,
   getMacroDocPath,
@@ -8,7 +8,7 @@ import {
   macroDocNavGroups,
   macroDocPageBySlug,
   macroDocPages,
-} from '@u1in/shushi-macro-docs'
+} from '@u1in/shushi-docs/macro'
 
 /**
  * 文档即代码：页内所有示例与对照都必须可编译。

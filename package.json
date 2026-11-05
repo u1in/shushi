@@ -42,9 +42,9 @@
     "release:check": "npm run typecheck && npm run test && npm run build",
     "release:publish": "npm run release:check && changeset publish",
     "preview": "cd packages/web && npm run preview",
-    "test": "npm run test:web && npm run test:macro-docs",
+    "test": "npm run test:web && npm run test:docs-site",
     "test:web": "cd packages/web && npm run test",
-    "test:macro-docs": "cd packages/macro-docs && npm run test",
+    "test:docs-site": "cd packages/docs-site && npm run test",
     "typecheck": "npm run typecheck:core && cd packages/web && npm run typecheck",
     "typecheck:core": "cd packages/core && npm run typecheck"
   },
