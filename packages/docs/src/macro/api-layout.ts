@@ -485,7 +485,7 @@ type VerticalArithmeticResult<T, TRendered> = {
   parameters: [
     ['`expression`', '`string`', '加、减、乘支持 `+`、`-`、`×`、`*` 与 `x` 的任意组合；按书写顺序执行。'],
     ['`expression` 的除法形式', '`被除数 ÷ 除数` / `被除数 / 除数`', '长除法必须单独出现，不能和加减乘组合。'],
-    ['`expression` 的短除法形式', '`|待分解数` / `除数|被除数` / `除数|数1 数2`', '无左值时分解质因数；单个右值执行指定除数的短除法；多个右值执行公因数短除法，左侧数必须能整除全部右值。'],
+    ['`expression` 的短除法形式', '`|待分解数` / `|数1 数2`', '单个右值时分解质因数；多个右值时自动试除并求公因数。一次指定除法仅通过 `computeShortDivision` 或 `shushiCore` 的结构化 mode 使用。'],
     ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
     ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
     ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],

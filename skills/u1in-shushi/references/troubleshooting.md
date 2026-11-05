@@ -54,13 +54,12 @@ npm ls @u1in/shushi-core --depth=0
 ### 短除法
 
 ```text
-2|12       指定除数
 |48        分解质因数
-1|12 18    求公因数
+|12 18     自动试除求公因数
 (13)2      进制转换
 ```
 
-`1|12 18` 中的 1 必须能同时整除 12 和 18。结构化入口对应的 mode 是 `division`、`factorization`、`commonFactor`、`baseConversion`。
+表达式入口的短除法使用 `|数` 或 `|数1 数2`；算法会自动试除。结构化入口对应的 mode 是 `division`、`factorization`、`commonFactor`、`baseConversion`。
 
 ## 4. 渲染问题
 

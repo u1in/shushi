@@ -379,7 +379,7 @@ export const minifyMacroAst = (root: MacroCall, omitDefaults = true): string => 
 
 /**
  * 计算器导出的宏不应携带网页朗读文案或仅供页面着色的语义 token。
- * 保留尺寸、辅助网格等会影响可见几何的配置，确保粘贴到宏实验的宏源码框仍可复刻当前竖式。
+ * 保留尺寸、辅助网格等会影响可见几何的配置，确保粘贴到宏调试的宏源码框仍可复刻当前竖式。
  */
 const removeCopyOnlyOptions = (node: MacroNode): MacroNode => {
   if (node.kind !== 'call') return node
@@ -394,7 +394,7 @@ const removeCopyOnlyOptions = (node: MacroNode): MacroNode => {
   }
 }
 
-/** 生成适合复制到宏实验的宏源码框的最简 AST 宏，移除页面专属朗读和样式配置。 */
+/** 生成适合复制到宏调试的宏源码框的最简 AST 宏，移除页面专属朗读和样式配置。 */
 export const minifyMacroForCopyAst = (root: MacroCall): string => {
   const cleanedRoot = removeCopyOnlyOptions(root)
   if (cleanedRoot.kind !== 'call') throw new Error('复制宏的根节点必须是 GRID(...)。')
@@ -422,6 +422,6 @@ export const completeMacro = (source: string): string => formatRoot(parseMacro(s
 /** 将完整宏源码压缩为最简合法写法，并在可行时降级为分号行与方括号语法糖。 */
 export const minifyMacro = (source: string, omitDefaults = true): string => minifyRoot(parseMacro(source), source, omitDefaults)
 
-/** 生成适合复制到宏实验的宏源码框的最简源码；由计算器页面统一调用，避免各页面自行裁剪字符串。 */
+/** 生成适合复制到宏调试的宏源码框的最简源码；由计算器页面统一调用，避免各页面自行裁剪字符串。 */
 export const minifyMacroForCopy = (source: string): string => minifyMacroForCopyAst(parseMacro(source))
 

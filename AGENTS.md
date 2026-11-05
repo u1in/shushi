@@ -193,6 +193,7 @@ npm run docs:build   # 构建文档站
 
 - 每个面向 `@u1in/shushi-core` 用户的功能、修复、行为或公开文档变更都应新增 Changeset：`npm run changeset`。
 - 发布流程使用 `npm run release:version`、`npm run release:check` 和 `npx changeset publish`；不要手工修改版本号或 CHANGELOG 来替代 Changesets。
+- GitHub Release 的标题统一使用 `v<版本号>` 格式，例如 `v0.5.0`；不要在标题中重复 npm 包名或其他前缀。
 - `packages/core/README.md`、`CHANGELOG.md`、`LICENSE` 和 `dist/` 是 npm 包发布内容的一部分；README 变更必须和根 README 按同步规则处理。
 
 ## Git 与交付规范

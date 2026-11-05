@@ -64,7 +64,7 @@ const updated = inspection.updateElementText('grid-element-id', '9')
 console.log(updated.source) // AST 更新后的宏源码
 ```
 
-`shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 的任意组合并按文本从左到右执行；长除法使用 `255 ÷ 5` 或 `255 / 5`，质因数分解使用 `|48`，短除法使用 `2|12`，公因数使用 `2|12 24`，进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
+`shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 的任意组合并按文本从左到右执行；长除法使用 `255 ÷ 5` 或 `255 / 5`，质因数分解使用 `|48`，公因数使用 `|12 24`（算法自动试除），进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
 
 需要逐层检查、保存中间宏或实现高级定制时，也可以显式调用底层链路：
 
@@ -151,7 +151,7 @@ console.log(getCompositeArithmeticStepCount(computation))
 
 中间结果需要继续参与下一步时必须为非负整数；最后一步减法可以得到负数。这保证每段仍严格使用既有的小学竖式规则。
 
-所有计算器页面的“复制宏命令”统一调用 `minifyMacroForCopy` API 生成最简形式：移除网页专属无障碍标签和页面语义样式，保留会影响当前可见网格的非默认设置；默认设置下导出内容不含 `KV`，可直接粘贴到宏实验的宏源码框继续编辑。
+所有计算器页面的“复制宏命令”统一调用 `minifyMacroForCopy` API 生成最简形式：移除网页专属无障碍标签和页面语义样式，保留会影响当前可见网格的非默认设置；默认设置下导出内容不含 `KV`，可直接粘贴到宏调试的宏源码框继续编辑。
 
 ## 宏源码与 `GridScene`
 
