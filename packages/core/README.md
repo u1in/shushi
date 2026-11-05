@@ -168,23 +168,46 @@ const scene = compileMacro(source)
 
 ## 从计算到渲染
 
-无论用户从数值输入开始，还是直接提供宏源码，最终都会汇聚到同一个 `GridScene`，再由应用选择 DOM/CSS 或 SVG 渲染器。下面的流程图展示了从输入到页面的完整链路：
+项目支持三类面向应用的入口：`shushi(expression, options)` 表达式入口（先解析为请求，再调用 `shushiCore(request)`）、直接调用 `shushiCore(request)` 的结构化入口，以及直接提供宏源码；此外还可分层调用 `compute*` 和布局 API。需要计算的入口先得到 `Computation` 和可编辑宏源码，直接宏输入则跳过计算与布局；所有路径都经过宏解析器与 AST 编译器汇聚到 `GridScene`，再由应用选择 DOM/CSS、SVG 或 SVG 字符串输出。下面的流程图展示了从输入到渲染的完整链路：
 
 ```mermaid
-flowchart LR
-  manual["人工录入<br/>宏源码"] --> compiler["宏编译器<br/>解析与校验"]
-  input["数值输入"] --> calculator["计算器<br/>输出 Computation"]
-  calculator --> layout["宏源码生成层<br/>填写公开宏命令"]
-  layout --> source["计算器自动生成的<br/>宏源码"]
+flowchart TB
+  subgraph inputs["入口层 · 多种输入方式"]
+    direction LR
+    expression["表达式 API<br/>shushi(expression, options)"] --> expressionParser["表达式解析器<br/>ShushiRequest"]
+    request["结构化请求<br/>shushiCore(request)"]
+    compute["分层计算器 API<br/>compute*"]
+    macro["宏源码输入<br/>人工编辑或外部生成"]
+  end
+  subgraph calculation["计算与布局层 · 产生可编辑宏源码"]
+    direction LR
+    portal["shushiCore<br/>统一门户编排"] --> computation["Computation<br/>运算过程数据"]
+    computation --> layout["布局器<br/>create*MacroSource"] --> source["计算器生成的<br/>宏源码"]
+  end
+  subgraph macroPipeline["宏解析与 AST 层 · 统一编译入口"]
+    direction LR
+    compiler["源码编译入口<br/>compileMacro"] --> macroParser["宏解析器<br/>parseMacro → Macro AST"] --> astCompiler["AST 编译器<br/>compileMacroAst"] --> scene["GridScene<br/>统一场景契约"]
+    inspection["AST 检查与回溯<br/>createMacroAstInspection"]
+  end
+  subgraph rendering["场景与渲染层 · 同一份 GridScene"]
+    direction LR
+    dom["DOM/CSS<br/>renderDomGrid"] --> page["网页交互与播放"]
+    svg["SVG DOM<br/>renderSvgGrid"] --> page
+    svgString["SVG 字符串<br/>renderSvgString"] --> output["SSR、导出与截图"]
+  end
+  expressionParser --> portal
+  request --> portal
+  compute --> computation
   source --> compiler
-  compiler --> scene["GridScene<br/>统一场景契约"]
-  scene --> dom["DOM/CSS<br/>渲染器"]
-  scene --> svg["SVG<br/>渲染器"]
-  dom --> page["可交互竖式页面"]
-  svg --> page
+  macro --> compiler
+  macroParser -.-> inspection
+  inspection -.-> scene
+  scene --> dom
+  scene --> svg
+  scene --> svgString
 ```
 
-应用不需要为 DOM 和 SVG 各维护一套运算或坐标逻辑；只需在最后选择渲染模式即可。计算规则属于计算器，排版规则属于宏源码生成层，渲染器只消费已经编译完成的 `GridScene`。
+`shushi` 只负责把表达式解析为 `ShushiRequest`，随后调用 `shushiCore`；`shushiCore` 是统一门户，会把 `computation`、`source`、`scene`、`rendered` 和 `inspection` 一并返回。宏源码入口则显式经过 `parseMacro → compileMacroAst`，`createMacroAstInspection` 额外维护 AST 节点与 `GridScene` 图元的回溯关系，支持点击检查和局部文字编辑。分层 API 适合逐层控制，宏 API 适合直接编辑网格；应用不需要为 DOM、SVG 和 SVG 字符串各维护一套运算或坐标逻辑。
 
 ## 浏览器、SSR 与 CSS
 

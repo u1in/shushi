@@ -105,17 +105,40 @@ const copyExampleCode = async (): Promise<void> => {
   updateCopyState(codeCopyState, codeCopyTimer, await copyText(exampleCode))
 }
 
-const flowDefinition = `flowchart LR
-  manual["人工录入<br/>宏源码"] --> compiler["宏编译器<br/>解析与校验"]
-  input["数值输入"] --> calculator["计算器<br/>输出 Computation"]
-  calculator --> layout["宏源码生成层<br/>填写公开宏命令"]
-  layout --> source["计算器自动生成的<br/>宏源码"]
+const flowDefinition = `flowchart TB
+  subgraph inputs["入口层 · 多种输入方式"]
+    direction LR
+    expression["表达式 API<br/>shushi(expression, options)"] --> expressionParser["表达式解析器<br/>ShushiRequest"]
+    request["结构化请求<br/>shushiCore(request)"]
+    compute["分层计算器 API<br/>compute*"]
+    macro["宏源码输入<br/>人工编辑或外部生成"]
+  end
+  subgraph calculation["计算与布局层 · 产生可编辑宏源码"]
+    direction LR
+    portal["shushiCore<br/>统一门户编排"] --> computation["Computation<br/>运算过程数据"]
+    computation --> layout["布局器<br/>create*MacroSource"] --> source["计算器生成的<br/>宏源码"]
+  end
+  subgraph macroPipeline["宏解析与 AST 层 · 统一编译入口"]
+    direction LR
+    compiler["源码编译入口<br/>compileMacro"] --> macroParser["宏解析器<br/>parseMacro → Macro AST"] --> astCompiler["AST 编译器<br/>compileMacroAst"] --> scene["GridScene<br/>统一场景契约"]
+    inspection["AST 检查与回溯<br/>createMacroAstInspection"]
+  end
+  subgraph rendering["场景与渲染层 · 同一份 GridScene"]
+    direction LR
+    dom["DOM/CSS<br/>renderDomGrid"] --> page["网页交互与播放"]
+    svg["SVG DOM<br/>renderSvgGrid"] --> page
+    svgString["SVG 字符串<br/>renderSvgString"] --> output["SSR、导出与截图"]
+  end
+  expressionParser --> portal
+  request --> portal
+  compute --> computation
   source --> compiler
-  compiler --> scene["GridScene<br/>统一场景契约"]
-  scene --> dom["DOM/CSS<br/>渲染器"]
-  scene --> svg["SVG<br/>渲染器"]
-  dom --> page["可交互竖式页面"]
-  svg --> page`
+  macro --> compiler
+  macroParser -.-> inspection
+  inspection -.-> scene
+  scene --> dom
+  scene --> svg
+  scene --> svgString`
 
 /** Mermaid 的颜色跟随 VuePress 根节点主题，切换深色模式时重新生成 SVG。 */
 const renderFlow = async (): Promise<void> => {
@@ -149,13 +172,13 @@ const renderFlow = async (): Promise<void> => {
     startOnLoad: false,
     securityLevel: 'strict',
     theme: 'base',
-    // 提高节点字号、内边距和层间距，让流程图在宽屏容器中保持清晰且有足够的视觉占比。
-    themeVariables: { ...palette, fontFamily: 'inherit', fontSize: '24px' },
+    // 采用纵向分阶段布局，避免横向主链被压缩；节点字号和阶段间距保持可读。
+    themeVariables: { ...palette, fontFamily: 'inherit', fontSize: '22px' },
     flowchart: {
       htmlLabels: true,
-      nodeSpacing: 210,
-      rankSpacing: 54,
-      padding: 30,
+      nodeSpacing: 72,
+      rankSpacing: 86,
+      padding: 24,
       useMaxWidth: false,
     },
   })
@@ -423,15 +446,14 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
           <p class="docs-home-eyebrow">FROM PROCESS TO PIXELS</p>
           <h2 id="docs-home-flow-title">同一条链路，连接计算与渲染</h2>
         </div>
-        <span class="docs-home-flow-note">计算规则不进入渲染器</span>
       </div>
-      <div ref="flowHost" class="docs-home-mermaid" aria-label="从计算器到渲染器的项目流程图"></div>
+      <div ref="flowHost" class="docs-home-mermaid" aria-label="从输入入口经解析和编译到渲染器的项目流程图"></div>
     </section>
 
     <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
       <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
       <h2 id="docs-home-overview-title">把“怎么算、怎么排、怎么画”拆成可验证的三层</h2>
-      <p class="docs-home-lead">竖式·Shushi 面向教学、调试和前端集成：用户可以人工录入网格宏源码，也可以输入数值让计算器自动填写同一种源码；两者都由同一个宏编译器生成统一场景，DOM/CSS 与 SVG 最后消费同一份数据。</p>
+      <p class="docs-home-lead">竖式·Shushi 面向教学、调试和前端集成：表达式门户、结构化请求、人工宏源码和分层计算器都能进入统一链路；需要计算时先得到 Computation 和可编辑宏源码，直接宏输入则进入同一个宏编译器，最终由 DOM/CSS、SVG 或 SVG 字符串消费同一份 GridScene。</p>
       <div class="docs-home-feature-grid">
         <article class="docs-home-feature">
           <span class="docs-home-feature-index">01</span>
@@ -440,8 +462,8 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
         </article>
         <article class="docs-home-feature">
           <span class="docs-home-feature-index">02</span>
-          <h3>人工录入与宏编译</h3>
-          <p>数值输入先生成 Calculation，再自动填写宏源码；人工源码与自动源码经过同一个编译器。</p>
+          <h3>多入口与宏编译</h3>
+          <p><code>shushi</code> 先把表达式解析为请求再调用 <code>shushiCore</code>；宏源码经过 <code>parseMacro</code> 生成 AST，再由 <code>compileMacroAst</code> 生成场景，并可通过 AST 检查器回溯和编辑图元。</p>
         </article>
         <article class="docs-home-feature">
           <span class="docs-home-feature-index">03</span>
@@ -657,8 +679,7 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   margin-bottom: 1.25rem;
 }
 
-.docs-home-demo-result,
-.docs-home-flow-note {
+.docs-home-demo-result {
   flex: 0 0 auto;
   border: 1px solid var(--vp-c-accent-soft);
   border-radius: 999px;
@@ -928,9 +949,9 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-mermaid {
   display: grid;
-  min-height: 250px;
+  min-height: 520px;
   place-items: center;
-  overflow-x: auto;
+  overflow: auto;
   border: 1px solid var(--vp-c-divider);
   border-radius: 16px;
   padding: 1.3rem 1.5rem;
@@ -939,9 +960,9 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-mermaid svg {
   display: block;
-  width: min(100%, 1160px);
+  width: min(100%, 1080px);
   height: auto;
-  min-width: 760px;
+  min-width: 0;
 }
 
 .docs-home-lead {
@@ -1000,7 +1021,7 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   .docs-home-install-heading { align-items: start; flex-direction: column; gap: .2rem; }
   .docs-home-copy-button { padding: 0; }
   .docs-home-feature-grid { grid-template-columns: 1fr; }
-  .docs-home-mermaid svg { min-width: 620px; }
+  .docs-home-mermaid svg { width: 920px; max-width: none; }
 }
 
 @media (max-width: 720px) {

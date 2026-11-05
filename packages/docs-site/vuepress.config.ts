@@ -39,7 +39,7 @@ export default defineUserConfig({
       home: true,
       sidebar: false,
       heroText: '竖式·Shushi',
-      tagline: '人工录入与计算器自动填写同一份宏源码，并经同一编译链路得到竖式',
+      tagline: '表达式 API、人工宏源码与计算器生成的宏都经同一编译链路得到竖式',
       actions: [
         { text: '查看主页', link: 'https://u1in.github.io/shushi/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
         { text: '查看 API 文档', link: '/technical/api/shushi', type: 'default' },
