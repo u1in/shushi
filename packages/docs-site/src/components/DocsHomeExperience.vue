@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import {
-  compileMacro,
-  renderDomGrid,
-} from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 
 const resultHost = ref<HTMLElement>()
 const stageHost = ref<HTMLElement>()
@@ -38,9 +35,9 @@ const agentCapabilitiesCopyTimer: CopyTimer = {}
 const skillUsageCopyTimer: CopyTimer = {}
 const codeCopyTimer: CopyTimer = {}
 
-/** Hero demo 唯一使用这一份输入源码；输入变化后直接复用同一宏编译入口更新竖式。 */
-const heroMacroSource = ref('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
-const heroMacroError = ref('')
+/** Hero demo 唯一使用这一份表达式；输入变化后直接调用 shushi 更新竖式。 */
+const heroExpression = ref('356 + 278')
+const heroExpressionError = ref('')
 const exampleCode = `import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
@@ -198,22 +195,24 @@ const moveDemoToHero = (): void => {
   hero.appendChild(host)
 }
 
-/** 只替换 demo 舞台内容；源码暂时不合法时保留上一次结果，避免输入过程中画布闪空。 */
+/** 只替换 demo 舞台内容；表达式暂时不合法时保留上一次结果，避免输入过程中画布闪空。 */
 const renderHeroDemo = (): void => {
   if (!stageHost.value) return
 
   try {
-    const scene = compileMacro(heroMacroSource.value)
-    const stage = renderDomGrid(scene)
-    stage.classList.add('docs-home-grid-stage')
     const frame = document.createElement('div')
     frame.className = 'docs-home-grid-stage-frame'
-    frame.append(stage)
+    // 直接让 shushi 负责计算、布局、编译和 DOM 渲染，首页不再维护第二套宏输入链路。
+    const { rendered: stage } = shushi(heroExpression.value, {
+      renderMode: 'div',
+      el: frame,
+    })
+    stage.classList.add('docs-home-grid-stage')
     stageHost.value.replaceChildren(frame)
     resizeHeroDemo()
-    heroMacroError.value = ''
+    heroExpressionError.value = ''
   } catch (reason) {
-    heroMacroError.value = reason instanceof Error ? reason.message : '宏源码无法编译。'
+    heroExpressionError.value = reason instanceof Error ? reason.message : '算式无法渲染。'
   }
 }
 
@@ -246,7 +245,7 @@ const resizeHeroDemo = (): void => {
   frame.style.height = `${naturalHeight * scale}px`
 }
 
-watch(heroMacroSource, renderHeroDemo)
+watch(heroExpression, renderHeroDemo)
 
 onMounted(() => {
   moveDemoToHero()
@@ -424,19 +423,19 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
       </div>
     </section>
 
-    <!-- VuePress 默认 hero 由主题渲染；挂载后将 demo 与宏输入一起移动到主标题右侧。 -->
+    <!-- VuePress 默认 hero 由主题渲染；挂载后将 demo 与表达式输入一起移动到主标题右侧。 -->
     <div ref="resultHost" class="docs-home-result-host docs-home-result--hero">
-      <div ref="stageHost" class="docs-home-result" aria-label="可编辑宏源码的竖式渲染结果"></div>
-      <label class="docs-home-macro-input">
-        <span class="docs-home-sr-only">最简宏源码，修改后即时更新竖式</span>
+      <div ref="stageHost" class="docs-home-result" aria-label="shushi 表达式的竖式渲染结果"></div>
+      <label class="docs-home-expression-input">
+        <span class="docs-home-sr-only">shushi 表达式，修改后即时更新竖式</span>
         <input
-          v-model="heroMacroSource"
+          v-model="heroExpression"
           type="text"
           spellcheck="false"
           autocomplete="off"
-          aria-label="最简宏源码，修改后即时更新竖式"
+          aria-label="shushi 表达式，修改后即时更新竖式"
         />
-        <small v-if="heroMacroError" role="alert">{{ heroMacroError }}</small>
+        <small v-if="heroExpressionError" role="alert">{{ heroExpressionError }}</small>
       </label>
     </div>
 
@@ -744,7 +743,7 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-result-host {
   --docs-home-demo-height: 228px;
-  --docs-home-macro-input-height: 42px;
+  --docs-home-expression-input-height: 42px;
   display: grid;
   min-width: 0;
   gap: .55rem;
@@ -813,14 +812,15 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   margin-top: .45rem;
 }
 
-.docs-home-macro-input {
+.docs-home-expression-input {
+  position: relative;
   display: grid;
   min-width: 0;
 }
 
-.docs-home-macro-input input {
+.docs-home-expression-input input {
   width: 100%;
-  height: var(--docs-home-macro-input-height);
+  height: var(--docs-home-expression-input-height);
   min-width: 0;
   box-sizing: border-box;
   border: 1px solid var(--vp-c-divider);
@@ -831,14 +831,18 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   font: 700 .76rem/1.2 ui-monospace, "Cascadia Code", Consolas, monospace;
 }
 
-.docs-home-macro-input input:focus {
+.docs-home-expression-input input:focus {
   border-color: var(--vp-c-accent);
   outline: 2px solid var(--vp-c-accent-soft);
   outline-offset: 1px;
 }
 
-.docs-home-macro-input small {
-  margin-top: .3rem;
+.docs-home-expression-input small {
+  position: absolute;
+  top: calc(100% + .3rem);
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
   color: #d13c4b;
   font-size: .7rem;
   line-height: 1.35;
