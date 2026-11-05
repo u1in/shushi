@@ -114,13 +114,13 @@ onBeforeUnmount(() => {
   <header class="site-header">
     <a class="site-header__brand" href="#top" aria-label="返回首页顶部">竖式·Shushi</a>
     <nav class="site-header__nav" aria-label="演示板块导航">
+      <a href="#composite-arithmetic">表达式</a>
       <a href="#macro-ast-inspector">宏实验</a>
       <a href="#addition">加法</a>
       <a href="#subtraction">减法</a>
       <a href="#multiplication">乘法</a>
       <a href="#division">长除法</a>
       <a href="#short-division">短除法</a>
-      <a href="#composite-arithmetic">组合竖式</a>
     </nav>
     <a class="site-header__github" :href="githubUrl" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看竖式·Shushi">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
         <p class="eyebrow">VERTICAL ARITHMETIC · OPEN SOURCE</p>
         <p class="intro">让竖式计算在你的页面上清晰呈现。输入算式，即可生成完整的计算步骤；也可以用宏命令自由编辑和展示。</p>
         <nav class="hero-actions" aria-label="相关入口">
-          <a class="hero-action-button" href="#macro-ast-inspector">开始试用</a>
+          <a class="hero-action-button" href="#composite-arithmetic">开始试用</a>
           <a class="hero-text-link" :href="docsUrl">阅读文档</a>
         </nav>
       </div>
@@ -195,13 +195,13 @@ onBeforeUnmount(() => {
       </aside>
     </section>
 
+    <CompositeArithmeticCalculator id="composite-arithmetic" />
     <MacroAstInspector id="macro-ast-inspector" />
     <AdditionCalculator id="addition" />
     <SubtractionCalculator id="subtraction" />
     <MultiplicationCalculator id="multiplication" />
     <DivisionCalculator id="division" />
     <ShortDivisionCalculator id="short-division" />
-    <CompositeArithmeticCalculator id="composite-arithmetic" />
 
     <button
       v-if="showBackToTop"

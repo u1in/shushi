@@ -104,10 +104,10 @@ calculate()
           <span class="division-operator" aria-hidden="true">÷</span>
           <label class="field"><span>除数</span><input v-model="divisor" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
         </div>
+        <p class="error-message" role="alert">{{ error }}</p>
         <div class="form-actions">
           <button class="ghost-button" type="button" @click="dividend = '10230'; divisor = '25'; calculate()">试试 10230 ÷ 25</button>
         </div>
-        <p class="error-message" role="alert">{{ error }}</p>
         <div class="settings-panel">
           <div class="settings-controls">
             <div class="settings-range-group">

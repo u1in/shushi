@@ -52,14 +52,14 @@ export type ShushiImplementationSnippetOptions = {
   settings: SnippetProperty[]
 }
 
-/** 首页简单算式演示优先展示表达式 API；短除法的完整教学模式仍通过高级入口配置。 */
+/** 首页表达式演示优先展示统一字符串入口；需要精确指定运算类型时再生成结构化入口。 */
 const createExpression = (operation: string, fields: SnippetProperty[]): string | undefined => {
   const values = Object.fromEntries(fields) as Record<string, unknown>
   if (operation === 'addition') return `${(values.values as unknown[])[0]} + ${(values.values as unknown[])[1]}`
   if (operation === 'subtraction') return `${(values.operands as unknown[])[0]} - ${(values.operands as unknown[])[1]}`
   if (operation === 'multiplication') return `${(values.operands as unknown[])[0]} × ${(values.operands as unknown[])[1]}`
   if (operation === 'division') return `${values.dividend} ÷ ${values.divisor}`
-  if (operation === 'composite') return String(values.expression)
+  if (operation === 'composite' || operation === 'expression') return String(values.expression)
   if (operation === 'shortDivision') {
     const inputValues = values.values as unknown[]
     if (values.mode === 'factorization') return `|${inputValues[0]}`

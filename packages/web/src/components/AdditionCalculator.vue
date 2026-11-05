@@ -81,10 +81,10 @@ calculate()
           <span class="division-operator" aria-hidden="true">+</span>
           <label class="field"><span>第二个加数</span><input v-model="secondAddend" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
         </div>
+        <p class="error-message" role="alert">{{ error }}</p>
         <div class="form-actions">
           <button class="ghost-button" type="button" @click="firstAddend = '356'; secondAddend = '278'; calculate()">试试 356 + 278</button>
         </div>
-        <p class="error-message" role="alert">{{ error }}</p>
         <div class="settings-panel"><div class="settings-controls">
           <div class="settings-range-group">
             <label class="range-field"><span>方格宽度 <output>{{ cellWidth }}px</output></span><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate" /></label>

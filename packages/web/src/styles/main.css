@@ -904,18 +904,35 @@ h1 {
 .field input {
   width: 100%;
   border: 1px solid #d5deed;
+  border-radius: 10px;
+  outline: none;
+  padding: 9px 11px;
+  color: #18233c;
+  background: #f8faff;
+  font: 700 0.84rem/1.4 ui-monospace, "Cascadia Code", Consolas, monospace;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.field input:focus {
+  border-color: #6e8fd2;
+  box-shadow: 0 0 0 4px rgba(110, 143, 210, 0.15);
+}
+
+.field textarea {
+  min-height: 240px;
+  width: 100%;
+  resize: none;
+  border: 1px solid #d5deed;
   border-radius: 14px;
   outline: none;
   padding: 15px 16px;
   color: #18233c;
   background: #f8faff;
-  font: inherit;
-  font-size: 1.35rem;
-  font-weight: 700;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  font: 700 0.84rem/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+  tab-size: 2;
 }
 
-.field input:focus {
+.field textarea:focus {
   border-color: #6e8fd2;
   box-shadow: 0 0 0 4px rgba(110, 143, 210, 0.15);
 }
@@ -942,7 +959,7 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 24px;
+  margin: 24px 0 16px;
 }
 
 .mode-option {
@@ -1002,11 +1019,18 @@ h1 {
 
 .input-grid--single { grid-template-columns: minmax(0, 1fr); }
 
+.expression-input-grid { margin-top: 16px; }
+
 .field-help {
   margin: 10px 0 0;
   color: #63718b;
   font-size: 0.77rem;
   line-height: 1.6;
+}
+
+.expression-rules {
+  display: grid;
+  gap: 3px;
 }
 
 .field-help code {
@@ -1117,7 +1141,7 @@ button:disabled {
 
 .error-message {
   min-height: 1.3em;
-  margin: 16px 0 0;
+  margin: 16px 0;
   color: #c04c62;
   font-size: 0.84rem;
 }
@@ -1339,6 +1363,8 @@ button:disabled {
 }
 
 .result-card {
+  display: flex;
+  flex-direction: column;
   margin-top: 0;
   padding: 28px;
   overflow: hidden;
@@ -1350,7 +1376,8 @@ button:disabled {
   min-width: 0;
   width: 600px;
   max-width: 100%;
-  padding: 18px 20px;
+  /* 与中间结果卡片保持相同的底部留白，避免代码面板在底边视觉上提前结束。 */
+  padding: 18px 20px 28px;
   display: flex;
   flex-direction: column;
 }
@@ -1479,6 +1506,9 @@ button:disabled {
 }
 
 .calculation-result {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   min-width: 0;
 }
 
@@ -1655,8 +1685,41 @@ h2 {
   margin-top: 22px;
 }
 
-.renderer-comparison--both {
+.renderer-comparison.renderer-comparison--both {
+  /* 先填满结果卡的剩余高度；内容更高时保留最小内容高度并撑开当前网格行。 */
+  flex: 1 1 auto;
+  min-height: min-content;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.renderer-comparison.renderer-comparison--empty {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 280px;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.renderer-comparison--empty p {
+  margin: 0;
+}
+
+.renderer-comparison--empty strong,
+.renderer-comparison--empty span {
+  display: block;
+}
+
+.renderer-comparison--empty strong {
+  color: var(--text-strong);
+  font-size: 1rem;
+}
+
+.renderer-comparison--empty span {
+  margin-top: 8px;
+  font-size: 0.82rem;
 }
 
 .renderer-panel {
@@ -2410,6 +2473,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 .renderer-mode-group { color: var(--text-muted); }
 
 .field input,
+.field textarea,
 .range-field select,
 .text-alignment-field select,
 .macro-source-field input,
@@ -2422,6 +2486,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
 }
 
 .field input:focus,
+.field textarea:focus,
 .range-field select:focus,
 .text-alignment-field select:focus,
 .macro-source-field textarea:focus {

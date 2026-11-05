@@ -21,6 +21,11 @@
 - `packages/web/`：Vite 首页演示应用和计算器页面。
 - `packages/macro-docs/`：宏语言文档的 Vue 展示组件、交互预览、图例和样式。
 
+## 项目术语约定
+
+- “项目主页”特指 `packages/web/` 子包运行的网页，包括首页演示应用和计算器页面。
+- “技术文档”特指 `packages/docs-site/` 中运行的 VuePress 文档项目；其内容来源仍以 `packages/docs/` 为准。
+
 ## 文档入口与事实来源
 
 修改实现或文档前，先按任务进入对应的集中式文档源：

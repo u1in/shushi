@@ -60,6 +60,16 @@ const inspection = ref<MacroAstInspection>(initialInspection)
 const selectedElementId = ref('')
 const editedText = ref('')
 const error = ref('')
+const errorTarget = ref<'expression' | 'source' | null>(null)
+
+/** 将解析器偏底层的定位信息改写成用户能直接理解的提示。 */
+const getReadableMacroError = (reason: unknown, fallback: string): string => {
+  const message = reason instanceof Error ? reason.message : ''
+  if (message.startsWith('此处需要参数')) {
+    return '这里缺少宏命令或参数，请检查开头是否为空，以及括号内是否写了内容。'
+  }
+  return message.replace(/（第 \d+ 个字符附近：.*）$/, '') || fallback
+}
 
 const selectedReference = computed(() => inspection.value.references[selectedElementId.value])
 const selectedNode = computed<MacroNode | undefined>(() => selectedReference.value?.node)
@@ -74,16 +84,20 @@ const selectedPath = computed(() => selectedReference.value?.nodePath.join(' →
 const canEditSelectedText = computed(() => selectedReference.value?.literalPath !== undefined)
 
 /** 由算式重新生成最简宏；失败时保留上一次源码和 AST 预览，方便用户修正输入。 */
-const generateFromExpression = (): void => {
+const generateFromExpression = (shouldFormat = false): void => {
   try {
     const nextInspection = createInspectionFromExpression(expression.value)
-    source.value = nextInspection.source
-    inspection.value = nextInspection
+    const nextSource = shouldFormat ? formatMacro(nextInspection.source) : nextInspection.source
+    const formattedInspection = shouldFormat ? createMacroAstInspection(nextSource) : nextInspection
+    source.value = formattedInspection.source
+    inspection.value = formattedInspection
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
+    errorTarget.value = null
   } catch (reason) {
-    error.value = reason instanceof Error ? reason.message : '算式无法生成宏源码。'
+    error.value = getReadableMacroError(reason, '算式无法生成宏源码。')
+    errorTarget.value = 'expression'
   }
 }
 
@@ -94,8 +108,10 @@ const compileSource = (): void => {
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
+    errorTarget.value = null
   } catch (reason) {
-    error.value = reason instanceof Error ? reason.message : '宏源码无法编译。'
+    error.value = getReadableMacroError(reason, '宏源码无法编译，请检查宏命令和参数。')
+    errorTarget.value = 'source'
   }
 }
 
@@ -136,6 +152,7 @@ const handleExpressionInput = (event: Event): void => {
 const selectElement = (elementId: string): void => {
   selectedElementId.value = elementId
   editedText.value = inspection.value.references[elementId]?.text ?? ''
+  errorTarget.value = null
   error.value = canEditSelectedText.value ? '' : '该元素没有可单独修改的文字参数。'
 }
 
@@ -147,8 +164,10 @@ const applyText = (): void => {
     // 完整版保留可读缩进，最简版保留分号行和语法糖，让下一次编译继续基于当前结果。
     source.value = inspection.value.source
     error.value = ''
+    errorTarget.value = null
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '无法更新选中的 AST 数据。'
+    errorTarget.value = null
   }
 }
 
@@ -165,7 +184,7 @@ const handleEditedTextInput = (event: Event): void => {
 /** 示例只填入算式输入框，再复用算式生成链路更新宏源码和预览。 */
 const useExample = ({ expression: exampleExpression }: MacroExample): void => {
   expression.value = exampleExpression
-  generateFromExpression()
+  generateFromExpression(true)
 }
 </script>
 
@@ -180,6 +199,7 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
         <label class="macro-source-field macro-expression-field">
           <span>算式输入</span>
           <input :value="expression" aria-label="算式输入" autocomplete="off" spellcheck="false" @input="handleExpressionInput" />
+          <p v-if="errorTarget === 'expression'" class="error-message" role="alert">{{ error }}</p>
           <small class="field-help">支持 +、-、×、*、x、÷、/；含除法时只能输入单个除法。</small>
         </label>
 
@@ -199,12 +219,12 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
         <label class="macro-source-field">
           <span>宏源码</span>
           <textarea :value="source" aria-label="宏源码" spellcheck="false" @input="handleSourceInput" />
+          <p v-if="errorTarget === 'source' || (!errorTarget && error)" class="error-message" role="alert">{{ error }}</p>
         </label>
         <div class="form-actions">
           <span class="macro-example-label">示例</span>
           <button v-for="example in arithmeticExamples" :key="example.label" class="ghost-button macro-example-button" type="button" @click="useExample(example)">{{ example.label }}</button>
         </div>
-        <p class="error-message" role="alert">{{ error }}</p>
       </section>
 
       <section class="result-card" aria-live="polite">

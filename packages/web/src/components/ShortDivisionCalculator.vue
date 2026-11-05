@@ -79,15 +79,6 @@ const implementationCode = computed(() => createShushiImplementationSnippet({
   ],
 }))
 
-const answer = computed(() => {
-  const result = computation.value
-  if (!result) return '—'
-  if (result.mode === 'division') return `${result.inputValues[0]} ÷ ${result.divisor} = ${result.quotient} … ${result.remainder}`
-  if (result.mode === 'factorization') return `${result.inputValues[0]} = ${result.factorizationText}`
-  if (result.mode === 'commonFactor') return `GCD ${result.gcd} · LCM ${result.lcm}`
-  return `${result.inputValues[0]}₁₀ = ${result.convertedText}₍${result.targetBase}₎`
-})
-
 const calculate = (): void => {
   try {
     visibleStepCount.value = undefined
@@ -138,10 +129,10 @@ calculate()
           <span class="division-operator" aria-hidden="true">→</span>
           <label class="field"><span>目标进制（2–36）</span><input v-model.number="targetBase" inputmode="numeric" min="2" max="36" type="number" @input="calculate" /></label>
         </div>
+        <p class="error-message" role="alert">{{ error }}</p>
         <div class="form-actions">
           <button class="ghost-button" type="button" @click="applyExample">{{ mode === 'factorization' ? '试试分解 48' : mode === 'commonFactor' ? '试试 12 和 18' : '试试 13 转二进制' }}</button>
         </div>
-        <p class="error-message" role="alert">{{ error }}</p>
         <div class="settings-panel">
           <div class="settings-controls">
             <div class="settings-range-group">
@@ -158,7 +149,7 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><output class="answer answer--short-division">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
+          <div class="result-heading"><div><p class="panel-kicker">SHORT DIVISION</p><h2>{{ mode === 'factorization' ? '质因数分解' : mode === 'commonFactor' ? '最大公约数 / 最小公倍数' : '十进制转其他进制' }}</h2></div><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.mode === 'factorization' ? `约数个数：${computation.divisorCount}；约数和：${computation.divisorSum}` : computation?.mode === 'commonFactor' ? '左侧公共质因数的乘积为 GCD；再乘底行所有商为 LCM。' : '余数从下往上读；每一步使用整数商。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />
