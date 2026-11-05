@@ -57,6 +57,8 @@ const activeInstallGuide = computed(() => installGuides[activeInstallMethod.valu
 const docsUrl = './doc/'
 const githubUrl = 'https://github.com/u1in/shushi'
 const npmUrl = 'https://www.npmjs.com/package/@u1in/shushi-core'
+const bugReportUrl = 'https://github.com/u1in/shushi/issues/new'
+const authorEmail = 'u1in@qq.com'
 
 // 仅在页面滚动到主要内容区后显示入口，避免首屏增加无用的固定控件。
 const updateBackToTopVisibility = (): void => {
@@ -206,7 +208,9 @@ onBeforeUnmount(() => {
       <nav class="site-footer__links" aria-label="相关链接">
         <a :href="docsUrl">文档</a>
         <a :href="githubUrl" target="_blank" rel="noreferrer">GitHub</a>
-        <a :href="npmUrl" target="_blank" rel="noreferrer">npm</a>
+        <a :href="npmUrl" target="_blank" rel="noreferrer">Npm</a>
+        <a :href="bugReportUrl" target="_blank" rel="noreferrer">反馈问题</a>
+        <a :href="`mailto:${authorEmail}`">联系作者</a>
       </nav>
       <p class="site-footer__copyright">© {{ currentYear }} u1in. Released under the MIT License.</p>
     </div>

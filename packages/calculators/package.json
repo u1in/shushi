@@ -7,7 +7,7 @@
     "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/calculators"
   },
-  "bugs": { "url": "https://github.com/u1in/shushi/issues" },
+  "bugs": { "url": "https://github.com/u1in/shushi/issues/new" },
   "homepage": "https://github.com/u1in/shushi/tree/main/packages/calculators#readme",
   "keywords": ["vertical-arithmetic", "calculator", "long-division", "long-multiplication", "typescript"],
   "version": "0.1.0",
