@@ -270,7 +270,7 @@ const source = 'GRID(KV(ariaLabel,"加法"),ROW(MM(3,KV(style,addition.addend)),
 const copied = minifyMacroForCopy(source)
 
 console.log(copied) // '3,5;'` }] },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它先解析原始宏，再移除计算器页面专属的 `ariaLabel` 和 `style` KV，最后通过正式的 AST 最简化 API 输出别名、方括号与分号行。尺寸、辅助网格和其他会影响可见几何的非默认配置会保留；所有首页计算器的“复制宏命令”均使用此 API。' }] },
+    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它先解析原始宏，再移除计算器页面专属的 `ariaLabel` 和 `style` KV，省略右对齐行首仅用于缩进的 `EMPTY`，最后通过正式的 AST 最简化 API 输出别名、方括号与分号行。尺寸、辅助网格、必要列数和其他会影响可见几何的非默认配置会保留；所有首页计算器的“复制宏命令”均使用此 API。' }] },
     { id: 'signature', title: '函数签名和属性说明', blocks: [
       { type: 'code', title: '函数签名', language: 'typescript', code: `type MinifyMacroForCopy = (source: string) => string` },
       { type: 'table', columns: ['项目', '类型', '说明'], rows: [

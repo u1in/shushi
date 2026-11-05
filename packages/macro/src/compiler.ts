@@ -54,6 +54,7 @@ interface NormalizedLine {
 
 interface PositionedCell extends NormalizedCell {
   column: number
+  rowAlign?: 'left' | 'right'
 }
 
 /** DIV 行在编译时才展开为半格轨道、竖线和本行横线。 */
@@ -206,11 +207,18 @@ const getLineRange = (
 ): { start: number, end: number } => {
   if (span === 'full') return { start: 0, end: columns }
   const rows = span === 'previous' ? [row] : allRows
-  const nonEmptyCells = rows.flat()
-  if (nonEmptyCells.length === 0) throw new Error('LINE 找不到可确定跨度的数字行。')
+  const cells = rows.flat()
+  if (cells.length === 0) throw new Error('LINE 找不到可确定跨度的数字行。')
+  // 右对齐行的行首 EMPTY 只是补齐列数，不应把 LINE(previous) 的起点向左扩展；
+  // 尾部 EMPTY 仍参与终点计算，以保留布局器明确要求的横线长度。
+  const startCells = rows.flatMap((rowCells) => {
+    const visibleCells = rowCells.filter(({ elements }) => elements.length > 0)
+    // 只有右对齐行的行首 EMPTY 可被视为纯缩进；左对齐行的 EMPTY 仍是显式列位置。
+    return rowCells[0]?.rowAlign === 'right' && visibleCells.length > 0 ? visibleCells : rowCells
+  })
   return {
-    start: Math.min(...nonEmptyCells.map(({ column }) => column)),
-    end: Math.max(...nonEmptyCells.map(({ column, columnSpan }) => column + columnSpan)),
+    start: Math.min(...startCells.map(({ column }) => column)),
+    end: Math.max(...cells.map(({ column, columnSpan }) => column + columnSpan)),
   }
 }
 
@@ -438,8 +446,8 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
   const positionedRows = rows.map(({ cells, align }) => {
     const rowWidth = cells.reduce((sum, cell) => sum + cell.columnSpan, 0)
     let nextColumn = align === 'right' ? columns - rowWidth : 0
-    return cells.map((cell): PositionedCell => {
-      const positioned = { ...cell, column: nextColumn }
+      return cells.map((cell): PositionedCell => {
+        const positioned = { ...cell, column: nextColumn, rowAlign: align }
       nextColumn += cell.columnSpan
       return positioned
     })

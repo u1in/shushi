@@ -49,6 +49,12 @@ describe('首页宏调试示例', () => {
     ])
   })
 
+  test('10230 ÷ 25 的最简宏利用右对齐省略行首空单元格', () => {
+    expect(generateSource('10230 ÷ 25')).toBe(
+      '4,0,[9,DOT],2;2,5,BK,1,0,2,3,[0,DOT],0;1,0,0,EP,EP,EP;LN;2,3,0,EP;2,2,5,EP;LN;5,0;5,0;LN;0;',
+    )
+  })
+
   test('全部算式示例都可以直接载入 AST 检查器', () => {
     arithmeticExamples.forEach(({ expression }) => {
       const inspection = createMacroAstInspection(generateSource(expression))

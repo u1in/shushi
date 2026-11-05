@@ -71,6 +71,33 @@ const canElideSingletonCell = (node: MacroNode): boolean => (
   || node.kind === 'symbol' && CELL_ELIDABLE_SYMBOLS.has(node.name)
 )
 
+/** EMPTY 只占列、不产生可见图元；CELL 也可能只携带 columnSpan 等配置。 */
+const isEmptyCell = (node: MacroNode): boolean => {
+  if (node.kind === 'symbol') return node.name === 'EMPTY'
+  if (node.kind !== 'call') return false
+  if (node.name === 'EMPTY') return true
+  return node.name === 'CELL' && node.arguments.every((child) => readMacroKv(child) !== undefined)
+}
+
+/** 右对齐行的行首空格只是在补齐固定列数，压缩后可由 ROW 的默认对齐重新推导。 */
+const trimLeadingEmptyCells = (node: MacroCall): MacroCall => {
+  if (getOptionValue(node.arguments, 'align') === 'left') return node
+  const content = node.arguments.filter((child) => readMacroKv(child) === undefined)
+  const firstVisibleIndex = content.findIndex((child) => !isEmptyCell(child))
+  if (firstVisibleIndex <= 0) return node
+  const leadingEmptyCount = firstVisibleIndex
+  let contentIndex = 0
+  return {
+    ...node,
+    arguments: node.arguments.filter((child) => {
+      if (readMacroKv(child) !== undefined) return true
+      const keep = contentIndex >= leadingEmptyCount
+      contentIndex += 1
+      return keep
+    }),
+  }
+}
+
 const getOptionValue = (nodes: MacroNode[], key: string): string | undefined => (
   nodes.map(readMacroKv).find((option) => option?.key === key)?.value
 )
@@ -115,10 +142,10 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
   if (node.kind !== 'call') return node
   if (node.name === 'GRID') return pruneGridNode(node)
   if (node.name === 'ROW') {
-    return {
+    return trimLeadingEmptyCells({
       ...node,
       arguments: filterDefaultOptions(node.arguments, { align: 'right' }).map((child) => pruneMinifyNode(child, context)),
-    }
+    })
   }
   // 横线的共同跨度需要在 GRID 层归并，不能在这里按旧的 previous 默认值提前删除。
   if (node.name === 'LINE') return { ...node, arguments: node.arguments.map((child) => pruneMinifyNode(child, context)) }
@@ -221,7 +248,18 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
       arguments: [{ kind: 'literal', value: 'lineSpan' }, { kind: 'literal', value: sharedLineSpan }],
     }]
     : filteredOptions
-  return { ...root, arguments: [...normalizedOptions, ...normalizedContent] }
+  const normalizedColumns = inferGridColumns(normalizedContent, trackUnit)
+  const needsColumns = !hasDivider
+    && getOptionValue(filteredOptions, 'columns') === undefined
+    && resolvedColumns > (normalizedColumns ?? 0)
+  const columnsOption: MacroNode[] = needsColumns
+    ? [{
+      kind: 'call',
+      name: 'KV',
+      arguments: [{ kind: 'literal', value: 'columns' }, { kind: 'literal', value: String(resolvedColumns) }],
+    }]
+    : []
+  return { ...root, arguments: [...normalizedOptions, ...columnsOption, ...normalizedContent] }
 }
 
 /** 分号行无法承载 ROW 的非默认对齐配置，保留显式 GRID 以避免生成不可编译的源码。 */

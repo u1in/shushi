@@ -477,6 +477,24 @@ CELL(
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
+  test('最简化会利用 ROW 默认右对齐省略行首 EMPTY，并保留必要列数', () => {
+    const source = `GRID(
+  ROW(EP, EP, MM(4), MM(0)),
+  ROW(EP, EP, MM(2), MM(5)),
+  LINE,
+  ROW(EP, EP, EP, MM(1)),
+  ROW(MM(1), MM(2), MM(3), MM(4))
+)`
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('4,0;2,5;LN;1;1,2,3,4;')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+
+    const inferredColumnSource = 'GRID(ROW(EP, EP, MM(1)), ROW(EP, EP, MM(2)))'
+    expect(minifyMacro(inferredColumnSource)).toBe('GRID(KV(columns,3),ROW(MM(1)),ROW(MM(2)))')
+    expect(compileMacro(minifyMacro(inferredColumnSource))).toEqual(compileMacro(inferredColumnSource))
+  })
+
   test('复制导出 API 会移除计算器页面专属 aria 与 style，并保留自动配色后的可见结果', () => {
     const source = 'GRID(KV(columns,2),KV(autoColor,true),KV(ariaLabel,"加法 5 加 6"),ROW(MM(5,KV(style,addition.addend)),CELL(MM(6,KV(style,addition.addend)),RB(1,KV(style,addition.carry)))))'
     const compact = minifyMacroForCopy(source)
