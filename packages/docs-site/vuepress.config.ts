@@ -70,12 +70,12 @@ export default defineUserConfig({
     // 侧边栏完全由下方显式目录管理，避免把正文 h2/h3 再复制成嵌套菜单。
     sidebarDepth: 0,
     navbar: [
-      { text: '项目主页', link: 'https://u1in.github.io/shushi/' },
       { text: '文档首页', link: '/' },
       { text: '宏命令文档', link: '/macro/语法基础' },
       { text: 'API 文档', link: '/technical/api/shushi' },
       { text: '图例文档', link: '/gallery/加法' },
       { text: '更新日志', link: '/更新日志' },
+      { text: '项目主页', link: 'https://u1in.github.io/shushi/' },
     ],
     sidebar: {
       '/': [
