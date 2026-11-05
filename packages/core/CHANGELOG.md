@@ -2,6 +2,12 @@
 
 所有重要变更都会记录在此文件中。
 
+## 0.5.0
+
+### Minor Changes
+
+- 66936c3: 新增 `shushi(expression, options)` 表达式入口，并将原有结构化门户更名为 `shushiCore(request)`；支持长除法、短除法、公因数与进制转换表达式语法。
+
 ## 0.4.0
 
 ### Minor Changes
