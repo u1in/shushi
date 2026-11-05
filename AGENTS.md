@@ -12,10 +12,10 @@
 
 ## 项目概览
 
-这是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的 TypeScript 多包工作区，根包名为 `@u1in/shushi`。项目提供加法、减法、乘法、长除法和短除法的计算过程、可编辑宏源码、统一 `GridScene` 场景以及 DOM/CSS 和 SVG 渲染。
+这是一个基于 Vite、Vue、Vue Router 与 Tailwind CSS 的 TypeScript 多包工作区，根包名为 `@u1in/shushi`。项目通过 `shushi(expression, options)` 和 `shushiCore(request)` 两个门户提供加法、减法、乘法、长除法、短除法、组合表达式、可编辑宏源码、统一 `GridScene` 场景以及 DOM/SVG 渲染。
 
 - `@u1in/shushi`：工作区根包，私有，仅用于组织多包项目。
-- `@u1in/shushi-core`：面向 npm 使用者的统一公开入口，汇总计算、布局、宏编译、网格工具和渲染器。
+- `@u1in/shushi-core`：面向 npm 使用者的唯一公开入口，提供字符串表达式门户 `shushi`、结构化请求门户 `shushiCore`，并汇总计算、布局、宏编译、网格工具和渲染器。
 - `packages/docs/`：框架无关的唯一文档内容源。
 - `packages/docs-site/`：VuePress 发布适配层、主题配置和导航，不是规则文档的权威来源。
 - `packages/web/`：Vite 首页演示应用和计算器页面。
@@ -40,6 +40,7 @@
 - [宏说明总览](./packages/docs/macro/README.md)：宏语言的入门、命令、语法糖和排错入口。
 - [图例文档总览](./packages/docs/gallery/README.md)：运算图元命名、语义 token 和 VuePress 图例入口。
 - [Agent 安装说明](./packages/docs/agent/installation.md) 与 [Agent 能力说明](./packages/docs/agent/capabilities.md)：第三方项目使用 `@u1in/shushi-core` 和 `u1in-shushi` Skill 的公开指南。
+- [u1in-shushi Skill](./skills/u1in-shushi/SKILL.md)：Agent 执行竖式实现任务时的操作规则和按需读取的参考资料。
 
 `packages/docs-site/vuepress.config.ts` 会排除 README、Agent 指南以及部分技术规则文档；不要因为某个 Markdown 没有生成 VuePress 页面，就把它当作过时或无效文档。VuePress 只是发布适配层，`packages/docs/` 才是框架无关的内容源。
 
@@ -61,9 +62,18 @@
 必须保持以下数据流：
 
 ```text
-数值输入 → calculators → layout 生成宏源码 → macro 编译为 GridScene → renderers 渲染 DOM/SVG
+表达式输入 → shushi → shushiCore → calculators → layout 生成宏源码 → macro 编译为 GridScene → renderers 渲染 DOM/SVG
+结构化请求 → shushiCore → calculators → layout 生成宏源码 → macro 编译为 GridScene → renderers 渲染 DOM/SVG
 人工宏源码 → macro 解析/编译为 GridScene → renderers 渲染 DOM/SVG
 ```
+
+### 公共入口选择
+
+- `shushi(expression, options?)` 是默认入口。用户给出算式字符串时，优先使用它；它自动识别连续四则表达式、长除法、短除法、质因数分解、公因数和进制转换。
+- `shushiCore(request)` 是结构化入口。只有需要明确指定 `operation`、短除法 `mode`、具名计算选项或逐层调试时才使用它。
+- `compute*`、`create*MacroSource`、`compileMacro` 和 `render*` 是分层控制 API，不是普通用户输入的首选入口。
+- 所有门户结果都包含 `computation`、`source`、`scene`、`rendered` 和 `inspection`；不要为 DOM、SVG 和 SVG 字符串分别实现计算或坐标逻辑。
+- 当前公共 API 以 `packages/core/src/vertical-arithmetic.ts` 为唯一事实来源。旧门户名称、旧请求形状和旧兼容层不再保留；破坏性 API 调整必须同步文档、测试和 Changeset。
 
 - 计算层只输出运算过程和语义 token，不输出 DOM、CSS 或像素坐标。
 - 布局层优先生成可复制、可编辑的宏源码；兼容的 `create*GridScene` API 也必须经过统一宏编译链路，不能直接组装另一套场景。
@@ -84,6 +94,19 @@
 - 同步更新 `packages/docs/technical/api/` 中受影响的公开 API 页面、示例和类型说明；
 - 同步实现测试、页面示例和结果展示；
 - 如果是面向 `@u1in/shushi-core` 用户的变更，补充 Changeset。
+
+### 门户 API、Agent 文档与 Skill
+
+修改 `shushi`、`shushiCore`、`ShushiRequest`、`ShushiExpressionOptions`、门户返回值或表达式输入语法时，必须同步：
+
+- `packages/core/src/vertical-arithmetic.ts` 及其测试；
+- `packages/docs/technical/api/` 下的门户 API 页面；
+- `packages/docs/agent/installation.md` 与 `packages/docs/agent/capabilities.md`；
+- `skills/u1in-shushi/SKILL.md` 及 `skills/u1in-shushi/references/`；
+- 根目录 `README.md` 与 `packages/core/README.md`；
+- 面向 npm 使用者的 Changeset。
+
+门户文档必须明确表达式入口和结构化入口的选择边界，不能只列出底层 `compute*` API；示例中的参数顺序、默认渲染模式和短除法语法必须与源码一致。
 
 ### 竖式布局
 

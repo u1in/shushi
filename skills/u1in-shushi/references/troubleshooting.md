@@ -1,124 +1,121 @@
 # `@u1in/shushi-core` 故障排查
 
-先确认问题属于安装、模块导入、计算、宏、渲染还是 AST 编辑，再执行对应检查。不要因为包安装失败而修改宿主 shell、Node 版本管理器或项目构建配置。
+先确认问题属于安装、入口、输入、渲染、宏还是 AST；不要用本地路径、字符串替换或第二套计算逻辑绕过错误。
 
-## 安装与 registry
+## 1. 安装与导入
 
-### `npm install` 报 404 或找不到包
+### `npm view` 返回 404
+
+检查包名和 registry：
 
 ```bash
-npm view @u1in/shushi-core dist-tags.latest
 npm config get registry
+npm view @u1in/shushi-core dist-tags.latest
 ```
 
-如果 `npm view` 也失败，优先检查包名、registry、网络和凭据。不要擅自切换 registry；需要私有 registry 时让用户提供明确配置。
+公共包应从可访问的 npm registry 获取。不要把 `@u1in/shushi` 工作区根包当成运行时依赖。
 
-### 安装后 `npm ls` 找不到包
+### `ERR_MODULE_NOT_FOUND`
 
-确认命令是在目标应用目录执行，并检查实际使用的包管理器和 lockfile。不要在一个包管理器的项目里无理由混用另一个包管理器。
+确认命令在宿主项目根目录执行，并检查：
 
-### 安装阶段提示 Node 版本
-
-`@u1in/shushi-core` 本身不声明 Node.js `engines` 版本。先区分是宿主项目、包管理器、构建工具还是其他依赖发出的提示；不要把其他工具链的版本要求写成本包的运行时要求。
-
-## 导入与模块格式
-
-### `Cannot find export`
-
-只从公开入口导入：
-
-```ts
-import { computeAddition, compileMacro } from '@u1in/shushi-core'
+```bash
+npm ls @u1in/shushi-core --depth=0
 ```
 
-不要引用内部目录、源码文件或工作区包名。对照 `references/api.md` 的导出名称和参数顺序。
+保持 ESM `import` 写法，不要为了绕过入口错误改用内部源码路径或 `require`。
 
-### CommonJS/ESM 不兼容
+## 2. 入口选择错误
 
-确认宿主项目的模块模式和 TypeScript/Vite 配置，再使用宿主已经支持的导入方式。不要为了单个导入错误改写整个项目的模块系统。
+- 用户给出算式字符串：使用 `shushi(expression)`；
+- 已有 `operation`、短除法 `mode` 或结构化字段：使用 `shushiCore(request)`；
+- 只需要计算过程：使用 `compute*`；
+- 已有宏源码：使用 `parseMacro`、`compileMacro` 或 `createMacroAstInspection`。
 
-### 浏览器没有样式
+不要把 `compute*`、`create*MacroSource` 和 `render*` 拼成门户的替代实现。
 
-浏览器渲染入口额外导入：
+## 3. 算式无法解析
 
-```ts
+### 连续表达式
+
+只接受非负整数和 `+`、`-`、`×`；`*`、`x`、`X` 会作为乘号。计算按文本从左到右，不使用乘法优先级。
+
+### 长除法
+
+使用单独的：
+
+```text
+10230 ÷ 25
+10230 / 25
+```
+
+不要写成含有加减乘的混合表达式。表达式入口按“被除数 ÷ 除数”解析；`shushiCore` 和 `computeDivision` 则固定传 `divisor` 在前、`dividend` 在后。
+
+### 短除法
+
+```text
+2|12       指定除数
+|48        分解质因数
+1|12 18    求公因数
+(13)2      进制转换
+```
+
+`1|12 18` 中的 1 必须能同时整除 12 和 18。结构化入口对应的 mode 是 `division`、`factorization`、`commonFactor`、`baseConversion`。
+
+## 4. 渲染问题
+
+### `document is not defined`
+
+Node.js/SSR 中不要使用 `renderMode: 'div'` 或 `'svg'`，也不要调用 `renderDomGrid`/`renderSvgGrid`。改用默认的 `svg-string` 或 `renderSvgString`。
+
+### 页面只有文字或布局错位
+
+浏览器入口导入：
+
+```typescript
 import '@u1in/shushi-core/style.css'
 ```
 
-如果 CSS 解析失败，检查构建工具是否允许包的 CSS export；纯计算和宏处理不需要该 CSS。
+确认渲染器接收的是完整的 `GridScene`，不要把 `computation` 或宏源码直接当作渲染器输入。
 
-## 计算与输入
+### DOM 没有挂载
 
-### 大数结果错误
+只有 `renderMode: 'div'` 或 `'svg'` 支持 `el`。确认 `el` 是真实的浏览器 `Element`，并且调用发生在 DOM 已建立之后。
 
-使用字符串输入，不要先执行 `Number(value)`、`parseInt(value)` 或 `BigInt` 后再传入，除非明确理解输出契约和精度边界。
+## 5. 宏源码问题
 
-### 减法结果与预期符号不同
+- 只整理空白：`formatMacro(source)`；
+- 展开完整结构：`completeMacro(source)`；
+- 输出最简源码：`minifyMacro(source)`；
+- 复制计算器生成的宏：`minifyMacroForCopy(source)`。
 
-不要交换参数或预先取绝对值。`computeSubtraction(minuend, subtrahend)` 的返回值通过 `isNegative`、`resultText` 和步骤字段表达结果。
+这些函数都会先解析源码。源码不完整时应把解析错误反馈给用户，不要用正则删除逗号、分号、`KV` 或括号。
 
-### 除法结果颠倒
+计算器生成的源码可能包含网页专属 `ariaLabel` 和 `style`；复制到宏编辑器前必须使用 `minifyMacroForCopy`，不要手工裁剪。
 
-函数签名是：
+## 6. AST 编辑问题
 
-```ts
-computeDivision(divisorValue, dividendValue, options?)
+```typescript
+const inspection = createMacroAstInspection(source)
+const updated = inspection.updateElementText(elementId, text)
 ```
 
-第一个参数是除数，第二个参数是被除数。除数不能为零。
+`updateElementText` 是不可变操作。更新后必须替换编辑器中的 `source`，并使用新结果的 `scene`；不能继续引用旧检查结果。
 
-### 小数或余数模式不符合预期
+如果元素没有可编辑文字，说明它可能是线条、边框或无文字图元，不要强行写入文本。
 
-确认 `resultMode` 是 `'decimal'` 还是 `'remainder'`；有限小数模式还要设置合理的正整数 `maxDecimalDigits`。不要把展示层截断当作计算器的精度设置。
+## 7. 组合竖式问题
 
-### 短除法输入被拒绝
+组合表达式使用 `computeCompositeArithmetic` 或 `shushi('125 + 75 - 20 × 3')`。它按书写顺序计算；中间结果为负数时不能继续组合。播放步骤使用 `visibleStepCount` 重新生成宏源码和场景，不要依次拼接多个单项宏。
 
-使用表达式入口时，检查写法：`|48` 分解质因数，`2|12` 指定短除，`2|12 24` 求公因数，`(124)2` 转换进制。使用 `shushiCore` 时再检查 `mode`：`division` 需要除数和一个被除数，`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要十进制整数和 2–36 的 `targetBase`。具体边界以 `references/api.md` 为准。
+## 8. 最后检查
 
-### 组合运算结果顺序不符合预期
+```bash
+npm ls @u1in/shushi-core --depth=0
+```
 
-`computeCompositeArithmetic('125 + 75 - 20 × 3')` 按书写顺序计算，即 `((125 + 75) - 20) × 3`，不使用通常的乘法优先级。表达式只能包含非负整数和 `+`、`-`、`×`；`x`、`X`、`*` 会识别为乘号。中间结果一旦为负数就不能继续组合，应调整表达式或拆成独立计算，而不是自行交换减数与被减数。
+然后运行一个最小纯数据验证：
 
-## 宏与 AST
-
-### 宏解析失败
-
-保留原始错误，先用 `parseMacro(source)` 定位语法问题，再选择 `formatMacro`、`completeMacro` 或 `minifyMacro`。不要静默修复可能改变运算含义的源码。
-
-### 复制出的计算器宏有网页参数或不是最简形式
-
-对布局器返回的源码调用 `minifyMacroForCopy(source)`，不要用正则删除 `KV(...)`、也不要从页面、OCR 或 `GridScene` 反向拼接宏。该 API 会移除渲染专用的 `ariaLabel`、`style` 并做官方最简化；例如 `CELL(MM(1))` 导出为 `1`，`CELL(RB(1))` 导出为 `RB(1)`。`[RB(1)]` 是可解析的显式单元格输入，但导出器不需要保留这层包裹。
-
-### 图元没有 AST 引用
-
-只能通过 `inspection.references[elementId]` 查找由检查器建立的引用。确保 `elementId` 来自当前 `scene` 或当前渲染结果的 `data-grid-element-id`，不要复用旧场景的 ID。
-
-### `literalPath` 不存在
-
-线条、边框、圆角或纯符号图元可能没有可编辑文字。此时可以修改宏源码中的其他文字节点，但不能调用 `updateElementText` 强行修改该图元。
-
-### 更新后视图没有变化
-
-`updateElementText` 不会修改旧检查结果。保存返回的新对象，并使用 `nextInspection.scene` 重新渲染，同时使用 `nextInspection.source` 更新编辑器文本。
-
-## 渲染与运行时
-
-### SSR 报 `document is not defined`
-
-`renderDomGrid` 和 `renderSvgGrid` 需要浏览器 DOM。把它们延迟到客户端生命周期；服务端只执行计算、宏转换、`compileMacro`、几何/文本查询，或使用不依赖 DOM 的 `renderSvgString` 输出 SVG 字符串。
-
-### DOM 与 SVG 结果不一致
-
-确认三个渲染入口消费的是同一个 `GridScene`，且 SVG DOM 与 SVG 字符串使用同一棵无 DOM SVG 渲染树。不要为不同渲染器复制运算或坐标算法；需要几何信息时使用 `resolveGridMetrics`、`getGridElementRect` 和 `getGridTextAnchor`。
-
-### 教学播放少一步或多一步
-
-乘法使用 `getMultiplicationStepCount`，除法使用 `getDivisionPlaybackStepCount`，组合竖式使用 `getCompositeArithmeticStepCount`。除法是否显示零商步骤必须与布局器的 `showZeroQuotientSteps` 保持一致；组合步骤还包含“引入第二操作数”的事件。不要用任意数组长度替代播放步数。
-
-### 组合竖式出现重复结果、过早显示第二操作数或后续减法没有借位点
-
-不要依次调用多个单项布局器再手工拼接字符串。只使用 `createCompositeArithmeticMacroSource(computation, settings)`，并在每帧都用同一份 `visibleStepCount` 重新生成。该布局器会复用上一结果作为下一步第一行、延迟引入下一步的运算符和第二操作数，并把后续减法的借位标记合并到复用结果行。
-
-## 副作用边界
-
-包安装任务的最小收尾是 `npm ls @u1in/shushi-core --depth=0` 和一个纯数据导入 smoke test。不要默认执行宿主项目的全量 typecheck、test、build，不要修改 shell 配置、Node 版本、registry、路由或无关锁文件。只有用户明确要求修改宿主项目时，才扩大验证范围。
+```bash
+node --input-type=module -e "import { shushi } from '@u1in/shushi-core'; const result = shushi('2 + 3'); if (result.computation.sumDigits !== '5' || result.scene.elements.length === 0) throw new Error('验证失败'); console.log('验证通过')"
+```

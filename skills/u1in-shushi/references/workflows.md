@@ -1,154 +1,129 @@
-# `@u1in/shushi-core` 实现工作流
+# 竖式实现工作流
 
-本文件说明如何把自然语言需求映射到包 API。函数签名和类型字段以同目录的 `api.md` 为准；不要在本文件复制另一份完整类型定义。
+## 1. 需求确认
 
-## 0. 实现前先确认宿主需求
+只确认会改变实现的必要信息：
 
-需要修改宿主项目时，先向用户确认完整运算式、接入的页面/组件/容器或是否仅导出 SVG，以及页面渲染采用 DOM/CSS 还是 SVG。若涉及宏编辑、播放步骤或图元交互，也要一并确认；用户已经提供的信息不要重复询问。确认前不要选择宿主文件或直接开工。
+1. 用户提供的是算式字符串、结构化字段还是宏源码；
+2. 目标环境是浏览器 DOM、浏览器 SVG、Node.js/SSR 还是仅数据；
+3. 是否需要保存/编辑宏源码、播放步骤、AST 图元交互或文本提取。
 
-识别运算类型后，列出当前运算相关的布局和计算配置，并为每项给出默认值；用户回复“默认”时直接采用默认配置。通用默认值为 `cellWidth=30`、`rowHeight=46`、`fontSizeRatio=1`、`showGuideGrid=false`、完整 `visibleStepCount`。加法默认显示进位，减法默认显示借位，乘法默认显示进位且不使用等宽横线，长除法默认余数模式且不显示零商步骤，短除法默认显示余数；只有用户要求时才逐项覆盖。
+信息已经明确时不要重复提问。未指定渲染模式时，默认返回 `svg-string`，不擅自创建 DOM。
 
-如果只导出 SVG，还要区分浏览器 SVG 节点和 SSR/Node.js SVG 字符串；纯计算或 SVG 字符串导出不引入 DOM 依赖。确认后再按“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”实现，并保持各层职责边界。修改宿主项目时遵守项目 `AGENTS.md`，完成后说明改动文件和验证结果。
+## 2. 入口决策
 
-## 1. 先判断需求类型
+```text
+算式字符串
+  └─ shushi(expression, options?)
 
-| 用户需求 | 首选流程 |
-| --- | --- |
-| 根据表达式直接生成并显示标准竖式 | `shushi('356 + 278', { renderMode, el })` |
-| 只要计算结果或计算过程 | `compute*`，不引入渲染器 |
-| 要显示标准竖式 | `compute* → create*MacroSource → compileMacro → render*` |
-| 要逐步教学播放 | 先取得 `get*StepCount`，再把 `visibleStepCount` 传给布局器 |
-| 要把加、减、乘排进同一个连续竖式 | `computeCompositeArithmetic → getCompositeArithmeticStepCount → createCompositeArithmeticMacroSource → compileMacro` |
-| 要编辑宏文本 | `parseMacro` / `formatMacro` / `completeMacro` / `minifyMacro` |
-| 要复制计算器生成的宏 | `minifyMacroForCopy`，不要自行删除选项或拼接文本 |
-| 要点击图元修改文字 | `createMacroAstInspection` + `references` + `updateElementText` |
-| 要计算网格位置或尺寸 | `resolveGridMetrics` + `getGrid*Rect` / `getGridTextAnchor` |
-| 要提取无障碍或测试文本 | `extractVisibleTextRows` |
-| 要服务端生成数据或 SVG | 不调用 `renderDomGrid` / `renderSvgGrid`；使用纯数据 API、`compileMacro` 或 `renderSvgString` |
+结构化 operation / 短除 mode / 高级 settings
+  └─ shushiCore(request)
 
-## 2. 标准数值竖式流程
+只要计算过程
+  └─ compute*
 
-数值输入优先使用 `shushi(expression, option)`：客户端交互显示传 `renderMode: 'div'` 或 `'svg'`，可选传 `el` 自动挂载；SSR/Node.js 传 `renderMode: 'svg-string'`。门户返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`，需要图元编辑时直接使用返回的 `inspection`。需要结构化 operation 或短除法 mode 时使用 `shushiCore(request)`。
+需要可编辑宏
+  └─ compute* → create*MacroSource → compileMacro
 
-只有需要拆层调试、完全手写宏或使用高级布局设置时，才展开以下底层步骤：
+人工宏源码
+  └─ parseMacro / createMacroAstInspection → compileMacro
+```
 
-1. 保留用户输入为字符串，先调用对应的 `compute*`。
-2. 用计算结果调用对应的 `create*MacroSource`。
-3. 对布局设置显式填写尺寸和教学选项，不要把运算专属判断写进渲染器。
-4. 用 `compileMacro(source)` 得到 `GridScene`。
-5. 浏览器中导入 `@u1in/shushi-core/style.css`，再调用 `renderDomGrid(scene)`；需要矢量输出时调用 `renderSvgGrid(scene)`。
-6. 如果需要服务端 SVG 字符串，调用 `renderSvgString(scene)`；如果需要当前视觉文本，调用 `extractVisibleTextRows(scene)`，不要从 DOM 的偶然结构拼接文本。
+## 3. 直接显示表达式
 
-```ts
-const computation = computeSubtraction('502', '137')
-const source = createSubtractionMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  showBorrowSteps: true,
+```typescript
+import { shushi } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
+
+const result = shushi('125 + 75 - 20 × 3', {
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
+})
+```
+
+保留 `result.source` 可供复制或编辑，使用 `result.scene` 做文本、几何或二次渲染分析。
+
+## 4. 结构化控制
+
+```typescript
+import { shushiCore } from '@u1in/shushi-core'
+
+const result = shushiCore({
+  operation: 'division',
+  divisor: '25',
+  dividend: '10230',
+  calculation: { resultMode: 'remainder' },
+})
+```
+
+结构化请求必须遵守判别联合的字段边界。长除法始终是 `divisor` 在前、`dividend` 在后；用户书写方向只在 `shushi('10230 / 25')` 中处理。
+
+## 5. 只计算或逐层控制
+
+```typescript
+import {
+  compileMacro,
+  computeAddition,
+  createAdditionMacroSource,
+  renderSvgString,
+} from '@u1in/shushi-core'
+
+const computation = computeAddition('356', '278')
+const source = createAdditionMacroSource(computation)
+const scene = compileMacro(source)
+const svg = renderSvgString(scene)
+```
+
+只有在需要单独读取过程、改写布局 settings、保存宏源码或切换渲染器时才展开这条链路。
+
+## 6. 组合竖式与播放
+
+```typescript
+import {
+  compileMacro,
+  computeCompositeArithmetic,
+  createCompositeArithmeticMacroSource,
+  getCompositeArithmeticStepCount,
+} from '@u1in/shushi-core'
+
+const computation = computeCompositeArithmetic('500 + 1 - 237 × 2')
+const stepCount = getCompositeArithmeticStepCount(computation)
+const source = createCompositeArithmeticMacroSource(computation, {
+  visibleStepCount: stepCount,
 })
 const scene = compileMacro(source)
-const rows = extractVisibleTextRows(scene)
+```
+
+改变 `visibleStepCount` 时重新生成源码并编译。不要把多个单项布局器的宏字符串手工拼接成组合竖式。
+
+## 7. 宏编辑和 AST 交互
+
+```typescript
+import { createMacroAstInspection } from '@u1in/shushi-core'
+
+const inspection = createMacroAstInspection(source)
+const updated = inspection.updateElementText(elementId, '9')
+```
+
+把 `updated.source` 写回编辑器，把 `updated.scene` 交给渲染器。`updateElementText` 返回新对象，不修改旧结果；不能继续使用旧 `scene`。
+
+## 8. 同一场景切换渲染器
+
+```typescript
+import { renderDomGrid, renderSvgGrid, renderSvgString } from '@u1in/shushi-core'
+
+const dom = renderDomGrid(scene)
 const svg = renderSvgGrid(scene)
+const text = renderSvgString(scene)
 ```
 
-## 3. 六类运算的选择
+三个渲染器必须消费同一份 `scene`。浏览器 DOM/SVG 需要 CSS；SSR 使用 `renderSvgString`。
 
-- 加法：`computeAddition(...values)`；多个加数直接作为字符串参数，布局器负责进位注记。
-- 减法：`computeSubtraction(minuend, subtrahend)`；不要因为结果为负而交换输入，使用 `isNegative` 和 `resultText`。
-- 乘法：`computeMultiplication(multiplicand, multiplier, options)`；需要完整逐位过程时关闭 `useTrailingZeroShortcut`。
-- 长除法：`computeDivision(divisor, dividend, options)`；牢记除数在前。需要余数使用 `remainder`，需要有限小数使用 `decimal` 和 `maxDecimalDigits`。
-- 短除法：`computeShortDivision({ mode, values, targetBase })`；先根据是质因数、公因数还是进制转换选择 `mode`，再检查该模式的输入数量和范围。
-- 组合运算：`computeCompositeArithmetic(expression)`；表达式仅含非负整数和 `+`、`-`、`×`，按书写顺序从左至右执行，不采用乘法优先级。组合乘法自动关闭末尾零快捷计算并保持输入顺序，中间结果为负数时停止并报告输入错误。
+## 9. 交付检查
 
-## 4. 教学播放
-
-播放控件的状态应是布局设置的一部分，而不是计算器状态的修改：
-
-```ts
-const computation = computeDivision('25', '10230', {
-  resultMode: 'remainder',
-})
-const total = getDivisionPlaybackStepCount(computation, false)
-
-const makeScene = (visibleStepCount: number) => compileMacro(
-  createDivisionMacroSource(computation, {
-    cellWidth: 30,
-    rowHeight: 46,
-    fontSizeRatio: 1,
-    showGuideGrid: false,
-    bracketBend: 1,
-    uniformSubtractionBars: false,
-    showZeroQuotientSteps: false,
-    visibleStepCount,
-  }),
-)
-
-const firstScene = makeScene(0)
-void total
-void firstScene
-```
-
-乘法使用 `getMultiplicationStepCount(computation)`；除法使用 `getDivisionPlaybackStepCount(computation, showZeroQuotientSteps)`；组合竖式使用 `getCompositeArithmeticStepCount(computation)`。不要用 `steps.length` 替代，因为快捷过程、零商步骤、小数步骤和组合步骤的“引入第二操作数”事件都会改变可视播放事件。
-
-组合竖式由一份连续宏源码表示：上一段最终行复用为下一段的第一行；后续段先出现运算符与第二操作数，下一帧才播放其逐位过程。不要把多个单项宏源码以字符串或页面坐标相连；后续减法的借位点需要合并到复用结果行，只有 `createCompositeArithmeticMacroSource` 才能保证这一点。
-
-## 5. 宏编辑器和 AST 图元交互
-
-编辑器需要保存 `MacroAstInspection`，而不是只保存渲染出的 DOM：
-
-```ts
-let inspection = createMacroAstInspection(source)
-
-const onElementTextEdit = (elementId: string, text: string) => {
-  const reference = inspection.references[elementId]
-  if (!reference?.literalPath) {
-    throw new Error('该图元没有可编辑文字')
-  }
-  inspection = inspection.updateElementText(elementId, text)
-  const nextElement = renderDomGrid(inspection.scene)
-  return { source: inspection.source, element: nextElement }
-}
-```
-
-DOM/SVG 渲染结果中的 `data-grid-element-id` 可以作为交互入口；`references[elementId]` 再把它映射回 AST 节点和文字字面量。`nodePath` 是从根 AST 开始的参数下标路径，根路径为 `[]`；`literalPath` 不存在时，图元没有可编辑文字。更新是不可变的，适合实现撤销/重做。
-
-## 6. 选择宏源码变换
-
-- `parseMacro`：需要 AST 或语法检查。
-- `formatMacro`：给编辑器或展示区输出可读的缩进格式。
-- `unformatMacro`：压成单行，但保留完整结构。
-- `completeMacro`：将简写展开为显式的 `GRID`、`ROW`、`CELL` 和完整宏名，适合调试和教学。
-- `minifyMacro`：生成最短合法源码，适合保存或传输；只有确认接收端支持省略默认值时才省略默认值。
-- `minifyMacroForCopy`：导出计算器布局生成的宏到编辑器；移除网页专用 `ariaLabel`、`style`，并以官方语法糖输出最简形式。不要用字符串替换模拟它。
-- `compileMacro`：把合法宏源码转换为通用 `GridScene`，不是格式化 API。
-
-最简复制输出会把 `CELL(MM(1))` 化为 `1`、把 `CELL(RB(1))` 化为 `RB(1)`。`[RB(1)]` 是解析器支持的显式单元格写法，适合手写宏，但不是导出器必须保留的包裹层。
-
-任何宏变换失败都应向用户报告解析错误，不要静默替换运算含义或拼接未经校验的宏文本。
-
-## 7. 服务端、浏览器与 CSS 边界
-
-服务端可以执行计算器、宏解析/格式化/编译、几何计算、文本提取和 `renderSvgString`。`renderSvgGrid` 与 `renderSvgString` 共享无 DOM SVG 渲染树，因此同一份 `GridScene` 的结构、坐标和图元顺序一致；但不承诺浏览器重新序列化后的字符串与 SSR 输出逐字节相同。`renderDomGrid` 与 `renderSvgGrid` 依赖浏览器 DOM，必须放在浏览器生命周期或带 DOM 的测试环境中调用。
-
-浏览器渲染时：
-
-```ts
-import '@u1in/shushi-core/style.css'
-```
-
-CSS 只影响渲染外观，不是计算器或宏数据 API 的前置条件。
-
-## 8. 交付检查
-
-交付代码前确认：
-
-- 输入没有被不必要地转换成 `number`。
-- 除法参数没有颠倒。
-- 运算规则没有泄漏到 DOM/SVG 渲染器。
-- 播放使用库提供的步数函数。
-- 组合竖式使用组合计算器和布局器，不手写跨步骤行、借位或复制宏。
-- AST 更新后使用新 `scene` 和新 `source`。
-- 浏览器代码导入 CSS，服务端代码没有提前调用 `renderDomGrid`。
-- 安装任务没有顺带修改 shell、Node 版本、registry 或执行无关的全量构建。
+- 是否使用了正确的门户入口；
+- 是否按源码参数顺序调用长除法；
+- 是否保留并复用了 `source` 和 `scene`；
+- 是否避免了渲染器中的运算专属分支；
+- 是否根据目标环境选择 `div`、`svg` 或 `svg-string`；
+- 是否运行了与宿主改动风险相称的验证命令。

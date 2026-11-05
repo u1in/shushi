@@ -1,659 +1,229 @@
 ---
-title: Agent 功能说明
+title: Agent 能力说明
 ---
 
-# `@u1in/shushi-core` Agent 功能说明
+# `@u1in/shushi-core` Agent 能力说明
 
-这是一份给代码 Agent 使用的功能参考。阅读后，Agent 可以根据用户需求选择计算、竖式过程生成、宏源码编辑、GridScene 分析或 DOM/SVG 渲染能力。
+## 1. 先选对入口
 
-## 实现前的确认流程
+当前公开 API 只有两层门户：
 
-对于需要修改宿主项目的实现请求，默认先确认需求，再开始编写代码。不要因为示例中出现了运算或数字，就替用户猜测未说明的宿主上下文。
+| 用户需求 | 首选入口 | 说明 |
+| --- | --- | --- |
+| 用户给出一段算式或竖式输入 | `shushi(expression, options?)` | 自动识别运算并完成计算、布局、宏编译和渲染 |
+| 程序已经有结构化请求 | `shushiCore(request)` | 明确指定 `operation`、短除法 `mode`、计算选项和布局 settings |
+| 只想取计算过程 | `compute*` | 不生成宏源码，不接触 DOM |
+| 需要编辑或复制宏源码 | `source`、`parseMacro`、`formatMacro`、`minifyMacroForCopy` | 宏仍由统一编译器生成和检查 |
+| 需要测量或分析网格 | `scene`、`resolveGridMetrics`、`extractVisibleTextRows` | 直接消费统一 `GridScene` |
 
-开始前向用户确认以下必要信息：
-
-1. 要计算的完整式子或输入数据；
-2. 结果接入哪个页面、组件或 DOM 容器，还是只导出 SVG；
-3. 如果需要页面渲染，使用 DOM/CSS 还是 SVG；如果只导出 SVG，确认是浏览器 SVG 节点还是 SSR/Node.js SVG 字符串；
-4. 是否需要保留可编辑宏源码，以及是否需要播放步骤或图元交互。
-
-确认规则：
-
-- 用户已经明确提供的信息不要重复询问；可以根据完整运算式自动识别运算类型、计算并校验结果。
-- 未确认上述必要信息前，不要修改代码、选择宿主文件或决定渲染器；先提出简洁的澄清问题并等待用户回答。
-- 用户确认后，按“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”的链路实现；纯计算或仅导出 SVG 字符串时不引入 DOM 依赖。
-- 保持计算、布局、场景和渲染器的职责边界，不要把具体运算规则或像素坐标写进通用渲染器。
-- 修改宿主项目时遵守项目根目录或相关路径中的 `AGENTS.md`；需要时同步更新技术文档、测试和示例。
-- 实现完成后说明改动文件、选择的 API、渲染输出和验证结果；若同步了文档、测试或示例，也一并列出。
-
-配置确认应只展示当前运算相关的选项，并允许用户直接选择“默认”：通用默认值为 `cellWidth=30`、`rowHeight=46`、`fontSizeRatio=1`、`showGuideGrid=false`、完整 `visibleStepCount`；加法默认显示进位，减法默认显示借位，乘法默认显示进位且不使用等宽横线，长除法默认使用余数模式并隐藏零商步骤，短除法默认显示余数。用户没有要求覆盖时，不要强迫其逐项填写默认值。
-
-## 1. 核心工作流
-
-`@u1in/shushi-core` 把“算出结果”和“画出竖式”拆成可组合的步骤：
+不要从页面、DOM、SVG 或答案字符串重新实现计算和布局。所有数值门户最终都经过同一条链路：
 
 ```text
-用户输入
-  → 运算计算器（Computation）
-  → 运算布局器（可编辑宏源码）
-  → 宏编译器（GridScene）
-  → DOM 或 SVG 渲染器
+shushi(expression) ─┐
+                    ├→ calculators → layout → macro → GridScene → renderer
+shushiCore(request) ┘
+人工宏源码 ───────────────→ macro → GridScene → renderer
 ```
 
-数值输入的默认入口是 `shushi(expression, option)`。它先解析表达式，再调用 `shushiCore(request)` 固定执行上述前三步，并把 `computation`、可编辑 `source`、`scene`、`rendered` 与 `inspection` 一并返回；默认 `renderMode` 为 SSR 安全的 `svg-string`。加减乘使用常见运算符，`|48` 分解质因数，`2|12` 指定短除，`2|12 24` 求公因数，`(124)2` 转换进制。只有需要结构化请求、只计算、逐层调试或手写宏时，才直接选择 `shushiCore` 或下层 API。
+## 2. 表达式入口 `shushi`
 
-每一层职责不同：
+### 签名
 
-| 层 | 主要 API | 输出 | 适合的任务 |
-| --- | --- | --- | --- |
-| 表达式门户 | `shushi` | 计算过程、可编辑宏源码、`GridScene`、渲染结果、AST 检查器 | 根据算式文本直接生成并渲染标准竖式 |
-| 结构化门户 | `shushiCore` | 与 `shushi` 相同 | 精确指定 operation、短除法 mode 与专项选项 |
-| 计算 | `computeAddition`、`computeCompositeArithmetic`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
-| 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
-| 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
-| 场景工具 | `resolveGridMetrics`、`extractVisibleTextRows` | 几何数据或视觉文本行 | 测量、OCR 对照、无 DOM 分析 |
-| 渲染 | `renderDomGrid`、`renderSvgGrid`、`renderSvgString` | `HTMLElement`、`SVGSVGElement` 或 SVG 字符串 | 在网页显示、SSR 输出或导出竖式 |
+```typescript
+type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
-通常不要跳过计算器和布局器，直接在渲染器里拼接运算规则或像素坐标。需要自定义内容时，才直接编写宏源码并交给 `compileMacro`。
-
-## API 技术签名与参数
-
-以下签名均从 `@u1in/shushi-core` 统一导入。类型名称用于说明参数和返回值，不需要在 JavaScript 运行时导入。
-
-### 竖式门户签名
-
-`shushi<TMode extends ShushiRenderMode = 'svg-string'>(expression: string, options?: ShushiExpressionOptions<TMode>): AnyVerticalArithmeticResult<TMode>`
-
-`shushiCore<TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): AnyVerticalArithmeticResult<TMode>`
-
-`request.operation` 可为 `'addition'`、`'subtraction'`、`'multiplication'`、`'division'`、`'shortDivision'` 或 `'composite'`。加法传 `values`，减/乘法传 `operands`；长除法使用具名 `divisor` 与 `dividend`，短除法使用 `mode` 与 `values`，组合竖式使用 `expression`。所有请求可传 `settings` 覆盖布局默认值；乘法与长除法还可传 `calculation` 覆盖计算选项。
-
-门户渲染相关参数如下：
-
-- `renderMode: 'div'`：客户端返回 `HTMLElement`；传入 `el` 时自动挂载到该元素下。
-- `renderMode: 'svg'`：客户端返回 `SVGSVGElement`；传入 `el` 时自动挂载到该元素下。
-- `renderMode: 'svg-string'`：返回 SVG 字符串，客户端和 SSR/Node.js 都可使用；该模式不能传 `el`。
-
-返回值的 `rendered` 类型会随 `renderMode` 收窄；`inspection` 是与 `source` 对应的 `MacroAstInspection`，可通过 `references` 找到图元并调用 `updateElementText` 生成新的源码、场景和检查结果。
-
-### 计算器签名
-
-```ts
-computeAddition(...values: unknown[]): AdditionComputation
-computeSubtraction(minuendValue: unknown, subtrahendValue: unknown): SubtractionComputation
-computeMultiplication(
-  multiplicandValue: unknown,
-  multiplierValue: unknown,
-  options?: MultiplicationOptions,
-): MultiplicationComputation
-computeDivision(
-  divisorValue: unknown,
-  dividendValue: unknown,
-  options?: DivisionOptions,
-): DivisionComputation
-computeShortDivision(input: ShortDivisionInput): ShortDivisionComputation
-computeCompositeArithmetic(expression: unknown): CompositeArithmeticComputation
-```
-
-| API | 参数 | 参数含义 | 返回值重点 |
-| --- | --- | --- | --- |
-| `computeAddition` | `values` | 两个或更多非负整数字符串；也可传入一个数组 | `addendDigits`、`sumDigits`、逐列 `steps` |
-| `computeSubtraction` | `minuendValue`、`subtrahendValue` | 被减数、减数；都应是非负整数字符串 | `differenceDigits`、`resultText`、`isNegative`、借位步骤 |
-| `computeMultiplication` | `multiplicandValue`、`multiplierValue` | 被乘数、乘数；都应是非负整数字符串 | `productDigits`、`partialProducts`、加法汇总步骤 |
-| `computeDivision` | `divisorValue`、`dividendValue` | 除数、被除数；顺序是除数在前 | `quotientText`、`remainder`、试商步骤 |
-| `computeShortDivision` | `input` | 包含 `mode`、`values` 和可选 `targetBase` 的对象 | 按模式返回质因数、公因数或进制转换过程 |
-| `computeCompositeArithmetic` | `expression` | 至少两个非负整数，以 `+`、`-` 或 `×` 连接 | 原表达式、每步单项过程和最终 `resultDigits` |
-
-计算器共用以下输入约定：传入字符串可以避免长整数转换为 JavaScript `number` 后丢失精度；非法字符、负数和空值会抛出输入错误。计算结果只包含语义过程，不包含 DOM、CSS 或像素坐标。
-
-#### 计算器选项类型
-
-```ts
-interface MultiplicationOptions {
-  useTrailingZeroShortcut?: boolean
-  preserveOperandOrder?: boolean
+type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
+  renderMode?: TMode
+  el?: TMode extends 'svg-string' ? never : Element
+  calculation?: DivisionOptions & MultiplicationOptions
+  settings?: ShushiExpressionSettings
 }
 
-interface DivisionOptions {
-  resultMode?: 'decimal' | 'remainder'
-  maxDecimalDigits?: number
-}
-
-interface ShortDivisionInput {
-  mode: 'division' | 'factorization' | 'commonFactor' | 'baseConversion'
-  values: unknown[]
-  divisor?: unknown
-  targetBase?: unknown
-}
+shushi(
+  expression: string,
+  options?: ShushiExpressionOptions,
+): AnyVerticalArithmeticResult
 ```
 
-- `useTrailingZeroShortcut`：乘法是否把乘数末尾零拆出后再计算，默认开启；关闭后使用完整逐位过程。
-- `preserveOperandOrder`：是否保持调用方给出的上下行顺序；组合竖式会固定开启，AI 不应为排版自行交换两个乘数。
-- `resultMode`：除法使用有限小数模式或整数余数模式；默认是 `'remainder'`。
-- `maxDecimalDigits`：有限小数模式最多尝试的小数位数，必须是正整数。
-- `ShortDivisionInput.mode`：`division` 需要一个正整数除数和一个被除数，`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
+默认 `renderMode` 是 `svg-string`。返回值始终包含：
 
-### 布局器签名
-
-布局器把计算结果转换为可编辑的宏源码，而不是直接返回 DOM：
-
-```ts
-createAdditionMacroSource(
-  computation: AdditionComputation,
-  settings?: Partial<AdditionRenderSettings>,
-): string
-
-createSubtractionMacroSource(
-  computation: SubtractionComputation,
-  settings: SubtractionRenderSettings,
-): string
-
-createMultiplicationMacroSource(
-  computation: MultiplicationComputation,
-  settings: MultiplicationRenderSettings,
-): string
-
-createDivisionMacroSource(
-  computation: DivisionComputation,
-  settings: RenderSettings,
-): string
-
-createShortDivisionMacroSource(
-  computation: ShortDivisionComputation,
-  settings: ShortDivisionRenderSettings,
-): string
-
-createCompositeArithmeticMacroSource(
-  computation: CompositeArithmeticComputation,
-  settings?: Partial<CompositeArithmeticRenderSettings>,
-): string
-```
-
-所有布局设置都包含以下公共字段：
-
-```ts
-interface GridRenderSettings {
-  cellWidth: number
-  rowHeight: number
-  fontSizeRatio: number
-  showGuideGrid: boolean
-  visibleStepCount?: number
-  textHorizontalAlign?: 'left' | 'center' | 'right'
-  textVerticalAlign?: 'top' | 'center' | 'bottom'
-}
-```
-
-运算专属字段如下：
-
-| 设置类型 | 专属参数 | 含义 |
-| --- | --- | --- |
-| `AdditionRenderSettings` | `showCarrySteps` | 是否显示进位注记 |
-| `SubtractionRenderSettings` | `showBorrowSteps` | 是否显示借位注记 |
-| `MultiplicationRenderSettings` | `uniformMultiplicationBars`、`showCarrySteps` | 部分积横线是否等宽；是否显示进位 |
-| `RenderSettings` | `bracketBend`、`uniformSubtractionBars`、`showZeroQuotientSteps` | 除法弯折参数；减法横线是否等宽；是否显示试商为 0 的步骤 |
-| `ShortDivisionRenderSettings` | `showRemainders` | 进制转换时是否显示每步余数 |
-| `CompositeArithmeticRenderSettings` | `showCarrySteps`、`showBorrowSteps`、`uniformMultiplicationBars` | 为组合内每个单项步骤控制进位、借位和乘法横线 |
-
-`cellWidth`、`rowHeight` 使用 CSS 像素；`fontSizeRatio` 是相对于单元格字号的比例；`visibleStepCount` 从 0 开始表示显示到哪一个教学步骤，省略时生成完整结果。加法和组合竖式可传入部分设置；减法、乘法、除法和短除法需要完整的运算设置对象。
-
-播放步数 API：
-
-```ts
-getMultiplicationStepCount(computation: MultiplicationComputation): number
-getDivisionPlaybackStepCount(
-  computation: DivisionComputation,
-  showZeroQuotientSteps: boolean,
-): number
-getCompositeArithmeticStepCount(computation: CompositeArithmeticComputation): number
-```
-
-步数应传给布局设置的 `visibleStepCount`；不要自行根据数组长度推算乘法或除法的播放步数，因为快捷计算、零商步骤和小数分隔符都会影响播放事件数量。
-
-### 宏处理签名
-
-```ts
-parseMacro(source: string): MacroCall
-compileMacro(source: string): GridScene
-formatMacro(source: string): string
-unformatMacro(source: string): string
-completeMacro(source: string): string
-minifyMacro(source: string, omitDefaults?: boolean): string
-minifyMacroForCopy(source: string): string
-minifyMacroForCopyAst(root: MacroCall): string
-createMacroAstInspection(source: string): MacroAstInspection
-```
-
-| API | 参数含义 | 返回值和使用场景 |
-| --- | --- | --- |
-| `parseMacro` | 完整或带语法糖的宏源码 | 宏 AST；用于语法检查和编辑器处理 |
-| `compileMacro` | 可编译的宏源码 | `GridScene`；这是进入渲染器的标准入口 |
-| `formatMacro` | 宏源码 | 按层级格式化，并保留输入风格信息 |
-| `unformatMacro` | 宏源码 | 压成单行，但不主动省略完整结构 |
-| `completeMacro` | 宏源码 | 展开为显式 `GRID`、`ROW`、`CELL` 和完整宏名 |
-| `minifyMacro` | 宏源码、是否省略默认值 | 生成最简合法宏源码；`omitDefaults` 默认是 `true` |
-| `minifyMacroForCopy` | 计算器布局生成的宏源码 | 移除网页专属 `ariaLabel`、`style` 后生成可粘贴编辑的最简宏；手写自定义样式宏应继续使用 `minifyMacro` |
-| `minifyMacroForCopyAst` | 计算器安全改写后的宏 AST | 按复制导出规则生成最简宏，供布局器避免手写字符串序列化 |
-| `createMacroAstInspection` | 宏源码 | AST 节点、元素引用和可编辑定位信息 |
-
-`formatMacro`、`completeMacro`、`minifyMacro` 和 `minifyMacroForCopy` 都会先解析源码；源码非法时应把解析错误反馈给用户，不要猜测或静默修复运算含义。
-
-计算器布局生成的源码要提供给用户复制时，调用 `minifyMacroForCopy(source)`，不要自行正则删除 `KV(...)` 或手写拼接结果；它会删除网页渲染专用的 `ariaLabel`、`style`，再按官方语法糖输出最简、可解析源码。手工宏若需要保留自定义样式，则继续使用 `minifyMacro`。
-
-最简输出会省略单元素单元格的容器：`CELL(MM(1))` 输出为 `1`，`CELL(RB(1))` 输出为 `RB(1)`。编辑器仍接受方括号单元格写法，例如 `[RB(1)]`；方括号表示一个显式单元格，不是复制导出的强制形式。
-
-#### `createMacroAstInspection` 返回结构
-
-`createMacroAstInspection(source)` 不只是返回 AST。它会同时编译场景，并建立“渲染图元 → AST 节点 → 可编辑文字”的回溯索引：
-
-```ts
-type MacroNodePath = readonly number[]
-type MacroSourceStyle = 'formatted' | 'minified'
-
-interface MacroElementAstReference {
-  elementId: string
-  node: MacroNode
-  nodePath: MacroNodePath
-  literalPath?: MacroNodePath
-  text?: string
-}
-
-interface MacroAstInspection {
-  ast: MacroCall
-  scene: GridScene
-  sourceStyle: MacroSourceStyle
+```typescript
+type AnyVerticalArithmeticResult = {
+  computation: /* 与 operation 对应的计算过程 */
   source: string
-  minifiedSource: string
-  references: Readonly<Record<string, MacroElementAstReference>>
-  updateElementText: (elementId: string, text: string) => MacroAstInspection
+  scene: GridScene
+  rendered: string | HTMLElement | SVGSVGElement
+  inspection: MacroAstInspection
 }
 ```
 
-字段含义：
+### 输入语法
 
-| 字段 | 含义 |
+| 输入 | 含义 |
 | --- | --- |
-| `ast` | 宏源码的根 `MacroCall`；节点只有 `call`、`literal`、`symbol` 三种形态 |
-| `scene` | 与该 AST 对应的 `GridScene`；可以直接交给 DOM、SVG 或 SVG 字符串渲染器 |
-| `sourceStyle` | 输入源码被识别为 `formatted` 还是 `minified` |
-| `source` | 按 `sourceStyle` 重新输出的源码，可作为编辑器当前文本 |
-| `minifiedSource` | 始终压缩后的合法源码 |
-| `references` | 以 `GridElement.id` 为键的图元回溯表 |
-| `updateElementText` | 不可变地替换某个图元关联的文字，并返回新的检查结果 |
+| `125 + 75 - 20 × 3` | 按书写顺序执行的连续表达式 |
+| `356 + 278` | 加法竖式 |
+| `502 - 137` | 减法竖式 |
+| `97 × 89`、`97 * 89`、`97 x 89` | 乘法竖式 |
+| `10230 ÷ 25`、`10230 / 25` | 长除法 |
+| `2|12` | 指定除数的短除法 |
+| `|48` | 分解质因数 |
+| `1|12 18` | 求公因数；左侧除数必须能同时整除右侧数字 |
+| `(13)2` | 十进制 13 转为二进制；目标进制支持 2–36 |
 
-`MacroElementAstReference` 字段含义：
+连续表达式不使用乘法优先级，而是从左向右执行。长除法不能与加减乘混写；短除法语法中的空格用于分隔多个右侧数字。
 
-- `elementId`：对应 `GridScene.elements` 和渲染 DOM/SVG 节点的 ID。渲染器会把它写入 `data-grid-element-id`。
-- `node`：生成该图元的宏 AST 节点；`call` 有 `name` 和 `arguments`，`literal` 有 `value`，`symbol` 有 `name`。
-- `nodePath`：从根 AST 开始的参数下标路径。根节点是 `[]`，进入第一个参数是 `[0]`，进入该参数的第二个子参数是 `[0, 1]`。
-- `literalPath`：该图元下第一个可编辑文字字面量的路径。没有文字的 `LINE`、圆角或纯符号图元可能没有此字段。
-- `text`：当 `literalPath` 存在时，对应字面量的当前文字；没有可编辑文字时省略。
+### 常用示例
 
-典型的“点击图元并修改文字”流程：
+```typescript
+import { shushi } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
 
-```ts
-import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'
-
-const source = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
-const inspection = createMacroAstInspection(source)
-const stage = renderDomGrid(inspection.scene)
-
-// 外层交互组件从被点击的 DOM 节点取得 elementId。
-const clickedNode = stage.querySelector<HTMLElement>('[data-grid-element-id]')
-const elementId = clickedNode?.dataset.gridElementId
-const reference = elementId ? inspection.references[elementId] : undefined
-
-if (reference?.literalPath) {
-  const nextInspection = inspection.updateElementText(reference.elementId, '8')
-  const nextStage = renderDomGrid(nextInspection.scene)
-  console.log(nextInspection.source)
-  void nextStage
-}
-```
-
-`updateElementText` 不会原地修改 `inspection`，而是返回包含新 `ast`、`scene`、`source` 和 `references` 的完整新对象，适合实现撤销/重做。传入不存在的 `elementId`，或传入没有 `literalPath` 的线条、边框和纯符号图元，会抛出错误。更新后必须使用新检查结果的 `scene` 重新渲染，不能继续使用旧场景。
-
-### 场景、几何与渲染签名
-
-```ts
-resolveGridMetrics(scene: GridScene): GridMetrics
-getGridPositionRect(position: GridPosition, metrics: GridMetrics): GridRect
-getGridElementRect(element: GridElement, metrics: GridMetrics): GridRect
-getGridTextAnchor(
-  rect: GridRect,
-  horizontalAlign: GridTextHorizontalAlign,
-  verticalAlign: GridTextVerticalAlign,
-): GridTextAnchor
-extractVisibleTextRows(scene: GridScene): string[]
-renderDomGrid(scene: GridScene): HTMLElement
-renderSvgGrid(scene: GridScene): SVGSVGElement
-renderSvgString(scene: GridScene): string
-```
-
-| API | 参数含义 | 返回值 |
-| --- | --- | --- |
-| `resolveGridMetrics` | 已编译的场景 | 包含 `width`、`height`、`columnOffsets` 和 `rowOffsets` 的解析尺寸 |
-| `getGridPositionRect` | 网格单元、边、边中点或交点及已解析尺寸 | 包含 `left`、`top`、`width`、`height` 的 `GridRect`，不创建 DOM |
-| `getGridElementRect` | 图元和已解析尺寸 | 图元声明位置对应的 `GridRect` |
-| `getGridTextAnchor` | 几何矩形和水平/垂直对齐方式 | 包含 `x`、`y` 及对齐字段的三个渲染入口共用文本锚点 |
-| `extractVisibleTextRows` | 已编译的场景 | 按视觉行拼接的非空文本数组 |
-| `renderDomGrid` | 已编译的场景 | 带线条层和内容层的 `HTMLElement` |
-| `renderSvgGrid` | 已编译的场景 | 带 `viewBox` 和图元的 `SVGSVGElement` |
-| `renderSvgString` | 已编译的场景 | 不依赖 DOM 的完整 SVG 字符串 |
-
-`GridScene` 的关键字段是：`columns`、`rows`（轨道）；`padding`、`unitWidth`、`unitHeight`（几何尺寸）；`fontSize`、默认文本样式和对齐方式；`elements`（文字、线条、圆角图元）；`showGuideGrid`；`ariaLabel`。渲染器只消费这些通用字段，不识别具体运算。
-
-## 2. 六类运算能力
-
-### 2.1 加法
-
-```ts
-const computation = computeAddition('356', '278')
-const source = createAdditionMacroSource(computation)
-```
-
-- `computeAddition(...values)` 支持两个或更多非负整数字符串，也支持传入一个数组。
-- 结果包含 `sumDigits` 和逐列 `steps`。
-- 每个步骤包含本列加数、`carryIn`、总和、结果位和 `carryOut`。
-- `createAdditionMacroSource` 默认生成完整结果并显示进位；可以用 `visibleStepCount` 和 `showCarrySteps` 控制教学过程。
-
-### 2.2 减法
-
-```ts
-const computation = computeSubtraction('502', '137')
-const source = createSubtractionMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  showBorrowSteps: true,
+const result = shushi('125 + 75 - 20 × 3', {
+  renderMode: 'div',
+  el: document.querySelector('#result') ?? undefined,
+  settings: {
+    cellWidth: 32,
+    rowHeight: 46,
+    showGuideGrid: false,
+  },
 })
+
+console.log(result.computation, result.source, result.scene, result.inspection)
 ```
 
-- `computeSubtraction(minuend, subtrahend)` 接收两个非负整数字符串。
-- 被减数小于减数时不会抛错；结果通过 `isNegative` 和 `resultText` 表示，布局器仍会生成可教学的借位过程。
-- `steps` 包含 `borrowIn`、借位后的被减数位、结果位和 `borrowOut`。
-- `showBorrowSteps: true` 时，宏源码会包含借位标记。
+## 3. 结构化入口 `shushiCore`
 
-### 2.3 乘法
+### 签名和请求形状
 
-```ts
-const computation = computeMultiplication('97', '89', {
-  useTrailingZeroShortcut: true,
-})
-const source = createMultiplicationMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  uniformMultiplicationBars: false,
-  showCarrySteps: true,
-})
+```typescript
+type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> =
+  TRequest & ShushiRenderOptions<TMode>
+
+type VerticalArithmeticRequest =
+  | { operation: 'addition'; values: readonly unknown[]; settings?: Partial<AdditionRenderSettings> }
+  | { operation: 'subtraction'; operands: readonly [unknown, unknown]; settings?: Partial<SubtractionRenderSettings> }
+  | { operation: 'multiplication'; operands: readonly [unknown, unknown]; calculation?: MultiplicationOptions; settings?: Partial<MultiplicationRenderSettings> }
+  | { operation: 'division'; divisor: unknown; dividend: unknown; calculation?: DivisionOptions; settings?: Partial<RenderSettings> }
+  | { operation: 'shortDivision'; mode: ShortDivisionMode; values: unknown[]; divisor?: unknown; targetBase?: unknown; settings?: Partial<ShortDivisionRenderSettings> }
+  | { operation: 'composite'; expression: unknown; settings?: Partial<CompositeArithmeticRenderSettings> }
+
+shushiCore(request: ShushiRequest<VerticalArithmeticRequest>): AnyVerticalArithmeticResult
 ```
 
-- `computeMultiplication(multiplicand, multiplier, options)` 输出部分积、逐位乘法步骤和最终积。
-- 输入应使用整数字符串，避免大整数转换为 JavaScript `number` 后丢失精度。
-- `useTrailingZeroShortcut` 默认开启；关闭后使用完整逐位乘法过程。
-- `getMultiplicationStepCount(computation)` 返回适合播放控件使用的总步数。
+长除法的结构化参数顺序固定为 `divisor` 在前、`dividend` 在后；表达式入口则遵循用户书写方向，例如 `10230 / 25` 表示被除数 10230、除数 25。
 
-### 2.4 长除法
+### 结构化示例
 
-```ts
-const computation = computeDivision('25', '10230', {
-  resultMode: 'decimal',
-  maxDecimalDigits: 24,
+```typescript
+import { shushiCore } from '@u1in/shushi-core'
+
+const division = shushiCore({
+  operation: 'division',
+  divisor: '25',
+  dividend: '10230',
+  calculation: { resultMode: 'decimal', maxDecimalDigits: 24 },
 })
-const source = createDivisionMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  bracketBend: 1,
-  uniformSubtractionBars: false,
-  showZeroQuotientSteps: false,
-})
-```
 
-- 参数顺序是 `computeDivision(divisor, dividend)`，不要与常见的“被除数在前”函数顺序混淆。
-- 除数不能为 0；两个输入都是非负整数字符串。
-- `resultMode: 'remainder'` 返回整数商和余数；`resultMode: 'decimal'` 尝试生成有限小数，`maxDecimalDigits` 限制小数位数。
-- `steps` 记录每次试商、部分被除数、乘积和余数。
-- `getDivisionPlaybackStepCount(computation, showZeroQuotientSteps)` 返回播放步数。
-
-### 2.5 短除法
-
-```ts
-const computation = computeShortDivision({
+const factorization = shushiCore({
+  operation: 'shortDivision',
   mode: 'factorization',
   values: ['48'],
 })
-const source = createShortDivisionMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  showRemainders: true,
+
+const baseConversion = shushiCore({
+  operation: 'shortDivision',
+  mode: 'baseConversion',
+  values: ['13'],
+  targetBase: 2,
 })
 ```
 
-`computeShortDivision` 通过 `mode` 选择三种用途：
+`shortDivision` 的模式为：`division`、`factorization`、`commonFactor`、`baseConversion`。指定除数的 `division` 需要 `divisor`；进制转换需要 `targetBase`；其他请求不要填无意义的字段。
 
-| `mode` | 输入 | 输出重点 |
+## 4. 渲染与统一场景
+
+门户先生成 `source`，再编译为 `scene`，最后根据 `renderMode` 渲染：
+
+| `renderMode` | 结果 | 适用场景 |
 | --- | --- | --- |
-| `'factorization'` | `values` 中的一个正整数 | 质因数、因式分解文本、约数个数和约数和 |
-| `'commonFactor'` | `values` 中至少两个正整数 | 最大公约数 `gcd`、最小公倍数 `lcm` |
-| `'baseConversion'` | 一个十进制整数和 `targetBase` | 2–36 进制转换、每步余数 |
+| `svg-string` | SVG 字符串 | SSR、Node.js、导出文件 |
+| `div` | DOM 元素 | 浏览器 CSS/DOM 交互 |
+| `svg` | SVG DOM 元素 | 浏览器 SVG 交互 |
 
-短除法结果的 `steps`、`finalValues` 和模式专属字段可直接用于教学面板或结果摘要。
+`div` 和 `svg` 需要浏览器 DOM，且浏览器入口应导入 `@u1in/shushi-core/style.css`。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
-### 2.6 组合运算竖式
+## 5. 计算器和布局 API
 
-```ts
-const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
-const totalSteps = getCompositeArithmeticStepCount(computation)
-const source = createCompositeArithmeticMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  showCarrySteps: true,
-  showBorrowSteps: true,
-  uniformMultiplicationBars: false,
-  visibleStepCount: totalSteps,
-})
+当用户只需要过程数据或要精确控制分层步骤时，使用这些 API：
+
+```typescript
+computeAddition(...values)
+computeSubtraction(minuendValue, subtrahendValue)
+computeMultiplication(multiplicandValue, multiplierValue, options?)
+computeDivision(divisorValue, dividendValue, options?)
+computeShortDivision(input)
+computeCompositeArithmetic(expression)
 ```
 
-- 表达式按书写顺序从左到右计算，不采用通常的乘法优先级；上例依次计算 `(125 + 75) - 20`，再乘以 `3`。
-- 每一步委托给原有加、减、乘计算器，所以进位、借位、部分积规则保持一致；组合内乘法关闭末尾零快捷计算，并保留表达式给出的操作数顺序。
-- 源码是一个连续的 `GRID`：上一步结果复用为下一步第一行，下一步的运算符和第二操作数会在自己的引入帧出现，不会提前混到上一帧。
-- 后续减法即使复用上一结果行，也会把该减法的借位点合并到结果行；不要为了去重删掉这些借位标记。
+布局器把计算结果变成可编辑宏源码：
 
-## 3. 最常用的完整组合
-
-### 3.1 从数值生成并显示加法竖式
-
-这是网页应用最常用的组合：计算 → 生成宏源码 → 编译场景 → DOM 渲染。
-
-```ts
-import {
-  compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
-  renderDomGrid,
-} from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
-
-const computation = computeAddition('356', '278')
-const source = createAdditionMacroSource(computation)
-const scene = compileMacro(source)
-const stage = renderDomGrid(scene)
-
-document.querySelector('#result')?.append(stage)
+```typescript
+createAdditionMacroSource(computation, settings?)
+createSubtractionMacroSource(computation, settings)
+createMultiplicationMacroSource(computation, settings)
+createDivisionMacroSource(computation, settings)
+createShortDivisionMacroSource(computation, settings)
+createCompositeArithmeticMacroSource(computation, settings?)
 ```
 
-这条链路同时得到三种可用结果：
+逐步播放时使用对应的 `get*StepCount`，每次改变 `visibleStepCount` 都重新生成宏源码并编译，不要直接修改 `GridScene` 的坐标。
 
-- `computation`：答案和逐列过程；
-- `source`：用户可以复制、修改的宏源码；
-- `scene`/`stage`：可直接交给页面显示的统一场景和 DOM。
+## 6. 宏源码和 AST
 
-### 3.2 生成可复制、可播放的组合竖式
-
-AI 收到“先加后减再乘”或任意 `+`、`-`、`×` 排列时，优先直接使用组合 API，而不是调用多个布局器后自行连接行：
-
-```ts
-import {
-  compileMacro,
-  computeCompositeArithmetic,
-  createCompositeArithmeticMacroSource,
-  getCompositeArithmeticStepCount,
-  minifyMacroForCopy,
-} from '@u1in/shushi-core'
-
-const computation = computeCompositeArithmetic('500 + 1 - 237 × 2')
-const source = createCompositeArithmeticMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  showCarrySteps: true,
-  showBorrowSteps: true,
-  uniformMultiplicationBars: false,
-  visibleStepCount: getCompositeArithmeticStepCount(computation),
-})
-const scene = compileMacro(source)
-const copyText = minifyMacroForCopy(source)
+```typescript
+parseMacro(source)
+formatMacro(source)
+unformatMacro(source)
+completeMacro(source)
+minifyMacro(source)
+minifyMacroForCopy(source)
+compileMacro(source)
+createMacroAstInspection(source)
 ```
 
-播放从 `0` 到 `getCompositeArithmeticStepCount(computation)` 逐帧重建 `source` 和 `scene`。`copyText` 是粘贴到网格宏编辑器的文本；不要从 `scene`、OCR 文本或页面 HTML 反向构造宏。
+- `formatMacro` 只整理空白和缩进，不计算运算结果。
+- `completeMacro` 输出显式的 `GRID`、`ROW`、`CELL` 和完整宏名。
+- `minifyMacro` 输出最简合法宏；计算器生成的宏复制到编辑器时使用 `minifyMacroForCopy`，它会移除页面专属 `ariaLabel` 和 `style`。
+- `createMacroAstInspection` 返回 `scene`、`references`、`source`、`minifiedSource` 和不可变的 `updateElementText`。
 
-### 3.3 同一份场景切换 DOM 与 SVG
+典型 AST 编辑流程：
 
-计算和编译只做一次，渲染器可以按宿主环境选择：
-
-```ts
-import { compileMacro, renderDomGrid, renderSvgGrid } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
-
-const scene = compileMacro(source)
-const domStage = renderDomGrid(scene)
-const svgStage = renderSvgGrid(scene)
-```
-
-- DOM 适合交互式页面、元素回查和播放控制。
-- SVG 适合导出、截图、缩放和无 HTML 图层的展示。
-- 三个渲染入口消费同一个 `GridScene`，不要为 DOM、SVG 节点和 SVG 字符串分别计算一套布局。
-- `renderSvgGrid` 与 `renderSvgString` 还共享无 DOM SVG 渲染树；它们保证结构、坐标、属性和图元顺序一致，但不承诺浏览器重新序列化后的字符串与 SSR 输出逐字节相同。
-
-### 3.4 教学播放或逐步显示
-
-计算器保留完整过程，布局器通过 `visibleStepCount` 生成某一帧：
-
-```ts
-const computation = computeMultiplication('97', '89')
-const totalSteps = getMultiplicationStepCount(computation)
-
-const source = createMultiplicationMacroSource(computation, {
-  cellWidth: 30,
-  rowHeight: 46,
-  fontSizeRatio: 1,
-  showGuideGrid: false,
-  uniformMultiplicationBars: false,
-  showCarrySteps: true,
-  visibleStepCount: Math.min(3, totalSteps),
-})
-
-const scene = compileMacro(source)
-```
-
-播放时只改变 `visibleStepCount` 并重新生成宏源码和场景，不要修改已经渲染出的 DOM 图元来模拟运算规则。
-
-### 3.5 取得视觉文本行
-
-```ts
-const rows = extractVisibleTextRows(scene)
-```
-
-`extractVisibleTextRows` 不需要 DOM，会按照渲染锚点把非空文本拼成视觉行。它适合：
-
-- 与 OCR 结果逐行比较；
-- 给无障碍或纯文本面板提供内容；
-- 检查进位、借位、商和余数是否出现在预期行。
-
-### 3.6 手工宏源码的编辑和检查
-
-当用户直接提供宏源码，而不是数值输入时，使用宏 API：
-
-```ts
-import {
-  compileMacro,
-  createMacroAstInspection,
-  formatMacro,
-  minifyMacro,
-  parseMacro,
-} from '@u1in/shushi-core'
-
-const source = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
-const ast = parseMacro(source)
-const formatted = formatMacro(source)
-const compact = minifyMacro(source)
+```typescript
 const inspection = createMacroAstInspection(source)
-const scene = compileMacro(source)
+const element = inspection.scene.elements[0]
+const updated = inspection.updateElementText(element.id, '9')
+
+// 使用 updated.scene 重新渲染，不要继续使用旧 inspection。
+console.log(updated.source, updated.scene)
 ```
 
-- `parseMacro`：把源码解析为 AST，适合语法校验和编辑器能力。
-- `formatMacro`：补全并格式化源码。
-- `minifyMacro`：压缩源码，适合保存或传输。
-- `createMacroAstInspection`：取得 AST 节点与可定位元素的检查信息。
-- `compileMacro`：把完整宏源码编译为 `GridScene`。
+## 7. Agent 任务选择表
 
-## 4. 网格和渲染工具
-
-当用户需要测量、标注或分析已经编译的场景时，可以使用以下 API：
-
-| API | 用途 |
+| 任务 | 实现路径 |
 | --- | --- |
-| `resolveGridMetrics(scene)` | 解析行列轨道、总宽高和偏移量 |
-| `getGridPositionRect(position, metrics)` | 取得一个网格位置的几何矩形 |
-| `getGridElementRect(element, metrics)` | 取得图元的几何矩形 |
-| `getGridTextAnchor(rect, horizontalAlign, verticalAlign)` | 计算文本锚点 |
-| `extractVisibleTextRows(scene)` | 提取视觉文本行 |
-| `GridScene` | 统一描述轨道、单元格、文字、线条和语义样式 token |
+| 根据用户算式直接显示竖式 | `shushi(expression, { renderMode, el })` |
+| 精确指定运算类型或短除法模式 | `shushiCore(request)` |
+| 只要计算结果和过程 | 对应的 `compute*` |
+| 需要保存、编辑或复制宏 | 门户返回的 `source`；复制时 `minifyMacroForCopy` |
+| 需要切换 DOM、SVG、SSR | 同一 `scene` 配合对应 `renderMode` 或 `render*` |
+| 用户已经提供宏源码 | `parseMacro` / `createMacroAstInspection` / `compileMacro` |
+| 需要文本提取或几何测量 | `extractVisibleTextRows` / `resolveGridMetrics` / `getGridElementRect` |
 
-这些 API 只描述通用网格，不判断“这是加法还是除法”。运算语义应由对应的计算器和布局器负责。
+## 8. 边界规则
 
-## 5. Agent 任务选择规则
-
-收到用户需求时，可以按以下规则选择 API：
-
-| 用户需求 | 推荐组合 |
-| --- | --- |
-| 根据算式展示标准竖式 | `shushi('356 + 278', { renderMode: 'div' | 'svg', el })` |
-| 只要计算答案 | 对应的 `compute*` |
-| 要展示标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` 或 `renderSvgGrid` |
-| 要把多个 `+`、`-`、`×` 放进一个连续竖式 | `computeCompositeArithmetic` → `getCompositeArithmeticStepCount` → `createCompositeArithmeticMacroSource` → `compileMacro` |
-| 要用户可以继续编辑 | 返回 `create*MacroSource` 的源码，并允许再次 `compileMacro` |
-| 要复制计算器生成的宏 | `create*MacroSource` → `minifyMacroForCopy`；不手写字符串裁剪 |
-| 要播放计算步骤 | `compute*` → `get*StepCount` → 带 `visibleStepCount` 的 `create*MacroSource` |
-| 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
-| 要做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
-| 要导出或缩放图像 | 浏览器用 `compileMacro` → `renderSvgGrid`；服务端用 `compileMacro` → `renderSvgString` |
-| 要在网页中交互显示 | 算式输入用 `shushi(expression, { renderMode: 'div', el })`；复杂请求用 `shushiCore({ operation, renderMode: 'div', el })`；宏源码用 `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
-
-## 6. 输入与边界规则
-
-- 数值运算优先传入字符串，例如 `'12345678901234567890'`，避免 JavaScript `number` 的精度损失。
-- 加法至少需要两个加数；减法、乘法和长除法各需要两个操作数。
-- 组合表达式至少有一个运算符，只接受非负整数以及 `+`、`-`、`×`（`x`、`X`、`*` 会被识别为 `×`）；按文本从左到右执行。中间结果为负数时不能继续组合。
-- 长除法调用顺序是“除数在前、被除数在后”：`computeDivision(divisor, dividend)`。
-- 除法的除数不能为 0；短除法的公因数模式至少需要两个正整数。
-- 短除法的质因数分解和公因数模式输入不超过 `1,000,000,000`；进制转换支持任意长度的十进制字符串。
-- 短除法进制转换的 `targetBase` 必须在 2 到 36 之间。
-- `renderDomGrid` 和 `renderSvgGrid` 需要浏览器 DOM；`renderSvgString`、计算、布局、宏解析、编译和文本提取可以在 Node.js 或 SSR 中执行。
-- 浏览器渲染入口应导入 `@u1in/shushi-core/style.css`，否则图元的定位、字体和线条默认样式可能不完整。
-- 不要在渲染器中手工判断进位、借位、部分积、商或余数；这些信息必须来自计算结果和布局器生成的语义 token。
-
-## 7. 最小可用判断
-
-如果用户只给出数值和运算，Agent 应优先使用 `shushi`，按宿主环境选择 `renderMode`；客户端交互显示使用 `renderMode: 'div'` 或 `'svg'`，SSR/Node.js 使用 `'svg-string'`。用户只需要答案时才选择对应的 `compute*`。如果用户给出的是宏源码，直接走宏解析与编译链路。除非用户只需要答案，否则应保留宏源码、`GridScene` 或 `inspection`，这样后续可以继续编辑、播放、分析或切换渲染方式。
-
-
+- 运算输入优先使用十进制字符串，避免大整数转换为 JavaScript `number` 后丢失精度。
+- 数值入口只接受非负整数和规定的运算符；非法字符、空值和不符合模式的短除法会抛出错误。
+- `computeDivision` 的参数顺序是 `divisorValue, dividendValue`；不要按表达式书写顺序调用底层函数。
+- 纯计算、宏解析、编译、几何查询和文本提取不依赖 DOM；DOM/SVG 渲染依赖浏览器。
+- 公开类型和字段以 `packages/core/src/vertical-arithmetic.ts` 及统一入口导出为准；不要根据旧示例猜测已经删除的 API。
