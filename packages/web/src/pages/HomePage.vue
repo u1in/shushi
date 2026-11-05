@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import DivisionCalculator from '../components/DivisionCalculator.vue'
-import MultiplicationCalculator from '../components/MultiplicationCalculator.vue'
-import AdditionCalculator from '../components/AdditionCalculator.vue'
-import SubtractionCalculator from '../components/SubtractionCalculator.vue'
-import ShortDivisionCalculator from '../components/ShortDivisionCalculator.vue'
 import CompositeArithmeticCalculator from '../components/CompositeArithmeticCalculator.vue'
 import MacroAstInspector from '../components/MacroAstInspector.vue'
 import ThemeControl from '../components/ThemeControl.vue'
@@ -116,11 +111,6 @@ onBeforeUnmount(() => {
     <nav class="site-header__nav" aria-label="演示板块导航">
       <a href="#composite-arithmetic">表达式</a>
       <a href="#macro-ast-inspector">宏调试</a>
-      <a href="#addition">加法</a>
-      <a href="#subtraction">减法</a>
-      <a href="#multiplication">乘法</a>
-      <a href="#division">长除法</a>
-      <a href="#short-division">短除法</a>
     </nav>
     <a class="site-header__github" :href="githubUrl" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看竖式·Shushi">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -197,11 +187,6 @@ onBeforeUnmount(() => {
 
     <CompositeArithmeticCalculator id="composite-arithmetic" />
     <MacroAstInspector id="macro-ast-inspector" />
-    <AdditionCalculator id="addition" />
-    <SubtractionCalculator id="subtraction" />
-    <MultiplicationCalculator id="multiplication" />
-    <DivisionCalculator id="division" />
-    <ShortDivisionCalculator id="short-division" />
 
     <button
       v-if="showBackToTop"
