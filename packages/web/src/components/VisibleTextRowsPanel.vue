@@ -48,13 +48,16 @@ const closeDialog = (): void => {
         <section class="ocr-modal__content">
           <div class="ocr-modal__header">
             <div>
-              <p class="panel-kicker">OCR</p>
-              <h2 :id="dialogTitleId">按行识别结果</h2>
+              <p :id="dialogTitleId" class="panel-kicker">计算可见行</p>
             </div>
-            <button class="ocr-modal__close" type="button" aria-label="关闭 OCR 结果" @click="closeDialog">×</button>
+            <button class="ocr-modal__close" type="button" aria-label="关闭计算可见行" @click="closeDialog">×</button>
+          </div>
+          <div class="visible-text-rows__description">
+            <p>下面的结果按行整理竖式中实际显示的文字，方便和 OCR（图片文字识别）结果对比。</p>
+            <p>进位和借位会单独占一行，即使它们在排版上属于数字行的一部分。</p>
+            <p>因此，分行结果可能和你看到的竖式分组略有不同，这是正常的。</p>
           </div>
           <div class="visible-text-rows__output" aria-live="polite">
-            <p>extractVisibleTextRows(scene) 返回：</p>
             <pre>{{ JSON.stringify(rows, null, 2) }}</pre>
           </div>
           <div class="ocr-modal__actions">

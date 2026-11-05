@@ -1756,7 +1756,6 @@ h2 {
 
 .visible-text-rows__output {
   max-height: 440px;
-  margin-top: 10px;
   overflow: auto;
   border: 1px solid #dce5f2;
   border-radius: 12px;
@@ -1792,11 +1791,6 @@ h2 {
   gap: 18px;
 }
 
-.ocr-modal__header h2 {
-  margin-top: 6px;
-  font-size: 1.35rem;
-}
-
 .ocr-modal__close {
   width: 36px;
   height: 36px;
@@ -1818,11 +1812,16 @@ h2 {
   margin-top: 18px;
 }
 
-.visible-text-rows__output p {
-  margin: 0 0 8px;
+.visible-text-rows__description {
+  margin: 10px 0 12px;
   color: #62708b;
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.visible-text-rows__description p {
+  margin: 0 0 4px;
 }
 
 .visible-text-rows__output pre {
@@ -2730,7 +2729,7 @@ h1, h2, .settings-title, .data-flow-heading h3, .calculation-json h3 { color: va
   border-color: var(--border-soft);
   background: var(--surface-soft);
 }
-.visible-text-rows__output p { color: var(--text-muted); }
+.visible-text-rows__description { color: var(--text-muted); }
 .visible-text-rows__output pre { color: var(--text); }
 .code-panel__source { border-color: var(--border-code); background: var(--surface-code); color: var(--text); }
 .code-token--comment { color: var(--text-subtle); }
