@@ -44,9 +44,7 @@ const heroMacroError = ref('')
 const exampleCode = `import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const { computation, source, rendered, inspection } = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const { computation, source, rendered, inspection } = shushi('356 + 278', {
   renderMode: 'div',
   el: document.querySelector('#result') ?? undefined,
 })
@@ -339,9 +337,7 @@ onBeforeUnmount(() => {
             <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> { <span class="docs-code-function">shushi</span> } <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
 <span class="docs-code-keyword">import</span> <span class="docs-code-string">'@u1in/shushi-core/style.css'</span>
 
-<span class="docs-code-keyword">const</span> { computation, source, rendered, inspection } = <span class="docs-code-function">shushi</span>({
-  operation: <span class="docs-code-string">'addition'</span>,
-  values: [<span class="docs-code-string">'356'</span>, <span class="docs-code-string">'278'</span>],
+<span class="docs-code-keyword">const</span> { computation, source, rendered, inspection } = <span class="docs-code-function">shushi</span>(<span class="docs-code-string">'356 + 278'</span>, {
   renderMode: <span class="docs-code-string">'div'</span>,
   el: document.<span class="docs-code-function">querySelector</span>(<span class="docs-code-string">'#result'</span>) ?? <span class="docs-code-keyword">undefined</span>,
 })

@@ -155,7 +155,7 @@ console.log(computation.steps)`,
 
 export const computeShortDivisionPage = createCalculatorApiPage({
   slug: 'computeShortDivision',
-  summary: '计算质因数分解、公因数或进制转换短除法过程。',
+  summary: '计算指定除数、质因数分解、公因数或进制转换短除法过程。',
   example: `import { computeShortDivision } from '@u1in/shushi-core'
 
 const computation = computeShortDivision({
@@ -169,8 +169,9 @@ console.log(computation.steps)`,
   purpose: '它根据 `mode` 选择短除法终止条件，输出每行除数、被除数组、商、余数和最终结果。',
   signature: `type ComputeShortDivision = (input: ShortDivisionInput) => ShortDivisionComputation`,
   parameters: [
-    ['`input.mode`', '`ShortDivisionMode`', '取 `factorization`、`commonFactor` 或 `baseConversion`。'],
+    ['`input.mode`', '`ShortDivisionMode`', '取 `division`、`factorization`、`commonFactor` 或 `baseConversion`。'],
     ['`input.values`', '`unknown[]`', '分解和进制转换使用一个值；公因数模式至少需要两个值。'],
+    ['`input.divisor`', '`unknown`', '`division` 模式的左侧正整数除数。'],
     ['`input.targetBase`', '`unknown`', '进制转换目标进制，范围由计算规则约束。'],
     ['返回值', '`ShortDivisionComputation`', '按模式返回对应的分解、公因数或进制转换契约。'],
   ],

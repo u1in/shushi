@@ -6,7 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
-import type { GridScene, MultiplicationComputation } from '@u1in/shushi-core'
+import type { GridScene, MultiplicationComputation, MultiplicationVerticalArithmeticResult } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -26,9 +26,7 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.productDigits ?? '—')
 
 const renderScene = (): void => {
-  const result = shushi({
-    operation: 'multiplication',
-    operands: [multiplicand.value, multiplier.value],
+  const result = shushi(`${multiplicand.value} × ${multiplier.value}`, {
     calculation: { useTrailingZeroShortcut: useTrailingZeroShortcut.value },
     settings: {
       cellWidth: cellWidth.value,
@@ -39,7 +37,7 @@ const renderScene = (): void => {
       showCarrySteps: showCarrySteps.value,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as MultiplicationVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene

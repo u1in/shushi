@@ -73,7 +73,7 @@ computeDivision(divisorValue, dividendValue, options?)
 
 ### 短除法输入被拒绝
 
-检查 `mode`：`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要十进制整数和 2–36 的 `targetBase`。具体边界以 `references/api.md` 为准。
+使用表达式入口时，检查写法：`|48` 分解质因数，`2|12` 指定短除，`2|12 24` 求公因数，`(124)2` 转换进制。使用 `shushiCore` 时再检查 `mode`：`division` 需要除数和一个被除数，`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要十进制整数和 2–36 的 `targetBase`。具体边界以 `references/api.md` 为准。
 
 ### 组合运算结果顺序不符合预期
 

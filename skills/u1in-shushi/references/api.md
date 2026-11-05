@@ -39,10 +39,11 @@ title: Agent 功能说明
 ```ts
 type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
-shushi(request: ShushiRequest<VerticalArithmeticRequest>): VerticalArithmeticResult
+shushi(expression: string, options?: ShushiExpressionOptions): AnyVerticalArithmeticResult
+shushiCore(request: ShushiRequest<VerticalArithmeticRequest>): AnyVerticalArithmeticResult
 ```
 
-数值输入优先调用 `shushi`。它按 `operation` 选择加法、减法、乘法、长除法、短除法或组合竖式，并返回 `computation`、可编辑的 `source`、统一 `scene`、按 `renderMode` 生成的 `rendered` 和可注入的 `inspection`。
+数值输入优先调用 `shushi`。它将表达式解析为 `shushiCore` 的结构化请求，并返回 `computation`、可编辑的 `source`、统一 `scene`、按 `renderMode` 生成的 `rendered` 和可注入的 `inspection`。加减乘支持 `+`、`-`、`×`、`*` 和 `x` 的组合；长除法使用 `255 ÷ 5` 或 `255 / 5`，短除法使用 `|48`、`2|12` 或 `2|12 24`，进制转换使用 `(124)2`。需要精确控制 `operation` 或短除法 mode 时改用 `shushiCore`。
 
 | 参数 | 说明 |
 | --- | --- |
@@ -55,9 +56,7 @@ shushi(request: ShushiRequest<VerticalArithmeticRequest>): VerticalArithmeticRes
 import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const result = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const result = shushi('356 + 278', {
   renderMode: 'div',
   el: document.querySelector('#result') ?? undefined,
 })
@@ -88,7 +87,7 @@ computeCompositeArithmetic(expression: unknown): CompositeArithmeticComputation
 | `computeSubtraction` | `minuendValue`、`subtrahendValue` | 被减数、减数；都应是非负整数字符串 | `differenceDigits`、`resultText`、`isNegative`、借位步骤 |
 | `computeMultiplication` | `multiplicandValue`、`multiplierValue` | 被乘数、乘数；都应是非负整数字符串 | `productDigits`、`partialProducts`、加法汇总步骤 |
 | `computeDivision` | `divisorValue`、`dividendValue` | 除数、被除数；顺序是除数在前 | `quotientText`、`remainder`、试商步骤 |
-| `computeShortDivision` | `input` | 包含 `mode`、`values` 和可选 `targetBase` 的对象 | 按模式返回质因数、公因数或进制转换过程 |
+| `computeShortDivision` | `input` | 包含 `mode`、`values` 和可选 `divisor` / `targetBase` 的对象 | 按模式返回指定除数、质因数、公因数或进制转换过程 |
 | `computeCompositeArithmetic` | `expression` | 至少两个非负整数，以 `+`、`-` 或 `×` 连接 | 原表达式、每步单项过程和最终 `resultDigits` |
 
 计算器共用以下输入约定：传入字符串可以避免长整数转换为 JavaScript `number` 后丢失精度；非法字符、负数和空值会抛出输入错误。计算结果只包含语义过程，不包含 DOM、CSS 或像素坐标。
@@ -107,8 +106,9 @@ interface DivisionOptions {
 }
 
 interface ShortDivisionInput {
-  mode: 'factorization' | 'commonFactor' | 'baseConversion'
+  mode: 'division' | 'factorization' | 'commonFactor' | 'baseConversion'
   values: unknown[]
+  divisor?: unknown
   targetBase?: unknown
 }
 ```
@@ -117,7 +117,7 @@ interface ShortDivisionInput {
 - `preserveOperandOrder`：保持调用方的上下行顺序；组合竖式固定开启，不能为排版自行交换乘数。
 - `resultMode`：除法使用有限小数模式或整数余数模式；默认是 `'remainder'`。
 - `maxDecimalDigits`：有限小数模式最多尝试的小数位数，必须是正整数。
-- `ShortDivisionInput.mode`：`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
+- `ShortDivisionInput.mode`：`division` 需要 `divisor` 和一个被除数，`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
 
 ### 布局器签名
 

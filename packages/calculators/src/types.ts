@@ -33,8 +33,8 @@ export interface DivisionOptions {
   maxDecimalDigits?: number
 }
 
-/** 短除法的三个教学用途；每种用途的终止条件不同。 */
-export type ShortDivisionMode = 'factorization' | 'commonFactor' | 'baseConversion'
+/** 短除法的教学用途；每种用途的终止条件不同。 */
+export type ShortDivisionMode = 'division' | 'factorization' | 'commonFactor' | 'baseConversion'
 
 /** 一次短除法行：右侧的原数被左侧除数除后，商写到下一行。 */
 export interface ShortDivisionStep {
@@ -50,6 +50,14 @@ interface ShortDivisionBaseComputation {
   inputValues: string[]
   steps: ShortDivisionStep[]
   finalValues: string[]
+}
+
+/** 指定左侧除数的一次短除法；适用于 `2|12` 这类课堂写法。 */
+export interface DivisionShortDivisionComputation extends ShortDivisionBaseComputation {
+  mode: 'division'
+  divisor: string
+  quotient: string
+  remainder: string
 }
 
 /** 分解质因数：终止的 1 或质数保留在底行。 */
@@ -79,14 +87,16 @@ export interface BaseConversionShortDivisionComputation extends ShortDivisionBas
 }
 
 export type ShortDivisionComputation =
+  | DivisionShortDivisionComputation
   | FactorizationShortDivisionComputation
   | CommonFactorShortDivisionComputation
   | BaseConversionShortDivisionComputation
 
-/** 短除法入口；`values` 在分解/进制转换时只取一个数，公因数模式至少需要两个数。 */
+/** 短除法入口；`division` 指定 divisor，分解/进制转换只取一个值，公因数至少需要两个值。 */
 export interface ShortDivisionInput {
   mode: ShortDivisionMode
   values: unknown[]
+  divisor?: unknown
   targetBase?: unknown
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { shushi } from '@u1in/shushi-core'
+import { shushiCore } from '@u1in/shushi-core'
 import { compileMacro, createMacroAstInspection, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples } from '../src/components/macroPlaygroundExamples'
 import { createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
@@ -16,7 +16,7 @@ const generateSource = (expression: string): string => {
   const normalized = expression.replace(/\s+/g, '').replace(/[xX*]/g, '×').replace(/÷/g, '/').replace(/−/g, '-')
   if (normalized.includes('/')) {
     const [dividend, divisor] = normalized.split('/')
-    return minifyMacroForCopy(shushi({
+    return minifyMacroForCopy(shushiCore({
       operation: 'division',
       divisor,
       dividend,
@@ -24,7 +24,7 @@ const generateSource = (expression: string): string => {
       settings: { ...DEFAULT_GRID_SETTINGS, bracketBend: 1, uniformSubtractionBars: false, showZeroQuotientSteps: false },
     }).source)
   }
-  return minifyMacroForCopy(shushi({
+  return minifyMacroForCopy(shushiCore({
     operation: 'composite',
     expression: normalized,
     settings: { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true, showBorrowSteps: false, uniformMultiplicationBars: false },
@@ -97,10 +97,10 @@ describe('首页宏实验算式示例', () => {
 
     expect(code).toContain("renderMode: 'div'")
     expect(code).toContain("el: document.querySelector('#result') ?? undefined")
-    expect(code).toContain("values: ['123', '456']")
+    expect(code).toContain("shushi('123 + 456', {")
     expect(code).toContain('cellWidth: 42')
     expect(code).toContain('showGuideGrid: true')
     expect(code).toContain('visibleStepCount: 3')
-    expect(code).toContain('const { computation, source, scene, rendered, inspection } = shushi({')
+    expect(code).toContain('const {\n  computation,\n  source,\n  scene,\n  rendered,\n  inspection,\n} = shushi(\'123 + 456\', {')
   })
 })

@@ -6,7 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
-import type { AdditionComputation, GridScene } from '@u1in/shushi-core'
+import type { AdditionComputation, AdditionVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -24,15 +24,13 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.sumDigits ?? '—')
 
 const renderScene = (): void => {
-  const result = shushi({
-    operation: 'addition',
-    values: [firstAddend.value, secondAddend.value],
+  const result = shushi(`${firstAddend.value} + ${secondAddend.value}`, {
     settings: {
       cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
       showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as AdditionVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene

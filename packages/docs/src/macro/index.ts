@@ -42,6 +42,7 @@ const apiTierOrder: Record<ApiTierId, string[]> = {
     'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
   ],
   advanced: [
+    'shushiCore',
     'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
     'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
     'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',

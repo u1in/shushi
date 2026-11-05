@@ -122,9 +122,7 @@ import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
 const host = document.querySelector('#result')
-const { computation, source, rendered, inspection } = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const { computation, source, rendered, inspection } = shushi('356 + 278', {
   renderMode: 'div',
   el: host ?? undefined,
 })
@@ -132,7 +130,7 @@ const { computation, source, rendered, inspection } = shushi({
 console.log(computation, source, rendered, inspection)
 ```
 
-`shushi({ renderMode: 'div' })` 返回一个 DOM 元素；传入 `el` 后会自动挂载。使用 `renderMode: 'svg'` 返回并可挂载 SVG DOM，使用 `renderMode: 'svg-string'` 返回适合客户端或 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `svg-string`。浏览器入口仍需导入 `@u1in/shushi-core/style.css`。
+`shushi('356 + 278', { renderMode: 'div' })` 返回一个 DOM 元素；传入 `el` 后会自动挂载。使用 `renderMode: 'svg'` 返回并可挂载 SVG DOM，使用 `renderMode: 'svg-string'` 返回适合客户端或 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `svg-string`；结构化高级请求使用 `shushiCore({ operation, ... })`。浏览器入口仍需导入 `@u1in/shushi-core/style.css`。
 
 ### 4.4 TypeScript 检查
 

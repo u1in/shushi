@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { shushi } from '@u1in/shushi-core'
+import { shushiCore } from '@u1in/shushi-core'
 import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy, unformatMacro } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
@@ -25,7 +25,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
       throw new Error('除法算式只能包含一组被除数和除数，例如 10230 ÷ 25。')
     }
     const [dividend, divisor] = normalizedExpression.split('/')
-    const result = shushi({
+    const result = shushiCore({
       operation: 'division',
       divisor,
       dividend,
@@ -40,7 +40,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
     return createMacroAstInspection(minifyMacroForCopy(result.source))
   }
 
-  const result = shushi({
+  const result = shushiCore({
     operation: 'composite',
     expression: normalizedExpression,
     settings: {

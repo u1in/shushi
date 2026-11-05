@@ -6,7 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
-import type { GridScene, SubtractionComputation } from '@u1in/shushi-core'
+import type { GridScene, SubtractionComputation, SubtractionVerticalArithmeticResult } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -24,15 +24,13 @@ const macroSource = ref('')
 const answer = computed(() => computation.value?.resultText ?? '—')
 
 const renderScene = (): void => {
-  const result = shushi({
-    operation: 'subtraction',
-    operands: [minuend.value, subtrahend.value],
+  const result = shushi(`${minuend.value} - ${subtrahend.value}`, {
     settings: {
       cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
       showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as SubtractionVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene

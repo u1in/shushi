@@ -112,7 +112,7 @@ describe('网格宏文档', () => {
     expect(pagesOf('api')).toEqual([
       'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
       'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
-      'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
+      'shushiCore', 'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
       'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
       'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
       'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
@@ -125,7 +125,7 @@ describe('网格宏文档', () => {
         'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
       ]],
       ['高级 API', [
-        'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
+        'shushiCore', 'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
         'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
         'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
         'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',

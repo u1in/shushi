@@ -13,7 +13,7 @@ description: Use when an agent needs to install or use @u1in/shushi-core for ver
 
 第一轮确认以下内容：
 
-1. **计算式**：要计算的完整表达式或输入数据。长除法需明确除数和被除数；短除法需明确 `factorization`、`commonFactor` 或 `baseConversion` 模式。
+1. **计算式**：要计算的完整表达式或输入数据。表达式优先使用 `255 ÷ 5`、`|48`、`2|12`、`2|12 24` 或 `(124)2`；只有高级结构化请求才需明确短除法 `mode`。
 2. **输出方式**：
    - 页面中的 DOM/CSS：需要页面、组件或 DOM 容器；
    - 浏览器 SVG 节点：需要页面或组件挂载位置；
@@ -31,7 +31,7 @@ description: Use when an agent needs to install or use @u1in/shushi-core for ver
 - **短除法**：`showRemainders=true`。
 - **组合竖式**：`showCarrySteps=true`、`showBorrowSteps=false`、`uniformMultiplicationBars=false`。
 
-确认前不要选择宿主文件、决定渲染器或开始实现。数值竖式优先使用 `shushi` 门户 API；只有需要拆层调试、手写宏或高级几何时，才展开“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”链路。遵守宿主项目 `AGENTS.md`，并在完成后说明改动文件、使用的 API、输出方式和验证结果。
+确认前不要选择宿主文件、决定渲染器或开始实现。数值竖式优先使用 `shushi(expression, option)`；只有需要结构化短除法请求、拆层调试、手写宏或高级几何时，才使用 `shushiCore` 或展开“计算器 → 布局器 → 宏编译器 → `GridScene` → 渲染器”链路。遵守宿主项目 `AGENTS.md`，并在完成后说明改动文件、使用的 API、输出方式和验证结果。
 
 ## 使用资料
 
@@ -83,9 +83,7 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
 3. 标准数值流程优先是：
 
    ```ts
-   const result = shushi({
-     operation: 'addition',
-     values: ['356', '278'],
+   const result = shushi('356 + 278', {
      renderMode: 'div',
      el: document.querySelector('#result') ?? undefined,
    })
@@ -93,7 +91,7 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
 
    `result` 包含 `computation`、`source`、`scene`、`rendered` 和 `inspection`。省略 `renderMode` 时返回 SSR 安全的 SVG 字符串；浏览器 DOM 使用 `div` 或 `svg`，服务端使用 `svg-string`。
 
-4. 需要拆层调试或手写宏时，标准底层流程是：
+4. 需要结构化 operation、短除法 mode、拆层调试或手写宏时，先使用 `shushiCore(request)`；进一步拆层时，标准流程是：
 
    ```text
    compute* → create*MacroSource → compileMacro → renderDomGrid/renderSvgGrid/renderSvgString
@@ -115,18 +113,17 @@ node --input-type=module -e "import { computeAddition } from '@u1in/shushi-core'
 ```ts
 type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
-shushi(request: ShushiRequest<VerticalArithmeticRequest>): VerticalArithmeticResult
+shushi(expression: string, options?: ShushiExpressionOptions): AnyVerticalArithmeticResult
+shushiCore(request: ShushiRequest<VerticalArithmeticRequest>): AnyVerticalArithmeticResult
 ```
 
-数值输入优先调用 `shushi`。请求按 `operation` 选择加法、减法、乘法、长除法、短除法或组合竖式；`renderMode: 'div'` 返回并可挂载 `HTMLElement`，`'svg'` 返回并可挂载 `SVGSVGElement`，`'svg-string'` 返回可用于客户端和 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `'svg-string'`；`el` 仅可与客户端模式一起使用。返回的 `inspection` 可通过 `references` 定位图元，再调用 `updateElementText` 产生新的源码、场景和检查结果。
+数值输入优先调用 `shushi`。它解析加、减、乘组合以及独立的长除法、短除法和进制转换，再转交 `shushiCore`；`renderMode: 'div'` 返回并可挂载 `HTMLElement`，`'svg'` 返回并可挂载 `SVGSVGElement`，`'svg-string'` 返回可用于客户端和 SSR 的 SVG 字符串。省略 `renderMode` 时默认为 `'svg-string'`；`el` 仅可与客户端模式一起使用。返回的 `inspection` 可通过 `references` 定位图元，再调用 `updateElementText` 产生新的源码、场景和检查结果。
 
 ```ts
 import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-const result = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const result = shushi('356 + 278', {
   renderMode: 'div',
   el: document.querySelector('#result') ?? undefined,
 })
@@ -167,8 +164,9 @@ interface DivisionOptions {
 }
 
 interface ShortDivisionInput {
-  mode: 'factorization' | 'commonFactor' | 'baseConversion'
+  mode: 'division' | 'factorization' | 'commonFactor' | 'baseConversion'
   values: unknown[]
+  divisor?: unknown
   targetBase?: unknown
 }
 ```
@@ -177,7 +175,7 @@ interface ShortDivisionInput {
 - `computeSubtraction` 接受被减数和减数；负结果通过返回值表达，不要预先交换参数。
 - `computeMultiplication` 返回部分积和逐位步骤；末尾零快捷过程可由 `useTrailingZeroShortcut` 控制。
 - `computeDivision` 的 `remainder` 模式返回整数商和余数；`decimal` 模式使用 `maxDecimalDigits` 限制小数位。
-- `computeShortDivision` 支持质因数分解、公因数和 2–36 进制转换；不同模式对 `values` 数量有不同约束。
+- `computeShortDivision` 支持指定除数、质因数分解、公因数和 2–36 进制转换；不同模式对 `values` 数量有不同约束。
 - `computeCompositeArithmetic` 按书写顺序串联 `+`、`-`、`×`；它不使用乘法优先级，且中间负数不能继续计算。
 
 ### 布局器与播放

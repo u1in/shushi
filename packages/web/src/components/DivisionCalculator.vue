@@ -6,7 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
-import type { DivisionComputation, GridScene } from '@u1in/shushi-core'
+import type { DivisionComputation, DivisionVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -26,10 +26,7 @@ const scene = ref<GridScene>()
 const macroSource = ref('')
 
 const renderScene = (): void => {
-  const result = shushi({
-    operation: 'division',
-    divisor: divisor.value,
-    dividend: dividend.value,
+  const result = shushi(`${dividend.value} ÷ ${divisor.value}`, {
     calculation: { resultMode: resultMode.value },
     settings: {
       cellWidth: cellWidth.value,
@@ -41,7 +38,7 @@ const renderScene = (): void => {
       showZeroQuotientSteps: showZeroQuotientSteps.value,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as DivisionVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene

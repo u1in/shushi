@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { shushi, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
-import type { CompositeArithmeticComputation, GridScene } from '@u1in/shushi-core'
+import type { CompositeArithmeticComputation, CompositeVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -22,9 +22,7 @@ const answer = computed(() => computation.value?.resultDigits ?? '—')
 
 const renderScene = (shouldRenderWithoutComputation = false): void => {
   if (!shouldRenderWithoutComputation && !computation.value) return
-  const result = shushi({
-    operation: 'composite',
-    expression: expression.value,
+  const result = shushi(expression.value, {
     settings: {
       cellWidth: 30,
       rowHeight: 46,
@@ -35,7 +33,7 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
       uniformMultiplicationBars: false,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as CompositeVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene

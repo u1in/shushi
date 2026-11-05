@@ -34,14 +34,12 @@ const installGuides: Record<InstallMethod, InstallGuide> = {
     usage: `import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
-shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+shushi('356 + 278', {
   renderMode: 'div',
   el: document.querySelector('#result'),
 })`,
     installHint: '在你的前端项目中安装`@u1in/shushi-core`。',
-    usageHint: '导入后使用shushi完成多种竖式排列需求。',
+    usageHint: '导入后用算式字符串调用 shushi；复杂的结构化请求可使用 shushiCore。',
   },
   skill: {
     label: 'Skill',

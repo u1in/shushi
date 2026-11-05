@@ -52,9 +52,7 @@ import {
 import '@u1in/shushi-core/style.css'
 
 const host = document.querySelector('#result')
-const { computation, source, rendered, inspection } = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const { computation, source, rendered, inspection } = shushi('356 + 278', {
   renderMode: 'div',
   el: host ?? undefined,
 })
@@ -66,7 +64,7 @@ const updated = inspection.updateElementText('grid-element-id', '9')
 console.log(updated.source) // AST 更新后的宏源码
 ```
 
-`shushi` 会固定执行“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
+`shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 的任意组合并按文本从左到右执行；长除法使用 `255 ÷ 5` 或 `255 / 5`，质因数分解使用 `|48`，短除法使用 `2|12`，公因数使用 `2|12 24`，进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
 
 需要逐层检查、保存中间宏或实现高级定制时，也可以显式调用底层链路：
 
@@ -81,9 +79,7 @@ const scene = compileMacro(source)
 如果需要 SVG DOM，把渲染模式改为：
 
 ```ts
-const { rendered } = shushi({
-  operation: 'addition',
-  values: ['356', '278'],
+const { rendered } = shushi('356 + 278', {
   renderMode: 'svg',
   el: document.querySelector('#result') ?? undefined,
 })
@@ -111,7 +107,8 @@ $u1in-shushi 请开始交互式竖式实现。
 
 | 需求 | 推荐链路 |
 | --- | --- |
-| 根据输入直接得到过程、可编辑宏和场景 | `shushi({ operation, ... })` |
+| 根据算式直接得到过程、可编辑宏和场景 | `shushi('356 + 278', option)` |
+| 以结构化请求精确控制全部模式 | `shushiCore({ operation, ... })` |
 | 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
 | 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
 | 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |

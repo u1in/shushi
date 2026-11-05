@@ -169,6 +169,7 @@ export default defineUserConfig({
               collapsible: false,
               children: [
                 { text: 'shushi', link: '/technical/api/shushi' },
+                { text: 'shushiCore', link: '/technical/api/shushiCore' },
                 { text: 'compileMacro', link: '/technical/api/compileMacro' },
                 { text: 'parseMacro', link: '/technical/api/parseMacro' },
                 { text: 'formatMacro', link: '/technical/api/formatMacro' },

@@ -25,6 +25,7 @@ import type { GridScene } from '@u1in/shushi-grid'
 import type {
   AdditionRenderSettings,
   CompositeArithmeticRenderSettings,
+  GridRenderSettings,
   MultiplicationRenderSettings,
   RenderSettings,
   ShortDivisionRenderSettings,
@@ -140,6 +141,8 @@ export interface ShortDivisionVerticalArithmeticRequest {
   operation: 'shortDivision'
   mode: ShortDivisionMode
   values: unknown[]
+  /** `division` 模式的左侧除数；其他短除法模式不需要提供。 */
+  divisor?: unknown
   targetBase?: unknown
   settings?: Partial<ShortDivisionRenderSettings>
 }
@@ -184,7 +187,8 @@ export type AnyVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiR
   | CompositeVerticalArithmeticResult<TMode>
 
 /** 用调用签名保留 operation 与 computation 类型之间的窄化关系。 */
-export interface Shushi {
+/** `shushiCore` 的结构化请求签名；供需要精确指定运算类型的高级调用方使用。 */
+export interface ShushiCore {
   <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<AdditionVerticalArithmeticRequest, TMode>): AdditionVerticalArithmeticResult<TMode>
   <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<SubtractionVerticalArithmeticRequest, TMode>): SubtractionVerticalArithmeticResult<TMode>
   <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<MultiplicationVerticalArithmeticRequest, TMode>): MultiplicationVerticalArithmeticResult<TMode>
@@ -231,7 +235,7 @@ const createResult = <TComputation>(
  * 用一个入口创建加、减、乘、长除、短除或组合竖式。
  * 返回值完整保留中间过程和源码，既适合直接交给渲染器，也可继续编辑 `source`。
  */
-export const shushi = ((
+export const shushiCore = ((
   request: ShushiRequest<VerticalArithmeticRequest, ShushiRenderMode>,
 ): AnyVerticalArithmeticResult => {
   switch (request.operation) {
@@ -258,6 +262,7 @@ export const shushi = ((
       const computation = computeShortDivision({
         mode: request.mode,
         values: request.values,
+        divisor: request.divisor,
         targetBase: request.targetBase,
       })
       const settings = mergeSettings(DEFAULT_SHORT_DIVISION_SETTINGS, request.settings)
@@ -269,4 +274,124 @@ export const shushi = ((
       return createResult(computation, createCompositeArithmeticMacroSource(computation, settings), request)
     }
   }
+}) as ShushiCore
+
+/** 表达式入口可覆盖所有运算共有的渲染选项与各专项教学开关。 */
+export type ShushiExpressionSettings = Partial<
+  GridRenderSettings
+  & Pick<RenderSettings, 'bracketBend' | 'uniformSubtractionBars' | 'showZeroQuotientSteps'>
+  & Pick<MultiplicationRenderSettings, 'uniformMultiplicationBars' | 'showCarrySteps'>
+  & Pick<SubtractionRenderSettings, 'showBorrowSteps'>
+  & Pick<ShortDivisionRenderSettings, 'showRemainders'>
+>
+
+/** `shushi` 将字符串表达式转换为 `shushiCore` 请求；计算和渲染选项仍然可按需传入。 */
+export type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = ShushiRenderOptions<TMode> & {
+  calculation?: DivisionOptions & MultiplicationOptions
+  settings?: ShushiExpressionSettings
+}
+
+/** 字符串表达式入口的返回值会随运算符而变化，使用 computation 的判别字段读取专项结果。 */
+export interface Shushi {
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    expression: string,
+    options?: ShushiExpressionOptions<TMode>,
+  ): AnyVerticalArithmeticResult<TMode>
+}
+
+const createExpressionOptions = <TMode extends ShushiRenderMode>(
+  options: ShushiExpressionOptions<TMode> | undefined,
+): ShushiRenderOptions<TMode> => ({
+  renderMode: options?.renderMode,
+  el: options?.el,
+})
+
+/** 校验 `a|b c` 中显式写出的首个公因数，避免左侧除数只是被静默忽略。 */
+const assertCommonDivisor = (divisor: string, values: string[]): void => {
+  const parsedDivisor = BigInt(divisor)
+  if (parsedDivisor <= 0n) {
+    throw new Error('短除法左侧除数必须是 1 到 1000000000 的正整数。')
+  }
+  if (!values.every((value) => BigInt(value) % parsedDivisor === 0n)) {
+    throw new Error(`短除法左侧的 ${divisor} 必须能同时整除右侧所有数字。`)
+  }
+}
+
+/**
+ * 将用户友好的算式语法转为结构化 `shushiCore` 请求。
+ * 除法不与加减乘混排，避免一条表达式混用两种教学排版规则。
+ */
+export const shushi = ((
+  expression: string,
+  options: ShushiExpressionOptions<ShushiRenderMode> = {},
+): AnyVerticalArithmeticResult => {
+  if (typeof expression !== 'string') throw new Error('shushi 的第一个参数必须是算式字符串。')
+  const source = expression.trim()
+  const renderOptions = createExpressionOptions(options)
+
+  // 无左侧除数的短除写法表示继续试除，保留首页的质因数分解教学模式。
+  const factorization = /^\|\s*(\d+)$/.exec(source)
+  if (factorization) {
+    return shushiCore({
+      operation: 'shortDivision',
+      mode: 'factorization',
+      values: [factorization[1]],
+      settings: options.settings,
+      ...renderOptions,
+    })
+  }
+
+  const baseConversion = /^\((\d+)\)\s*(\d+)$/.exec(source)
+  if (baseConversion) {
+    return shushiCore({
+      operation: 'shortDivision',
+      mode: 'baseConversion',
+      values: [baseConversion[1]],
+      targetBase: baseConversion[2],
+      settings: options.settings,
+      ...renderOptions,
+    })
+  }
+
+  const shortDivision = /^(\d+)\s*\|\s*(\d+(?:\s+\d+)*)$/.exec(source)
+  if (shortDivision) {
+    const divisor = shortDivision[1]
+    const values = shortDivision[2].trim().split(/\s+/)
+    if (values.length === 1) {
+      return shushiCore({ operation: 'shortDivision', mode: 'division', divisor, values, settings: options.settings, ...renderOptions })
+    }
+    assertCommonDivisor(divisor, values)
+    return shushiCore({ operation: 'shortDivision', mode: 'commonFactor', values, settings: options.settings, ...renderOptions })
+  }
+
+  const division = /^(\d+)\s*[÷/]\s*(\d+)$/.exec(source)
+  if (division) {
+    return shushiCore({
+      operation: 'division',
+      // 表达式按照通常阅读方向书写，而底层计算器保持“除数在前”的稳定契约。
+      dividend: division[1],
+      divisor: division[2],
+      calculation: options.calculation,
+      settings: options.settings,
+      ...renderOptions,
+    })
+  }
+
+  if (/[÷/|]/.test(source)) {
+    throw new Error('长除法必须单独书写为“被除数 ÷ 除数”；短除法请使用“除数|被除数”。')
+  }
+
+  const arithmetic = source.replace(/\s+/g, '').replace(/[xX*]/g, '×')
+  if (!/^\d+(?:[+\-×]\d+)+$/.test(arithmetic)) {
+    throw new Error('请使用由非负整数与 +、-、×（也可输入 *）组成的算式。')
+  }
+  const operators = arithmetic.match(/[+\-×]/g) ?? []
+  if (operators.length > 1) {
+    return shushiCore({ operation: 'composite', expression: arithmetic, settings: options.settings, ...renderOptions })
+  }
+
+  const [left, operator, right] = arithmetic.split(/([+\-×])/) as [string, '+' | '-' | '×', string]
+  if (operator === '+') return shushiCore({ operation: 'addition', values: [left, right], settings: options.settings, ...renderOptions })
+  if (operator === '-') return shushiCore({ operation: 'subtraction', operands: [left, right], settings: options.settings, ...renderOptions })
+  return shushiCore({ operation: 'multiplication', operands: [left, right], calculation: options.calculation, settings: options.settings, ...renderOptions })
 }) as Shushi

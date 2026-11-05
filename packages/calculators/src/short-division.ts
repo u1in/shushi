@@ -1,7 +1,8 @@
-/** Short-division calculator: factorization, common factors, and base conversion. */
+/** Short-division calculator: explicit division, factorization, common factors, and base conversion. */
 import type {
   BaseConversionShortDivisionComputation,
   CommonFactorShortDivisionComputation,
+  DivisionShortDivisionComputation,
   FactorizationShortDivisionComputation,
   ShortDivisionComputation,
   ShortDivisionInput,
@@ -98,6 +99,22 @@ const divideDecimalByBase = (digits: string, base: number): { quotient: string, 
   return { quotient: quotient || '0', remainder }
 }
 
+/** 指定除数的短除法保留一行过程；余数供调用方读取，但默认不作为教学余数显示。 */
+const createDivision = (value: unknown, divisorValue: unknown): DivisionShortDivisionComputation => {
+  const dividend = parseDecimal(value, '被除数')
+  const divisor = parsePositiveSafeInteger(divisorValue, '除数')
+  const { quotient, remainder } = divideDecimalByBase(dividend, divisor)
+  return {
+    mode: 'division',
+    inputValues: [dividend],
+    steps: [{ divisor: String(divisor), dividends: [dividend], quotients: [quotient], remainders: [String(remainder)] }],
+    finalValues: [quotient],
+    divisor: String(divisor),
+    quotient,
+    remainder: String(remainder),
+  }
+}
+
 const createFactorization = (value: unknown): FactorizationShortDivisionComputation => {
   const input = parsePositiveSafeInteger(value, '待分解数')
   const steps: ShortDivisionStep[] = []
@@ -170,8 +187,9 @@ const createBaseConversion = (value: unknown, targetBaseValue: unknown): BaseCon
 }
 
 /** 根据用途选择终止条件和记录内容，输出完全不含像素或 DOM 信息的短除法过程。 */
-export const computeShortDivision = ({ mode, values, targetBase = 2 }: ShortDivisionInput): ShortDivisionComputation => {
+export const computeShortDivision = ({ mode, values, divisor, targetBase = 2 }: ShortDivisionInput): ShortDivisionComputation => {
   if (!Array.isArray(values)) throw new Error('短除法输入必须提供数值数组。')
+  if (mode === 'division') return createDivision(values[0], divisor)
   if (mode === 'factorization') return createFactorization(values[0])
   if (mode === 'commonFactor') return createCommonFactor(values)
   if (mode === 'baseConversion') return createBaseConversion(values[0], targetBase)

@@ -52,6 +52,23 @@ export type ShushiImplementationSnippetOptions = {
   settings: SnippetProperty[]
 }
 
+/** 首页简单算式演示优先展示表达式 API；短除法的完整教学模式仍通过高级入口配置。 */
+const createExpression = (operation: string, fields: SnippetProperty[]): string | undefined => {
+  const values = Object.fromEntries(fields) as Record<string, unknown>
+  if (operation === 'addition') return `${(values.values as unknown[])[0]} + ${(values.values as unknown[])[1]}`
+  if (operation === 'subtraction') return `${(values.operands as unknown[])[0]} - ${(values.operands as unknown[])[1]}`
+  if (operation === 'multiplication') return `${(values.operands as unknown[])[0]} × ${(values.operands as unknown[])[1]}`
+  if (operation === 'division') return `${values.dividend} ÷ ${values.divisor}`
+  if (operation === 'composite') return String(values.expression)
+  if (operation === 'shortDivision') {
+    const inputValues = values.values as unknown[]
+    if (values.mode === 'factorization') return `|${inputValues[0]}`
+    if (values.mode === 'commonFactor') return `1|${inputValues.join(' ')}`
+    return `(${inputValues[0]})${values.targetBase}`
+  }
+  return undefined
+}
+
 /** 把当前演示控件的值写成可直接复制的 TypeScript 字面量。 */
 const formatSnippetValue = (value: unknown): string => {
   if (value === undefined) return 'undefined'
@@ -72,13 +89,23 @@ export const createShushiImplementationSnippet = ({
   fields,
   calculation,
   settings,
-}: ShushiImplementationSnippetOptions): string => [
-  "import { shushi } from '@u1in/shushi-core'",
+}: ShushiImplementationSnippetOptions): string => {
+  const expression = createExpression(operation, fields)
+  const useExpressionApi = expression !== undefined
+  return [
+    `import { ${useExpressionApi ? 'shushi' : 'shushiCore'} } from '@u1in/shushi-core'`,
   "import '@u1in/shushi-core/style.css'",
   '',
-  'const { computation, source, scene, rendered, inspection } = shushi({',
-  '  operation: ' + formatSnippetValue(operation) + ',',
-  ...formatSnippetProperties(fields, '  '),
+    'const {',
+    '  computation,',
+    '  source,',
+    '  scene,',
+    '  rendered,',
+    '  inspection,',
+    '} = ' + (useExpressionApi
+      ? 'shushi(' + formatSnippetValue(expression) + ', {'
+      : 'shushiCore({'),
+    ...(useExpressionApi ? [] : ['  operation: ' + formatSnippetValue(operation) + ',', ...formatSnippetProperties(fields, '  ')]),
   ...(calculation && calculation.length > 0
     ? ['  calculation: {', ...formatSnippetProperties(calculation, '    '), '  },']
     : []),
@@ -87,5 +114,6 @@ export const createShushiImplementationSnippet = ({
   '  },',
   "  renderMode: 'div',",
   "  el: document.querySelector('#result') ?? undefined,",
-  '})',
-].join('\n')
+    '})',
+  ].join('\n')
+}

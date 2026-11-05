@@ -14,7 +14,7 @@
 
 | 用户需求 | 首选流程 |
 | --- | --- |
-| 根据数值直接生成并显示标准竖式 | `shushi({ operation, ..., renderMode, el })` |
+| 根据表达式直接生成并显示标准竖式 | `shushi('356 + 278', { renderMode, el })` |
 | 只要计算结果或计算过程 | `compute*`，不引入渲染器 |
 | 要显示标准竖式 | `compute* → create*MacroSource → compileMacro → render*` |
 | 要逐步教学播放 | 先取得 `get*StepCount`，再把 `visibleStepCount` 传给布局器 |
@@ -28,7 +28,7 @@
 
 ## 2. 标准数值竖式流程
 
-数值输入优先使用 `shushi`：客户端交互显示传 `renderMode: 'div'` 或 `'svg'`，可选传 `el` 自动挂载；SSR/Node.js 传 `renderMode: 'svg-string'`。门户返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`，需要图元编辑时直接使用返回的 `inspection`。
+数值输入优先使用 `shushi(expression, option)`：客户端交互显示传 `renderMode: 'div'` 或 `'svg'`，可选传 `el` 自动挂载；SSR/Node.js 传 `renderMode: 'svg-string'`。门户返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`，需要图元编辑时直接使用返回的 `inspection`。需要结构化 operation 或短除法 mode 时使用 `shushiCore(request)`。
 
 只有需要拆层调试、完全手写宏或使用高级布局设置时，才展开以下底层步骤：
 

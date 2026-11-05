@@ -33,6 +33,7 @@ const pageRoutes: Record<string, string> = {
   compileMacro: '/technical/api/compileMacro', parseMacro: '/technical/api/parseMacro', completeMacro: '/technical/api/completeMacro', unformatMacro: '/technical/api/unformatMacro',
   computeCompositeArithmetic: '/technical/api/computeCompositeArithmetic',
   shushi: '/technical/api/shushi',
+  shushiCore: '/technical/api/shushiCore',
   createCompositeArithmeticMacroSource: '/technical/api/createCompositeArithmeticMacroSource',
   getCompositeArithmeticStepCount: '/technical/api/getCompositeArithmeticStepCount',
   formatMacro: '/technical/api/formatMacro', minifyMacro: '/technical/api/minifyMacro', minifyMacroAst: '/technical/api/minifyMacroAst', minifyMacroForCopy: '/technical/api/minifyMacroForCopy', minifyMacroForCopyAst: '/technical/api/minifyMacroForCopyAst',

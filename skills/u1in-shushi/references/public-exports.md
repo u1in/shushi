@@ -7,10 +7,20 @@
     type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
     shushi(
-      request: ShushiRequest<VerticalArithmeticRequest>,
-    ): VerticalArithmeticResult
+      expression: string,
+      options?: ShushiExpressionOptions,
+    ): AnyVerticalArithmeticResult
 
-数值输入优先使用 `shushi`。它返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`：
+    shushiCore(
+      request: ShushiRequest<VerticalArithmeticRequest>,
+    ): AnyVerticalArithmeticResult
+
+    type ShushiExpressionOptions = ShushiRenderOptions & {
+      calculation?: DivisionOptions & MultiplicationOptions
+      settings?: ShushiExpressionSettings
+    }
+
+数值输入优先使用 `shushi(expression, options)`。它解析算式后调用 `shushiCore`，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`：
 
 - `renderMode: 'div'` 返回客户端 `HTMLElement`，可用 `el` 自动挂载。
 - `renderMode: 'svg'` 返回客户端 `SVGSVGElement`，可用 `el` 自动挂载。
@@ -269,6 +279,7 @@ quotientTokens 适合布局器定位商位和小数点；steps 记录试商、�
 ### 4.5 短除法
 
     type ShortDivisionMode =
+      | 'division'
       | 'factorization'
       | 'commonFactor'
       | 'baseConversion'
@@ -283,7 +294,18 @@ quotientTokens 适合布局器定位商位和小数点；steps 记录试商、�
     interface ShortDivisionInput {
       mode: ShortDivisionMode
       values: unknown[]
+      divisor?: unknown
       targetBase?: unknown
+    }
+
+    interface DivisionShortDivisionComputation {
+      mode: 'division'
+      inputValues: string[]
+      steps: ShortDivisionStep[]
+      finalValues: string[]
+      divisor: string
+      quotient: string
+      remainder: string
     }
 
     interface FactorizationShortDivisionComputation {
@@ -319,11 +341,12 @@ quotientTokens 适合布局器定位商位和小数点；steps 记录试商、�
     }
 
     type ShortDivisionComputation =
+      | DivisionShortDivisionComputation
       | FactorizationShortDivisionComputation
       | CommonFactorShortDivisionComputation
       | BaseConversionShortDivisionComputation
 
-短除法 steps 中的 remainders 只有进制转换实际使用；其他模式的余数为 '0'。baseConversion 的 convertedText 按目标进制输出，remaindersBottomUp 按短除法从下往上的读取顺序保存。
+指定除数模式的 quotient / remainder 分别保存商和余数；进制转换的 convertedText 按目标进制输出，remaindersBottomUp 按短除法从下往上的读取顺序保存。
 
 ### 4.6 组合运算
 
@@ -538,7 +561,7 @@ parseMacro 适合从源码取得 AST；compileMacroAst 适合在已有 MacroCall
 ## 9. API 选择边界
 
 - 仅计算：只导入 compute* 和对应结果类型。
-- 自动竖式：优先 `shushi({ operation, renderMode, el })`；只有需要拆层调试时才使用 compute*、create*MacroSource、compileMacro、render*。
+- 自动竖式：优先 `shushi(expression, { renderMode, el })`；只有需要结构化 operation、短除法 mode 或拆层调试时才使用 `shushiCore`、compute*、create*MacroSource、compileMacro、render*。
 - 组合竖式：使用 computeCompositeArithmetic、getCompositeArithmeticStepCount 和 createCompositeArithmeticMacroSource，不手工连接各单项宏。
 - 自定义宏：使用 macro* 辅助函数或直接写宏，再通过 parseMacro 和 compileMacro 校验。
 - AST 编辑器：使用 createMacroAstInspection，不要从字符串偏移量自行猜图元位置。

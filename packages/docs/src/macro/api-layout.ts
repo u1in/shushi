@@ -445,15 +445,12 @@ console.log(stepCount)`,
 export const shushiPage = createLayoutApiPage({
   slug: 'shushi',
   apiTier: 'common',
-  summary: '用一个入口完成计算、可编辑宏源码生成、AST 检查和三种渲染输出。',
+  summary: '解析一行算式，再生成计算过程、可编辑宏源码、场景与渲染结果。',
   example: `import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/style.css'
 
 const host = document.querySelector('#result')
-const { computation, source, rendered, inspection } = shushi({
-  operation: 'division',
-  divisor: '25',
-  dividend: '10230',
+const { computation, source, rendered, inspection } = shushi('10230 ÷ 25', {
   calculation: { resultMode: 'decimal' },
   renderMode: 'div',
   el: host ?? undefined,
@@ -463,7 +460,7 @@ console.log(computation.quotientText) // '409.2'
 console.log(rendered) // HTMLElement；已自动挂载到 host
 const updated = inspection.updateElementText('grid-element-id', '9')
 console.log(updated.source) // AST 不可变更新后的宏源码`,
-  purpose: '这是 `@u1in/shushi-core` 面向大多数应用的门户 API。它按 operation 委托现有计算器和布局器，再把生成的源码交给统一宏编译链路；返回值保留 computation、source、scene、按模式生成的 rendered 和可注入的 inspection。renderMode 默认为 `svg-string`，可选 `div`、`svg` 或 `svg-string`；客户端模式返回 DOM，传入 `el` 时会自动挂载，服务端请使用 `svg-string`。',
+  purpose: '这是 `@u1in/shushi-core` 面向大多数应用的表达式入口。它先把字符串解析为结构化 `shushiCore` 请求，再由后者委托既有计算器、布局器和统一宏编译链路。返回值保留 computation、source、scene、按模式生成的 rendered 和可注入的 inspection。renderMode 默认为 `svg-string`，可选 `div`、`svg` 或 `svg-string`；客户端模式传入 el 时会自动挂载。',
   signature: `type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
 type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
@@ -473,9 +470,9 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
 
 type Shushi = {
   <TMode extends ShushiRenderMode = 'svg-string'>(
-    request: AdditionVerticalArithmeticRequest & ShushiRenderOptions<TMode>,
-  ): AdditionVerticalArithmeticResult<TMode>
-  // subtraction / multiplication / division / shortDivision / composite 使用同样的泛型调用签名
+    expression: string,
+    options?: ShushiExpressionOptions<TMode>,
+  ): AnyVerticalArithmeticResult<TMode>
 }
 
 type VerticalArithmeticResult<T, TRendered> = {
@@ -486,23 +483,54 @@ type VerticalArithmeticResult<T, TRendered> = {
   inspection: MacroAstInspection
 }`,
   parameters: [
-    ['`request.operation`', "`'addition' | 'subtraction' | 'multiplication' | 'division' | 'shortDivision' | 'composite'`", '判别运算类型，并决定其他输入字段和 computation 返回类型。'],
-    ['`request.values` / `operands`', '`unknown[]` / `[unknown, unknown]`', '加法及短除法使用 values；减法和乘法使用两个操作数。'],
-    ['`request.divisor` / `dividend`', '`unknown`', '长除法专用输入；除数在前、被除数在后。'],
-    ['`request.expression`', '`unknown`', '组合竖式专用表达式，按书写顺序执行 +、-、×。'],
-    ['`request.calculation`', '`DivisionOptions | MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
-    ['`request.settings`', '`Partial<…RenderSettings>`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
-    ['`request.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
-    ['`request.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
+    ['`expression`', '`string`', '加、减、乘支持 `+`、`-`、`×`、`*` 与 `x` 的任意组合；按书写顺序执行。'],
+    ['`expression` 的除法形式', '`被除数 ÷ 除数` / `被除数 / 除数`', '长除法必须单独出现，不能和加减乘组合。'],
+    ['`expression` 的短除法形式', '`|待分解数` / `除数|被除数` / `除数|数1 数2`', '无左值时分解质因数；单个右值执行指定除数的短除法；多个右值执行公因数短除法，左侧数必须能整除全部右值。'],
+    ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
+    ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
+    ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
+    ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
+    ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
     ['`rendered`', '`HTMLElement | SVGSVGElement | string`', '按渲染模式返回 DOM 舞台、SVG 根节点或 SVG 字符串。'],
     ['`inspection`', '`MacroAstInspection`', '返回 AST、图元引用和 `updateElementText`，用于注入编辑或继续分析。'],
   ],
-  caution: '门户只减少调用步骤，不合并领域职责；`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 `el`。浏览器 DOM 模式需要导入 `@u1in/shushi-core/style.css`。组合竖式默认关闭借位提示，传入 `settings: { showBorrowSteps: true }` 才会显示。',
+  caution: '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式需要导入 `@u1in/shushi-core/style.css`。',
+})
+
+export const shushiCorePage = createLayoutApiPage({
+  slug: 'shushiCore',
+  apiTier: 'advanced',
+  summary: '以结构化请求精确选择运算、计算选项和布局选项的高级入口。',
+  example: `import { shushiCore } from '@u1in/shushi-core'
+
+const { computation, scene } = shushiCore({
+  operation: 'division',
+  divisor: '25',
+  dividend: '10230',
+  calculation: { resultMode: 'decimal' },
+})
+
+console.log(computation.quotientText) // '409.2'
+console.log(scene.ariaLabel)`,
+  purpose: '它是 shushi 的结构化下层入口，也是需要质因数分解、完整短除法 mode、精确请求类型或运行时动态构造请求时的高级 API。它直接执行“计算 → 宏源码 → GridScene → 渲染”，但不解析表达式。',
+  signature: `type ShushiCore = {
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<VerticalArithmeticRequest, TMode>,
+  ): AnyVerticalArithmeticResult<TMode>
+}`,
+  parameters: [
+    ['`request.operation`', "`'addition' | 'subtraction' | 'multiplication' | 'division' | 'shortDivision' | 'composite'`", '判别运算类型，并决定输入字段和 computation 返回类型。'],
+    ['`request` 计算字段', '`values`、`operands`、`divisor`、`dividend`、`expression`', '按 operation 提供；长除法仍保持除数在前、被除数在后的字段顺序。'],
+    ['`request.settings` / `calculation`', '`Partial<…RenderSettings>` / 专项计算选项', '精确控制教学标记、尺寸、播放与算法选项。'],
+    ['返回值', '`VerticalArithmeticResult`', '含计算过程、可编辑源码、场景、渲染结果与 AST 检查器。'],
+  ],
+  caution: '普通数值算式优先使用 shushi；shushiCore 不会解析 `244 + 133 × 24` 这类文本。短除法 mode 仍支持 factorization、commonFactor、baseConversion 与 division。',
 })
 
 /** 布局公共 API 的页面顺序也用于 API 目录和页尾翻页。 */
 export const layoutApiPages = [
   shushiPage,
+  shushiCorePage,
   createAdditionMacroSourcePage,
   createAdditionGridScenePage,
   createSubtractionMacroSourcePage,

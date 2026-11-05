@@ -40,13 +40,14 @@ title: Agent 功能说明
   → DOM 或 SVG 渲染器
 ```
 
-数值输入的默认入口是 `shushi`。它在内部固定执行上述前三步，并把 `computation`、可编辑 `source`、`scene`、`rendered` 与 `inspection` 一并返回；默认 `renderMode` 为 SSR 安全的 `svg-string`。只有需要只计算、逐层调试或手写宏时，才直接选择下层 API。
+数值输入的默认入口是 `shushi(expression, option)`。它先解析表达式，再调用 `shushiCore(request)` 固定执行上述前三步，并把 `computation`、可编辑 `source`、`scene`、`rendered` 与 `inspection` 一并返回；默认 `renderMode` 为 SSR 安全的 `svg-string`。加减乘使用常见运算符，`|48` 分解质因数，`2|12` 指定短除，`2|12 24` 求公因数，`(124)2` 转换进制。只有需要结构化请求、只计算、逐层调试或手写宏时，才直接选择 `shushiCore` 或下层 API。
 
 每一层职责不同：
 
 | 层 | 主要 API | 输出 | 适合的任务 |
 | --- | --- | --- | --- |
-| 门户 | `shushi` | 计算过程、可编辑宏源码、`GridScene`、渲染结果、AST 检查器 | 根据数值直接生成并渲染标准竖式 |
+| 表达式门户 | `shushi` | 计算过程、可编辑宏源码、`GridScene`、渲染结果、AST 检查器 | 根据算式文本直接生成并渲染标准竖式 |
+| 结构化门户 | `shushiCore` | 与 `shushi` 相同 | 精确指定 operation、短除法 mode 与专项选项 |
 | 计算 | `computeAddition`、`computeCompositeArithmetic`、`computeDivision` 等 | 运算过程数据 | 得到答案、进位/借位/余数、逐步过程 |
 | 布局 | `createAdditionMacroSource` 等 | 可编辑宏源码字符串 | 得到标准竖式、复制到宏编辑器、逐步播放 |
 | 编译 | `compileMacro`、`parseMacro` | `GridScene` 或 AST | 将宏源码变成统一场景、检查源码 |
@@ -61,7 +62,9 @@ title: Agent 功能说明
 
 ### 竖式门户签名
 
-`shushi<TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): VerticalArithmeticResult<Computation, ShushiRendered<TMode>>`
+`shushi<TMode extends ShushiRenderMode = 'svg-string'>(expression: string, options?: ShushiExpressionOptions<TMode>): AnyVerticalArithmeticResult<TMode>`
+
+`shushiCore<TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): AnyVerticalArithmeticResult<TMode>`
 
 `request.operation` 可为 `'addition'`、`'subtraction'`、`'multiplication'`、`'division'`、`'shortDivision'` 或 `'composite'`。加法传 `values`，减/乘法传 `operands`；长除法使用具名 `divisor` 与 `dividend`，短除法使用 `mode` 与 `values`，组合竖式使用 `expression`。所有请求可传 `settings` 覆盖布局默认值；乘法与长除法还可传 `calculation` 覆盖计算选项。
 
@@ -117,8 +120,9 @@ interface DivisionOptions {
 }
 
 interface ShortDivisionInput {
-  mode: 'factorization' | 'commonFactor' | 'baseConversion'
+  mode: 'division' | 'factorization' | 'commonFactor' | 'baseConversion'
   values: unknown[]
+  divisor?: unknown
   targetBase?: unknown
 }
 ```
@@ -127,7 +131,7 @@ interface ShortDivisionInput {
 - `preserveOperandOrder`：是否保持调用方给出的上下行顺序；组合竖式会固定开启，AI 不应为排版自行交换两个乘数。
 - `resultMode`：除法使用有限小数模式或整数余数模式；默认是 `'remainder'`。
 - `maxDecimalDigits`：有限小数模式最多尝试的小数位数，必须是正整数。
-- `ShortDivisionInput.mode`：`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
+- `ShortDivisionInput.mode`：`division` 需要一个正整数除数和一个被除数，`factorization` 需要一个正整数，`commonFactor` 至少需要两个正整数，`baseConversion` 需要一个十进制整数和 2–36 的目标进制。
 
 ### 布局器签名
 
@@ -623,7 +627,7 @@ const scene = compileMacro(source)
 
 | 用户需求 | 推荐组合 |
 | --- | --- |
-| 根据数值展示标准竖式 | `shushi({ operation, renderMode: 'div' | 'svg', el })` |
+| 根据算式展示标准竖式 | `shushi('356 + 278', { renderMode: 'div' | 'svg', el })` |
 | 只要计算答案 | 对应的 `compute*` |
 | 要展示标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` 或 `renderSvgGrid` |
 | 要把多个 `+`、`-`、`×` 放进一个连续竖式 | `computeCompositeArithmetic` → `getCompositeArithmeticStepCount` → `createCompositeArithmeticMacroSource` → `compileMacro` |
@@ -633,7 +637,7 @@ const scene = compileMacro(source)
 | 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
 | 要做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
 | 要导出或缩放图像 | 浏览器用 `compileMacro` → `renderSvgGrid`；服务端用 `compileMacro` → `renderSvgString` |
-| 要在网页中交互显示 | 数值输入用 `shushi({ renderMode: 'div', el })`；宏源码用 `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
+| 要在网页中交互显示 | 算式输入用 `shushi(expression, { renderMode: 'div', el })`；复杂请求用 `shushiCore({ operation, renderMode: 'div', el })`；宏源码用 `compileMacro` → `renderDomGrid`，并导入 `@u1in/shushi-core/style.css` |
 
 ## 6. 输入与边界规则
 

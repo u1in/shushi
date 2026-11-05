@@ -6,7 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
-import type { GridScene, ShortDivisionComputation, ShortDivisionMode } from '@u1in/shushi-core'
+import type { GridScene, ShortDivisionComputation, ShortDivisionMode, ShortDivisionVerticalArithmeticResult } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 
@@ -25,16 +25,15 @@ const computation = ref<ShortDivisionComputation>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
 
+/** 三个教学模式各自映射到可读的表达式语法，再统一交给 shushi 解析。 */
+const createShortDivisionExpression = (): string => {
+  if (mode.value === 'factorization') return `|${factorValue.value}`
+  if (mode.value === 'commonFactor') return `1|${splitValues(commonValues.value).join(' ')}`
+  return `(${conversionValue.value})${targetBase.value}`
+}
+
 const renderScene = (): void => {
-  const result = shushi({
-    operation: 'shortDivision',
-    mode: mode.value,
-    values: mode.value === 'factorization'
-      ? [factorValue.value]
-      : mode.value === 'commonFactor'
-        ? splitValues(commonValues.value)
-        : [conversionValue.value],
-    targetBase: mode.value === 'baseConversion' ? targetBase.value : undefined,
+  const result = shushi(createShortDivisionExpression(), {
     settings: {
       cellWidth: cellWidth.value,
       rowHeight: rowHeight.value,
@@ -43,7 +42,7 @@ const renderScene = (): void => {
       showRemainders: showRemainders.value,
       visibleStepCount: visibleStepCount.value,
     },
-  })
+  }) as ShortDivisionVerticalArithmeticResult
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene
@@ -83,6 +82,7 @@ const implementationCode = computed(() => createShushiImplementationSnippet({
 const answer = computed(() => {
   const result = computation.value
   if (!result) return '—'
+  if (result.mode === 'division') return `${result.inputValues[0]} ÷ ${result.divisor} = ${result.quotient} … ${result.remainder}`
   if (result.mode === 'factorization') return `${result.inputValues[0]} = ${result.factorizationText}`
   if (result.mode === 'commonFactor') return `GCD ${result.gcd} · LCM ${result.lcm}`
   return `${result.inputValues[0]}₁₀ = ${result.convertedText}₍${result.targetBase}₎`
@@ -165,8 +165,8 @@ calculate()
         </div>
       </section>
       <CodeImplementationPanel
-        title="短除法模式分派"
-        description="短除法根据 mode 选择分解、公因数或进制转换，仍通过统一入口生成过程和场景。"
+        title="短除法表达式解析"
+        description="使用 |48 分解质因数、1|12 18 求公因数、(13)2 转换进制；全部由 shushi 解析为统一场景。"
         :code="implementationCode"
       />
     </section>
