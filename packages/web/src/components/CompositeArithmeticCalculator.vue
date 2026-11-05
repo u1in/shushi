@@ -145,9 +145,8 @@ calculate()
         <p id="composite-expression-help" class="field-help expression-rules">
           <span>支持连续 <code>+</code>、<code>-</code>、<code>×</code>（也可输入 <code>*</code> 或 <code>x</code>）。</span>
           <span>长除法用 <code>10230 ÷ 25</code> 或 <code>10230 / 25</code>。</span>
-          <span>指定除数的短除法：<code>2|12</code>。</span>
           <span>分解质因数：<code>|48</code>。</span>
-          <span>求最大公约数和最小公倍数：<code>2|12 18</code>。</span>
+          <span>求最大公约数和最小公倍数：<code>|12 18</code>（自动试除）。</span>
           <span>进制转换：<code>(13)2</code>，表示把十进制 13 转为二进制。</span>
         </p>
         <div class="form-actions">
@@ -165,7 +164,8 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">VERTICAL PREVIEW</p><h2>{{ expression.trim() ? `${expression} =` : '等待输入表达式' }}</h2></div><template v-if="scene"><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
+          <p class="panel-kicker result-heading__kicker">VERTICAL PREVIEW</p>
+          <div class="result-heading"><div class="result-heading__title"><h2>{{ expression.trim() ? `${expression} =` : '等待输入表达式' }}</h2></div><template v-if="scene"><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
           <p class="normalization">{{ scene ? '每一步都会清楚展示；加减乘可以连续计算，除法和短除法也会自动排成对应的竖式。' : '在左侧输入算式，这里会显示对应的竖式。' }}</p>
           <StepPlaybackControls
             v-if="scene"

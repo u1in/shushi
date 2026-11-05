@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   title: string
@@ -15,6 +15,10 @@ let resetTimer: ReturnType<typeof setTimeout> | undefined
 const flashedLineIndices = ref<number[]>([])
 const flashKey = ref(0)
 let flashTimer: ReturnType<typeof setTimeout> | undefined
+const sourceElement = ref<HTMLElement>()
+const isExpanded = ref(false)
+const isOverflowing = ref(false)
+let sourceResizeObserver: ResizeObserver | undefined
 
 const escapeHtml = (value: string): string => value
   .replaceAll('&', '&amp;')
@@ -56,6 +60,20 @@ const highlightCode = (code: string): string => {
 const highlightedCode = computed(() => highlightCode(props.code))
 const highlightedLines = computed(() => highlightedCode.value.split('\n'))
 const copyLabel = computed(() => copyState.value === 'copied' ? '已复制全部代码' : copyState.value === 'error' ? '复制失败，请重试' : '复制全部代码')
+const expandLabel = computed(() => isExpanded.value ? '收起核心实现代码' : '展开核心实现代码')
+
+/** 代码面板默认服从当前网格行高度；只有源码确实超出可视区域时才显示展开入口。 */
+const measureSourceOverflow = (): void => {
+  const element = sourceElement.value
+  if (!element || isExpanded.value) return
+  isOverflowing.value = element.scrollHeight > element.clientHeight + 1
+}
+
+const toggleExpanded = async (): Promise<void> => {
+  isExpanded.value = !isExpanded.value
+  await nextTick()
+  measureSourceOverflow()
+}
 
 /** 对比前后源码行，只短暂标记发生变化的行，帮助用户定位配置带来的代码变化。 */
 watch(() => props.code, (nextCode, previousCode) => {
@@ -76,6 +94,19 @@ watch(() => props.code, (nextCode, previousCode) => {
   flashTimer = setTimeout(() => {
     flashedLineIndices.value = []
   }, 900)
+
+  void nextTick(measureSourceOverflow)
+})
+
+onMounted(() => {
+  const element = sourceElement.value
+  if (!element || typeof ResizeObserver === 'undefined') {
+    void nextTick(measureSourceOverflow)
+    return
+  }
+  sourceResizeObserver = new ResizeObserver(measureSourceOverflow)
+  sourceResizeObserver.observe(element)
+  void nextTick(measureSourceOverflow)
 })
 
 /** 优先使用 Clipboard API，非安全上下文再回退到浏览器原生复制命令。 */
@@ -113,11 +144,16 @@ const copyCode = async (): Promise<void> => {
 onBeforeUnmount(() => {
   if (resetTimer) clearTimeout(resetTimer)
   if (flashTimer) clearTimeout(flashTimer)
+  sourceResizeObserver?.disconnect()
 })
 </script>
 
 <template>
-  <section class="code-panel" aria-label="核心实现代码">
+  <section
+    class="code-panel"
+    :class="{ 'code-panel--expanded': isExpanded }"
+    aria-label="核心实现代码"
+  >
     <p class="panel-kicker">CORE IMPLEMENTATION</p>
     <h2>{{ title }}</h2>
     <p class="normalization">{{ description }}</p>
@@ -125,13 +161,29 @@ onBeforeUnmount(() => {
       <span class="code-panel__language">{{ language }}</span>
     </div>
     <div class="code-panel__source-wrap">
-      <pre class="code-panel__source"><code><span
+      <pre ref="sourceElement" class="code-panel__source"><code><span
         v-for="(line, lineIndex) in highlightedLines"
         :key="flashKey + '-' + lineIndex"
         class="code-panel__line"
         :class="{ 'code-panel__line--changed': flashedLineIndices.includes(lineIndex) }"
         v-html="line"
       ></span></code></pre>
+      <div
+        v-if="isOverflowing || isExpanded"
+        class="code-panel__overflow-control"
+        :class="{ 'code-panel__overflow-control--expanded': isExpanded }"
+      >
+        <div v-if="!isExpanded" class="code-panel__overflow-mask" aria-hidden="true"></div>
+        <button
+          class="code-panel__expand"
+          type="button"
+          :aria-expanded="isExpanded"
+          :aria-label="expandLabel"
+          @click="toggleExpanded"
+        >
+          {{ isExpanded ? '收起' : '展开' }}
+        </button>
+      </div>
       <button
         class="code-panel__copy"
         type="button"

@@ -12,35 +12,6 @@ export const implementationSnippets = {
     '',
     'render(source)',
   ].join('\n'),
-  macroAstInspector: [
-    "import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'",
-    "import type { MacroAstInspection } from '@u1in/shushi-core'",
-    "import '@u1in/shushi-core/style.css'",
-    '',
-    'const render = (source: string) => {',
-    '  const inspection = createMacroAstInspection(source)',
-    '  const rendered = renderDomGrid(inspection.scene)',
-    "  document.querySelector('#result')?.append(rendered)",
-    '',
-    '  return { inspection, rendered }',
-    '}',
-    '',
-    'const update = (',
-    '  inspection: MacroAstInspection,',
-    '  rendered: HTMLElement,',
-    '  elementId: string,',
-    '  text: string,',
-    ') => {',
-    '  const updated = inspection.updateElementText(elementId, text)',
-    '  const updatedRendered = renderDomGrid(updated.scene)',
-    '  rendered.replaceWith(updatedRendered)',
-    '  return { inspection: updated, rendered: updatedRendered }',
-    '}',
-    '',
-    'const { inspection, rendered } = render(source)',
-    "update(inspection, rendered, 'grid-element-id', '9')",
-    '',
-  ].join('\n'),
 } as const
 
 type SnippetProperty = [name: string, value: unknown]
@@ -50,6 +21,12 @@ export type ShushiImplementationSnippetOptions = {
   fields: SnippetProperty[]
   calculation?: SnippetProperty[]
   settings: SnippetProperty[]
+}
+
+export type MacroAstInspectorSnippetOptions = {
+  source: string
+  elementId: string
+  text: string
 }
 
 /** 首页表达式演示优先展示统一字符串入口；需要精确指定运算类型时再生成结构化入口。 */
@@ -63,7 +40,7 @@ const createExpression = (operation: string, fields: SnippetProperty[]): string 
   if (operation === 'shortDivision') {
     const inputValues = values.values as unknown[]
     if (values.mode === 'factorization') return `|${inputValues[0]}`
-    if (values.mode === 'commonFactor') return `1|${inputValues.join(' ')}`
+    if (values.mode === 'commonFactor') return `|${inputValues.join(' ')}`
     return `(${inputValues[0]})${values.targetBase}`
   }
   return undefined
@@ -73,7 +50,12 @@ const createExpression = (operation: string, fields: SnippetProperty[]): string 
 const formatSnippetValue = (value: unknown): string => {
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') {
-    return "'" + value.replaceAll('\\', '\\\\').replaceAll("'", "\\'") + "'"
+    return "'" + value
+      .replaceAll('\\', '\\\\')
+      .replaceAll('\r', '\\r')
+      .replaceAll('\n', '\\n')
+      .replaceAll('\t', '\\t')
+      .replaceAll("'", "\\'") + "'"
   }
   if (Array.isArray(value)) return '[' + value.map(formatSnippetValue).join(', ') + ']'
   return String(value)
@@ -82,6 +64,59 @@ const formatSnippetValue = (value: unknown): string => {
 const formatSnippetProperties = (properties: SnippetProperty[], indent: string): string[] => (
   properties.map(([name, value]) => indent + name + ': ' + formatSnippetValue(value) + ',')
 )
+
+/** 宏调试示例展示真实链路：宏源码生成 inspection 和 DOM，再通过 inspection 局部更新文字。 */
+export const createMacroAstInspectorSnippet = ({
+  source,
+  elementId,
+  text,
+}: MacroAstInspectorSnippetOptions): string => [
+  "import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'",
+  "import type { MacroAstInspection } from '@u1in/shushi-core'",
+  "import '@u1in/shushi-core/style.css'",
+  '',
+  'const macro = ' + formatSnippetValue(source),
+  '',
+  'const render = (macro: string) => {',
+  '  const inspection = createMacroAstInspection(macro)',
+  '  const rendered = renderDomGrid(inspection.scene)',
+  "  document.querySelector('#result')?.replaceChildren(rendered)",
+  '  return { inspection, rendered }',
+  '}',
+  '',
+  'const update = (',
+  '  inspection: MacroAstInspection,',
+  '  rendered: HTMLElement,',
+  '  elementId: string,',
+  '  text: string,',
+  ') => {',
+  '  const updated = inspection.updateElementText(elementId, text)',
+  '  const updatedRendered = renderDomGrid(updated.scene)',
+  '  rendered.replaceWith(updatedRendered)',
+  '  return { inspection: updated, rendered: updatedRendered }',
+  '}',
+  '',
+  'let currentInspection: MacroAstInspection',
+  'let currentRendered: HTMLElement',
+  '',
+  'const handleMacroInput = (nextMacro: string) => {',
+  '  const { inspection, rendered } = render(nextMacro)',
+  '  currentInspection = inspection',
+  '  currentRendered = rendered',
+  '}',
+  '',
+  'const handleElementTextInput = (elementId: string = ' + formatSnippetValue(elementId) + ', text: string = ' + formatSnippetValue(text) + ') => {',
+  '  const { inspection, rendered } = update(',
+  '    currentInspection,',
+  '    currentRendered,',
+  '    elementId,',
+  '    text,',
+  '  )',
+  '  currentInspection = inspection',
+  '  currentRendered = rendered',
+  '}',
+  '',
+].join('\n')
 
 /** 统一生成门户 API 示例，确保每个运算示例都展示渲染模式、挂载点和完整返回值。 */
 export const createShushiImplementationSnippet = ({

@@ -97,7 +97,8 @@ calculate()
         </div></div>
       </form>
       <section class="result-card" aria-live="polite"><div class="calculation-result">
-        <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ minuend }} − {{ subtrahend }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
+        <p class="panel-kicker result-heading__kicker">CALCULATION</p>
+        <div class="result-heading"><h2>{{ minuend }} − {{ subtrahend }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
         <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />

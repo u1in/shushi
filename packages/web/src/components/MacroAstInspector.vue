@@ -6,7 +6,7 @@ import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
-import { implementationSnippets } from './implementationSnippets'
+import { createMacroAstInspectorSnippet } from './implementationSnippets'
 import { arithmeticExamples, type MacroExample } from './macroPlaygroundExamples'
 
 const DEFAULT_GRID_SETTINGS = {
@@ -16,7 +16,7 @@ const DEFAULT_GRID_SETTINGS = {
   showGuideGrid: false,
 }
 
-/** 算式输入只负责选择现有门户 API；生成的源码随后仍可在下方 textarea 中继续编辑。 */
+/** 示例按钮使用正式门户生成宏源码；调试区本身只负责接收、编译和修改宏。 */
 const createInspectionFromExpression = (inputExpression: string): MacroAstInspection => {
   const normalizedExpression = inputExpression.trim().replace(/\s+/g, '').replace(/[xX*]/g, '×').replace(/÷/g, '/').replace(/−/g, '-')
   const divisionCount = (normalizedExpression.match(/\//g) ?? []).length
@@ -53,19 +53,18 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
   return createMacroAstInspection(minifyMacroForCopy(result.source))
 }
 
-/** 统一生成宏实验默认展示的源码：先使用最简可粘贴形式，再保留分号行结构做可读格式化。 */
+/** 统一生成宏调试默认展示的源码：先使用最简可粘贴形式，再保留分号行结构做可读格式化。 */
 const createFormattedMinimalInspection = (inspection: MacroAstInspection): MacroAstInspection => (
   createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)))
 )
 
-const expression = ref(arithmeticExamples[0].expression)
-const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(expression.value))
+const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(arithmeticExamples[0].expression))
 const source = ref(initialInspection.source)
 const inspection = ref<MacroAstInspection>(initialInspection)
 const selectedElementId = ref('')
 const editedText = ref('')
 const error = ref('')
-const errorTarget = ref<'expression' | 'source' | null>(null)
+const errorTarget = ref<'source' | null>(null)
 
 /** 将解析器偏底层的定位信息改写成用户能直接理解的提示。 */
 const getReadableMacroError = (reason: unknown, fallback: string): string => {
@@ -77,6 +76,7 @@ const getReadableMacroError = (reason: unknown, fallback: string): string => {
 }
 
 const selectedReference = computed(() => inspection.value.references[selectedElementId.value])
+const firstEditableReference = computed(() => Object.values(inspection.value.references).find(reference => reference.literalPath))
 const selectedNode = computed<MacroNode | undefined>(() => selectedReference.value?.node)
 const selectedNodeLabel = computed(() => {
   const node = selectedNode.value
@@ -88,20 +88,29 @@ const selectedNodeLabel = computed(() => {
 const selectedPath = computed(() => selectedReference.value?.nodePath.join(' → ') || '—')
 const canEditSelectedText = computed(() => selectedReference.value?.literalPath !== undefined)
 
-/** 由算式重新生成最简宏；失败时保留上一次源码和 AST 预览，方便用户修正输入。 */
-const generateFromExpression = (shouldFormat = false): void => {
+/** 代码示例跟随当前宏源码和可编辑图元变化；尚未点击图元时展示首个可编辑数字作为示例。 */
+const implementationCode = computed(() => {
+  const updateReference = canEditSelectedText.value ? selectedReference.value : firstEditableReference.value
+  return createMacroAstInspectorSnippet({
+    source: source.value,
+    elementId: updateReference?.elementId ?? 'grid-element-id',
+    text: editedText.value || updateReference?.text || '9',
+  })
+})
+
+/** 点击示例时载入最简宏源码；手动输入宏时则完全由 textarea 驱动调试流程。 */
+const loadExample = (exampleExpression: string): void => {
   try {
-    const nextInspection = createInspectionFromExpression(expression.value)
-    const formattedInspection = shouldFormat ? createFormattedMinimalInspection(nextInspection) : nextInspection
-    source.value = formattedInspection.source
-    inspection.value = formattedInspection
+    const nextInspection = createFormattedMinimalInspection(createInspectionFromExpression(exampleExpression))
+    source.value = nextInspection.source
+    inspection.value = nextInspection
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
     errorTarget.value = null
   } catch (reason) {
-    error.value = getReadableMacroError(reason, '算式无法生成宏源码。')
-    errorTarget.value = 'expression'
+    error.value = getReadableMacroError(reason, '示例宏源码无法生成。')
+    errorTarget.value = 'source'
   }
 }
 
@@ -144,14 +153,6 @@ const handleSourceInput = (event: Event): void => {
   compileSource()
 }
 
-/** 算式输入变化时走统一门户 API，不直接拼接宏源码。 */
-const handleExpressionInput = (event: Event): void => {
-  const input = event.target
-  if (!(input instanceof HTMLInputElement)) return
-  expression.value = input.value
-  generateFromExpression()
-}
-
 /** 点击渲染元素后读取其 AST 引用；没有文字参数的线条和厂字弯仍可查看但不能改文本。 */
 const selectElement = (elementId: string): void => {
   selectedElementId.value = elementId
@@ -185,27 +186,19 @@ const handleEditedTextInput = (event: Event): void => {
   if (canEditSelectedText.value) applyText()
 }
 
-/** 示例只填入算式输入框，再复用算式生成链路更新宏源码和预览。 */
+/** 示例按钮只负责把门户生成的宏源码载入调试区，不额外保留隐藏的算式状态。 */
 const useExample = ({ expression: exampleExpression }: MacroExample): void => {
-  expression.value = exampleExpression
-  generateFromExpression(true)
+  loadExample(exampleExpression)
 }
 </script>
 
 <template>
   <div class="operation-demo macro-ast-inspector" data-operation="macro-ast-inspector">
-    <section class="workspace" aria-label="输入宏">
+    <section class="workspace" aria-label="宏调试">
       <section class="control-panel">
-        <p class="panel-kicker">MACRO EXPERIMENT</p>
-        <h2>输入宏</h2>
-        <p class="normalization">输入宏源码渲染竖式，点击图元即可单独修改。</p>
-
-        <label class="macro-source-field macro-expression-field">
-          <span>算式输入</span>
-          <input :value="expression" aria-label="算式输入" autocomplete="off" spellcheck="false" @input="handleExpressionInput" />
-          <p v-if="errorTarget === 'expression'" class="error-message" role="alert">{{ error }}</p>
-          <small class="field-help">支持 +、-、×、*、x、÷、/；含除法时只能输入单个除法。</small>
-        </label>
+        <p class="panel-kicker">MACRO DEBUGGER</p>
+        <h2>宏调试</h2>
+        <p class="normalization">输入或粘贴宏源码，编译竖式并检查图元；点击图元后可以单独修改文字。</p>
 
         <div class="macro-format-row">
           <div class="macro-format-toolbar" aria-label="源码形式">
@@ -226,7 +219,7 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
           <p v-if="errorTarget === 'source' || (!errorTarget && error)" class="error-message" role="alert">{{ error }}</p>
         </label>
         <div class="form-actions">
-          <span class="macro-example-label">示例</span>
+          <span class="macro-example-label">加载示例</span>
           <button v-for="example in arithmeticExamples" :key="example.label" class="ghost-button macro-example-button" type="button" @click="useExample(example)">{{ example.label }}</button>
         </div>
       </section>
@@ -259,8 +252,8 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
       </section>
       <CodeImplementationPanel
         title="宏渲染及AST定位修改"
-        description="宏源码先渲染为网格，再通过 AST 定位图元并回写单项文字。"
-        :code="implementationSnippets.macroAstInspector"
+        description="宏源码先生成 inspection 和竖式，再通过图元 ID 定位并更新文字。"
+        :code="implementationCode"
       />
     </section>
   </div>

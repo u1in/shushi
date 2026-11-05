@@ -115,7 +115,7 @@ onBeforeUnmount(() => {
     <a class="site-header__brand" href="#top" aria-label="返回首页顶部">竖式·Shushi</a>
     <nav class="site-header__nav" aria-label="演示板块导航">
       <a href="#composite-arithmetic">表达式</a>
-      <a href="#macro-ast-inspector">宏实验</a>
+      <a href="#macro-ast-inspector">宏调试</a>
       <a href="#addition">加法</a>
       <a href="#subtraction">减法</a>
       <a href="#multiplication">乘法</a>
@@ -210,7 +210,9 @@ onBeforeUnmount(() => {
       aria-label="返回页面顶部"
       @click="scrollToTop"
     >
-      <span aria-hidden="true">↑</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 17V7M7 12l5-5 5 5" />
+      </svg>
     </button>
   </main>
 

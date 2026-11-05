@@ -119,7 +119,8 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ multiplicand }} × {{ multiplier }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
+          <p class="panel-kicker result-heading__kicker">CALCULATION</p>
+          <div class="result-heading"><h2>{{ multiplicand }} × {{ multiplier }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />

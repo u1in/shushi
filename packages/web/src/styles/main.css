@@ -276,9 +276,17 @@ h1 {
   color: var(--text-strong);
   background: var(--surface-raised);
   box-shadow: 0 10px 24px var(--shadow);
-  font-size: 1.35rem;
-  font-weight: 800;
   line-height: 1;
+}
+
+.back-to-top svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.2;
 }
 
 .back-to-top:hover {
@@ -611,7 +619,7 @@ h1 {
   margin-top: 54px;
 }
 
-/* 宏实验位于首页首个运算示例之前，沿用三栏工作区但突出可点击 SVG。 */
+/* 宏调试位于首页首个运算示例之前，沿用三栏工作区但突出可点击 SVG。 */
 .macro-ast-inspector {
   margin-bottom: 54px;
 }
@@ -784,10 +792,6 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin: 18px 0 10px;
-}
-
-.macro-expression-field {
-  margin-top: 14px;
 }
 
 .macro-format-toolbar {
@@ -1373,6 +1377,9 @@ button:disabled {
 .code-panel {
   /* 第三列与同一工作区的最大面板等高，保持整行视觉平齐。 */
   align-self: stretch;
+  contain: size;
+  height: auto;
+  min-height: 0;
   min-width: 0;
   width: 600px;
   max-width: 100%;
@@ -1441,17 +1448,18 @@ button:disabled {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
-  min-height: max-content;
+  min-height: 0;
   margin-top: 8px;
+  overflow: hidden;
 }
 
 .code-panel__source {
   flex: 1 1 auto;
-  min-height: 100%;
+  min-height: 0;
   max-height: none;
   margin: 0;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   border: 1px solid var(--border-code);
   border-radius: 14px;
   padding: 12px;
@@ -1459,9 +1467,83 @@ button:disabled {
   color: var(--text);
   font: 0.78rem/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
   tab-size: 2;
-  white-space: pre;
+  /* 保留源码缩进，同时允许动态表达式在代码面板内换行。 */
+  white-space: pre-wrap;
   overflow-wrap: normal;
-  word-break: normal;
+  word-break: break-word;
+}
+
+.code-panel__overflow-control {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 30px 12px 10px;
+  pointer-events: none;
+}
+
+.code-panel__overflow-mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--surface-code) 0%, transparent), var(--surface-code) 82%);
+}
+
+.code-panel__expand {
+  position: relative;
+  z-index: 1;
+  padding: 7px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  box-shadow: 0 4px 14px var(--shadow);
+  font-size: 0.76rem;
+  pointer-events: auto;
+}
+
+.code-panel__expand:hover {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+.code-panel__overflow-control--expanded {
+  position: static;
+  justify-content: flex-end;
+  padding: 8px 0 0;
+}
+
+.code-panel--expanded {
+  align-self: start;
+  contain: none;
+  height: max-content;
+  min-height: max-content;
+  overflow: visible;
+}
+
+.code-panel--expanded .code-panel__source-wrap {
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-height: max-content;
+  overflow: visible;
+}
+
+.code-panel--expanded .code-panel__source {
+  flex: 0 0 auto;
+  min-height: max-content;
+  overflow: visible;
+}
+
+.code-panel--expanded .code-panel__overflow-control--expanded {
+  position: sticky;
+  right: auto;
+  bottom: 0;
+  align-self: center;
+  width: max-content;
+  margin-left: 0;
+  background: var(--surface);
 }
 
 .code-panel__source code {
@@ -1513,9 +1595,49 @@ button:disabled {
 }
 
 .result-heading {
-  align-items: end;
+  min-width: 0;
+  align-items: center;
   justify-content: flex-start;
   gap: 18px;
+}
+
+.result-heading__kicker {
+  margin: 0 0 6px;
+}
+
+.result-heading h2 {
+  margin: 0;
+}
+
+.result-heading__title {
+  flex: 1 1 auto;
+  width: min(100%, 42rem);
+  max-width: min(100%, 42rem);
+  min-width: 0;
+}
+
+.result-heading__title h2 {
+  /* 表达式保持完整一行，超出标题区域时用细滚动条查看后半段。 */
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  white-space: nowrap;
+}
+
+.result-heading__title h2::-webkit-scrollbar {
+  height: 4px;
+}
+
+.result-heading__title h2::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.result-heading__title h2::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--border);
 }
 
 .copy-macro-button {
@@ -1537,11 +1659,13 @@ h2 {
 }
 
 .answer {
+  flex: 0 0 auto;
   color: #4166b6;
   font-size: clamp(2.1rem, 5vw, 3.8rem);
   font-weight: 800;
   letter-spacing: -0.08em;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .normalization {
@@ -1558,6 +1682,10 @@ h2 {
 .result-heading .visible-text-rows__button {
   width: auto;
   margin-top: 0;
+}
+
+.result-heading > .visible-text-rows {
+  flex: 0 0 auto;
 }
 
 .macro-ast-inspector .result-heading > .visible-text-rows {
@@ -2294,6 +2422,11 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .code-panel {
+    contain: none;
+    height: max-content;
+  }
+
   .macro-ast-inspector .workspace {
     grid-template-columns: 1fr;
   }
@@ -2330,6 +2463,8 @@ h2 {
 
   .code-panel {
     grid-column: 1 / -1;
+    contain: none;
+    height: max-content;
   }
 
   .result-content-grid {

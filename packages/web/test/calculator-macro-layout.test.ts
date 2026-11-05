@@ -29,7 +29,7 @@ const expectHumanReproducible = (source: string, scene: unknown): void => {
   expect(compileMacro(formatMacro(source))).toEqual(scene)
 }
 
-/** 复制按钮调用正式 API 移除网页专属信息；宏实验应保持同一份可见网格和图元。 */
+/** 复制按钮调用正式 API 移除网页专属信息；宏调试应保持同一份可见网格和图元。 */
 const expectCopiedMacroReproducible = (source: string, scene: GridScene): void => {
   const copiedSource = minifyMacroForCopy(source)
   expect(copiedSource).not.toBe('')

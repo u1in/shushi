@@ -126,7 +126,8 @@ calculate()
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
-          <div class="result-heading"><div><p class="panel-kicker">CALCULATION</p><h2>{{ dividend }} ÷ {{ divisor }} =</h2></div><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
+          <p class="panel-kicker result-heading__kicker">CALCULATION</p>
+          <div class="result-heading"><h2>{{ dividend }} ÷ {{ divisor }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" mode="both" />

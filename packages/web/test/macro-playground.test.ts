@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { shushiCore } from '@u1in/shushi-core'
 import { compileMacro, createMacroAstInspection, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples } from '../src/components/macroPlaygroundExamples'
-import { createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
+import { createMacroAstInspectorSnippet, createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
 
 const DEFAULT_GRID_SETTINGS = {
   cellWidth: 30,
@@ -31,7 +31,7 @@ const generateSource = (expression: string): string => {
   }).source)
 }
 
-describe('首页宏实验算式示例', () => {
+describe('首页宏调试示例', () => {
   test.each(arithmeticExamples)('$label 通过算式生成可编辑宏', ({ expression }) => {
     const source = generateSource(expression)
     expect(minifyMacro(source)).toBe(source)
@@ -68,19 +68,33 @@ describe('首页宏实验算式示例', () => {
   })
 
   test('AST 示例从宏源码创建 inspection，并由父调用方重新挂载修改后的场景', () => {
-    const code = implementationSnippets.macroAstInspector
+    const code = createMacroAstInspectorSnippet({
+      source: 'GRID(ROW(MM(3), MM(5)))',
+      elementId: 'grid-element-id',
+      text: '9',
+    })
 
     expect(code).toContain("import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'")
-    expect(code).toContain('const inspection = createMacroAstInspection(source)')
+    expect(code).toContain("const macro = 'GRID(ROW(MM(3), MM(5)))'")
+    expect(code).not.toContain('shushi(')
+    expect(code).toContain('const inspection = createMacroAstInspection(macro)')
     expect(code).toContain('const rendered = renderDomGrid(inspection.scene)')
-    expect(code).toContain("document.querySelector('#result')?.append(rendered)")
-    expect(code).toContain('const { inspection, rendered } = render(source)')
+    expect(code).toContain("document.querySelector('#result')?.replaceChildren(rendered)")
+    expect(code).toContain('let currentInspection: MacroAstInspection')
+    expect(code).toContain('let currentRendered: HTMLElement')
+    expect(code).toContain('const handleMacroInput = (nextMacro: string) => {')
+    expect(code).toContain('const { inspection, rendered } = render(nextMacro)')
+    expect(code).toContain("const handleElementTextInput = (elementId: string = 'grid-element-id', text: string = '9') => {")
+    expect(code).toContain('const { inspection, rendered } = update(')
+    expect(code).toContain('    currentInspection,')
+    expect(code).toContain('    currentRendered,')
+    expect(code).toContain('    elementId,')
+    expect(code).toContain('    text,')
     expect(code).toContain('const update = (')
     expect(code).toContain('  inspection: MacroAstInspection,')
     expect(code).toContain('  rendered: HTMLElement,')
     expect(code).toContain('const updated = inspection.updateElementText(elementId, text)')
     expect(code).toContain('const updatedRendered = renderDomGrid(updated.scene)')
-    expect(code).toContain("update(inspection, rendered, 'grid-element-id', '9')")
     expect(code).toContain('return { inspection: updated, rendered: updatedRendered }')
   })
 
