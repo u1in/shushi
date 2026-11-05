@@ -81,7 +81,7 @@ const replaceLiteralAtPath = (root: MacroCall, path: MacroNodePath, text: string
 }
 
 /** 将 AST 编译为场景，同时记录每一个渲染元素回溯到的宏节点。 */
-const inspectMacroAst = (ast: MacroCall, sourceStyle: MacroSourceStyle): MacroAstInspection => {
+const inspectMacroAst = (ast: MacroCall, sourceStyle: MacroSourceStyle, sourceShape: string): MacroAstInspection => {
   const nodePaths = new Map<MacroNode, MacroNodePath>()
   indexNodePaths(ast, [], nodePaths)
   const references: Record<string, MacroElementAstReference> = {}
@@ -102,13 +102,13 @@ const inspectMacroAst = (ast: MacroCall, sourceStyle: MacroSourceStyle): MacroAs
     ast,
     scene,
     sourceStyle,
-    source: formatMacroAst(ast, sourceStyle),
+    source: formatMacroAst(ast, sourceStyle, sourceShape),
     minifiedSource: minifyMacroAst(ast),
     references,
     updateElementText: (elementId, text) => {
       const reference = references[elementId]
       if (!reference?.literalPath) throw new Error('选中的宏元素不包含可编辑文字。')
-      return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text), sourceStyle)
+      return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text), sourceStyle, sourceShape)
     },
   }
 }
@@ -116,6 +116,6 @@ const inspectMacroAst = (ast: MacroCall, sourceStyle: MacroSourceStyle): MacroAs
 /** 从完整宏源码创建可点击的 AST 检查结果。 */
 export const createMacroAstInspection = (source: string): MacroAstInspection => {
   const sourceStyle: MacroSourceStyle = source.trim() === minifyMacro(source) ? 'minified' : 'formatted'
-  return inspectMacroAst(parseMacro(source), sourceStyle)
+  return inspectMacroAst(parseMacro(source), sourceStyle, source)
 }
 

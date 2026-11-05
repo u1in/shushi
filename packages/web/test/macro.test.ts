@@ -522,6 +522,21 @@ CELL(
     expect(updated.source).toBe('3,[9,RB(1)];LN;8;')
   })
 
+  test('AST 检查器会保留格式化最简源码的分号行形式', () => {
+    const source = formatMacro('3,[5,RB(1)];LN;8;')
+    const inspection = createMacroAstInspection(source)
+    const textElement = inspection.scene.elements.find((element) => element.content.kind === 'text' && element.content.text === '5')
+
+    expect(inspection.sourceStyle).toBe('formatted')
+    expect(inspection.source).toBe(source)
+    expect(textElement).toBeDefined()
+
+    const updated = inspection.updateElementText(textElement!.id, '9')
+
+    expect(updated.source).toBe(formatMacro('3,[9,RB(1)];LN;8;'))
+    expect(updated.source).not.toContain('GRID(')
+  })
+
   test('AST 检查器会保留无文字图元的反查信息，并拒绝修改其文字', () => {
     const inspection = createMacroAstInspection('GRID(ROW(MM(3)), LINE, ROW(MM(8)))')
     const lineElement = inspection.scene.elements.find(({ content }) => content.kind === 'line')

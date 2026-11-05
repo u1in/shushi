@@ -53,8 +53,13 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
   return createMacroAstInspection(minifyMacroForCopy(result.source))
 }
 
+/** 统一生成宏实验默认展示的源码：先使用最简可粘贴形式，再保留分号行结构做可读格式化。 */
+const createFormattedMinimalInspection = (inspection: MacroAstInspection): MacroAstInspection => (
+  createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)))
+)
+
 const expression = ref(arithmeticExamples[0].expression)
-const initialInspection = createInspectionFromExpression(expression.value)
+const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(expression.value))
 const source = ref(initialInspection.source)
 const inspection = ref<MacroAstInspection>(initialInspection)
 const selectedElementId = ref('')
@@ -87,8 +92,7 @@ const canEditSelectedText = computed(() => selectedReference.value?.literalPath 
 const generateFromExpression = (shouldFormat = false): void => {
   try {
     const nextInspection = createInspectionFromExpression(expression.value)
-    const nextSource = shouldFormat ? formatMacro(nextInspection.source) : nextInspection.source
-    const formattedInspection = shouldFormat ? createMacroAstInspection(nextSource) : nextInspection
+    const formattedInspection = shouldFormat ? createFormattedMinimalInspection(nextInspection) : nextInspection
     source.value = formattedInspection.source
     inspection.value = formattedInspection
     selectedElementId.value = ''

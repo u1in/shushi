@@ -401,9 +401,9 @@ export const minifyMacroForCopyAst = (root: MacroCall): string => {
   return minifyMacroAst(cleanedRoot)
 }
 
-/** 将已更新的 AST 按调用方选择的输入框风格重新输出，避免编辑后被强制降级为最简式。 */
-export const formatMacroAst = (root: MacroCall, style: 'formatted' | 'minified' = 'formatted'): string => (
-  style === 'minified' ? minifyMacroAst(root) : formatRoot(root, 'GRID(', true)
+/** 将已更新的 AST 按调用方选择的输入框风格重新输出，并保留源码原本的 GRID/分号行外层形式。 */
+export const formatMacroAst = (root: MacroCall, style: 'formatted' | 'minified' = 'formatted', source = 'GRID('): string => (
+  style === 'minified' ? minifyMacroAst(root) : formatRoot(root, source, true)
 )
 
 /** 将宏源码解析为 AST 后按函数层级格式化，保留显式或隐式 GRID 的写法。 */
