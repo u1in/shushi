@@ -85,7 +85,7 @@ const selectedNodeLabel = computed(() => {
   if (node.kind === 'symbol') return node.name
   return `文本：${node.value}`
 })
-const selectedPath = computed(() => selectedReference.value?.nodePath.join(' → ') || '—')
+const selectedPath = computed(() => selectedReference.value?.nodePath.join(' → ') || '尚未选择元素')
 const canEditSelectedText = computed(() => selectedReference.value?.literalPath !== undefined)
 
 /** 代码示例跟随当前宏源码和可编辑图元变化；尚未点击图元时展示首个可编辑数字作为示例。 */
@@ -236,7 +236,7 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
           <section class="ast-inspection-panel" aria-label="图元 AST 定位修改">
             <p class="ast-inspection-panel__hint">点击任一宏图元，可查看 AST 并单独修改。</p>
             <dl class="ast-selection-details">
-              <div><dt>渲染元素</dt><dd>{{ selectedElementId || '—' }}</dd></div>
+              <div><dt>渲染元素</dt><dd>{{ selectedElementId || '尚未选择元素' }}</dd></div>
               <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
               <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
               <div class="ast-edit-cell">
