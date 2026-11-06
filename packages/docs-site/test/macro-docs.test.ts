@@ -28,7 +28,7 @@ const requiredSlugs = [
   'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
   'row-shorthand', 'cell-shorthand', 'zero-argument',
   'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
-  'dot', 'bracket', 'tbd', 'rbd', 'bbd', 'lbd',
+  'dot', 'bracket', 'square', 'triangle', 'round', 'tbd', 'rbd', 'bbd', 'lbd',
   'examples', 'cautions',
 ]
 
@@ -136,7 +136,7 @@ describe('网格宏文档', () => {
     expect(pagesOf('orientation')).toEqual([
       'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
     ])
-    expect(pagesOf('symbol')).toEqual(['dot', 'bracket', 'tbd', 'rbd', 'bbd', 'lbd'])
+    expect(pagesOf('symbol')).toEqual(['dot', 'bracket', 'square', 'triangle', 'round', 'tbd', 'rbd', 'bbd', 'lbd'])
     expect(pagesOf('sugar')).toEqual(['row-shorthand', 'cell-shorthand', 'zero-argument'])
     for (const page of macroDocPages) {
       expect(macroDocNavGroups.some(({ id }) => id === page.group), `${page.slug} 的分组不存在`).toBe(true)

@@ -46,7 +46,7 @@ export const guidePages: MacroDocPage[] = [
             type: 'steps',
             items: [
               { title: '宏源码', text: '用户输入 `GRID(...)`、`5,6;` 或 `[6,RB(1)]` 这样的文本。' },
-              { title: '解析', text: '`parseMacro` 把源码解析为宏 AST，同时还原 `EP`、`LN`、`BK` 等输入别名。' },
+              { title: '解析', text: '`parseMacro` 把源码解析为宏 AST，同时还原 `EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等输入别名。' },
               { title: '编译与归一化', text: '`compileMacro` 推导列数、对齐每一行、展开短除法阶梯，并输出 `GridScene`。' },
               { title: '渲染', text: 'DOM/CSS 与 SVG 渲染器各自消费同一个 `GridScene`，页面只负责选择渲染模式。' },
             ],
@@ -128,7 +128,7 @@ export const guidePages: MacroDocPage[] = [
             columns: ['写法', '含义'],
             rows: [
               ['`完整命令`', '使用 `GRID`、`ROW`、`CELL` 等显式宏，结构最清楚，便于排查。'],
-              ['`语法糖`', '分号行、`[]`、`EP`、`LN`、`BK` 等更短的写法；解析后仍还原为完整宏。'],
+              ['`语法糖`', '分号行、`[]`、`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等更短的写法；解析后仍还原为完整宏。'],
               ['`必填 / 可选`', '参数表中标注为必填的项缺失时会直接报错；可选参数省略时使用默认值。'],
               ['`KV(key, value)`', '宏的配置项；键的可用范围由宿主宏决定，重复设置同一个键会报错。'],
             ],
@@ -295,7 +295,7 @@ export const guidePages: MacroDocPage[] = [
             rows: [
               ['顶层分号行', '`5, 6; LN;`', '`GRID(ROW(MM(5), MM(6)), LINE)`', '`/macro-rules/row-shorthand`'],
               ['方括号单元格', '`[6, RB(1)]`', '`CELL(MM(6), RB(1))`', '`/macro-rules/cell-shorthand`'],
-              ['零参数省略', '`LN`、`EP`、`BK`', '`LINE`、`EMPTY`、`BRACKET`', '`/macro-rules/zero-argument`'],
+              ['零参数省略', '`LN`、`EMP`、`BRKT`、`SQ`、`TRI`、`RND`', '`LINE`、`EMPTY`、`BRACKET`、`SQUARE`、`TRIANGLE`、`ROUND`', '`/macro-rules/zero-argument`'],
             ],
           },
           {

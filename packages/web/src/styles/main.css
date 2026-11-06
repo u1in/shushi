@@ -1911,6 +1911,31 @@ h2 {
   font-size: 0.82rem;
 }
 
+.renderer-font-picker {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.renderer-font-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.renderer-font-picker select {
+  min-width: 170px;
+  border: 1px solid var(--border-input);
+  border-radius: 9px;
+  padding: 7px 28px 7px 10px;
+  color: var(--text-strong);
+  background: var(--surface-raised);
+  font: inherit;
+}
+
 .renderer-panel {
   min-width: 0;
   border: 1px solid #e3eaf5;

@@ -136,6 +136,117 @@ const createBorderPage = (config: BorderPageConfig): MacroDocPage => ({
   ],
 })
 
+interface FixedSymbolPageConfig {
+  slug: string
+  name: 'SQUARE' | 'TRIANGLE' | 'ROUND'
+  shortName: 'SQ' | 'TRI' | 'RND'
+  glyph: '☐' | '△' | '◯'
+  title: string
+}
+
+/** 固定符号宏共享同一套文档结构，避免三个零参数宏的规则描述发生分叉。 */
+const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => ({
+  slug: config.slug,
+  title: config.title,
+  navLabel: `${config.name} / ${config.shortName}`,
+  kicker: 'SYMBOL MACRO · FIXED GLYPH',
+  group: 'symbol',
+  summary: `${config.name} 是一个零参数单元格符号宏，渲染为 ${config.glyph}；${config.shortName} 是它的首选简写。`,
+  sections: [
+    {
+      id: 'purpose',
+      title: '作用与位置',
+      blocks: [
+        { type: 'paragraph', text: `${config.name} 用于快速输入固定符号 ${config.glyph}。它使用普通单元格的中心位置，不新增列，也不改变行高。` },
+        { type: 'paragraph', text: `宏可以直接作为 ROW 中的一个单元格，也可以与数字放在同一个 CELL 内；需要同格叠放时使用 CELL(MM(5), ${config.shortName}) 或 [5, ${config.shortName}]。` },
+      ],
+    },
+    {
+      id: 'signature',
+      title: '签名与参数',
+      blocks: [
+        { type: 'code', title: '签名', code: `${config.name}\n${config.shortName}` },
+        {
+          type: 'table',
+          columns: ['写法', '含义'],
+          rows: [
+            [`\`${config.name}\``, `完整宏名，渲染为 ${config.glyph}。`],
+            [`\`${config.shortName}\``, `首选零参数简写，与 ${config.name} 等价。`],
+            [`\`${config.name}(KV(style, token))\``, '可以附加单元格样式配置，但不能传入文字参数。'],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'behavior',
+      title: '排版规则',
+      blocks: [
+        {
+          type: 'list',
+          items: [
+            '省略空括号与显式空括号会编译为同一个图元。',
+            '默认使用普通中心文字字号；可以通过 CELL 的 KV 配置调整跨度或样式。',
+            '宏本身不参与运算，只负责向 GridScene 添加一个固定文字图元。',
+            `旧式或较长写法可直接替换为首选简写：${config.name} → ${config.shortName}。`,
+          ],
+        },
+      ],
+    },
+    {
+      id: 'examples',
+      title: '示例',
+      blocks: [
+        {
+          type: 'example',
+          title: `输入 ${config.glyph}`,
+          code: `GRID(\n  ROW(${config.shortName}, MM(5), MM(6))\n)`,
+          note: `${config.shortName} 占据一个普通单元格并显示 ${config.glyph}。`,
+        },
+        {
+          type: 'example',
+          title: '与数字同格',
+          code: `GRID(\n  ROW([5, ${config.shortName}])\n)`,
+          note: `${config.glyph} 与 5 共享单元格，适合需要叠放标记的场景。`,
+        },
+      ],
+    },
+    {
+      id: 'errors',
+      title: '注意事项',
+      blocks: [
+        {
+          type: 'table',
+          columns: ['错误写法', '原因', '修正'],
+          rows: [
+            [`\`${config.name}(文字)\``, '固定符号宏不接受文字参数。', `使用 ${config.name}，或改用 MM(文字) 输入自定义文字。`],
+            [`\`ROW(MM(5), ${config.shortName}(1))\``, '简写仍然是零参数宏。', `使用 ROW(MM(5), ${config.shortName})。`],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'related',
+      title: '相关页面',
+      blocks: [
+        {
+          type: 'cards',
+          items: [
+            { title: 'CELL · 单元格', text: '把固定符号与数字放入同一个格子。', to: '/macro-rules/cell' },
+            { title: 'MM · 中心文字', text: '需要自定义文字时使用中心定位宏。', to: '/macro-rules/mm' },
+            { title: '零参数省略', text: '了解宏的空括号省略和输入别名。', to: '/macro-rules/zero-argument' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+
+const fixedSymbolPages: MacroDocPage[] = [
+  createFixedSymbolPage({ slug: 'square', name: 'SQUARE', shortName: 'SQ', glyph: '☐', title: 'SQUARE · 方框符号' }),
+  createFixedSymbolPage({ slug: 'triangle', name: 'TRIANGLE', shortName: 'TRI', glyph: '△', title: 'TRIANGLE · 三角符号' }),
+  createFixedSymbolPage({ slug: 'round', name: 'ROUND', shortName: 'RND', glyph: '◯', title: 'ROUND · 圆形符号' }),
+]
+
 export const symbolPages: MacroDocPage[] = [
   {
     slug: 'dot',
@@ -265,7 +376,7 @@ export const symbolPages: MacroDocPage[] = [
   {
     slug: 'bracket',
     title: 'BRACKET · 厂字弯',
-    navLabel: 'BRACKET / BK',
+    navLabel: 'BRACKET / BRKT',
     kicker: 'SYMBOL MACRO · BRACKET',
     group: 'symbol',
     summary: 'BRACKET 生成除法竖式左侧的厂字弯，并自动向右延伸厂字横。它必须独占一个单元格，所在轨道会缩窄为 0.5u。',
@@ -291,8 +402,8 @@ export const symbolPages: MacroDocPage[] = [
           {
             type: 'list',
             items: [
-              '别名 `BK`，可以写成 `BK`、`BK()`、`BRACKET` 或 `BRACKET()`。',
-              '必须独占一个 `columnSpan` 为 1 的 CELL；可写成 `CELL(BK)` 或直接放在 ROW 中。',
+              '别名 `BRKT`，可以写成 `BRKT`、`BRKT()`、`BRACKET` 或 `BRACKET()`。',
+              '必须独占一个 `columnSpan` 为 1 的 CELL；可写成 `CELL(BRKT)` 或直接放在 ROW 中。',
               '所在真实列的轨道尺寸变为 0.5u，被除数各格不需要重复写 `TBD`。',
               '右侧没有列时只保留厂字弯，不生成零长度厂字横。',
             ],
@@ -303,13 +414,13 @@ export const symbolPages: MacroDocPage[] = [
         id: 'signature',
         title: '签名与参数',
         blocks: [
-          { type: 'code', title: '签名', code: 'BRACKET\nBK' },
+          { type: 'code', title: '签名', code: 'BRACKET\nBRKT' },
           {
             type: 'table',
             columns: ['项', '类型', '必填', '说明'],
             rows: [
               ['`BRACKET`', '零参数宏', '是', '不接收文字、STYLE 或 KV。'],
-              ['所在 CELL', '独占单元格', '是', '需要样式时写成 `CELL(BK, KV(style, token))`。'],
+              ['所在 CELL', '独占单元格', '是', '需要样式时写成 `CELL(BRKT, KV(style, token))`。'],
             ],
           },
         ],
@@ -332,7 +443,7 @@ export const symbolPages: MacroDocPage[] = [
             type: 'callout',
             tone: 'info',
             title: '直接写在 ROW 里的等价形式',
-            text: '`ROW(MM(3), BK, MM(1))` 会为 BK 自动建立一个独占单元格；如果要附加样式 token，仍应显式写 `CELL(BK, KV(style, ...))`。',
+            text: '`ROW(MM(3), BRKT, MM(1))` 会为 BRKT 自动建立一个独占单元格；如果要附加样式 token，仍应显式写 `CELL(BRKT, KV(style, ...))`。',
           },
         ],
       },
@@ -386,13 +497,14 @@ export const symbolPages: MacroDocPage[] = [
             items: [
               { title: 'TBD · 上边框', text: '厂字横之外的普通上边界线。', to: '/macro-rules/tbd' },
               { title: 'DOT · 小数点', text: '除法结果中常见的小数点。', to: '/macro-rules/dot' },
-              { title: '零参数省略与别名', text: '`BK` 是 `BRACKET` 的输入别名。', to: '/macro-rules/zero-argument' },
+              { title: '零参数省略与别名', text: '`BRKT` 是 `BRACKET` 的输入别名。', to: '/macro-rules/zero-argument' },
             ],
           },
         ],
       },
     ],
   },
+  ...fixedSymbolPages,
   createBorderPage({
     slug: 'tbd',
     name: 'TBD',

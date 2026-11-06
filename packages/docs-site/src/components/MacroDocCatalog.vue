@@ -44,7 +44,7 @@ const pageRoutes: Record<string, string> = {
   grid: '/macro/basic/GRID', row: '/macro/basic/ROW', cell: '/macro/basic/CELL', empty: '/macro/basic/EMPTY',
   line: '/macro/basic/LINE', div: '/macro/basic/DIV', value: '/macro/basic/VALUE', style: '/macro/basic/STYLE', kv: '/macro/basic/KV',
   lt: '/macro/orientation/LT', mt: '/macro/orientation/MT', mtd: '/macro/orientation/MTD', rt: '/macro/orientation/RT', ml: '/macro/orientation/ML', mm: '/macro/orientation/MM', mr: '/macro/orientation/MR', lb: '/macro/orientation/LB', mb: '/macro/orientation/MB', rb: '/macro/orientation/RB', rbl: '/macro/orientation/RBL',
-  dot: '/macro/symbol/DOT', bracket: '/macro/symbol/BRACKET', tbd: '/macro/symbol/TBD', rbd: '/macro/symbol/RBD', bbd: '/macro/symbol/BBD', lbd: '/macro/symbol/LBD',
+  dot: '/macro/symbol/DOT', bracket: '/macro/symbol/BRACKET', square: '/macro/symbol/SQUARE', triangle: '/macro/symbol/TRIANGLE', round: '/macro/symbol/ROUND', tbd: '/macro/symbol/TBD', rbd: '/macro/symbol/RBD', bbd: '/macro/symbol/BBD', lbd: '/macro/symbol/LBD',
   'row-shorthand': '/macro/sugar/顶层分号行', 'cell-shorthand': '/macro/sugar/方括号CELL简写', 'zero-argument': '/macro/sugar/零参数省略',
   examples: '/macro/录入示例', cautions: '/macro/注意事项',
 }

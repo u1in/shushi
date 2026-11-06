@@ -173,7 +173,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             rows: [
               ['第一项', '`MM(text)`、裸文字或完整图元宏', '裸文字会自动补成 `MM(text)`；`[RB(1)]` 等纯图元写法会直接保留。'],
               ['后续项', '完整宏调用', '例如 `RB(1)`、`TBD()`、`KV(columnSpan, 2)`。'],
-              ['后续项', '零参数图元', '`DOT`、`MTD`、`BK`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；它们也可作为没有正文的方括号首项；`EP` 是 ROW 的单元格，不能放进 CELL。'],
+              ['后续项', '零参数图元', '`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；它们也可作为没有正文的方括号首项；`EMP` 是 ROW 的单元格，不能放进 CELL。'],
             ],
           },
           {
@@ -246,7 +246,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`CELL 简写首项必须是文字、完整图元宏或允许的零参数图元`', '首项写了裸 `RB`、`EP` 或其他不能作为 CELL 图元的符号。', '写成带参数的 `RB(1)`，或使用文字、`DOT`、`MTD`、`BK` 等允许的首项。'],
+              ['`CELL 简写首项必须是文字、完整图元宏或允许的零参数图元`', '首项写了裸 `RB`、`EMP` 或其他不能作为 CELL 图元的符号。', '写成带参数的 `RB(1)`，或使用文字、`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND` 等允许的首项。'],
               ['`CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用`', '后续项写了裸文字或裸的 `RB`。', '写成 `RB(1)`，或把文字移到首项。'],
               ['`CELL 简写至少需要一个图元`', '写了 `[]`。', '至少补一个文字或图元，例如 `[5]`、`[RB(1)]`。'],
               ['`CELL 简写参数之间必须使用逗号分隔`', '用了空格或分号。', '改成逗号。'],
@@ -290,7 +290,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '零参数省略与别名',
     kicker: 'SYNTAX SUGAR · 03',
     group: 'sugar',
-    summary: 'LN、EP、BK 分别是 LINE、EMPTY、BRACKET 的输入别名；零参数宏还可以省略空括号。`MTD` 则是 `MT(·)` 的零参数专用简写。',
+    summary: 'LN、EMP、BRKT 分别是 LINE、EMPTY、BRACKET 的输入别名；SQ、TRI、RND 分别代表三个固定符号宏。零参数宏还可以省略空括号。`MTD` 则是 `MT(·)` 的零参数专用简写。',
     sections: [
       {
         id: 'aliases',
@@ -301,13 +301,13 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             columns: ['写法', '还原为', '常见位置', '说明'],
             rows: [
               ['`LN`', '`LINE`', 'GRID 直接子项', '行级横线；可写成 `LN` 或 `LN(...)`。'],
-              ['`EP`', '`EMPTY`', 'ROW 的单元格位置', '占位空单元格；可写成 `EP` 或 `EP(...)`。'],
-              ['`BK`', '`BRACKET`', 'ROW 单元格或 `CELL(BK)`', '厂字弯；必须独占一个 CELL。'],
+              ['`EMP`', '`EMPTY`', 'ROW 的单元格位置', '占位空单元格；可写成 `EMP` 或 `EMP(...)`。'],
+              ['`BRKT`', '`BRACKET`', 'ROW 单元格或 `CELL(BRKT)`', '厂字弯；必须独占一个 CELL。'],
             ],
           },
           {
             type: 'paragraph',
-            text: '别名只存在于源码边界。解析器先把 `LN`、`EP`、`BK` 归一化为 `LINE`、`EMPTY`、`BRACKET`，后续 AST、编译器与渲染器都只看到完整宏名。',
+            text: '别名只存在于源码边界。解析器先把 `LN`、`EMP`、`BRKT`、`SQ`、`TRI`、`RND` 归一化为完整宏名，后续 AST、编译器与渲染器都只看到完整宏名。',
           },
         ],
       },
@@ -320,8 +320,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             columns: ['宏', '省略写法', '语境'],
             rows: [
               ['`LINE`', '`LINE` 或 `LN`', '必须位于至少一个 ROW 之后。'],
-              ['`EMPTY`', '`EMPTY` 或 `EP`', 'ROW 的单元格位置。'],
-              ['`BRACKET`', '`BRACKET` 或 `BK`', '独占单元格。'],
+              ['`EMPTY`', '`EMPTY` 或 `EMP`', 'ROW 的单元格位置。'],
+              ['`BRACKET`', '`BRACKET` 或 `BRKT`', '独占单元格。'],
               ['`STYLE`', '`STYLE`', 'LINE 或边框宏的参数。'],
               ['`DIV`', '`DIV`', 'ROW 的直接子项。'],
               ['`TBD / RBD / BBD / LBD`', '`TBD` 等', 'CELL 内。'],
@@ -347,7 +347,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
           {
             type: 'code',
             title: '输入与输出',
-            code: 'LINE  → LN\nEMPTY → EP\nBRACKET → BK',
+            code: 'LINE  → LN\nEMPTY → EMP\nBRACKET → BRKT',
           },
           {
             type: 'paragraph',
@@ -364,14 +364,14 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             leftTitle: '带空括号',
             leftCode: 'GRID(\n  ROW(MM(5), EMPTY(), MM(6)),\n  LINE()\n)',
             rightTitle: '零参数省略',
-            rightCode: 'GRID(\n  ROW(MM(5), EP, MM(6)),\n  LN\n)',
+            rightCode: 'GRID(\n  ROW(MM(5), EMP, MM(6)),\n  LN\n)',
             note: '解析后两段源码完全等价；省略只发生在零参数宏上。',
           },
           {
             type: 'example',
             title: '厂字弯的两种省略层级',
-            code: 'GRID(\n  ROW(MM(3), BK, MM(1), MM(4))\n)',
-            note: '`BK` 直接作为单元格内容时等价于 `CELL(BRACKET)`；如果要写样式，仍应使用 `CELL(BK, KV(style, ...))`。',
+            code: 'GRID(\n  ROW(MM(3), BRKT, MM(1), MM(4))\n)',
+            note: '`BRKT` 直接作为单元格内容时等价于 `CELL(BRACKET)`；如果要写样式，仍应使用 `CELL(BRKT, KV(style, ...))`。',
           },
         ],
       },
@@ -386,7 +386,7 @@ export const sugarSyntaxPages: MacroDocPage[] = [
               ['`GRID(ROW(MM(5)), MM(6))`', '`MM(6)` 不是 GRID 的合法子项。', '包成 `ROW(MM(6))`。'],
               ['`[5, RB]`', '`RB` 需要文字参数。', '写成 `[5, RB(1)]`。'],
               ['`GRID(ROW(LINE))`', '`LINE` 不能放进 ROW。', '把 `LINE` 写到 ROW 外。'],
-              ['`GRID(ROW(MM(5)), EP)`', '`EP` 是单元格，不是 GRID 子项。', '放进 `ROW(...)`。'],
+              ['`GRID(ROW(MM(5)), EMP)`', '`EMP` 是单元格，不是 GRID 子项。', '放进 `ROW(...)`。'],
             ],
           },
         ],
@@ -400,8 +400,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             title: '补空位并改用别名',
             task: '在 5 与 6 之间补一个空位，并把 `EMPTY` 与 `LINE` 写成最短形式。',
             starter: 'GRID(\n  ROW(MM(5), MM(6)),\n  LINE()\n)',
-            answer: 'GRID(\n  ROW(MM(5), EP, MM(6)),\n  LN\n)',
-            hint: '先补一个 `EP` 空位；`EP` 还原为 `EMPTY`，`LN` 还原为 `LINE`。',
+            answer: 'GRID(\n  ROW(MM(5), EMP, MM(6)),\n  LN\n)',
+            hint: '先补一个 `EMP` 空位；`EMP` 还原为 `EMPTY`，`LN` 还原为 `LINE`。',
           },
         ],
       },
@@ -413,8 +413,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'cards',
             items: [
               { title: 'LINE · 行级横线', text: '`LN` 的完整规则。', to: '/macro-rules/line' },
-              { title: 'EMPTY · 占位空单元格', text: '`EP` 的完整规则。', to: '/macro-rules/empty' },
-              { title: 'BRACKET · 厂字弯', text: '`BK` 的完整规则。', to: '/macro-rules/bracket' },
+              { title: 'EMPTY · 占位空单元格', text: '`EMP` 的完整规则。', to: '/macro-rules/empty' },
+              { title: 'BRACKET · 厂字弯', text: '`BRKT` 的完整规则。', to: '/macro-rules/bracket' },
             ],
           },
         ],

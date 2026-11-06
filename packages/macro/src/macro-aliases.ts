@@ -1,14 +1,20 @@
 /** 录入别名只在源码边界转换，后续 AST 与编译器始终使用完整的稳定宏名。 */
 const INPUT_MACRO_ALIASES: Readonly<Record<string, string>> = {
-  EP: 'EMPTY',
+  EMP: 'EMPTY',
   LN: 'LINE',
-  BK: 'BRACKET',
+  BRKT: 'BRACKET',
+  SQ: 'SQUARE',
+  TRI: 'TRIANGLE',
+  RND: 'ROUND',
 }
 
 const SHORTEST_MACRO_NAMES: Readonly<Record<string, string>> = {
-  EMPTY: 'EP',
+  EMPTY: 'EMP',
   LINE: 'LN',
-  BRACKET: 'BK',
+  BRACKET: 'BRKT',
+  SQUARE: 'SQ',
+  TRIANGLE: 'TRI',
+  ROUND: 'RND',
 }
 
 /** 将用户输入的快捷别名归一化为内部宏名。 */

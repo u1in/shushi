@@ -20,6 +20,19 @@ const svgViewport = ref<HTMLElement>()
 const domViewport = ref<HTMLElement>()
 const metrics = computed(() => resolveGridMetrics(props.scene))
 const viewportWidths = ref({ svg: 0, dom: 0 })
+type RendererFontOption = { label: string; value: string }
+const rendererFontOptions: RendererFontOption[] = [
+  { label: 'Computer Modern', value: '"Computer Modern", "CMU Serif", "Latin Modern Roman", serif' },
+  { label: 'Cambria Math', value: '"Cambria Math", "Cambria", serif' },
+  { label: 'STIX Two Math', value: '"STIX Two Math", "STIX Two Text", serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Noto Serif SC', value: '"Noto Serif SC", "Noto Serif", serif' },
+  { label: 'Arial', value: 'Arial, sans-serif' },
+]
+const selectedRendererFont = ref(
+  rendererFontOptions.find(({ label }) => label === 'STIX Two Math')?.value ?? rendererFontOptions[0].value,
+)
 let resizeObserver: ResizeObserver | undefined
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
@@ -74,6 +87,21 @@ const syncStageScale = (): void => {
   })
 }
 
+/** 临时字体试选器只作用于当前预览实例，不改写 GridScene 或全局渲染器默认值。 */
+const syncStageFont = (): void => {
+  const stages: Array<HTMLElement | SVGElement | null | undefined> = [
+    svgHost.value?.querySelector('.grid-svg'),
+    domHost.value?.querySelector('.grid-dom-stage'),
+  ]
+  for (const stage of stages) {
+    if (!stage) continue
+    stage.style.setProperty('--grid-font-family', selectedRendererFont.value)
+    stage.querySelectorAll<HTMLElement | SVGElement>('.grid-text').forEach((textNode) => {
+      textNode.style.setProperty('font-family', selectedRendererFont.value)
+    })
+  }
+}
+
 const updateViewportWidths = (): void => {
   viewportWidths.value = {
     svg: svgViewport.value?.clientWidth ?? 0,
@@ -98,6 +126,7 @@ const render = async (): Promise<void> => {
     domHost.value.replaceChildren(stage)
   }
   syncStageScale()
+  syncStageFont()
   syncSelectedElement()
 }
 
@@ -118,6 +147,7 @@ onBeforeUnmount(() => {
 watch(() => props.scene, render)
 watch(() => props.selectedElementId, syncSelectedElement)
 watch([svgScale, domScale], syncStageScale)
+watch(selectedRendererFont, syncStageFont)
 
 /** 通过渲染器写入的通用元素 ID 向上抛出事件，AST 查询由调用方自行处理。 */
 const handleElementClick = (event: MouseEvent): void => {
@@ -129,6 +159,14 @@ const handleElementClick = (event: MouseEvent): void => {
 
 <template>
   <div class="renderer-comparison" :class="{ 'renderer-comparison--both': mode === 'both', 'renderer-comparison--interactive': interactive }">
+    <div class="renderer-font-picker">
+      <label>
+        <span>竖式字体</span>
+        <select v-model="selectedRendererFont" aria-label="选择竖式渲染字体">
+          <option v-for="font in rendererFontOptions" :key="font.value" :value="font.value">{{ font.label }}</option>
+        </select>
+      </label>
+    </div>
     <section v-if="mode !== 'dom'" class="renderer-panel">
       <h3>SVG</h3>
       <div ref="svgViewport" class="stage-scroll">

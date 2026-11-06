@@ -67,13 +67,24 @@ describe('网格宏编译器', () => {
     expect(() => compileMacro('[];')).toThrow(/至少需要一个图元/)
   })
 
-  test('EP、LN 与 BK 会在解析时还原为完整的结构宏', () => {
-    const scene = compileMacro('5,EP,6;LN;BK,1;')
+  test('EMP、LN 与 BRKT 会在解析时还原为完整的结构宏', () => {
+    const scene = compileMacro('5,EMP,6;LN;BRKT,1;')
 
     expect(scene.rows).toHaveLength(2)
     expect(scene.elements.some(({ content }) => content.kind === 'line')).toBe(true)
     expect(scene.elements.some(({ content }) => content.kind === 'corner')).toBe(true)
-    expect(minifyMacro('EMPTY, LINE, BRACKET')).toBe('EP,LN,BK')
+    expect(minifyMacro('EMPTY, LINE, BRACKET')).toBe('EMP,LN,BRKT')
+    expect(() => compileMacro('EP,LN,BK')).toThrow()
+  })
+
+  test('SQ、TRI 与 RND 会渲染为固定的几何符号', () => {
+    const scene = compileMacro('GRID(ROW(SQUARE, TRIANGLE, ROUND), ROW(CELL(MM(5), SQ), CELL(MM(6), TRI), CELL(MM(7), RND)))')
+    const symbolTexts = scene.elements
+      .filter(({ content }) => content.kind === 'text' && ['☐', '△', '◯'].includes(content.text))
+
+    expect(symbolTexts.map(({ content }) => content.kind === 'text' ? content.text : '')).toEqual(['☐', '△', '◯', '☐', '△', '◯'])
+    expect(symbolTexts.every(({ content }) => content.kind === 'text' && content.fontSizeRatio === undefined)).toBe(true)
+    expect(minifyMacro('SQUARE,TRIANGLE,ROUND')).toBe('SQ,TRI,RND')
   })
 
   test('顶层 ROW 和 LINE 会自动包裹为隐式 GRID', () => {
@@ -458,7 +469,7 @@ CELL(
     const source = 'GRID(ROW(CELL(BRACKET, KV(style, division.bracket)), CELL(DOT, KV(style, division.decimal-separator))))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('[BK,KV(style,division.bracket)],[DOT,KV(style,division.decimal-separator)];')
+    expect(compact).toBe('[BRKT,KV(style,division.bracket)],[DOT,KV(style,division.decimal-separator)];')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
@@ -479,10 +490,10 @@ CELL(
 
   test('最简化会利用 ROW 默认右对齐省略行首 EMPTY，并保留必要列数', () => {
     const source = `GRID(
-  ROW(EP, EP, MM(4), MM(0)),
-  ROW(EP, EP, MM(2), MM(5)),
+  ROW(EMP, EMP, MM(4), MM(0)),
+  ROW(EMP, EMP, MM(2), MM(5)),
   LINE,
-  ROW(EP, EP, EP, MM(1)),
+  ROW(EMP, EMP, EMP, MM(1)),
   ROW(MM(1), MM(2), MM(3), MM(4))
 )`
     const compact = minifyMacro(source)
@@ -490,7 +501,7 @@ CELL(
     expect(compact).toBe('4,0;2,5;LN;1;1,2,3,4;')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
 
-    const inferredColumnSource = 'GRID(ROW(EP, EP, MM(1)), ROW(EP, EP, MM(2)))'
+    const inferredColumnSource = 'GRID(ROW(EMP, EMP, MM(1)), ROW(EMP, EMP, MM(2)))'
     expect(minifyMacro(inferredColumnSource)).toBe('GRID(KV(columns,3),ROW(MM(1)),ROW(MM(2)))')
     expect(compileMacro(minifyMacro(inferredColumnSource))).toEqual(compileMacro(inferredColumnSource))
   })

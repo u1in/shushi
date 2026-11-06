@@ -394,7 +394,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
               ['`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`', '把 `LINE`、`VALUE`、裸文字或另一个 CELL 放进 CELL。', '只保留单元格图元；结构宏放回 ROW 或 GRID。'],
-              ['`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`', 'BRACKET 与数字、边框同格，或设置了跨度。', '为 BRACKET 单独开一个 `CELL(BK)`。'],
+              ['`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`', 'BRACKET 与数字、边框同格，或设置了跨度。', '为 BRACKET 单独开一个 `CELL(BRKT)`。'],
               ['`CELL 的 columnSpan 必须是正整数。`', '写了 0、负数或小数。', '改成 1、2、3 等正整数。'],
             ],
           },
@@ -433,10 +433,10 @@ export const basicPagesPartOne: MacroDocPage[] = [
   {
     slug: 'empty',
     title: 'EMPTY · 占位空单元格',
-    navLabel: 'EMPTY / EP',
+    navLabel: 'EMPTY / EMP',
     kicker: 'BASE MACRO · 04',
     group: 'basic',
-    summary: 'EMPTY 只占列，不产生任何可见图元。它用于补位、对齐和跨列留空；别名 EP，并可省略空括号。',
+    summary: 'EMPTY 只占列，不产生任何可见图元。它用于补位、对齐和跨列留空；别名 EMP，并可省略空括号。',
     sections: [
       {
         id: 'purpose',
@@ -449,7 +449,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
           {
             type: 'list',
             items: [
-              '`EMPTY` 可以写成 `EMPTY()`、`EMPTY(KV(...))`、`EP()` 或直接写 `EP`。',
+              '`EMPTY` 可以写成 `EMPTY()`、`EMPTY(KV(...))`、`EMP()` 或直接写 `EMP`。',
               '它不能包含任何图元；写了 `MM`、`DOT` 或边框都会报错。',
               '`KV(columnSpan, n)` 可以让它一次空出多列。',
               '`KV(style, token)` 会被保留在归一化单元格上，但因为没有可见图元，目前不会产生视觉差异。',
@@ -539,7 +539,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
             task: '让第二行的 3 与 6 之间空出一格，使 6 落在第三列。',
             starter: 'GRID(\n  ROW(MM(8), MM(4), MM(2)),\n  ROW(MM(3), MM(6))\n)',
             answer: 'GRID(\n  ROW(MM(8), MM(4), MM(2)),\n  ROW(MM(3), EMPTY(), MM(6))\n)',
-            hint: '也可以用别名 `EP` 省略空括号。',
+            hint: '也可以用别名 `EMP` 省略空括号。',
           },
         ],
       },
@@ -550,7 +550,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
           {
             type: 'cards',
             items: [
-              { title: '零参数省略与别名', text: '`EP`、`LN`、`BK` 的完整规则。', to: '/macro-rules/zero-argument' },
+              { title: '零参数省略与别名', text: '`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 的完整规则。', to: '/macro-rules/zero-argument' },
               { title: 'ROW · 数字行', text: '理解短行右对齐为什么有时不需要 EMPTY。', to: '/macro-rules/row' },
             ],
           },
