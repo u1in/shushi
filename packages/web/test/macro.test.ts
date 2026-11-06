@@ -458,19 +458,27 @@ CELL(
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
-  test('最简化会把多条共同的全宽横线提升为 GRID 的 lineSpan', () => {
+  test('最简化会省略多条最长横线冗余的 full 跨度', () => {
     const source = 'GRID(ROW(MM(5)),LINE(KV(span,full)),ROW(MM(6)),LINE(KV(span,full)),ROW(MM(7)))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('GRID(KV(lineSpan,full),ROW(MM(5)),LN,ROW(MM(6)),LN,ROW(MM(7)))')
+    expect(compact).toBe('5;LN;6;LN;7;')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
-  test('最简化只为多条横线中跨度不同的横线保留 span', () => {
+  test('最简化会省略多条横线中最长横线冗余的 full 跨度', () => {
     const source = 'GRID(ROW(MM(5)),LINE(KV(span,full)),ROW(MM(6)),LINE(KV(span,previous)),ROW(MM(7)))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('5;LN(KV(span,full));6;LN;7;')
+    expect(compact).toBe('5;LN;6;LN;7;')
+    expect(compileMacro(compact)).toEqual(compileMacro(source))
+  })
+
+  test('最简化仅为需要与最长横线对齐的短横线保留 full 跨度', () => {
+    const source = 'GRID(KV(columns,3),ROW(MM(1),MM(2),MM(3)),LINE(KV(span,full)),ROW(MM(4)),LINE(KV(span,full)),ROW(MM(5)))'
+    const compact = minifyMacro(source)
+
+    expect(compact).toBe('1,2,3;LN;4;LN(KV(span,full));5;')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 

@@ -139,7 +139,7 @@ export const createMultiplicationMacroSource = (
     if (isComplete) putNumber(product, computation.productDigits, computation.productDigits === '0' ? baseRightmostNumberIndex : rightmostNumberIndex)
     children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
     children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
-    children.push(macroLine('multiplication.input-bar', 'full'))
+    children.push(macroLine('multiplication.input-bar'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
     return macroGrid(numberColumnCount + 1, settings, `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的十倍数快捷竖式`, children)
   }
@@ -177,7 +177,7 @@ export const createMultiplicationMacroSource = (
 
   children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
   children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
-  children.push(macroLine('multiplication.input-bar', 'full'))
+  children.push(macroLine('multiplication.input-bar'))
 
   if (isMultiDigitMultiplier) {
     const product = createNumberRow()

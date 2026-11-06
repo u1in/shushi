@@ -146,6 +146,8 @@ describe('计算器宏源码布局', () => {
     const multiplicationSettings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, uniformMultiplicationBars: false, showCarrySteps: true }
     const multiplicationSource = createMultiplicationMacroSource(multiplication, multiplicationSettings)
     expect(multiplicationSource).toContain('LINE(')
+    // 乘数行已补齐至网格完整列宽，乘法横线使用默认 previous 即可覆盖同一范围。
+    expect(minifyMacroForCopy(multiplicationSource)).not.toContain('LN(KV(span,full))')
     const multiplicationScene = createMultiplicationGridScene(multiplication, multiplicationSettings)
     expectAutoColorScene(multiplicationSource, multiplicationScene)
     expectHumanReproducible(multiplicationSource, multiplicationScene)

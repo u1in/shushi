@@ -222,24 +222,30 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
       }],
     }
   }
-  const resolvedLineSpans = lineNodes.map(getLineSpan)
-  const sharedLineSpan = lineNodes.length > 1 && resolvedLineSpans.length > 0 && resolvedLineSpans.every((span) => span === resolvedLineSpans[0])
-    ? resolvedLineSpans[0]
-    : undefined
-  const canElideSinglePreviousSpan = (line: MacroCall): boolean => {
+  /** 前一行已占满已解析列宽时，previous 与 full 的实际横线范围一致。 */
+  const canUsePreviousSpan = (line: MacroCall): boolean => {
     const lineIndex = filteredContent.indexOf(line)
     const previousRow = filteredContent.slice(0, lineIndex).reverse().find((node): node is MacroCall => isMacroCall(node, 'ROW'))
     return previousRow !== undefined && inferGridColumns([previousRow], trackUnit) === resolvedColumns
   }
+  const resolvedLineSpans = lineNodes.map(getLineSpan)
+  const sharedLineSpan = lineNodes.length > 1
+    && resolvedLineSpans.length > 0
+    && resolvedLineSpans.every((span) => span === resolvedLineSpans[0])
+    // 只在每条横线都必须使用 full 时提升为根配置，避免最长横线获得冗余跨度配置。
+    && !(resolvedLineSpans[0] === 'full' && lineNodes.some(canUsePreviousSpan))
+    ? resolvedLineSpans[0]
+    : undefined
   const normalizedContent = filteredContent.map((node) => {
     if (!isMacroCall(node, 'LINE')) return node
     const span = getLineSpan(node)
     if (lineNodes.length === 1) {
-      const canUseSingleLineDefault = span === 'full' || span === 'previous' && canElideSinglePreviousSpan(node)
+      const canUseSingleLineDefault = span === 'full' || span === 'previous' && canUsePreviousSpan(node)
       return replaceLineSpan(node, canUseSingleLineDefault ? undefined : span)
     }
     if (sharedLineSpan !== undefined) return replaceLineSpan(node, undefined)
-    return replaceLineSpan(node, span === 'previous' ? undefined : span)
+    // 多横线时，最长横线的 previous 已等于 full；只有实际较短的横线才保留 full。
+    return replaceLineSpan(node, span === 'previous' || span === 'full' && canUsePreviousSpan(node) ? undefined : span)
   })
   const normalizedOptions: MacroNode[] = sharedLineSpan !== undefined && sharedLineSpan !== 'previous'
     ? [...filteredOptions, {
