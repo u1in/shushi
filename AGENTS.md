@@ -84,6 +84,17 @@
 
 任何会改变用户可见行为、公开 API、数据契约或工程约定的修改，都必须同步实现、文档和测试；不能只改其中一项。
 
+### 新功能交付前的文档总检查
+
+每次新增功能、扩展既有能力或改变可观察行为时，先根据下列清单逐项判断并记录；即使本次没有改动某一项，也要确认它不受影响。不能只在提交说明、测试名或页面提示中留下规则。
+
+- **技术规则**：在 `packages/docs/technical/` 对应的 calculator、layout、grid、macro、API 或 workspace 文档中说明输入边界、算法/排版规则、过程与结果字段、默认值、异常条件和渲染契约；新增规则要补充索引与示例。
+- **面向 Agent 的文档**：只要 Agent 通过门户、结构化请求、宏源码或主题配置能观察或使用该功能，就更新 `packages/docs/agent/capabilities.md`；安装、入口、包名或使用流程变化时，同时更新 `packages/docs/agent/installation.md`。
+- **对外 Skill**：只要 npm 使用者或第三方 Agent 能使用、编辑或排错该功能，就更新 `skills/u1in-shushi/SKILL.md`，并按内容分别同步 `references/api.md`（签名、输入和结果）、`references/workflows.md`（推荐流程）和 `references/troubleshooting.md`（边界与排错）。Skill 是对外使用说明，不是本仓库的开发指引。
+- **公开说明与发布材料**：修改门户、表达式语法、公开类型、宏词表或 npm 使用方式时，同步 `README.md`、`packages/core/README.md`、`packages/docs/technical/api/`、`packages/docs/macro/`、`packages/docs/src/macro/` 以及必要的 VuePress 适配；面向 npm 使用者的行为变化必须补 Changeset。
+- **页面、图例与示例**：功能在主页、文档站或命名图谱中可见时，同步计算器示例、`packages/docs/gallery/`、`packages/docs/src/gallery/`、Vue 图例和字段注释，避免展示规则与实际宏源码或 `GridScene` 不一致。
+- **验证记录**：实现、文档和 Skill 同步完成后，按改动范围运行类型检查、测试、应用构建和文档构建；交付时明确说明更新过哪些文档入口及验证结果。
+
 ### 计算器
 
 修改输入约束、逐位算法、进位/借位、补零、终止条件、过程字段、结果字段或异常处理时：
