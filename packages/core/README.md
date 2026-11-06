@@ -49,7 +49,7 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 import {
   shushi,
 } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const host = document.querySelector('#result')
 const { computation, source, rendered, inspection } = shushi('356 + 278', {
@@ -73,7 +73,7 @@ import { compileMacro, computeAddition, createAdditionMacroSource } from '@u1in/
 
 const computation = computeAddition('356', '278')
 const source = createAdditionMacroSource(computation)
-const scene = compileMacro(source)
+const scene = compileMacro(source, { fontFamily: 'STIX Two Math' })
 ```
 
 如果需要 SVG DOM，把渲染模式改为：
@@ -166,6 +166,8 @@ const scene = compileMacro(source)
 
 `compileMacro` 只负责解析和编译，不计算加法，也不创建 DOM 或 SVG。返回的 `GridScene` 是计算/布局与渲染之间的稳定数据契约。
 
+`autoColor` 默认使用 `--shushi-auto-text`、`--shushi-auto-carry`、`--shushi-auto-borrow`、`--shushi-auto-operator`、`--shushi-auto-decimal`、`--shushi-auto-rule` 和 `--shushi-auto-bracket-rule` 七个 CSS 变量，并带有纯色 fallback。网页可以覆盖这些变量来即时切换主题；需要固定颜色时，可在 `compileMacro(source, { colorTheme })` 或 `shushi(expression, { colorTheme })` 中传入 `AutoColorTheme` 配置对象。`colorTheme` 与 `fontFamily` 都在宏编译阶段写入同一份 `GridScene`：前者决定语义颜色，后者决定场景默认字体；DOM、SVG 和 SVG 字符串渲染器只读取场景，不另设外观参数。
+
 ## 从计算到渲染
 
 项目支持三类面向应用的入口：`shushi(expression, options)` 表达式入口（先解析为请求，再调用 `shushiCore(request)`）、直接调用 `shushiCore(request)` 的结构化入口，以及直接提供宏源码；此外还可分层调用 `compute*` 和布局 API。需要计算的入口先得到 `Computation` 和可编辑宏源码，直接宏输入则跳过计算与布局；所有路径都经过宏解析器与 AST 编译器汇聚到 `GridScene`，再由应用选择 DOM/CSS、SVG 或 SVG 字符串输出。下面的流程图展示了从输入到渲染的完整链路：
@@ -213,7 +215,7 @@ flowchart TB
 
 - `compute*`、`create*MacroSource`、`parseMacro`、`compileMacro`、`extractVisibleTextRows` 等纯数据 API 可在 Node.js 或 SSR 中使用。
 - `renderDomGrid` 和 `renderSvgGrid` 应在浏览器环境中调用；SSR 或 Node.js 脚本请使用不依赖 DOM 的 `renderSvgString`。
-- 浏览器入口请导入 `@u1in/shushi-core/style.css`。它提供网格图元的定位、字体、线条、辅助网格和语义 token 默认样式。
+- 浏览器默认只需导入 `@u1in/shushi-core/renderer.css`，它内置 STIX Two Math，也是 `shushi`、`shushiCore` 与 `compileMacro` 的默认场景字体。要改用其他字体时，导入不含内置字体的 `@u1in/shushi-core/renderer-without-font.css`，再导入自己的 `@font-face` 或对应的 `fonts/cmu-serif.css`、`fonts/noto-sans-math.css`；`fonts.css` 仍可用于一次注册全部内置字体。
 - DOM 和 SVG 都消费同一个 `GridScene`，不要在渲染器中重新判断进位、借位、部分积、商或余数。
 
 ## 常用示例
@@ -226,10 +228,10 @@ import {
   renderDomGrid,
   renderSvgGrid,
 } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const source = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
-const scene = compileMacro(source)
+const scene = compileMacro(source, { fontFamily: 'STIX Two Math' })
 const domStage = renderDomGrid(scene)
 const svgStage = renderSvgGrid(scene)
 ```
@@ -247,7 +249,7 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const svg = renderSvgString(scene)
 ```
 
-`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。这里保证的是 SVG 语义和视觉结构一致，不保证浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；最终宿主还应加载同一份 `@u1in/shushi-core/style.css`。
+`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。这里保证的是 SVG 语义和视觉结构一致，不保证浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；默认 STIX Two Math 已包含在 `renderer.css`，只有改用其他字体时才需要额外字体 CSS。
 
 ### 获取视觉文本行
 

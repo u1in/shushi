@@ -105,7 +105,7 @@ const result = shushi('356 + 278', {
 返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。省略 `renderMode` 时返回 SSR 安全的 `svg-string`；浏览器 `div`/`svg` 模式需要导入：
 
 ```typescript
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 ```
 
 `el` 只能和 `div` 或 `svg` 一起使用。Node.js/SSR 使用默认的 `svg-string`。

@@ -447,7 +447,7 @@ export const shushiPage = createLayoutApiPage({
   apiTier: 'common',
   summary: '解析一行算式，再生成计算过程、可编辑宏源码、场景与渲染结果。',
   example: `import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const host = document.querySelector('#result')
 const { computation, source, rendered, inspection } = shushi('10230 ÷ 25', {
@@ -466,6 +466,8 @@ console.log(updated.source) // AST 不可变更新后的宏源码`,
 type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   renderMode?: TMode
   el?: TMode extends 'svg-string' ? never : Element
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
 }
 
 type Shushi = {
@@ -489,12 +491,14 @@ type VerticalArithmeticResult<T, TRendered> = {
     ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
     ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
     ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
+    ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；也可以传入 `var(...)` 颜色值让 CSS 主题切换立即生效。'],
+    ['`options.fontFamily`', '`string`', '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。'],
     ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
     ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
     ['`rendered`', '`HTMLElement | SVGSVGElement | string`', '按渲染模式返回 DOM 舞台、SVG 根节点或 SVG 字符串。'],
     ['`inspection`', '`MacroAstInspection`', '返回 AST、图元引用和 `updateElementText`，用于注入编辑或继续分析。'],
   ],
-  caution: '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式需要导入 `@u1in/shushi-core/style.css`。',
+  caution: '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。',
 })
 
 export const shushiCorePage = createLayoutApiPage({

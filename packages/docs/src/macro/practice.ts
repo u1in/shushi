@@ -235,7 +235,7 @@ export const practicePages: MacroDocPage[] = [
               ['`LINE 的 span 只能是 previous、longest 或 full。`', 'span 拼写错误。', '改成三个枚举之一。'],
               ['`短除法每行 VALUE 数值组数量必须一致。`', '过程行与底行组数不同。', '统一每行的 VALUE 数量。'],
               ['`短除法最后一行必须是不含 DIV 的 VALUE 底行。`', '最后一行仍是过程行。', '补一行只含 VALUE 的底行。'],
-              ['`autoColor 最多支持 40 行。`', '行数超过自动配色上限。', '关闭 autoColor 或拆分场景。'],
+              ['自动配色颜色不符合预期。', '主题变量或 `colorTheme` 配置覆盖了默认 fallback。', '检查 `--shushi-auto-*` 变量或传入的主题对象。'],
               ['`配置 ... 被重复设置。`', '同一个宏里写了两次同名 KV。', '删除重复项。'],
             ],
           },

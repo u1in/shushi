@@ -3,6 +3,9 @@ import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 import { resolve } from 'node:path'
 
+const brandLogoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#ffffff"/><path d="M50 22H18V38Q18 48 10 48" fill="none" stroke="#0f172a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><rect x="26" y="30" width="10" height="10" rx="3" fill="#0f172a"/><rect x="40" y="30" width="10" height="10" rx="3" fill="#4166b6"/></svg>`
+const brandLogoDataUri = `data:image/svg+xml,${encodeURIComponent(brandLogoSvg)}`
+
 /**
  * 集中文档站只负责内容组织和发布，不承载计算器业务路由。
  * 文档站独立挂在 /doc/，避免与根路径的竖式·Shushi 首页混在一起。
@@ -13,6 +16,7 @@ export default defineUserConfig({
   base: process.env.GITHUB_ACTIONS ? '/shushi/doc/' : '/doc/',
   title: '竖式·Shushi',
   description: '计算规则、网格宏语言、技术契约与竖式图例。',
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: brandLogoDataUri }]],
   clientConfigFile: resolve(process.cwd(), 'vuepress.client.ts'),
   // README 是文档包维护者说明，不是用户手册页面；VuePress 使用专门的 index.md 作为首页。
   // README 与内部契约文档只属于文档源包，不作为用户手册页面发布。

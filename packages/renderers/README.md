@@ -7,7 +7,7 @@
 - `renderDomGrid(scene)`：创建舞台与两个绝对定位图层，绘制后返回 `HTMLElement`。
 - `renderSvgGrid(scene)`：创建 SVG、绘制场景并返回 `SVGSVGElement`，需要浏览器 DOM。
 - `renderSvgString(scene)`：在 Node.js/SSR 中生成完整 SVG 字符串，不访问浏览器 API。
-- `@u1in/shushi-renderers/style.css`：DOM/SVG 公共基础样式；统一入口用户应优先导入 `@u1in/shushi-core/style.css`。
+- `@u1in/shushi-renderers/style.css`：DOM/SVG 公共基础样式；统一入口的 `@u1in/shushi-core/renderer.css` 会额外内置默认 STIX Two Math。需要自定义字体时改用 `@u1in/shushi-core/renderer-without-font.css`，再导入自有或逐字体 CSS。
 
 三个输出入口共享轨道解析、元素位置矩形和文字锚点计算，因此单元区域、交点、边、边中点、局部对齐和辅助网格保持一致。SVG DOM 与 SVG 字符串还共享同一棵无 DOM SVG 渲染树；样式通过 `styleToken` 和 `data-style-token` 交给应用主题处理。
 

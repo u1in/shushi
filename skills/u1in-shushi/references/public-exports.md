@@ -105,7 +105,7 @@ renderSvgString(scene)
 | 浏览器 SVG | `renderSvgGrid` 或门户 `renderMode: 'svg'` |
 | Node.js/SSR/导出 | `renderSvgString` 或门户默认 `svg-string` |
 
-浏览器入口导入 `@u1in/shushi-core/style.css`。纯计算、宏处理和 `renderSvgString` 不需要 DOM。
+浏览器入口导入 `@u1in/shushi-core/renderer.css`，默认 STIX Two Math 已包含其中；自定义字体时使用 `@u1in/shushi-core/renderer-without-font.css` 再导入自己的或对应字体 CSS。纯计算、宏处理和 `renderSvgString` 不需要 DOM。
 
 ## 7. 类型和常量
 
@@ -116,6 +116,8 @@ ShushiRenderOptions
 ShushiRequest
 ShushiExpressionSettings
 ShushiExpressionOptions
+AutoColorTheme
+AUTO_COLOR_THEME_VARIABLES
 VerticalArithmeticRequest
 AnyVerticalArithmeticResult
 AdditionVerticalArithmeticResult

@@ -79,16 +79,19 @@ node --input-type=module -e "import { shushiCore } from '@u1in/shushi-core'; con
 
 ```typescript
 import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const host = document.querySelector('#result')
 const { rendered, source, scene, inspection } = shushi('356 + 278', {
+  fontFamily: 'STIX Two Math',
   renderMode: 'div',
   el: host ?? undefined,
 })
 
 console.log(rendered, source, scene, inspection)
 ```
+
+`fontFamily` 与 `colorTheme` 都会在宏编译阶段写入 `scene`；默认 STIX Two Math 已包含在 `renderer.css`。改用其他字体时导入 `renderer-without-font.css`，再导入对应的字体 CSS，例如 `fonts/cmu-serif.css`。
 
 渲染模式：
 
@@ -143,7 +146,7 @@ const result = shushiCore({
 - `npm view` 找不到包：检查包名和 registry，不要替换为本地包。
 - `ERR_MODULE_NOT_FOUND`：回到宿主项目根目录，检查 `npm ls @u1in/shushi-core --depth=0`。
 - `document is not defined`：改用默认的 `svg-string`；DOM/SVG 节点渲染必须在浏览器执行。
-- 竖式只有文字没有正确定位：确认浏览器入口导入了 `@u1in/shushi-core/style.css`。
+- 竖式只有文字没有正确定位：确认浏览器入口导入了 `@u1in/shushi-core/renderer.css`。
 - 算式无法识别：先按“API 选择”中的语法检查输入；不要在 Agent 侧猜测或改写用户的运算含义。
 
 安装任务完成的最低标准是：依赖树存在 `@u1in/shushi-core`，`shushi('2 + 3')` 的纯数据验证成功，并且根据目标环境选择了正确的渲染模式。

@@ -2,7 +2,7 @@ import { defineClientConfig } from 'vuepress/client'
 import MacroDocCatalog from './src/components/MacroDocCatalog.vue'
 import GalleryDocPage from './src/components/GalleryDocPage.vue'
 import DocsHomeExperience from './src/components/DocsHomeExperience.vue'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 import './src/macro-docs-styles/macro-docs.css'
 import './src/styles/index.css'
 

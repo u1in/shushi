@@ -32,7 +32,7 @@ const installGuides: Record<InstallMethod, InstallGuide> = {
     label: 'Npm',
     install: 'npm install @u1in/shushi-core',
     usage: `import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 shushi('356 + 278', {
   renderMode: 'div',

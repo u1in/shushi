@@ -117,6 +117,27 @@ html[data-theme='dark'] body {
   backdrop-filter: blur(18px);
 }
 
+/* 技术文档导航沿用主页的品牌标记，Logo 与站点标题保持同一行。 */
+.vp-site-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.vp-site-name::before {
+  display: block;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Cpath d='M50 22H18V38Q18 48 10 48' fill='none' stroke='%230f172a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='26' y='30' width='10' height='10' rx='3' fill='%230f172a'/%3E%3Crect x='40' y='30' width='10' height='10' rx='3' fill='%234166b6'/%3E%3C/svg%3E") center / contain no-repeat;
+  content: "";
+}
+
+html[data-theme='dark'] .vp-site-name::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M50 22H18V38Q18 48 10 48' fill='none' stroke='%23f8fafc' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='26' y='30' width='10' height='10' rx='3' fill='%23f8fafc'/%3E%3Crect x='40' y='30' width='10' height='10' rx='3' fill='%238db4ff'/%3E%3C/svg%3E");
+}
+
 html[data-theme='dark'] .vp-navbar {
   background: rgb(15 23 42 / 88%);
   border-bottom-color: rgb(52 72 102 / 82%);

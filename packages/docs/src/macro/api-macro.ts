@@ -29,7 +29,18 @@ export const compileMacroPage = compilePage({
 // 分号分隔三行，编译器会把它们转换成 GridScene。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 
-console.log(scene.elements.length) // 文本与线条图元数量`,
+// 也可以传入纯色主题；网页主题通常直接使用默认的 --shushi-auto-* CSS 变量。
+const themedScene = compileMacro('3,5,6;LN;6,3,4;', {
+  fontFamily: 'STIX Two Math',
+  colorTheme: {
+    text: '#243b64', carry: '#0f766e', borrow: '#8b5cf6',
+    operator: '#be123c', decimal: '#c026d3',
+    rule: { color: '#334155', thickness: 2 },
+    bracketRule: { color: '#2563eb', thickness: 2 },
+  },
+})
+
+console.log(scene.elements.length, themedScene.elements.length) // 文本与线条图元数量`,
       }],
     },
     {
@@ -37,11 +48,16 @@ console.log(scene.elements.length) // 文本与线条图元数量`,
     },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
-        { type: 'code', title: '函数签名', language: 'typescript', code: `type CompileMacro = (source: string) => GridScene` },
+        { type: 'code', title: '函数签名', language: 'typescript', code: `type CompileMacro = (source: string, options?: {
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
+}) => GridScene` },
         {
           type: 'table', columns: ['项目', '类型', '说明'], rows: [
             ['`source`', '`string`', '完整宏源码；允许使用顶层分号行、方括号 CELL 简写和零参数省略。'],
-            ['返回值', '`GridScene`', '包含列轨道、行轨道、留白、字号、文本/线条图元、对齐方式和样式 token。'],
+            ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；颜色值可以是普通 CSS 色值或 `var(...)` 表达式。省略时使用带 fallback 的 `--shushi-auto-*` 主题。'],
+            ['`options.fontFamily`', '`string`', '写入 `GridScene.fontFamily` 的默认字体名称；省略时为 STIX Two Math，随 `renderer.css` 内置。改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。'],
+            ['返回值', '`GridScene`', '包含列轨道、行轨道、留白、字号、默认字体、文本/线条图元、对齐方式和样式 token。'],
           ],
         },
       ],
@@ -73,7 +89,10 @@ console.log(scene.rows.length)`,
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它把 `MacroCall` AST 归一化为轨道、图元、对齐和样式组成的 `GridScene`。需要缓存 AST、改写宏树或实现自定义源码前处理时使用；普通调用方优先使用 `compileMacro`。'}] },
     {
       id: 'signature', title: '函数签名和属性说明', blocks: [
-        { type: 'code', title: '函数签名', language: 'typescript', code: `type CompileMacroAst = (root: MacroCall) => GridScene` },
+        { type: 'code', title: '函数签名', language: 'typescript', code: `type CompileMacroAst = (
+  root: MacroCall,
+  options?: { colorTheme?: AutoColorTheme; fontFamily?: string },
+) => GridScene` },
         { type: 'table', columns: ['参数 / 返回值', '类型', '说明'], rows: [
           ['`root`', '`MacroCall`', '已经由 `parseMacro` 生成的 AST 根调用节点。'],
           ['返回值', '`GridScene`', '可直接交给 SVG、DOM/CSS 渲染器或网格文本工具处理的场景。'],

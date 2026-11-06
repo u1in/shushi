@@ -32,11 +32,23 @@ shushiCore(request) ┘
 ```typescript
 type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
+type AutoColorTheme = {
+  text: string
+  carry: string
+  borrow: string
+  operator: string
+  decimal: string
+  rule: { color?: string; thickness?: number }
+  bracketRule: { color?: string; thickness?: number }
+}
+
 type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   renderMode?: TMode
   el?: TMode extends 'svg-string' ? never : Element
   calculation?: DivisionOptions & MultiplicationOptions
   settings?: ShushiExpressionSettings
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
 }
 
 shushi(
@@ -76,7 +88,7 @@ type AnyVerticalArithmeticResult = {
 
 ```typescript
 import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const result = shushi('125 + 75 - 20 × 3', {
   renderMode: 'div',
@@ -150,7 +162,7 @@ const baseConversion = shushiCore({
 | `div` | DOM 元素 | 浏览器 CSS/DOM 交互 |
 | `svg` | SVG DOM 元素 | 浏览器 SVG 交互 |
 
-`div` 和 `svg` 需要浏览器 DOM，且浏览器入口应导入 `@u1in/shushi-core/style.css`。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
+`div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
 ## 5. 计算器和布局 API
 
@@ -187,7 +199,7 @@ unformatMacro(source)
 completeMacro(source)
 minifyMacro(source)
 minifyMacroForCopy(source)
-compileMacro(source)
+compileMacro(source, { colorTheme?, fontFamily? })
 createMacroAstInspection(source)
 ```
 

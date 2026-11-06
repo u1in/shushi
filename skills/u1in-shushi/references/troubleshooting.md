@@ -72,7 +72,7 @@ Node.js/SSR 中不要使用 `renderMode: 'div'` 或 `'svg'`，也不要调用 `r
 浏览器入口导入：
 
 ```typescript
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 ```
 
 确认渲染器接收的是完整的 `GridScene`，不要把 `computation` 或宏源码直接当作渲染器输入。

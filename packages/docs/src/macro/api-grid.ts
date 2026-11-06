@@ -35,6 +35,7 @@ console.log(scene.columns.length, scene.rows.length)`,
   unitWidth: number
   unitHeight: number
   fontSize: number
+  fontFamily?: string
   defaultTextStyleToken?: string
   textHorizontalAlign: 'left' | 'center' | 'right'
   textVerticalAlign: 'top' | 'center' | 'bottom'
@@ -46,6 +47,7 @@ console.log(scene.columns.length, scene.rows.length)`,
         { type: 'table', columns: ['属性', '类型', '说明'], rows: [
           ['`columns` / `rows`', '`GridTrack[]`', '正有限尺寸的列轨道和行轨道，尺寸以 `unitWidth` / `unitHeight` 为单位。'],
           ['`padding`', '四个 `number`', '场景四边留白，参与最终总宽高计算。'],
+          ['`fontFamily`', '`string | undefined`', '宏编译阶段写入的默认字体；文本图元可用自己的 `fontFamily` 覆盖。'],
           ['`elements`', '`GridElement[]`', '文本、线条和圆角图元；位置由 `cell`、`edge`、`intersection` 或 `edgeMidpoint` 表达。'],
           ['对齐与样式', '枚举 / token', '文本默认对齐和默认样式；单个文本图元可以覆盖对齐或样式。'],
           ['`ariaLabel`', '`string`', '渲染器写入 DOM/SVG 的可访问性描述。'],
@@ -223,7 +225,7 @@ const rows: string[] = extractVisibleTextRows(scene)
         type: 'callout',
         tone: 'info',
         title: '纯数据 API 不需要 CSS',
-        text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；`renderSvgString` 同样不需要浏览器 DOM。只有调用 `renderDomGrid` / `renderSvgGrid` 生成浏览器节点时，才需要额外导入 `@u1in/shushi-core/style.css`。',
+        text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；`renderSvgString` 同样不需要浏览器 DOM。只有调用 `renderDomGrid` / `renderSvgGrid` 生成浏览器节点时，才需要额外导入内置默认 STIX 字体的 `@u1in/shushi-core/renderer.css`。',
       }],
     },
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它只读取 `GridScene`，不识别加法进位、减法借位或除法商位等运算语义。共享锚点规则会让正文、边中点注记和小数点按最终视觉位置归并，适合与 OCR 结果或快照测试比较。' }] },

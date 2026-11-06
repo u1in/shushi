@@ -33,13 +33,16 @@
 
 ```typescript
 import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 const result = shushi('125 + 75 - 20 × 3', {
+  fontFamily: 'STIX Two Math',
   renderMode: 'div',
   el: document.querySelector('#result') ?? undefined,
 })
 ```
+
+`fontFamily` 与 `colorTheme` 都会在宏编译阶段进入 `GridScene`；渲染器只读取场景。默认 STIX Two Math 已包含在 `renderer.css`；改用其他字体时使用 `renderer-without-font.css` 并导入对应字体 CSS，避免把默认字体一并打进产物。
 
 保留 `result.source` 可供复制或编辑，使用 `result.scene` 做文本、几何或二次渲染分析。
 

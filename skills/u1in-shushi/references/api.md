@@ -12,6 +12,8 @@ type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   el?: TMode extends 'svg-string' ? never : Element
   calculation?: DivisionOptions & MultiplicationOptions
   settings?: ShushiExpressionSettings
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
 }
 
 shushi(
@@ -73,6 +75,8 @@ interface VerticalArithmeticResult<TComputation, TRendered> {
 type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   renderMode?: TMode
   el?: TMode extends 'svg-string' ? never : Element
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
 }
 ```
 
@@ -85,7 +89,7 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
 浏览器入口导入：
 
 ```typescript
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 ```
 
 `el` 会把客户端渲染结果追加到指定元素；`svg-string` 禁止传入 `el`。
@@ -219,7 +223,7 @@ unformatMacro(source)
 completeMacro(source)
 minifyMacro(source)
 minifyMacroForCopy(source)
-compileMacro(source)
+compileMacro(source, { colorTheme?, fontFamily? })
 createMacroAstInspection(source)
 ```
 
