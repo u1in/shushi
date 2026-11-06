@@ -2,6 +2,12 @@
 
 所有重要变更都会记录在此文件中。
 
+## 1.1.0
+
+### Minor Changes
+
+- 新增 `@u1in/shushi-core/logo.svg` 与 `@u1in/shushi-core/logo-dark.svg` 品牌图标导出，分别对应浅色和深色背景，固定使用 Shushi 品牌色，适合直接交给 `<img src>` 使用。
+
 ## 1.0.0
 
 ### Major Changes

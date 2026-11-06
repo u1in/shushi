@@ -45,6 +45,10 @@ pnpm add @u1in/shushi-core@latest
 yarn add @u1in/shushi-core@latest
 ```
 
+### 品牌图标
+
+`@u1in/shushi-core/logo.svg` 和 `@u1in/shushi-core/logo-dark.svg` 是随 npm 包发布的固定品牌色 Shushi 图标，分别用于浅色和深色背景，可以直接交给 `<img>` 使用；两个导出都不提供颜色覆盖。
+
 安装前可确认当前 registry 能看到包：
 
 ```bash

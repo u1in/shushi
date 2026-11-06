@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Shushi</title>
+  <desc id="desc">Rounded long-division bracket with two square accents</desc>
+  <rect width="64" height="64" rx="14" fill="#ffffff" />
+  <path d="M50 22H18V38Q18 48 10 48" stroke="#0f172a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <rect x="26" y="30" width="10" height="10" rx="3" fill="#0f172a" />
+  <rect x="40" y="30" width="10" height="10" rx="3" fill="#4166b6" />
+</svg>

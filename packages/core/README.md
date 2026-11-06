@@ -23,6 +23,10 @@
 npm install @u1in/shushi-core
 ```
 
+### 品牌图标
+
+包内同时发布了固定品牌色的 `@u1in/shushi-core/logo.svg` 和 `@u1in/shushi-core/logo-dark.svg`，分别对应浅色和深色背景，可以直接作为 `<img src="..." alt="Shushi" />` 使用。两个导出都不提供颜色覆盖，确保项目 logo 在不同宿主中保持一致。
+
 ### Skill 安装
 
 在目标项目中执行，安装到当前 Agent 环境：

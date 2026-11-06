@@ -164,6 +164,10 @@ const baseConversion = shushiCore({
 
 `div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
+### 品牌图标
+
+`@u1in/shushi-core/logo.svg` 与 `@u1in/shushi-core/logo-dark.svg` 随包发布，分别是浅色背景和深色背景版本；两者固定使用 Shushi 品牌色，适合直接作为 `<img>` 的 `src`，不提供颜色覆盖。
+
 ## 5. 计算器和布局 API
 
 当用户只需要过程数据或要精确控制分层步骤时，使用这些 API：

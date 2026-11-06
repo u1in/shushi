@@ -23,7 +23,7 @@
     "short-division",
     "typescript"
   ],
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -45,6 +45,8 @@
     },
     "./renderer.css": "./dist/renderer.css",
     "./renderer-without-font.css": "./dist/renderer-without-font.css",
+    "./logo.svg": "./dist/logo.svg",
+    "./logo-dark.svg": "./dist/logo-dark.svg",
     "./fonts.css": "./dist/fonts.css",
     "./fonts/cmu-serif.css": "./dist/fonts/cmu-serif.css",
     "./fonts/stix-two-math.css": "./dist/fonts/stix-two-math.css",

@@ -10,6 +10,8 @@ const sharedFontImports = fontStyleNames
   .map(name => `@import './fonts/${name}.css';`)
   .join('\n')
 const sharedFontDirectory = new URL('../fonts/src/fonts/', import.meta.url)
+const logoSvg = readFileSync(new URL('./assets/shushi-logo.svg', import.meta.url), 'utf8')
+const logoDarkSvg = readFileSync(new URL('./assets/shushi-logo-dark.svg', import.meta.url), 'utf8')
 
 /**
  * 核心包发布时只构建一个 JS 入口，但渲染器 CSS 也必须作为稳定的子路径产物发布。
@@ -34,6 +36,16 @@ const rendererStyleAsset: Plugin = {
       type: 'asset',
       fileName: 'fonts.css',
       source: sharedFontImports,
+    })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'logo.svg',
+      source: logoSvg,
+    })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'logo-dark.svg',
+      source: logoDarkSvg,
     })
 
     readdirSync(sharedFontDirectory, { withFileTypes: true })
