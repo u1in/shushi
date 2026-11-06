@@ -280,11 +280,11 @@ const fixedSymbolPages: MacroDocPage[] = [
 export const symbolPages: MacroDocPage[] = [
   {
     slug: 'strike',
-    title: 'STRIKE / STRIKEDOT · 删除线图元',
+    title: 'STRIKE · 数字删除线',
     navLabel: 'STRIKE',
     kicker: 'SYMBOL MACRO · STRIKE',
     group: 'symbol',
-    summary: 'STRIKE 标记当前单元格，STRIKEDOT 则是带短删除线的右侧小数点。',
+    summary: 'STRIKE 在当前单元格中生成覆盖数字长度的独立删除线。',
     sections: [
       {
         id: 'purpose',
@@ -292,7 +292,7 @@ export const symbolPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: 'STRIKE 编译为通用 GridStrikeContent。STRIKEDOT 同时编译为 DOT 文本和短删除线；两者均以当前 CELL 为基准，因而宿主可通过 style token 单独改变线条形态。',
+            text: 'STRIKE 是独立的单元格删除线图元，编译为通用 GridStrikeContent。它从当前单元格左上方向右下方划线，可与数字或 DOT 叠放，不使用 CSS text-decoration，也不创建新的行列。',
           },
         ],
       },
@@ -309,10 +309,10 @@ export const symbolPages: MacroDocPage[] = [
             type: 'table',
             columns: ['属性', '说明'],
             rows: [
-              ['自动长度', 'STRIKE 始终使用数字长度；STRIKEDOT 是带短删除线的 DOT。'],
+              ['自动长度', '默认使用数字长度的删除线；STRIKE 不负责生成小数点。'],
               [
                 '`x1` / `y1` / `x2` / `y2`',
-                '两端相对当前单元格宽高的比例；会覆盖 STRIKE 的默认预设，端点允许超出 0–1。',
+                '两端相对当前单元格宽高的比例；覆盖数字删除线的默认预设，端点允许超出 0–1。',
               ],
               ['`thickness` / `color`', '可选的跨渲染器线宽和颜色覆盖。'],
               ['`style`', '可选语义 token，用于由宿主主题统一定义删除线。'],
@@ -326,9 +326,9 @@ export const symbolPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'example',
-            title: '划去小数点',
-            code: 'GRID(ROW(CELL(MM(5), STRIKEDOT, KV(style, division.normalization-strike))))',
-            note: 'STRIKEDOT 与 DOT 一样附着在数字右侧，同时以较短删除线划去小数点。',
+            title: '划去数字',
+            code: 'GRID(ROW(CELL(MM(5), STRIKE(KV(style, division.normalization-strike)))))',
+            note: 'STRIKE 只生成数字删除线；需要划去小数点时应使用独立的 STRIKEDOT 宏。',
           },
         ],
       },
@@ -340,7 +340,72 @@ export const symbolPages: MacroDocPage[] = [
             type: 'callout',
             tone: 'warn',
             title: '必须位于 CELL',
-            text: 'STRIKE 只能置于 CELL 或作为 ROW 中的独立单元格，且仅接受 KV 配置；它不新增轨道，也不修改文字内容。',
+            text: 'STRIKE 只能置于 CELL 或作为 ROW 中的独立单元格，且仅接受 KV 配置；不要把 STRIKEDOT 当作 STRIKE 的参数或别名。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'strikedot',
+    title: 'STRIKEDOT · 带删除线的小数点',
+    navLabel: 'STRIKEDOT',
+    kicker: 'SYMBOL MACRO · STRIKEDOT',
+    group: 'symbol',
+    summary: 'STRIKEDOT 在当前单元格右侧生成小数点，并为小数点绘制短删除线。',
+    sections: [
+      {
+        id: 'purpose',
+        title: '作用',
+        blocks: [
+          {
+            type: 'paragraph',
+            text: 'STRIKEDOT 是独立的零参数宏，不是 STRIKE 的变体写法。它同时生成位于当前单元格右侧边界中点的小数点和覆盖该小数点的短删除线，用于表示小数除法等值变换中的原小数点。',
+          },
+        ],
+      },
+      {
+        id: 'signature',
+        title: '函数签名和属性说明',
+        blocks: [
+          {
+            type: 'code',
+            title: '宏签名',
+            code: 'STRIKEDOT',
+          },
+          {
+            type: 'table',
+            columns: ['属性', '说明'],
+            rows: [
+              ['参数', '零参数宏；不能写入文字、x/y 端点或 STRIKE 的 KV 配置。'],
+              ['小数点', '按 DOT 的规则位于当前单元格右侧边界中点，不新增列。'],
+              ['删除线', '使用比数字删除线更短的小数点预设，端点由宏统一维护。'],
+              ['单元格样式', '通过外层 CELL 的 KV(style, token) 设置，同时作用于小数点和删除线。'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'example',
+        title: '例子',
+        blocks: [
+          {
+            type: 'example',
+            title: '划去小数点',
+            code: 'GRID(ROW(CELL(MM(5), STRIKEDOT, KV(style, division.normalization-strike))))',
+            note: 'STRIKEDOT 同时生成右侧小数点和短删除线；样式配置写在外层 CELL 上。',
+          },
+        ],
+      },
+      {
+        id: 'caution',
+        title: '注意事项',
+        blocks: [
+          {
+            type: 'callout',
+            tone: 'warn',
+            title: '不要与 STRIKE 混用',
+            text: 'STRIKEDOT 只接受零参数写法，不能写成 STRIKEDOT(KV(...))；需要划去数字时，请另放 STRIKE。',
           },
         ],
       },

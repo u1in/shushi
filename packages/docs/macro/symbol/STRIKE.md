@@ -1,5 +1,5 @@
 ---
-title: STRIKE / STRIKEDOT · 删除线图元
+title: STRIKE · 数字删除线
 ---
 
 <MacroDocCatalog area="macro" slug="strike" />

@@ -76,6 +76,8 @@ const pageRoutes: Record<string, string> = {
   mb: '/macro/orientation/MB',
   rb: '/macro/orientation/RB',
   rbl: '/macro/orientation/RBL',
+  strike: '/macro/symbol/STRIKE',
+  strikedot: '/macro/symbol/STRIKEDOT',
   dot: '/macro/symbol/DOT',
   bracket: '/macro/symbol/BRACKET',
   square: '/macro/symbol/SQUARE',
