@@ -35,6 +35,13 @@
   --grid-rule: #4a5f78;
   --grid-guide: #a7bbdd;
   --grid-bracket: #4a5f78;
+  --shushi-auto-text: #d95070;
+  --shushi-auto-carry: #0b9b86;
+  --shushi-auto-borrow: #8957c8;
+  --shushi-auto-operator: #e27624;
+  --shushi-auto-decimal: #d74783;
+  --shushi-auto-rule: #7c5366;
+  --shushi-auto-bracket-rule: #a84b6b;
   --scrollbar-track: #e8edf6;
   --scrollbar-thumb: #9bacc7;
   --scrollbar-thumb-hover: #6d85af;
@@ -86,6 +93,13 @@ html[data-theme='dark'] {
   --grid-rule: #9eb8e4;
   --grid-guide: #526a94;
   --grid-bracket: #a9c6ff;
+  --shushi-auto-text: #ff9bad;
+  --shushi-auto-carry: #5de0c5;
+  --shushi-auto-borrow: #c5a6ff;
+  --shushi-auto-operator: #ffb25f;
+  --shushi-auto-decimal: #ff8fbd;
+  --shushi-auto-rule: #d8adc0;
+  --shushi-auto-bracket-rule: #ff9fbe;
   --scrollbar-track: #111d31;
   --scrollbar-thumb: #526b95;
   --scrollbar-thumb-hover: #86abe7;
@@ -124,6 +138,13 @@ html[data-theme='dark'] {
     --grid-rule: #9eb8e4;
     --grid-guide: #526a94;
     --grid-bracket: #a9c6ff;
+    --shushi-auto-text: #ff9bad;
+    --shushi-auto-carry: #5de0c5;
+    --shushi-auto-borrow: #c5a6ff;
+    --shushi-auto-operator: #ffb25f;
+    --shushi-auto-decimal: #ff8fbd;
+    --shushi-auto-rule: #d8adc0;
+    --shushi-auto-bracket-rule: #ff9fbe;
     --scrollbar-track: #111d31;
     --scrollbar-thumb: #526b95;
     --scrollbar-thumb-hover: #86abe7;
@@ -319,8 +340,10 @@ h1 {
 
 .hero h1 {
   font-size: clamp(3.8rem, 8.8vw, 8.8rem);
+  font-weight: 500;
   letter-spacing: -.1em;
   line-height: .9;
+  white-space: nowrap;
 }
 
 .hero .intro {
@@ -499,12 +522,29 @@ h1 {
 }
 
 .site-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   color: var(--text-strong);
   font-size: 0.9rem;
   font-weight: 900;
   letter-spacing: -0.03em;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.site-header__logo {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+.site-header__brand-dot {
+  margin-inline: 1px;
+  color: var(--text-muted);
+  font-weight: 300;
 }
 
 .site-header__brand:hover {
@@ -1750,6 +1790,12 @@ h2 {
   flex: 0 0 auto;
 }
 
+.auto-color-theme-editor__trigger {
+  padding: 9px 12px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .macro-ast-inspector .result-heading > .visible-text-rows {
   margin-left: auto;
 }
@@ -1808,8 +1854,88 @@ h2 {
 
 .ocr-modal__actions {
   display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
   justify-content: flex-end;
   margin-top: 18px;
+}
+
+.auto-color-theme-modal__content {
+  width: min(720px, 100%);
+  height: min(640px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.auto-color-theme-modal__hint {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.auto-color-theme-editor__fields {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 10px;
+  overflow-y: auto;
+  margin-top: 20px;
+  padding: 2px 6px 2px 0;
+  scrollbar-gutter: stable;
+}
+
+.auto-color-theme-editor__field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px 88px;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.auto-color-theme-editor__label {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.auto-color-theme-editor__label strong {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+.auto-color-theme-editor__label small,
+.auto-color-theme-editor__variable {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auto-color-theme-editor__field input[type='color'] {
+  width: 42px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+
+.auto-color-theme-editor__field code {
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.auto-color-theme-editor__variable {
+  grid-column: 1 / -1;
 }
 
 .visible-text-rows__description {
@@ -1875,10 +2001,12 @@ h2 {
 }
 
 .renderer-comparison.renderer-comparison--both {
-  /* 先填满结果卡的剩余高度；内容更高时保留最小内容高度并撑开当前网格行。 */
+  /* 控件行保持内容高度，代码区撑高结果卡时只把额外空间分配给渲染面板行。 */
   flex: 1 1 auto;
   min-height: min-content;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
 }
 
 .renderer-comparison.renderer-comparison--empty {
@@ -1914,6 +2042,9 @@ h2 {
 .renderer-font-picker {
   grid-column: 1 / -1;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
   justify-content: flex-start;
 }
 
@@ -1936,12 +2067,35 @@ h2 {
   font: inherit;
 }
 
+.renderer-font-picker .auto-color-theme-editor {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.renderer-font-picker__error {
+  flex-basis: 100%;
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .renderer-panel {
   min-width: 0;
   border: 1px solid #e3eaf5;
   border-radius: 16px;
   background: #fbfcff;
   padding: 14px;
+}
+
+/* 双渲染预览会填充可用高度，面板本身负责承接空白，而不是拉开字体控件和面板的距离。 */
+.renderer-comparison--both .renderer-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.renderer-comparison--both .stage-scroll {
+  flex: 1 1 auto;
 }
 
 .renderer-panel h3 {

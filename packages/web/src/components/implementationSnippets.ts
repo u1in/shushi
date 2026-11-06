@@ -1,8 +1,15 @@
+import {
+  DEFAULT_RENDERER_FONT,
+  getRendererFontCssPath,
+  getRendererStyleCssPath,
+  type RendererFontFamily,
+} from './rendererFonts'
+
 /** 首页第三列展示的核心调用链，保持与各演示组件实际使用的公开 API 对齐。 */
 export const implementationSnippets = {
   macroPlayground: [
     "import { compileMacro, renderDomGrid } from '@u1in/shushi-core'",
-    "import '@u1in/shushi-core/style.css'",
+    "import '@u1in/shushi-core/renderer.css'",
     '',
     'const render = (source: string) => {',
     '  const scene = compileMacro(source)',
@@ -16,17 +23,31 @@ export const implementationSnippets = {
 
 type SnippetProperty = [name: string, value: unknown]
 
+/** 默认 STIX 随 renderer.css 提供；切换其他内置字体才额外导入字体 CSS。 */
+const createRendererStyleImports = (fontFamily: RendererFontFamily): string[] => {
+  const fontCssPath = getRendererFontCssPath(fontFamily)
+  return [
+    `import '${getRendererStyleCssPath(fontFamily)}'`,
+    ...(fontCssPath ? [`import '${fontCssPath}'`] : []),
+  ]
+}
+
+/** 默认 STIX 已由 renderer.css 和公开 API 共同提供，无需在示例中重复声明。 */
+const usesCustomRendererFont = (fontFamily: RendererFontFamily): boolean => fontFamily !== DEFAULT_RENDERER_FONT
+
 export type ShushiImplementationSnippetOptions = {
   operation: string
   fields: SnippetProperty[]
   calculation?: SnippetProperty[]
   settings: SnippetProperty[]
+  fontFamily?: RendererFontFamily
 }
 
 export type MacroAstInspectorSnippetOptions = {
   source: string
   elementId: string
   text: string
+  fontFamily?: RendererFontFamily
 }
 
 /** 首页表达式演示优先展示统一字符串入口；需要精确指定运算类型时再生成结构化入口。 */
@@ -70,15 +91,22 @@ export const createMacroAstInspectorSnippet = ({
   source,
   elementId,
   text,
+  fontFamily = DEFAULT_RENDERER_FONT,
 }: MacroAstInspectorSnippetOptions): string => [
   "import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'",
   "import type { MacroAstInspection } from '@u1in/shushi-core'",
-  "import '@u1in/shushi-core/style.css'",
+  ...createRendererStyleImports(fontFamily),
   '',
   'const macro = ' + formatSnippetValue(source),
   '',
   'const render = (macro: string) => {',
-  '  const inspection = createMacroAstInspection(macro)',
+  ...(usesCustomRendererFont(fontFamily)
+    ? [
+      '  const inspection = createMacroAstInspection(macro, {',
+      '    fontFamily: ' + formatSnippetValue(fontFamily) + ',',
+      '  })',
+    ]
+    : ['  const inspection = createMacroAstInspection(macro)']),
   '  const rendered = renderDomGrid(inspection.scene)',
   "  document.querySelector('#result')?.replaceChildren(rendered)",
   '  return { inspection, rendered }',
@@ -105,7 +133,10 @@ export const createMacroAstInspectorSnippet = ({
   '  currentRendered = rendered',
   '}',
   '',
-  'const handleElementTextInput = (elementId: string = ' + formatSnippetValue(elementId) + ', text: string = ' + formatSnippetValue(text) + ') => {',
+  'const handleElementTextInput = (',
+  '  elementId: string = ' + formatSnippetValue(elementId) + ',',
+  '  text: string = ' + formatSnippetValue(text) + ',',
+  ') => {',
   '  const { inspection, rendered } = update(',
   '    currentInspection,',
   '    currentRendered,',
@@ -124,12 +155,13 @@ export const createShushiImplementationSnippet = ({
   fields,
   calculation,
   settings,
+  fontFamily = DEFAULT_RENDERER_FONT,
 }: ShushiImplementationSnippetOptions): string => {
   const expression = createExpression(operation, fields)
   const useExpressionApi = expression !== undefined
   return [
     `import { ${useExpressionApi ? 'shushi' : 'shushiCore'} } from '@u1in/shushi-core'`,
-  "import '@u1in/shushi-core/style.css'",
+    ...createRendererStyleImports(fontFamily),
   '',
     'const {',
     '  computation,',
@@ -147,6 +179,7 @@ export const createShushiImplementationSnippet = ({
   '  settings: {',
   ...formatSnippetProperties(settings, '    '),
   '  },',
+  ...(usesCustomRendererFont(fontFamily) ? ['  fontFamily: ' + formatSnippetValue(fontFamily) + ','] : []),
   "  renderMode: 'div',",
   "  el: document.querySelector('#result') ?? undefined,",
     '})',

@@ -68,6 +68,9 @@ describe('首页宏调试示例', () => {
     const code = implementationSnippets.macroPlayground
 
     expect(code).toContain('renderDomGrid(scene)')
+    expect(code).toContain("import '@u1in/shushi-core/renderer.css'")
+    expect(code).not.toContain("fonts/stix-two-math.css")
+    expect(code).not.toContain('fontFamily')
     expect(code).toContain("document.querySelector('#result')?.append(rendered)")
     expect(code).toContain('render(source)')
     expect(code).not.toContain('formatMacro')
@@ -84,13 +87,14 @@ describe('首页宏调试示例', () => {
     expect(code).toContain("const macro = 'GRID(ROW(MM(3), MM(5)))'")
     expect(code).not.toContain('shushi(')
     expect(code).toContain('const inspection = createMacroAstInspection(macro)')
+    expect(code).not.toContain('fontFamily')
     expect(code).toContain('const rendered = renderDomGrid(inspection.scene)')
     expect(code).toContain("document.querySelector('#result')?.replaceChildren(rendered)")
     expect(code).toContain('let currentInspection: MacroAstInspection')
     expect(code).toContain('let currentRendered: HTMLElement')
     expect(code).toContain('const handleMacroInput = (nextMacro: string) => {')
     expect(code).toContain('const { inspection, rendered } = render(nextMacro)')
-    expect(code).toContain("const handleElementTextInput = (elementId: string = 'grid-element-id', text: string = '9') => {")
+    expect(code).toContain("const handleElementTextInput = (\n  elementId: string = 'grid-element-id',\n  text: string = '9',\n) => {")
     expect(code).toContain('const { inspection, rendered } = update(')
     expect(code).toContain('    currentInspection,')
     expect(code).toContain('    currentRendered,')
@@ -102,6 +106,14 @@ describe('首页宏调试示例', () => {
     expect(code).toContain('const updated = inspection.updateElementText(elementId, text)')
     expect(code).toContain('const updatedRendered = renderDomGrid(updated.scene)')
     expect(code).toContain('return { inspection: updated, rendered: updatedRendered }')
+
+    const customFontCode = createMacroAstInspectorSnippet({
+      source: 'GRID(ROW(MM(3)))',
+      elementId: 'grid-element-id',
+      text: '9',
+      fontFamily: 'CMU Serif',
+    })
+    expect(customFontCode).toContain("const inspection = createMacroAstInspection(macro, {\n    fontFamily: 'CMU Serif',\n  })")
   })
 
   test('门户源码示例包含当前渲染挂载配置和完整返回值', () => {
@@ -121,6 +133,22 @@ describe('首页宏调试示例', () => {
     expect(code).toContain('cellWidth: 42')
     expect(code).toContain('showGuideGrid: true')
     expect(code).toContain('visibleStepCount: 3')
+    expect(code).not.toContain('fontFamily')
     expect(code).toContain('const {\n  computation,\n  source,\n  scene,\n  rendered,\n  inspection,\n} = shushi(\'123 + 456\', {')
+  })
+
+  test('代码示例会跟随竖式预览字体切换逐字体 CSS', () => {
+    const code = createShushiImplementationSnippet({
+      operation: 'addition',
+      fields: [['values', ['123', '456']]],
+      settings: [],
+      fontFamily: 'Noto Sans Math',
+    })
+
+    expect(code).toContain("import '@u1in/shushi-core/fonts/noto-sans-math.css'")
+    expect(code).toContain("import '@u1in/shushi-core/renderer-without-font.css'")
+    expect(code).not.toContain("import '@u1in/shushi-core/fonts/stix-two-math.css'")
+    expect(code).toContain("fontFamily: 'Noto Sans Math'")
+    expect(code).not.toContain('const fontFamily')
   })
 })

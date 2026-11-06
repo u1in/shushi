@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { shushiCore } from '@u1in/shushi-core'
+import { AUTO_COLOR_THEME_FALLBACK, AUTO_COLOR_THEME_VARIABLES, shushiCore } from '@u1in/shushi-core'
 import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy, unformatMacro } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
+import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
+import type { AutoColorThemeColorValues } from './AutoColorThemeEditor.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createMacroAstInspectorSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import { arithmeticExamples, type MacroExample } from './macroPlaygroundExamples'
 
 const DEFAULT_GRID_SETTINGS = {
@@ -15,6 +18,8 @@ const DEFAULT_GRID_SETTINGS = {
   fontSizeRatio: 1,
   showGuideGrid: false,
 }
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
+const getCompileOptions = (): { fontFamily: RendererFontFamily } => ({ fontFamily: rendererFont.value })
 
 /** 示例按钮使用正式门户生成宏源码；调试区本身只负责接收、编译和修改宏。 */
 const createInspectionFromExpression = (inputExpression: string): MacroAstInspection => {
@@ -27,6 +32,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
     const [dividend, divisor] = normalizedExpression.split('/')
     const result = shushiCore({
       operation: 'division',
+      fontFamily: rendererFont.value,
       divisor,
       dividend,
       calculation: { resultMode: 'decimal' },
@@ -37,11 +43,12 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
         showZeroQuotientSteps: false,
       },
     })
-    return createMacroAstInspection(minifyMacroForCopy(result.source))
+    return createMacroAstInspection(minifyMacroForCopy(result.source), getCompileOptions())
   }
 
   const result = shushiCore({
     operation: 'composite',
+    fontFamily: rendererFont.value,
     expression: normalizedExpression,
     settings: {
       ...DEFAULT_GRID_SETTINGS,
@@ -50,12 +57,12 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
       uniformMultiplicationBars: false,
     },
   })
-  return createMacroAstInspection(minifyMacroForCopy(result.source))
+  return createMacroAstInspection(minifyMacroForCopy(result.source), getCompileOptions())
 }
 
 /** 统一生成宏调试默认展示的源码：先使用最简可粘贴形式，再保留分号行结构做可读格式化。 */
 const createFormattedMinimalInspection = (inspection: MacroAstInspection): MacroAstInspection => (
-  createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)))
+  createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)), getCompileOptions())
 )
 
 const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(arithmeticExamples[0].expression))
@@ -65,6 +72,24 @@ const selectedElementId = ref('')
 const editedText = ref('')
 const error = ref('')
 const errorTarget = ref<'source' | null>(null)
+const previewTheme = ref<AutoColorThemeColorValues>({
+  text: AUTO_COLOR_THEME_FALLBACK.text,
+  carry: AUTO_COLOR_THEME_FALLBACK.carry,
+  borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
+  operator: AUTO_COLOR_THEME_FALLBACK.operator,
+  decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
+  bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
+})
+const previewThemeStyle = computed<Record<string, string>>(() => ({
+  [AUTO_COLOR_THEME_VARIABLES.text]: previewTheme.value.text,
+  [AUTO_COLOR_THEME_VARIABLES.carry]: previewTheme.value.carry,
+  [AUTO_COLOR_THEME_VARIABLES.borrow]: previewTheme.value.borrow,
+  [AUTO_COLOR_THEME_VARIABLES.operator]: previewTheme.value.operator,
+  [AUTO_COLOR_THEME_VARIABLES.decimal]: previewTheme.value.decimal,
+  [AUTO_COLOR_THEME_VARIABLES.rule]: previewTheme.value.rule,
+  [AUTO_COLOR_THEME_VARIABLES.bracketRule]: previewTheme.value.bracketRule,
+}))
 
 /** 将解析器偏底层的定位信息改写成用户能直接理解的提示。 */
 const getReadableMacroError = (reason: unknown, fallback: string): string => {
@@ -95,6 +120,7 @@ const implementationCode = computed(() => {
     source: source.value,
     elementId: updateReference?.elementId ?? 'grid-element-id',
     text: editedText.value || updateReference?.text || '9',
+    fontFamily: rendererFont.value,
   })
 })
 
@@ -115,16 +141,18 @@ const loadExample = (exampleExpression: string): void => {
 }
 
 /** 重新解析用户输入的宏；解析失败时保留上一次可渲染结果，避免画布突然消失。 */
-const compileSource = (): void => {
+const compileSource = (fontFamily = rendererFont.value): boolean => {
   try {
-    inspection.value = createMacroAstInspection(source.value)
+    inspection.value = createMacroAstInspection(source.value, { fontFamily })
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
     errorTarget.value = null
+    return true
   } catch (reason) {
     error.value = getReadableMacroError(reason, '宏源码无法编译，请检查宏命令和参数。')
     errorTarget.value = 'source'
+    return false
   }
 }
 
@@ -190,6 +218,12 @@ const handleEditedTextInput = (event: Event): void => {
 const useExample = ({ expression: exampleExpression }: MacroExample): void => {
   loadExample(exampleExpression)
 }
+
+/** 字体是编译场景的一部分，确认字体资源可用后重新编译当前宏源码。 */
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  // 先确认源码能以目标字体生成新场景，再更新演示代码的字体状态，避免两块区域分叉。
+  if (compileSource(fontFamily)) rendererFont.value = fontFamily
+}
 </script>
 
 <template>
@@ -224,7 +258,7 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
         </div>
       </section>
 
-      <section class="result-card" aria-live="polite">
+      <section class="result-card" aria-live="polite" :style="previewThemeStyle">
         <div class="calculation-result">
           <div class="result-heading">
             <div>
@@ -247,7 +281,11 @@ const useExample = ({ expression: exampleExpression }: MacroExample): void => {
               </div>
             </dl>
           </section>
-          <GridPreview :scene="inspection.scene" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" />
+          <GridPreview :key="inspection.scene.fontFamily" :scene="inspection.scene" :font-family="rendererFont" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" @font-change="handleFontChange">
+            <template #theme-control>
+              <AutoColorThemeEditor v-model="previewTheme" />
+            </template>
+          </GridPreview>
         </div>
       </section>
       <CodeImplementationPanel

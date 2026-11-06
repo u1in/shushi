@@ -6,6 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import type { DivisionComputation, DivisionVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -17,6 +18,7 @@ const resultMode = computed<'decimal' | 'remainder'>(() => showRemainderMode.val
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const showGuideGrid = ref(false)
 const uniformSubtractionBars = ref(false)
 const showZeroQuotientSteps = ref(false)
@@ -27,6 +29,7 @@ const macroSource = ref('')
 
 const renderScene = (): void => {
   const result = shushi(`${dividend.value} ÷ ${divisor.value}`, {
+    fontFamily: rendererFont.value,
     calculation: { resultMode: resultMode.value },
     settings: {
       cellWidth: cellWidth.value,
@@ -43,6 +46,10 @@ const renderScene = (): void => {
   macroSource.value = result.source
   scene.value = result.scene
 }
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  rendererFont.value = fontFamily
+  renderScene()
+}
 const playback = useCalculatorStepPlayback({
   getStepCount: () => {
     const result = computation.value
@@ -58,6 +65,7 @@ const canPrevious = playback.canPrevious
 const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'division',
+  fontFamily: rendererFont.value,
   fields: [
     ['divisor', divisor.value],
     ['dividend', dividend.value],
@@ -130,7 +138,7 @@ calculate()
           <div class="result-heading"><h2>{{ dividend }} ÷ {{ divisor }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-          <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
         </div>
       </section>
       <CodeImplementationPanel

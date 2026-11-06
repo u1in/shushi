@@ -7,9 +7,17 @@
     "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/web"
   },
-  "bugs": { "url": "https://github.com/u1in/shushi/issues/new" },
+  "bugs": {
+    "url": "https://github.com/u1in/shushi/issues/new"
+  },
   "homepage": "https://github.com/u1in/shushi#readme",
-  "keywords": ["vertical-arithmetic", "vue", "tailwindcss", "vite", "demo"],
+  "keywords": [
+    "vertical-arithmetic",
+    "vue",
+    "tailwindcss",
+    "vite",
+    "demo"
+  ],
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,8 +29,9 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@u1in/shushi-grid": "file:../grid",
     "@u1in/shushi-calculators": "file:../calculators",
+    "@u1in/shushi-fonts": "file:../fonts",
+    "@u1in/shushi-grid": "file:../grid",
     "@u1in/shushi-layout": "file:../layout",
     "@u1in/shushi-macro": "file:../macro",
     "@u1in/shushi-renderers": "file:../renderers",

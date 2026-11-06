@@ -9,6 +9,12 @@ let mediaQuery: MediaQueryList | undefined
 
 const resolveSystemTheme = (): ThemeMode => mediaQuery?.matches ? 'dark' : 'light'
 
+/** 让浏览器标签页图标与当前页面主题保持一致。 */
+const updateFavicon = (mode: ThemeMode): void => {
+  const favicon = document.querySelector<HTMLLinkElement>('#site-favicon')
+  if (favicon) favicon.href = new URL(`./shushi-logo-${mode}.svg`, document.baseURI).toString()
+}
+
 /** 读取已保存的显式选择；首次访问或旧版 system 值都按系统偏好初始化。 */
 const readThemeMode = (): ThemeMode => {
   try {
@@ -23,6 +29,7 @@ const readThemeMode = (): ThemeMode => {
 const applyTheme = (mode: ThemeMode): void => {
   const root = document.documentElement
   root.dataset.theme = mode
+  updateFavicon(mode)
   try {
     window.localStorage.setItem(storageKey, mode)
   } catch {

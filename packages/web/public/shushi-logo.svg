@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Shushi</title>
+  <desc id="desc">Rounded long-division bracket with two square accents</desc>
+  <style>
+    :root {
+      --bg-surface: #ffffff;
+      --border: #e2e8f0;
+      --logo-line: #0f172a;
+      --logo-block-1: #0f172a;
+      --logo-block-2: #4166b6;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-surface: #1e293b;
+        --border: #334155;
+        --logo-line: #f8fafc;
+        --logo-block-1: #f8fafc;
+        --logo-block-2: #8db4ff;
+      }
+    }
+  </style>
+  <rect width="64" height="64" rx="14" fill="var(--bg-surface)" />
+  <path d="M50 22H18V38Q18 48 10 48" stroke="var(--logo-line)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <rect x="26" y="30" width="10" height="10" rx="3" fill="var(--logo-block-1)" />
+  <rect x="40" y="30" width="10" height="10" rx="3" fill="var(--logo-block-2)" />
+</svg>

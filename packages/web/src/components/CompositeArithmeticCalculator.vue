@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
+  AUTO_COLOR_THEME_FALLBACK,
+  AUTO_COLOR_THEME_VARIABLES,
   getCompositeArithmeticStepCount,
   getDivisionPlaybackStepCount,
   getMultiplicationStepCount,
@@ -8,17 +10,21 @@ import {
 } from '@u1in/shushi-core'
 import type { AnyVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
+import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
+import type { AutoColorThemeColorValues } from './AutoColorThemeEditor.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 
 const expression = ref('125 + 75 - 20 × 3')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const useTrailingZeroShortcut = ref(true)
 const showGuideGrid = ref(false)
 const showCarrySteps = ref(true)
@@ -29,6 +35,24 @@ const error = ref('')
 const result = ref<AnyVerticalArithmeticResult>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
+const previewTheme = ref<AutoColorThemeColorValues>({
+  text: AUTO_COLOR_THEME_FALLBACK.text,
+  carry: AUTO_COLOR_THEME_FALLBACK.carry,
+  borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
+  operator: AUTO_COLOR_THEME_FALLBACK.operator,
+  decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
+  bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
+})
+const previewThemeStyle = computed<Record<string, string>>(() => ({
+  [AUTO_COLOR_THEME_VARIABLES.text]: previewTheme.value.text,
+  [AUTO_COLOR_THEME_VARIABLES.carry]: previewTheme.value.carry,
+  [AUTO_COLOR_THEME_VARIABLES.borrow]: previewTheme.value.borrow,
+  [AUTO_COLOR_THEME_VARIABLES.operator]: previewTheme.value.operator,
+  [AUTO_COLOR_THEME_VARIABLES.decimal]: previewTheme.value.decimal,
+  [AUTO_COLOR_THEME_VARIABLES.rule]: previewTheme.value.rule,
+  [AUTO_COLOR_THEME_VARIABLES.bracketRule]: previewTheme.value.bracketRule,
+}))
 
 /** 只有单独乘法且任一操作数是非零 10 的倍数时，才开放乘法末尾零快捷计算。 */
 const standaloneMultiplicationOperands = computed(() => {
@@ -78,6 +102,7 @@ const getPlaybackStepCount = (currentResult: AnyVerticalArithmeticResult | undef
 const renderScene = (shouldRenderWithoutComputation = false): void => {
   if (!shouldRenderWithoutComputation && !result.value) return
   const nextResult = shushi(expression.value, {
+    fontFamily: rendererFont.value,
     calculation: {
       resultMode: 'decimal',
       useTrailingZeroShortcut: trailingZeroShortcutEnabled.value,
@@ -100,6 +125,10 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
   macroSource.value = nextResult.source
   scene.value = nextResult.scene
 }
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  rendererFont.value = fontFamily
+  renderScene()
+}
 
 const playback = useCalculatorStepPlayback({
   getStepCount: () => getPlaybackStepCount(result.value),
@@ -113,6 +142,7 @@ const canPrevious = playback.canPrevious
 const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'expression',
+  fontFamily: rendererFont.value,
   fields: [['expression', expression.value]],
   calculation: [
     ['resultMode', 'decimal'],
@@ -197,7 +227,7 @@ calculate()
           </div>
         </div></div>
       </form>
-      <section class="result-card" aria-live="polite">
+      <section class="result-card" aria-live="polite" :style="previewThemeStyle">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">VERTICAL PREVIEW</p>
           <div class="result-heading"><div v-if="!isCommonFactorResult && !isBaseConversionResult" class="result-heading__title"><h2>{{ expression.trim() ? `${expression} =` : '等待输入表达式' }}</h2></div><template v-if="scene"><output class="answer" :class="{ 'answer--common-factor': isCommonFactorResult, 'answer--base-conversion': isBaseConversionResult }">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
@@ -214,7 +244,11 @@ calculate()
             @next="playback.next"
             @reset="playback.reset"
           />
-          <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange">
+            <template #theme-control>
+              <AutoColorThemeEditor v-model="previewTheme" />
+            </template>
+          </GridPreview>
           <div v-else class="renderer-comparison renderer-comparison--both renderer-comparison--empty" role="status" aria-live="polite">
             <p><strong>暂无表达式</strong><span>请在左侧输入算式开始计算</span></p>
           </div>

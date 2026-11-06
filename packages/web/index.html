@@ -9,6 +9,7 @@
     <meta name="application-name" content="竖式·Shushi" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="theme-color" content="#f6f0e8" />
+    <link id="site-favicon" rel="icon" type="image/svg+xml" href="./shushi-logo-light.svg" />
     <link rel="canonical" href="https://u1in.github.io/shushi/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="竖式·Shushi" />
@@ -60,8 +61,14 @@
       // 首屏先恢复主题属性，避免 Vue 挂载前出现一次错误的浅色闪烁。
       (() => {
         try {
-          const mode = window.localStorage.getItem('shushi-theme-mode')
-          if (mode === 'light' || mode === 'dark') document.documentElement.dataset.theme = mode
+          const storedMode = window.localStorage.getItem('shushi-theme-mode')
+          const systemMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          const mode = storedMode === 'light' || storedMode === 'dark' ? storedMode : systemMode
+          if (storedMode === 'light' || storedMode === 'dark') document.documentElement.dataset.theme = storedMode
+          document.getElementById('site-favicon')?.setAttribute(
+            'href',
+            mode === 'dark' ? './shushi-logo-dark.svg' : './shushi-logo-light.svg',
+          )
         } catch {
           // 本地存储不可用时由 CSS 的系统主题规则接管。
         }

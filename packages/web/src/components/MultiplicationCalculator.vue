@@ -6,6 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import type { GridScene, MultiplicationComputation, MultiplicationVerticalArithmeticResult } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -15,6 +16,7 @@ const multiplier = ref('89')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const showGuideGrid = ref(false)
 const uniformMultiplicationBars = ref(false)
 const showCarrySteps = ref(true)
@@ -27,6 +29,7 @@ const answer = computed(() => computation.value?.productDigits ?? '—')
 
 const renderScene = (): void => {
   const result = shushi(`${multiplicand.value} × ${multiplier.value}`, {
+    fontFamily: rendererFont.value,
     calculation: { useTrailingZeroShortcut: useTrailingZeroShortcut.value },
     settings: {
       cellWidth: cellWidth.value,
@@ -41,6 +44,10 @@ const renderScene = (): void => {
   computation.value = result.computation
   macroSource.value = result.source
   scene.value = result.scene
+}
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  rendererFont.value = fontFamily
+  renderScene()
 }
 const playback = useCalculatorStepPlayback({
   getStepCount: () => {
@@ -59,6 +66,7 @@ const canPrevious = playback.canPrevious
 const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'multiplication',
+  fontFamily: rendererFont.value,
   fields: [['operands', [multiplicand.value, multiplier.value]]],
   calculation: [['useTrailingZeroShortcut', useTrailingZeroShortcut.value]],
   settings: [
@@ -123,7 +131,7 @@ calculate()
           <div class="result-heading"><h2>{{ multiplicand }} × {{ multiplier }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
           <p class="normalization">{{ computation?.trailingZeroShortcut ? `已将 ${computation.multiplierDigits} 作为第二行乘数，先计算 ${computation.trailingZeroShortcut.significantMultiplierDigits} 再补 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0。` : computation?.operandsSwapped ? '为便于竖式展示，较大操作数已置于上方。' : '按从右到左的逐位乘法计算。' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-          <GridPreview v-if="scene" :scene="scene" mode="both" />
+          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
         </div>
       </section>
       <CodeImplementationPanel

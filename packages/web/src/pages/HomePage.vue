@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import CompositeArithmeticCalculator from '../components/CompositeArithmeticCalculator.vue'
+import BrandLogo from '../components/BrandLogo.vue'
 import MacroAstInspector from '../components/MacroAstInspector.vue'
 import ThemeControl from '../components/ThemeControl.vue'
 
@@ -27,7 +28,7 @@ const installGuides: Record<InstallMethod, InstallGuide> = {
     label: 'Npm',
     install: 'npm install @u1in/shushi-core',
     usage: `import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
+import '@u1in/shushi-core/renderer.css'
 
 shushi('356 + 278', {
   renderMode: 'div',
@@ -109,7 +110,10 @@ onBeforeUnmount(() => {
 
 <template>
   <header class="site-header">
-    <a class="site-header__brand" href="#top" aria-label="返回首页顶部">竖式·Shushi</a>
+    <a class="site-header__brand" href="#top" aria-label="返回首页顶部">
+      <BrandLogo class="site-header__logo" aria-hidden="true" />
+      <span>竖式<span class="site-header__brand-dot">·</span>Shushi</span>
+    </a>
     <nav class="site-header__nav" aria-label="演示板块导航">
       <a href="#composite-arithmetic">表达式</a>
       <a href="#macro-ast-inspector">宏调试</a>

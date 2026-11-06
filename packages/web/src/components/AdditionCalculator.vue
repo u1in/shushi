@@ -6,6 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import type { AdditionComputation, AdditionVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -15,6 +16,7 @@ const secondAddend = ref('278')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const showGuideGrid = ref(false)
 const showCarrySteps = ref(true)
 const error = ref('')
@@ -25,6 +27,7 @@ const answer = computed(() => computation.value?.sumDigits ?? '—')
 
 const renderScene = (): void => {
   const result = shushi(`${firstAddend.value} + ${secondAddend.value}`, {
+    fontFamily: rendererFont.value,
     settings: {
       cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
       showGuideGrid: showGuideGrid.value, showCarrySteps: showCarrySteps.value,
@@ -35,6 +38,10 @@ const renderScene = (): void => {
   macroSource.value = result.source
   scene.value = result.scene
 }
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  rendererFont.value = fontFamily
+  renderScene()
+}
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
 const currentStep = playback.currentStep
@@ -44,6 +51,7 @@ const canPrevious = playback.canPrevious
 const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'addition',
+  fontFamily: rendererFont.value,
   fields: [['values', [firstAddend.value, secondAddend.value]]],
   settings: [
     ['cellWidth', cellWidth.value],
@@ -102,7 +110,7 @@ calculate()
         <div class="result-heading"><h2>{{ firstAddend }} + {{ secondAddend }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
         <p class="normalization">从个位开始相加；满十时把进位加到下一高位。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-        <GridPreview v-if="scene" :scene="scene" mode="both" />
+        <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
       </div></section>
       <CodeImplementationPanel
         title="加法计算与场景生成"

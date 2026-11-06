@@ -6,6 +6,7 @@ import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
+import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import type { GridScene, SubtractionComputation, SubtractionVerticalArithmeticResult } from '@u1in/shushi-core'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
 import StepPlaybackControls from './StepPlaybackControls.vue'
@@ -15,6 +16,7 @@ const subtrahend = ref('137')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
+const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const showGuideGrid = ref(false)
 const showBorrowSteps = ref(true)
 const error = ref('')
@@ -25,6 +27,7 @@ const answer = computed(() => computation.value?.resultText ?? '—')
 
 const renderScene = (): void => {
   const result = shushi(`${minuend.value} - ${subtrahend.value}`, {
+    fontFamily: rendererFont.value,
     settings: {
       cellWidth: cellWidth.value, rowHeight: rowHeight.value, fontSizeRatio: fontSizeRatio.value,
       showGuideGrid: showGuideGrid.value, showBorrowSteps: showBorrowSteps.value,
@@ -35,6 +38,10 @@ const renderScene = (): void => {
   macroSource.value = result.source
   scene.value = result.scene
 }
+const handleFontChange = (fontFamily: RendererFontFamily): void => {
+  rendererFont.value = fontFamily
+  renderScene()
+}
 const playback = useCalculatorStepPlayback({ getStepCount: () => computation.value?.steps.length ?? 0, render: renderScene })
 const visibleStepCount = playback.visibleStepCount
 const currentStep = playback.currentStep
@@ -44,6 +51,7 @@ const canPrevious = playback.canPrevious
 const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'subtraction',
+  fontFamily: rendererFont.value,
   fields: [['operands', [minuend.value, subtrahend.value]]],
   settings: [
     ['cellWidth', cellWidth.value],
@@ -102,7 +110,7 @@ calculate()
         <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
         <p v-if="computation?.isNegative" class="normalization">原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。</p>
         <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-        <GridPreview v-if="scene" :scene="scene" mode="both" />
+        <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
       </div></section>
       <CodeImplementationPanel
         title="减法计算与借位过程"
