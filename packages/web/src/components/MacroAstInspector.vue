@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AUTO_COLOR_THEME_FALLBACK, AUTO_COLOR_THEME_VARIABLES, shushiCore } from '@u1in/shushi-core'
+import { AUTO_COLOR_THEME_FALLBACK, shushiCore } from '@u1in/shushi-core'
 import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy, unformatMacro } from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
-import type { AutoColorThemeColorValues } from './autoColorTheme'
+import { toAutoColorTheme, type AutoColorThemeColorValues } from './autoColorTheme'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createMacroAstInspectorSnippet } from './implementationSnippets'
@@ -19,7 +19,19 @@ const DEFAULT_GRID_SETTINGS = {
   showGuideGrid: false,
 }
 const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
-const getCompileOptions = (): { fontFamily: RendererFontFamily } => ({ fontFamily: rendererFont.value })
+const previewTheme = ref<AutoColorThemeColorValues>({
+  text: AUTO_COLOR_THEME_FALLBACK.text,
+  carry: AUTO_COLOR_THEME_FALLBACK.carry,
+  borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
+  operator: AUTO_COLOR_THEME_FALLBACK.operator,
+  decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
+  bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
+})
+const getCompileOptions = (): { fontFamily: RendererFontFamily; colorTheme: ReturnType<typeof toAutoColorTheme> } => ({
+  fontFamily: rendererFont.value,
+  colorTheme: toAutoColorTheme(previewTheme.value),
+})
 
 /** 示例按钮使用正式门户生成宏源码；调试区本身只负责接收、编译和修改宏。 */
 const createInspectionFromExpression = (inputExpression: string): MacroAstInspection => {
@@ -33,6 +45,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
     const result = shushiCore({
       operation: 'division',
       fontFamily: rendererFont.value,
+      colorTheme: toAutoColorTheme(previewTheme.value),
       divisor,
       dividend,
       calculation: { resultMode: 'decimal' },
@@ -49,6 +62,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
   const result = shushiCore({
     operation: 'composite',
     fontFamily: rendererFont.value,
+    colorTheme: toAutoColorTheme(previewTheme.value),
     expression: normalizedExpression,
     settings: {
       ...DEFAULT_GRID_SETTINGS,
@@ -72,24 +86,6 @@ const selectedElementId = ref('')
 const editedText = ref('')
 const error = ref('')
 const errorTarget = ref<'source' | null>(null)
-const previewTheme = ref<AutoColorThemeColorValues>({
-  text: AUTO_COLOR_THEME_FALLBACK.text,
-  carry: AUTO_COLOR_THEME_FALLBACK.carry,
-  borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
-  operator: AUTO_COLOR_THEME_FALLBACK.operator,
-  decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
-  rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
-  bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
-})
-const previewThemeStyle = computed<Record<string, string>>(() => ({
-  [AUTO_COLOR_THEME_VARIABLES.text]: previewTheme.value.text,
-  [AUTO_COLOR_THEME_VARIABLES.carry]: previewTheme.value.carry,
-  [AUTO_COLOR_THEME_VARIABLES.borrow]: previewTheme.value.borrow,
-  [AUTO_COLOR_THEME_VARIABLES.operator]: previewTheme.value.operator,
-  [AUTO_COLOR_THEME_VARIABLES.decimal]: previewTheme.value.decimal,
-  [AUTO_COLOR_THEME_VARIABLES.rule]: previewTheme.value.rule,
-  [AUTO_COLOR_THEME_VARIABLES.bracketRule]: previewTheme.value.bracketRule,
-}))
 
 /** 将解析器偏底层的定位信息改写成用户能直接理解的提示。 */
 const getReadableMacroError = (reason: unknown, fallback: string): string => {
@@ -144,7 +140,7 @@ const loadExample = (exampleExpression: string): void => {
 /** 重新解析用户输入的宏；解析失败时保留上一次可渲染结果，避免画布突然消失。 */
 const compileSource = (fontFamily = rendererFont.value): boolean => {
   try {
-    inspection.value = createMacroAstInspection(source.value, { fontFamily })
+    inspection.value = createMacroAstInspection(source.value, { fontFamily, colorTheme: toAutoColorTheme(previewTheme.value) })
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
@@ -155,6 +151,12 @@ const compileSource = (fontFamily = rendererFont.value): boolean => {
     errorTarget.value = 'source'
     return false
   }
+}
+
+/** 颜色主题通过编译选项写入场景，避免依赖预览容器的 CSS 继承。 */
+const handleThemeChange = (theme: AutoColorThemeColorValues): void => {
+  previewTheme.value = theme
+  compileSource()
 }
 
 /** 格式化或切换源码形式后立即重建 AST，确保画布和源码保持同一版本。 */
@@ -259,7 +261,7 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
         </div>
       </section>
 
-      <section class="result-card" aria-live="polite" :style="previewThemeStyle">
+      <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <div class="result-heading">
             <div>
@@ -284,7 +286,7 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
           </section>
           <GridPreview :key="inspection.scene.fontFamily" :scene="inspection.scene" :font-family="rendererFont" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" @font-change="handleFontChange">
             <template #theme-control>
-              <AutoColorThemeEditor v-model="previewTheme" />
+              <AutoColorThemeEditor :model-value="previewTheme" @update:model-value="handleThemeChange" />
             </template>
           </GridPreview>
         </div>

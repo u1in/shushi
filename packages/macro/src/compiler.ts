@@ -398,7 +398,7 @@ const compileShortDivisionMacro = (
  * 该层只处理行列、对齐、横线和样式，不理解任何具体运算。
  */
 export interface MacroCompileOptions {
-  /** autoColor 生成的颜色；缺省使用带 CSS fallback 的内置主题。 */
+  /** autoColor 生成的颜色；缺省使用内置 JavaScript 主题。 */
   colorTheme?: AutoColorTheme
   /** 写入 GridScene 的默认字体；渲染器只读取场景，不再额外接收字体配置。 */
   fontFamily?: string

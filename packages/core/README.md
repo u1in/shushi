@@ -166,7 +166,7 @@ const scene = compileMacro(source)
 
 `compileMacro` 只负责解析和编译，不计算加法，也不创建 DOM 或 SVG。返回的 `GridScene` 是计算/布局与渲染之间的稳定数据契约。
 
-`autoColor` 默认使用 `--shushi-auto-text`、`--shushi-auto-carry`、`--shushi-auto-borrow`、`--shushi-auto-operator`、`--shushi-auto-decimal`、`--shushi-auto-rule` 和 `--shushi-auto-bracket-rule` 七个 CSS 变量，并带有纯色 fallback。网页可以覆盖这些变量来即时切换主题；需要固定颜色时，可在 `compileMacro(source, { colorTheme })` 或 `shushi(expression, { colorTheme })` 中传入 `AutoColorTheme` 配置对象。`colorTheme` 与 `fontFamily` 都在宏编译阶段写入同一份 `GridScene`：前者决定语义颜色，后者决定场景默认字体；DOM、SVG 和 SVG 字符串渲染器只读取场景，不另设外观参数。
+`autoColor` 默认使用内置的 JavaScript 主题；需要切换颜色时，在 `compileMacro(source, { colorTheme })`、`shushi(expression, { colorTheme })` 或 `shushiCore(request)` 中传入 `AutoColorTheme` 配置对象。`colorTheme` 与 `fontFamily` 都在宏编译阶段写入同一份 `GridScene`：前者决定语义颜色，后者决定场景默认字体；DOM、SVG 和 SVG 字符串渲染器只读取场景，不另设主题参数。这样同一场景不会受到外层 CSS 继承或覆盖的影响。
 
 ## 从计算到渲染
 

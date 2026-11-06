@@ -16,7 +16,6 @@ export { BASIC_MACRO_NAMES, BASIC_ZERO_ARGUMENT_MACROS, DEFAULT_LINE_STYLE } fro
 export {
   AUTO_COLOR_THEME,
   AUTO_COLOR_THEME_FALLBACK,
-  AUTO_COLOR_THEME_VARIABLES,
 } from './auto-color-theme'
 export type { AutoColorTheme } from './auto-color-theme'
 export { SUGAR_MACRO_NAMES, SUGAR_ZERO_ARGUMENT_MACROS } from './sugar-macros'

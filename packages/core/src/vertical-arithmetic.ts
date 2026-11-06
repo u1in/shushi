@@ -56,7 +56,7 @@ export type ShushiRendered<TMode extends ShushiRenderMode> = TMode extends 'div'
 /** 客户端挂载点只对 DOM 渲染有效；svg-string 不能直接挂载到元素。 */
 /** 在编译阶段写入 GridScene 的通用外观配置。 */
 export type ShushiAppearanceOptions = {
-  /** autoColor 使用的颜色配置；未传入时使用 CSS 变量主题和 fallback。 */
+  /** autoColor 使用的颜色配置；未传入时使用内置 JavaScript 主题。 */
   colorTheme?: AutoColorTheme
   /** 场景默认字体；字体文件仍需由宿主按需导入。 */
   fontFamily?: string

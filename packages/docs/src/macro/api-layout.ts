@@ -491,7 +491,7 @@ type VerticalArithmeticResult<T, TRendered> = {
     ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
     ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
     ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
-    ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；也可以传入 `var(...)` 颜色值让 CSS 主题切换立即生效。'],
+    ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；主题在编译阶段写入 GridScene，不依赖 CSS 继承或覆盖。'],
     ['`options.fontFamily`', '`string`', '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。'],
     ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
     ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],

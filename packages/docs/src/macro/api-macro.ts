@@ -29,7 +29,7 @@ export const compileMacroPage = compilePage({
 // 分号分隔三行，编译器会把它们转换成 GridScene。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 
-// 也可以传入纯色主题；网页主题通常直接使用默认的 --shushi-auto-* CSS 变量。
+// 也可以传入纯色主题；主题会在编译阶段写入 GridScene。
 const themedScene = compileMacro('3,5,6;LN;6,3,4;', {
   fontFamily: 'STIX Two Math',
   colorTheme: {
@@ -55,7 +55,7 @@ console.log(scene.elements.length, themedScene.elements.length) // 文本与线�
         {
           type: 'table', columns: ['项目', '类型', '说明'], rows: [
             ['`source`', '`string`', '完整宏源码；允许使用顶层分号行、方括号 CELL 简写和零参数省略。'],
-            ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；颜色值可以是普通 CSS 色值或 `var(...)` 表达式。省略时使用带 fallback 的 `--shushi-auto-*` 主题。'],
+            ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；颜色值可以是普通 CSS 色值。省略时使用内置 JavaScript 主题，主题会在编译阶段写入 GridScene。'],
             ['`options.fontFamily`', '`string`', '写入 `GridScene.fontFamily` 的默认字体名称；省略时为 STIX Two Math，随 `renderer.css` 内置。改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。'],
             ['返回值', '`GridScene`', '包含列轨道、行轨道、留白、字号、默认字体、文本/线条图元、对齐方式和样式 token。'],
           ],

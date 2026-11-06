@@ -117,7 +117,6 @@ ShushiRequest
 ShushiExpressionSettings
 ShushiExpressionOptions
 AutoColorTheme
-AUTO_COLOR_THEME_VARIABLES
 VerticalArithmeticRequest
 AnyVerticalArithmeticResult
 AdditionVerticalArithmeticResult

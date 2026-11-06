@@ -1,3 +1,5 @@
+import type { AutoColorTheme } from '@u1in/shushi-core'
+
 /** 首页颜色编辑器使用的纯颜色值；线宽保持宏自动配色的默认值。 */
 export type AutoColorThemeColorValues = {
   text: string
@@ -8,6 +10,17 @@ export type AutoColorThemeColorValues = {
   rule: string
   bracketRule: string
 }
+
+/** 将编辑器的颜色字段转换成核心 API 接受的完整主题对象。 */
+export const toAutoColorTheme = (theme: AutoColorThemeColorValues): AutoColorTheme => ({
+  text: theme.text,
+  carry: theme.carry,
+  borrow: theme.borrow,
+  operator: theme.operator,
+  decimal: theme.decimal,
+  rule: { color: theme.rule, thickness: 2 },
+  bracketRule: { color: theme.bracketRule, thickness: 2 },
+})
 
 type FormatAutoColorThemeOptions = {
   indent?: string

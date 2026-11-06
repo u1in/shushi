@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import {
   AUTO_COLOR_THEME_FALLBACK,
-  AUTO_COLOR_THEME_VARIABLES,
   getCompositeArithmeticStepCount,
   getDivisionPlaybackStepCount,
   getMultiplicationStepCount,
@@ -11,7 +10,7 @@ import {
 import type { AnyVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
-import type { AutoColorThemeColorValues } from './autoColorTheme'
+import { toAutoColorTheme, type AutoColorThemeColorValues } from './autoColorTheme'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
@@ -44,15 +43,6 @@ const previewTheme = ref<AutoColorThemeColorValues>({
   rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
   bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
 })
-const previewThemeStyle = computed<Record<string, string>>(() => ({
-  [AUTO_COLOR_THEME_VARIABLES.text]: previewTheme.value.text,
-  [AUTO_COLOR_THEME_VARIABLES.carry]: previewTheme.value.carry,
-  [AUTO_COLOR_THEME_VARIABLES.borrow]: previewTheme.value.borrow,
-  [AUTO_COLOR_THEME_VARIABLES.operator]: previewTheme.value.operator,
-  [AUTO_COLOR_THEME_VARIABLES.decimal]: previewTheme.value.decimal,
-  [AUTO_COLOR_THEME_VARIABLES.rule]: previewTheme.value.rule,
-  [AUTO_COLOR_THEME_VARIABLES.bracketRule]: previewTheme.value.bracketRule,
-}))
 
 /** 只有单独乘法且任一操作数是非零 10 的倍数时，才开放乘法末尾零快捷计算。 */
 const standaloneMultiplicationOperands = computed(() => {
@@ -103,6 +93,7 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
   if (!shouldRenderWithoutComputation && !result.value) return
   const nextResult = shushi(expression.value, {
     fontFamily: rendererFont.value,
+    colorTheme: toAutoColorTheme(previewTheme.value),
     calculation: {
       resultMode: 'decimal',
       useTrailingZeroShortcut: trailingZeroShortcutEnabled.value,
@@ -127,6 +118,12 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
 }
 const handleFontChange = (fontFamily: RendererFontFamily): void => {
   rendererFont.value = fontFamily
+  renderScene()
+}
+
+/** 颜色主题通过 JavaScript 重新生成场景，避免依赖预览容器的 CSS 继承。 */
+const handleThemeChange = (theme: AutoColorThemeColorValues): void => {
+  previewTheme.value = theme
   renderScene()
 }
 
@@ -228,7 +225,7 @@ calculate()
           </div>
         </div></div>
       </form>
-      <section class="result-card" aria-live="polite" :style="previewThemeStyle">
+      <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">VERTICAL PREVIEW</p>
           <div class="result-heading"><div v-if="!isCommonFactorResult && !isBaseConversionResult" class="result-heading__title"><h2>{{ expression.trim() ? `${expression} =` : '等待输入表达式' }}</h2></div><template v-if="scene"><output class="answer" :class="{ 'answer--common-factor': isCommonFactorResult, 'answer--base-conversion': isBaseConversionResult }">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
@@ -247,7 +244,7 @@ calculate()
           />
           <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange">
             <template #theme-control>
-              <AutoColorThemeEditor v-model="previewTheme" />
+              <AutoColorThemeEditor :model-value="previewTheme" @update:model-value="handleThemeChange" />
             </template>
           </GridPreview>
           <div v-else class="renderer-comparison renderer-comparison--both renderer-comparison--empty" role="status" aria-live="polite">

@@ -6,17 +6,6 @@
  * 字体、线条和语义 token 的默认视觉表现。
  */
 
-:root {
-  /* autoColor 的固定语义主题；应用可在 :root 或预览容器上覆盖这些变量。 */
-  --shushi-auto-text: #d95070;
-  --shushi-auto-carry: #0b9b86;
-  --shushi-auto-borrow: #8957c8;
-  --shushi-auto-operator: #e27624;
-  --shushi-auto-decimal: #d74783;
-  --shushi-auto-rule: #7c5366;
-  --shushi-auto-bracket-rule: #a84b6b;
-}
-
 :where(.grid-dom-stage, .grid-svg) {
   --grid-default-text: var(--grid-text, #172033);
   --grid-default-rule: var(--grid-rule, #4a5f78);

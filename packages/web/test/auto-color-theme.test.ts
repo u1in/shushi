@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest'
 import {
   AUTO_COLOR_THEME,
   AUTO_COLOR_THEME_FALLBACK,
-  AUTO_COLOR_THEME_VARIABLES,
   compileMacro,
 } from '@u1in/shushi-macro'
 
@@ -20,20 +19,8 @@ const contrastOnWhite = (color: string): number => {
 }
 
 describe('autoColor 固定语义主题', () => {
-  test('默认主题使用 CSS 变量并保留 fallback', () => {
-    const entries = [
-      ['text', AUTO_COLOR_THEME.text, AUTO_COLOR_THEME_VARIABLES.text],
-      ['carry', AUTO_COLOR_THEME.carry, AUTO_COLOR_THEME_VARIABLES.carry],
-      ['borrow', AUTO_COLOR_THEME.borrow, AUTO_COLOR_THEME_VARIABLES.borrow],
-      ['operator', AUTO_COLOR_THEME.operator, AUTO_COLOR_THEME_VARIABLES.operator],
-      ['decimal', AUTO_COLOR_THEME.decimal, AUTO_COLOR_THEME_VARIABLES.decimal],
-      ['rule', AUTO_COLOR_THEME.rule.color, AUTO_COLOR_THEME_VARIABLES.rule],
-      ['bracketRule', AUTO_COLOR_THEME.bracketRule.color, AUTO_COLOR_THEME_VARIABLES.bracketRule],
-    ] as const
-
-    entries.forEach(([, value, variable]) => {
-      expect(value).toContain(`var(${variable},`)
-    })
+  test('默认主题直接使用 JavaScript 颜色对象', () => {
+    expect(AUTO_COLOR_THEME).toEqual(AUTO_COLOR_THEME_FALLBACK)
   })
 
   test('fallback 颜色在白底上保持屏幕可读对比度', () => {

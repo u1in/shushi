@@ -35,13 +35,6 @@
   --grid-rule: #4a5f78;
   --grid-guide: #a7bbdd;
   --grid-bracket: #4a5f78;
-  --shushi-auto-text: #d95070;
-  --shushi-auto-carry: #0b9b86;
-  --shushi-auto-borrow: #8957c8;
-  --shushi-auto-operator: #e27624;
-  --shushi-auto-decimal: #d74783;
-  --shushi-auto-rule: #7c5366;
-  --shushi-auto-bracket-rule: #a84b6b;
   --scrollbar-track: #e8edf6;
   --scrollbar-thumb: #9bacc7;
   --scrollbar-thumb-hover: #6d85af;
@@ -93,13 +86,6 @@ html[data-theme='dark'] {
   --grid-rule: #9eb8e4;
   --grid-guide: #526a94;
   --grid-bracket: #a9c6ff;
-  --shushi-auto-text: #ff9bad;
-  --shushi-auto-carry: #5de0c5;
-  --shushi-auto-borrow: #c5a6ff;
-  --shushi-auto-operator: #ffb25f;
-  --shushi-auto-decimal: #ff8fbd;
-  --shushi-auto-rule: #d8adc0;
-  --shushi-auto-bracket-rule: #ff9fbe;
   --scrollbar-track: #111d31;
   --scrollbar-thumb: #526b95;
   --scrollbar-thumb-hover: #86abe7;
@@ -138,13 +124,6 @@ html[data-theme='dark'] {
     --grid-rule: #9eb8e4;
     --grid-guide: #526a94;
     --grid-bracket: #a9c6ff;
-    --shushi-auto-text: #ff9bad;
-    --shushi-auto-carry: #5de0c5;
-    --shushi-auto-borrow: #c5a6ff;
-    --shushi-auto-operator: #ffb25f;
-    --shushi-auto-decimal: #ff8fbd;
-    --shushi-auto-rule: #d8adc0;
-    --shushi-auto-bracket-rule: #ff9fbe;
     --scrollbar-track: #111d31;
     --scrollbar-thumb: #526b95;
     --scrollbar-thumb-hover: #86abe7;
@@ -1915,8 +1894,7 @@ h2 {
   font-size: 0.9rem;
 }
 
-.auto-color-theme-editor__label small,
-.auto-color-theme-editor__variable {
+.auto-color-theme-editor__label small {
   overflow: hidden;
   color: var(--text-muted);
   font-size: 0.75rem;
@@ -1938,10 +1916,6 @@ h2 {
   color: var(--text);
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 0.78rem;
-}
-
-.auto-color-theme-editor__variable {
-  grid-column: 1 / -1;
 }
 
 .visible-text-rows__description {

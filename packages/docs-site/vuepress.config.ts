@@ -174,6 +174,13 @@ export default defineUserConfig({
       ],
       '/technical/': [
         {
+          text: '主题与渲染外观',
+          collapsible: false,
+          children: [
+            { text: 'colorTheme 颜色主题', link: '/technical/colorTheme主题' },
+          ],
+        },
+        {
           text: 'API 文档',
           collapsible: false,
           children: [

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useId } from 'vue'
-import { AUTO_COLOR_THEME_VARIABLES } from '@u1in/shushi-core'
 import { formatAutoColorThemeObject, type AutoColorThemeColorValues } from './autoColorTheme'
 
 const props = defineProps<{
@@ -16,17 +15,16 @@ type ThemeColorEntry = {
   key: ThemeColorKey
   label: string
   description: string
-  variable: string
 }
 
 const entries: ThemeColorEntry[] = [
-  { key: 'text', label: '普通数字', description: '普通数字与未分类文字', variable: AUTO_COLOR_THEME_VARIABLES.text },
-  { key: 'carry', label: '进位', description: 'RB 进位提示', variable: AUTO_COLOR_THEME_VARIABLES.carry },
-  { key: 'borrow', label: '借位', description: 'MT / MTD 借位提示', variable: AUTO_COLOR_THEME_VARIABLES.borrow },
-  { key: 'operator', label: '运算符', description: '加减乘除运算符', variable: AUTO_COLOR_THEME_VARIABLES.operator },
-  { key: 'decimal', label: '小数点', description: 'DOT 与小数点', variable: AUTO_COLOR_THEME_VARIABLES.decimal },
-  { key: 'rule', label: '普通线条', description: '横线、边框与短除法分割线', variable: AUTO_COLOR_THEME_VARIABLES.rule },
-  { key: 'bracketRule', label: '厂字线条', description: '除法厂字弯与厂字横', variable: AUTO_COLOR_THEME_VARIABLES.bracketRule },
+  { key: 'text', label: '普通数字', description: '普通数字与未分类文字' },
+  { key: 'carry', label: '进位', description: 'RB 进位提示' },
+  { key: 'borrow', label: '借位', description: 'MT / MTD 借位提示' },
+  { key: 'operator', label: '运算符', description: '加减乘除运算符' },
+  { key: 'decimal', label: '小数点', description: 'DOT 与小数点' },
+  { key: 'rule', label: '普通线条', description: '横线、边框与短除法分割线' },
+  { key: 'bracketRule', label: '厂字线条', description: '除法厂字弯与厂字横' },
 ]
 
 const isOpen = ref(false)
@@ -116,7 +114,7 @@ onBeforeUnmount(() => {
           <div class="ocr-modal__header">
             <div>
               <p :id="dialogTitleId" class="panel-kicker">修改颜色</p>
-              <p class="auto-color-theme-modal__hint">每个颜色都会写入对应 CSS 变量，并立即作用于当前预览区。</p>
+              <p class="auto-color-theme-modal__hint">确定后会通过 JavaScript 重新编译当前预览，DOM 与 SVG 使用同一份颜色主题。</p>
             </div>
             <button class="ocr-modal__close" type="button" aria-label="关闭颜色编辑" @click="closeDialog">×</button>
           </div>
@@ -128,7 +126,6 @@ onBeforeUnmount(() => {
               </span>
               <input v-model="draft[entry.key]" type="color" :aria-label="`修改${entry.label}颜色`" />
               <code>{{ draft[entry.key] }}</code>
-              <small class="auto-color-theme-editor__variable">{{ entry.variable }}</small>
             </label>
           </div>
           <div class="ocr-modal__actions">
