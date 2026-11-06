@@ -256,6 +256,8 @@ const copiedSource = minifyMacroForCopy(result.source)
 
 它会移除网页专属的 `ariaLabel`、`style` 等配置；不要用正则自行裁剪。
 
+小数长除法的等值变换源码会使用 `STRIKE` 划去数字，并以 `STRIKEDOT` 表示带删除线的小数点；两者都由 `compileMacro` 编译为通用场景图元。
+
 AST 编辑是不可变的：
 
 ```typescript

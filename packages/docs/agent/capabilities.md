@@ -217,6 +217,7 @@ createMacroAstInspection(source)
 - `completeMacro` 输出显式的 `GRID`、`ROW`、`CELL` 和完整宏名。
 - `minifyMacro` 输出最简合法宏；计算器生成的宏复制到编辑器时使用 `minifyMacroForCopy`，它会移除页面专属 `ariaLabel` 和 `style`。
 - `createMacroAstInspection` 返回 `scene`、`references`、`source`、`minifiedSource` 和不可变的 `updateElementText`。
+- 小数除法的 `source` 会用 `STRIKE` 标记被消去的数字、用 `STRIKEDOT` 表示带删除线的小数点；编辑这类源码时保留这两个图元，不要改为 CSS 文字删除线或手工坐标。
 
 典型 AST 编辑流程：
 
@@ -244,7 +245,7 @@ console.log(updated.source, updated.scene)
 ## 8. 边界规则
 
 - 运算输入优先使用十进制字符串，避免大整数转换为 JavaScript `number` 后丢失精度。
-- 加法、乘法和长除法入口接受非负十进制数；减法和短除法仍只接受非负整数。非法字符、空值和不符合模式的短除法会抛出错误。
+- 加法、乘法和长除法入口接受非负十进制数；长除法的除数必须大于 `0`。减法和短除法仍只接受非负整数。非法字符、空值和不符合模式的短除法会抛出错误。
 - `computeDivision` 的参数顺序是 `divisorValue, dividendValue`；不要按表达式书写顺序调用底层函数。
 - 纯计算、宏解析、编译、几何查询和文本提取不依赖 DOM；DOM/SVG 渲染依赖浏览器。
 - 公开类型和字段以 `packages/core/src/vertical-arithmetic.ts` 及统一入口导出为准；不要根据旧示例猜测已经删除的 API。

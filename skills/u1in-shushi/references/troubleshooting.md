@@ -92,6 +92,8 @@ import '@u1in/shushi-core/renderer.css'
 
 计算器生成的源码可能包含网页专属 `ariaLabel` 和 `style`；复制到宏编辑器前必须使用 `minifyMacroForCopy`，不要手工裁剪。
 
+小数长除法源码中的 `STRIKE` 与 `STRIKEDOT` 是等值变换说明的一部分；不要用 `text-decoration`、字符串替换或渲染器坐标逻辑代替它们。
+
 ## 6. AST 编辑问题
 
 ```typescript

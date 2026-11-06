@@ -125,7 +125,7 @@ addition | subtraction | multiplication | division | shortDivision | composite
 - `addition`：`values`；
 - `subtraction`：`operands: [被减数, 减数]`；
 - `multiplication`：`operands`，可选 `calculation`；
-- `division`：`divisor` 在前、`dividend` 在后；两者可为非负小数。`calculation.maxDecimalDigits` 可选，已有输入小数会先计算完，省略时后续默认最多补零十位，传入正整数时覆盖该上限；
+- `division`：`divisor` 在前、`dividend` 在后；两者可为小数，其中 `dividend` 非负、`divisor` 必须大于 `0`。`calculation.maxDecimalDigits` 可选，已有输入小数会先计算完，省略时后续默认最多补零十位，传入正整数时覆盖该上限；
 - `shortDivision`：`mode`、`values`，指定除数时增加 `divisor`，进制转换时增加 `targetBase`；
 - `composite`：`expression`。
 
@@ -142,6 +142,8 @@ const { computation, source, scene, rendered, inspection } = shushi('10230 / 25'
 ```
 
 `source` 是可编辑宏源码；需要复制到宏编辑器时使用 `minifyMacroForCopy(source)`，不要手工删除 `style`、`ariaLabel` 或其他宏参数。
+
+小数除法的等值变换源码使用 `STRIKE` 标记被消去的数字，使用 `STRIKEDOT` 生成带删除线的小数点。二者都是宏图元，编辑时必须保留，不要替换为 CSS `text-decoration` 或像素坐标。
 
 ### 4.2 AST 检查与修改
 
