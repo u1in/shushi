@@ -1,16 +1,7 @@
 <script setup lang="ts">
-import { nextTick, ref, useId } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useId } from 'vue'
 import { AUTO_COLOR_THEME_VARIABLES } from '@u1in/shushi-core'
-
-export type AutoColorThemeColorValues = {
-  text: string
-  carry: string
-  borrow: string
-  operator: string
-  decimal: string
-  rule: string
-  bracketRule: string
-}
+import { formatAutoColorThemeObject, type AutoColorThemeColorValues } from './autoColorTheme'
 
 const props = defineProps<{
   modelValue: AutoColorThemeColorValues
@@ -40,8 +31,10 @@ const entries: ThemeColorEntry[] = [
 
 const isOpen = ref(false)
 const draft = ref<AutoColorThemeColorValues>({ ...props.modelValue })
+const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 const dialog = ref<HTMLElement>()
 const dialogTitleId = useId()
+let copyTimer: ReturnType<typeof setTimeout> | undefined
 
 const openDialog = async (): Promise<void> => {
   draft.value = { ...props.modelValue }
@@ -54,10 +47,46 @@ const closeDialog = (): void => {
   isOpen.value = false
 }
 
+/** 优先使用 Clipboard API，非安全上下文再回退到浏览器原生复制命令。 */
+const writeClipboard = async (text: string): Promise<void> => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  textarea.remove()
+  if (!copied) throw new Error('浏览器拒绝了复制操作。')
+}
+
+const copyTheme = async (): Promise<void> => {
+  try {
+    await writeClipboard(formatAutoColorThemeObject(draft.value, { prefix: 'const colorTheme = ' }))
+    copyState.value = 'copied'
+  } catch {
+    copyState.value = 'error'
+  }
+  if (copyTimer) clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => {
+    copyState.value = 'idle'
+  }, 1600)
+}
+
 const applyTheme = (): void => {
   emit('update:modelValue', { ...draft.value })
   closeDialog()
 }
+
+onBeforeUnmount(() => {
+  if (copyTimer) clearTimeout(copyTimer)
+})
 </script>
 
 <template>
@@ -103,6 +132,9 @@ const applyTheme = (): void => {
             </label>
           </div>
           <div class="ocr-modal__actions">
+            <button class="outline-button" type="button" @click="copyTheme">
+              {{ copyState === 'copied' ? '已复制 JS 对象' : copyState === 'error' ? '复制失败，请重试' : '复制 JS 对象' }}
+            </button>
             <button class="outline-button" type="button" @click="closeDialog">取消</button>
             <button class="primary-button" type="button" @click="applyTheme">确定应用</button>
           </div>

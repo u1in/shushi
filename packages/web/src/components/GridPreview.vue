@@ -81,7 +81,7 @@ const syncStageScale = (): void => {
   ]
   stages.forEach(([stage, scale]) => {
     if (!stage) return
-    stage.style.transformOrigin = 'top left'
+    stage.style.transformOrigin = 'top right'
     stage.style.transform = 'scale(' + scale + ')'
   })
 }

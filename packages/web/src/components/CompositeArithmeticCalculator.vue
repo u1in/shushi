@@ -11,7 +11,7 @@ import {
 import type { AnyVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
-import type { AutoColorThemeColorValues } from './AutoColorThemeEditor.vue'
+import type { AutoColorThemeColorValues } from './autoColorTheme'
 import CopyMacroButton from './CopyMacroButton.vue'
 import StepPlaybackControls from './StepPlaybackControls.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
@@ -143,6 +143,7 @@ const canNext = playback.canNext
 const implementationCode = computed(() => createShushiImplementationSnippet({
   operation: 'expression',
   fontFamily: rendererFont.value,
+  colorTheme: previewTheme.value,
   fields: [['expression', expression.value]],
   calculation: [
     ['resultMode', 'decimal'],

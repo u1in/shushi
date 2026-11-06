@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { shushiCore } from '@u1in/shushi-core'
 import { compileMacro, createMacroAstInspection, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples } from '../src/components/macroPlaygroundExamples'
+import { formatAutoColorThemeObject } from '../src/components/autoColorTheme'
 import { createMacroAstInspectorSnippet, createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
 
 const DEFAULT_GRID_SETTINGS = {
@@ -150,5 +151,34 @@ describe('首页宏调试示例', () => {
     expect(code).not.toContain("import '@u1in/shushi-core/fonts/stix-two-math.css'")
     expect(code).toContain("fontFamily: 'Noto Sans Math'")
     expect(code).not.toContain('const fontFamily')
+  })
+
+  test('代码示例注入颜色方案，并可复制为 JS 对象', () => {
+    const colorTheme = {
+      text: '#111111',
+      carry: '#222222',
+      borrow: '#333333',
+      operator: '#444444',
+      decimal: '#555555',
+      rule: '#666666',
+      bracketRule: '#777777',
+    }
+    const code = createShushiImplementationSnippet({
+      operation: 'addition',
+      fields: [['values', ['123', '456']]],
+      settings: [],
+      colorTheme,
+    })
+    const macroCode = createMacroAstInspectorSnippet({
+      source: 'GRID(ROW(MM(3)))',
+      elementId: 'grid-element-id',
+      text: '9',
+      colorTheme,
+    })
+
+    expect(code).toContain("  colorTheme: {\n    text: '#111111',")
+    expect(macroCode).toContain("    colorTheme: {\n      text: '#111111',")
+    expect(formatAutoColorThemeObject(colorTheme, { prefix: 'const colorTheme = ' })).toContain('const colorTheme = {')
+    expect(formatAutoColorThemeObject(colorTheme)).toContain("rule: { color: '#666666', thickness: 2 },")
   })
 })

@@ -1076,6 +1076,12 @@ h1 {
 
 .expression-input-grid { margin-top: 16px; }
 
+/* 表达式输入与宏源码使用同一套等宽源码字体，避免算式输入框回退到数学字体。 */
+.expression-input-grid .field input {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  line-height: 1.55;
+}
+
 .field-help {
   margin: 10px 0 0;
   color: #63718b;
@@ -2115,6 +2121,8 @@ h2 {
 
 .division-stage {
   position: relative;
+  display: flex;
+  justify-content: flex-end;
   width: 100%;
   min-width: 0;
   min-height: 220px;
@@ -2124,16 +2132,21 @@ h2 {
 }
 
 .division-svg {
-  position: absolute;
-  inset: 0;
+  /* 预览区域保留面板宽度，但把实际竖式舞台贴到右侧。 */
+  position: relative;
+  inset: auto;
   display: block;
-  transform-origin: top left;
+  flex: 0 0 auto;
+  margin-left: auto;
+  transform-origin: top right;
 }
 
 .division-dom {
-  position: absolute;
-  inset: 0;
-  transform-origin: top left;
+  position: relative;
+  inset: auto;
+  flex: 0 0 auto;
+  margin-left: auto;
+  transform-origin: top right;
 }
 
 .division-line-layer,

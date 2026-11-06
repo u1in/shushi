@@ -4,6 +4,7 @@ import {
   getRendererStyleCssPath,
   type RendererFontFamily,
 } from './rendererFonts'
+import { formatAutoColorThemeObject, type AutoColorThemeColorValues } from './autoColorTheme'
 
 /** 首页第三列展示的核心调用链，保持与各演示组件实际使用的公开 API 对齐。 */
 export const implementationSnippets = {
@@ -41,6 +42,7 @@ export type ShushiImplementationSnippetOptions = {
   calculation?: SnippetProperty[]
   settings: SnippetProperty[]
   fontFamily?: RendererFontFamily
+  colorTheme?: AutoColorThemeColorValues
 }
 
 export type MacroAstInspectorSnippetOptions = {
@@ -48,6 +50,7 @@ export type MacroAstInspectorSnippetOptions = {
   elementId: string
   text: string
   fontFamily?: RendererFontFamily
+  colorTheme?: AutoColorThemeColorValues
 }
 
 /** 首页表达式演示优先展示统一字符串入口；需要精确指定运算类型时再生成结构化入口。 */
@@ -92,6 +95,7 @@ export const createMacroAstInspectorSnippet = ({
   elementId,
   text,
   fontFamily = DEFAULT_RENDERER_FONT,
+  colorTheme,
 }: MacroAstInspectorSnippetOptions): string => [
   "import { createMacroAstInspection, renderDomGrid } from '@u1in/shushi-core'",
   "import type { MacroAstInspection } from '@u1in/shushi-core'",
@@ -100,10 +104,11 @@ export const createMacroAstInspectorSnippet = ({
   'const macro = ' + formatSnippetValue(source),
   '',
   'const render = (macro: string) => {',
-  ...(usesCustomRendererFont(fontFamily)
+  ...(colorTheme || usesCustomRendererFont(fontFamily)
     ? [
       '  const inspection = createMacroAstInspection(macro, {',
-      '    fontFamily: ' + formatSnippetValue(fontFamily) + ',',
+      ...(colorTheme ? formatAutoColorThemeObject(colorTheme, { indent: '    ', prefix: 'colorTheme: ', trailingComma: true }).split('\n') : []),
+      ...(usesCustomRendererFont(fontFamily) ? ['    fontFamily: ' + formatSnippetValue(fontFamily) + ','] : []),
       '  })',
     ]
     : ['  const inspection = createMacroAstInspection(macro)']),
@@ -156,6 +161,7 @@ export const createShushiImplementationSnippet = ({
   calculation,
   settings,
   fontFamily = DEFAULT_RENDERER_FONT,
+  colorTheme,
 }: ShushiImplementationSnippetOptions): string => {
   const expression = createExpression(operation, fields)
   const useExpressionApi = expression !== undefined
@@ -179,6 +185,7 @@ export const createShushiImplementationSnippet = ({
   '  settings: {',
   ...formatSnippetProperties(settings, '    '),
   '  },',
+  ...(colorTheme ? formatAutoColorThemeObject(colorTheme, { indent: '  ', prefix: 'colorTheme: ', trailingComma: true }).split('\n') : []),
   ...(usesCustomRendererFont(fontFamily) ? ['  fontFamily: ' + formatSnippetValue(fontFamily) + ','] : []),
   "  renderMode: 'div',",
   "  el: document.querySelector('#result') ?? undefined,",

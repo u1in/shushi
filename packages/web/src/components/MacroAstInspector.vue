@@ -5,12 +5,12 @@ import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, mini
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
-import type { AutoColorThemeColorValues } from './AutoColorThemeEditor.vue'
+import type { AutoColorThemeColorValues } from './autoColorTheme'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createMacroAstInspectorSnippet } from './implementationSnippets'
 import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
-import { arithmeticExamples, type MacroExample } from './macroPlaygroundExamples'
+import { arithmeticExamples, DEFAULT_MACRO_EXPRESSION, type MacroExample } from './macroPlaygroundExamples'
 
 const DEFAULT_GRID_SETTINGS = {
   cellWidth: 30,
@@ -65,7 +65,7 @@ const createFormattedMinimalInspection = (inspection: MacroAstInspection): Macro
   createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)), getCompileOptions())
 )
 
-const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(arithmeticExamples[0].expression))
+const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(DEFAULT_MACRO_EXPRESSION))
 const source = ref(initialInspection.source)
 const inspection = ref<MacroAstInspection>(initialInspection)
 const selectedElementId = ref('')
@@ -121,6 +121,7 @@ const implementationCode = computed(() => {
     elementId: updateReference?.elementId ?? 'grid-element-id',
     text: editedText.value || updateReference?.text || '9',
     fontFamily: rendererFont.value,
+    colorTheme: previewTheme.value,
   })
 })
 
