@@ -184,7 +184,7 @@ export const orientationPages: MacroDocPage[] = [
     title: 'MTD · 顶部借位点',
     navLabel: 'MTD',
     kicker: 'ORIENTATION MACRO · BORROW DOT',
-    group: 'orientation',
+    group: 'alias',
     summary: 'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格的中上位置。它用于竖式减法的借位提示，不接受自定义文字参数。',
     sections: [
       {

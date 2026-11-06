@@ -113,12 +113,22 @@ export default defineUserConfig({
           ],
         },
         {
+          text: '别名宏',
+          collapsible: false,
+          children: [
+            { text: 'MTD · 顶部借位点', link: '/macro/orientation/MTD' },
+            { text: 'DOT · 小数点', link: '/macro/symbol/DOT' },
+            { text: 'SQUARE / SQ · 方框符号', link: '/macro/symbol/SQUARE' },
+            { text: 'TRIANGLE / TRI · 三角符号', link: '/macro/symbol/TRIANGLE' },
+            { text: 'ROUND / RND · 圆形符号', link: '/macro/symbol/ROUND' },
+          ],
+        },
+        {
           text: '定位宏命令',
           collapsible: false,
           children: [
             { text: 'LT · 左上', link: '/macro/orientation/LT' },
             { text: 'MT · 中上', link: '/macro/orientation/MT' },
-            { text: 'MTD · 顶部借位点', link: '/macro/orientation/MTD' },
             { text: 'RT · 右上', link: '/macro/orientation/RT' },
             { text: 'ML · 左中', link: '/macro/orientation/ML' },
             { text: 'MM · 居中', link: '/macro/orientation/MM' },
@@ -133,7 +143,6 @@ export default defineUserConfig({
           text: '符号与边框',
           collapsible: false,
           children: [
-            { text: 'DOT · 小数点', link: '/macro/symbol/DOT' },
             { text: 'BRACKET · 厂字弯', link: '/macro/symbol/BRACKET' },
             { text: 'TBD · 上边框', link: '/macro/symbol/TBD' },
             { text: 'RBD · 右边框', link: '/macro/symbol/RBD' },

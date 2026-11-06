@@ -150,7 +150,7 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
   title: config.title,
   navLabel: `${config.name} / ${config.shortName}`,
   kicker: 'SYMBOL MACRO · FIXED GLYPH',
-  group: 'symbol',
+  group: 'alias',
   summary: `${config.name} 是一个零参数单元格符号宏，渲染为 ${config.glyph}；${config.shortName} 是它的首选简写。`,
   sections: [
     {
@@ -253,7 +253,7 @@ export const symbolPages: MacroDocPage[] = [
     title: 'DOT · 小数点符号宏',
     navLabel: 'DOT',
     kicker: 'SYMBOL MACRO · DECIMAL',
-    group: 'symbol',
+    group: 'alias',
     summary: 'DOT 是 RBL(.) 的专用零参数宏，把小数点贴在当前单元格右侧边框中点，并始终使用小数点独占色。',
     sections: [
       {
