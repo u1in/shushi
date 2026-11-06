@@ -1,51 +1,71 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { shushi } from '@u1in/shushi-core'
 
 const resultHost = ref<HTMLElement>()
 const stageHost = ref<HTMLElement>()
 const flowHost = ref<HTMLElement>()
-const installCommand = 'npm install @u1in/shushi-core'
-const skillInstallCommand = 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y'
 const agentInstallGuideUrl = 'https://u1in.github.io/shushi/doc/agent-installation.md'
 const agentCapabilitiesGuideUrl = 'https://u1in.github.io/shushi/doc/agent-capabilities.md'
-// 展示 Skill 安装后的最小使用方式，由 Skill 先询问运算式、渲染方式和相关配置。
-const skillUsagePrompt = '$u1in-shushi 请开始交互式竖式实现。'
-// 安装规则集中在公开 Markdown；这里的复制文案只保留任务目标，避免多处漂移。
-const agentInstallPrompt = `请阅读并严格遵循 ${agentInstallGuideUrl}，按其中说明完成 @u1in/shushi-core 的安装与验证。`
-// 先确认计算式和输出形态，避免 Agent 在缺少宿主上下文时直接修改代码。
-const agentCapabilitiesPrompt = `请阅读并严格遵循 ${agentCapabilitiesGuideUrl}，按其中流程完成本次实现。`
-type CopyState = 'idle' | 'copied' | 'failed'
+type InstallMethod = 'npm' | 'skill' | 'agent'
+type CopySection = 'install' | 'usage'
+type InstallCopyState = CopySection | 'failed' | null
 type CopyTimer = { id?: number }
+type InstallGuide = {
+  label: string
+  install: string
+  usage: string
+  installHint: string
+  usageHint: string
+}
 
-const copyState = ref<CopyState>('idle')
-const skillInstallCopyState = ref<CopyState>('idle')
-const agentInstallCopyState = ref<CopyState>('idle')
-const agentCapabilitiesCopyState = ref<CopyState>('idle')
-const skillUsageCopyState = ref<CopyState>('idle')
-const codeCopyState = ref<CopyState>('idle')
+const activeInstallMethod = ref<InstallMethod>('npm')
+const copiedInstallSection = ref<InstallCopyState>(null)
 let flowRenderCount = 0
 let flowRenderRequest = 0
 let themeObserver: MutationObserver | undefined
 let stageResizeObserver: ResizeObserver | undefined
-const installCopyTimer: CopyTimer = {}
-const skillInstallCopyTimer: CopyTimer = {}
-const agentInstallCopyTimer: CopyTimer = {}
-const agentCapabilitiesCopyTimer: CopyTimer = {}
-const skillUsageCopyTimer: CopyTimer = {}
-const codeCopyTimer: CopyTimer = {}
+const copiedInstallTimer: CopyTimer = {}
+
+const installGuides: Record<InstallMethod, InstallGuide> = {
+  npm: {
+    label: 'Npm',
+    install: 'npm install @u1in/shushi-core',
+    usage: `import { shushi } from '@u1in/shushi-core'
+import '@u1in/shushi-core/style.css'
+
+shushi('356 + 278', {
+  renderMode: 'div',
+  el: document.querySelector('#result'),
+})`,
+    installHint: '在前端项目中安装公开入口 @u1in/shushi-core。',
+    usageHint: '从表达式入口开始；需要细粒度控制时再切换到 shushiCore。',
+  },
+  skill: {
+    label: 'Skill',
+    install: 'npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a codex -y',
+    usage: '$u1in-shushi 请开始交互式竖式实现。',
+    installHint: '把竖式实现流程安装到当前 Agent 环境。',
+    usageHint: '在 Agent 对话中调用 Skill，按提示确认运算与输出方式。',
+  },
+  agent: {
+    label: 'Agent',
+    install: `请阅读安装指南：
+${agentInstallGuideUrl}
+完成 @u1in/shushi-core 的安装与验证。`,
+    usage: `请阅读能力说明：
+${agentCapabilitiesGuideUrl}
+按其中流程完成本次竖式实现。`,
+    installHint: '把安装指南交给你的编码 Agent 执行。',
+    usageHint: '让 Agent 按项目约定确认输入、渲染方式和验证范围。',
+  },
+}
+
+const activeInstallGuide = computed(() => installGuides[activeInstallMethod.value])
 
 /** Hero demo 唯一使用这一份表达式；输入变化后直接调用 shushi 更新竖式。 */
 const heroExpression = ref('356 + 278')
 const heroExpressionError = ref('')
-const exampleCode = `import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/style.css'
-
-const { computation, source, rendered, inspection } = shushi('356 + 278', {
-  renderMode: 'div',
-  el: document.querySelector('#result') ?? undefined,
-})
-console.log(computation, source, rendered, inspection)`
 
 /** 复制文本；Clipboard API 不可用时回退到浏览器原生复制能力。 */
 const copyText = async (text: string): Promise<boolean> => {
@@ -70,36 +90,14 @@ const copyText = async (text: string): Promise<boolean> => {
   }
 }
 
-const updateCopyState = (state: { value: CopyState }, timer: CopyTimer, copied: boolean): void => {
-  state.value = copied ? 'copied' : 'failed'
-  if (timer.id) window.clearTimeout(timer.id)
-  timer.id = window.setTimeout(() => {
-    state.value = 'idle'
+const copyInstallGuide = async (section: CopySection): Promise<void> => {
+  const copied = await copyText(activeInstallGuide.value[section])
+  // 安装 Tab 只有一个共享提示状态，切换方式时不会留下错误的成功提示。
+  copiedInstallSection.value = copied ? section : 'failed'
+  if (copiedInstallTimer.id) window.clearTimeout(copiedInstallTimer.id)
+  copiedInstallTimer.id = window.setTimeout(() => {
+    copiedInstallSection.value = null
   }, 1800)
-}
-
-const copyInstallCommand = async (): Promise<void> => {
-  updateCopyState(copyState, installCopyTimer, await copyText(installCommand))
-}
-
-const copySkillInstallCommand = async (): Promise<void> => {
-  updateCopyState(skillInstallCopyState, skillInstallCopyTimer, await copyText(skillInstallCommand))
-}
-
-const copyAgentInstallPrompt = async (): Promise<void> => {
-  updateCopyState(agentInstallCopyState, agentInstallCopyTimer, await copyText(agentInstallPrompt))
-}
-
-const copyAgentCapabilitiesPrompt = async (): Promise<void> => {
-  updateCopyState(agentCapabilitiesCopyState, agentCapabilitiesCopyTimer, await copyText(agentCapabilitiesPrompt))
-}
-
-const copySkillUsagePrompt = async (): Promise<void> => {
-  updateCopyState(skillUsageCopyState, skillUsageCopyTimer, await copyText(skillUsagePrompt))
-}
-
-const copyExampleCode = async (): Promise<void> => {
-  updateCopyState(codeCopyState, codeCopyTimer, await copyText(exampleCode))
 }
 
 const flowDefinition = `flowchart TB
@@ -263,12 +261,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   themeObserver?.disconnect()
   stageResizeObserver?.disconnect()
-  if (installCopyTimer.id) window.clearTimeout(installCopyTimer.id)
-  if (skillInstallCopyTimer.id) window.clearTimeout(skillInstallCopyTimer.id)
-  if (agentInstallCopyTimer.id) window.clearTimeout(agentInstallCopyTimer.id)
-  if (agentCapabilitiesCopyTimer.id) window.clearTimeout(agentCapabilitiesCopyTimer.id)
-  if (skillUsageCopyTimer.id) window.clearTimeout(skillUsageCopyTimer.id)
-  if (codeCopyTimer.id) window.clearTimeout(codeCopyTimer.id)
+  if (copiedInstallTimer.id) window.clearTimeout(copiedInstallTimer.id)
 })
 </script>
 
@@ -277,148 +270,69 @@ onBeforeUnmount(() => {
     <section class="docs-home-install" aria-labelledby="docs-home-install-title">
       <p class="docs-home-eyebrow">QUICK START</p>
       <h2 id="docs-home-install-title">先安装，再把竖式过程接入你的页面</h2>
-      <div class="docs-home-install-method">
-        <div class="docs-home-install-heading">
-          <span>npm 安装</span>
-          <small>在终端执行命令，安装 @u1in/shushi-core</small>
-        </div>
-        <div class="docs-home-install-command-row">
-          <pre class="docs-home-install-command"><code>{{ installCommand }}</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button"
-            type="button"
-            :aria-label="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制安装命令失败' : '复制安装命令'"
-            :title="copyState === 'copied' ? '安装命令已复制' : copyState === 'failed' ? '复制失败，请重试' : '复制安装命令'"
-            @click="copyInstallCommand"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
-        </div>
+      <div class="docs-home-install-tabs" role="tablist" aria-label="接入方式">
+        <button
+          v-for="(guide, method) in installGuides"
+          :id="`docs-home-install-tab-${method}`"
+          :key="method"
+          class="docs-home-install-tab"
+          :class="{ 'docs-home-install-tab--active': activeInstallMethod === method }"
+          type="button"
+          role="tab"
+          :aria-selected="activeInstallMethod === method"
+          aria-controls="docs-home-install-panel"
+          @click="activeInstallMethod = method"
+        >
+          {{ guide.label }}
+        </button>
       </div>
-      <div class="docs-home-install-method docs-home-install-method--agent">
-        <div class="docs-home-install-heading">
-          <span>Agent 安装</span>
-          <small>复制后粘贴到你的 Agent 对话框</small>
-        </div>
-        <div class="docs-home-install-command-row docs-home-agent-install-row">
-          <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ agentInstallPrompt }}</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button"
-            type="button"
-            :aria-label="agentInstallCopyState === 'copied' ? 'Agent 安装指令已复制' : agentInstallCopyState === 'failed' ? '复制 Agent 安装指令失败' : '复制 Agent 安装指令'"
-            :title="agentInstallCopyState === 'copied' ? 'Agent 安装指令已复制' : agentInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 Agent 安装指令'"
-            @click="copyAgentInstallPrompt"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="docs-home-install-method docs-home-install-method--skill">
-        <div class="docs-home-install-heading">
-          <span>Skill 安装</span>
-          <small>在目标项目中执行，安装到当前 Agent 环境</small>
-        </div>
-        <div class="docs-home-install-command-row">
-          <pre class="docs-home-install-command"><code>{{ skillInstallCommand }}</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button"
-            type="button"
-            :aria-label="skillInstallCopyState === 'copied' ? 'Skill 安装命令已复制' : skillInstallCopyState === 'failed' ? '复制 Skill 安装命令失败' : '复制 Skill 安装命令'"
-            :title="skillInstallCopyState === 'copied' ? 'Skill 安装命令已复制' : skillInstallCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 安装命令'"
-            @click="copySkillInstallCommand"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section class="docs-home-demo" aria-labelledby="docs-home-demo-title">
-      <div class="docs-home-section-heading">
-        <div>
-          <p class="docs-home-eyebrow">A SMALL, REAL EXAMPLE</p>
-          <h2 id="docs-home-demo-title">几行代码，得到一个可渲染的竖式</h2>
-        </div>
-      </div>
-      <div class="docs-home-demo-grid">
-        <div class="docs-home-code-panel">
-          <div class="docs-home-install-heading docs-home-code-heading">
-            <span>源码实现</span>
-            <small>展示从计算到渲染的最小完整链路</small>
+      <div
+        id="docs-home-install-panel"
+        class="docs-home-install-panel"
+        role="tabpanel"
+        :aria-labelledby="`docs-home-install-tab-${activeInstallMethod}`"
+      >
+        <div class="docs-home-install-method">
+          <div class="docs-home-install-heading">
+            <span>安装</span>
+            <small>{{ activeInstallGuide.installHint }}</small>
           </div>
-          <div class="docs-home-code-block">
-            <pre class="docs-home-code"><code><span class="docs-code-keyword">import</span> { <span class="docs-code-function">shushi</span> } <span class="docs-code-keyword">from</span> <span class="docs-code-string">'@u1in/shushi-core'</span>
-<span class="docs-code-keyword">import</span> <span class="docs-code-string">'@u1in/shushi-core/style.css'</span>
-
-<span class="docs-code-keyword">const</span> { computation, source, rendered, inspection } = <span class="docs-code-function">shushi</span>(<span class="docs-code-string">'356 + 278'</span>, {
-  renderMode: <span class="docs-code-string">'div'</span>,
-  el: document.<span class="docs-code-function">querySelector</span>(<span class="docs-code-string">'#result'</span>) ?? <span class="docs-code-keyword">undefined</span>,
-})
-console.<span class="docs-code-function">log</span>(computation, source, rendered, inspection)</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button docs-home-code-copy-button"
-            type="button"
-            :aria-label="codeCopyState === 'copied' ? '示例代码已复制' : codeCopyState === 'failed' ? '复制示例代码失败' : '复制示例代码'"
-            :title="codeCopyState === 'copied' ? '示例代码已复制' : codeCopyState === 'failed' ? '复制失败，请重试' : '复制示例代码'"
-            @click="copyExampleCode"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
+          <div class="docs-home-install-command-row docs-home-agent-install-row">
+            <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ activeInstallGuide.install }}</code></pre>
+            <button
+              class="docs-home-copy-button docs-home-icon-button"
+              type="button"
+              :aria-label="copiedInstallSection === 'install' ? '安装内容已复制' : copiedInstallSection === 'failed' ? '复制安装内容失败' : '复制安装内容'"
+              :title="copiedInstallSection === 'install' ? '已复制' : copiedInstallSection === 'failed' ? '复制失败，请重试' : '复制'"
+              @click="copyInstallGuide('install')"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="8" y="8" width="11" height="11" rx="2" />
+                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+              </svg>
+            </button>
           </div>
         </div>
-      </div>
-      <div class="docs-home-install-method docs-home-demo-agent-method docs-home-demo-agent-method--agent">
-        <div class="docs-home-install-heading">
-          <span>Agent 实现</span>
-          <small>复制后回答 Agent 的确认问题，再开始实现</small>
-        </div>
-        <div class="docs-home-install-command-row docs-home-agent-install-row">
-          <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ agentCapabilitiesPrompt }}</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button"
-            type="button"
-            :aria-label="agentCapabilitiesCopyState === 'copied' ? 'Agent 实现指令已复制' : agentCapabilitiesCopyState === 'failed' ? '复制 Agent 实现指令失败' : '复制 Agent 实现指令'"
-            :title="agentCapabilitiesCopyState === 'copied' ? 'Agent 实现指令已复制' : agentCapabilitiesCopyState === 'failed' ? '复制失败，请重试' : '复制 Agent 实现指令'"
-            @click="copyAgentCapabilitiesPrompt"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="docs-home-install-method docs-home-demo-agent-method docs-home-demo-agent-method--skill">
-        <div class="docs-home-install-heading">
-          <span>Skill 实现</span>
-          <small>安装完成后复制到你的 Agent 对话框</small>
-        </div>
-        <div class="docs-home-install-command-row">
-          <pre class="docs-home-install-command"><code>{{ skillUsagePrompt }}</code></pre>
-          <button
-            class="docs-home-copy-button docs-home-icon-button"
-            type="button"
-            :aria-label="skillUsageCopyState === 'copied' ? 'Skill 实现指令已复制' : skillUsageCopyState === 'failed' ? '复制 Skill 实现指令失败' : '复制 Skill 实现指令'"
-            :title="skillUsageCopyState === 'copied' ? 'Skill 实现指令已复制' : skillUsageCopyState === 'failed' ? '复制失败，请重试' : '复制 Skill 实现指令'"
-            @click="copySkillUsagePrompt"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect x="8" y="8" width="11" height="11" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </svg>
-          </button>
+        <div class="docs-home-install-method docs-home-install-method--usage">
+          <div class="docs-home-install-heading">
+            <span>最小使用</span>
+            <small>{{ activeInstallGuide.usageHint }}</small>
+          </div>
+          <div class="docs-home-install-command-row docs-home-agent-install-row">
+            <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ activeInstallGuide.usage }}</code></pre>
+            <button
+              class="docs-home-copy-button docs-home-icon-button"
+              type="button"
+              :aria-label="copiedInstallSection === 'usage' ? '使用示例已复制' : copiedInstallSection === 'failed' ? '复制使用示例失败' : '复制使用示例'"
+              :title="copiedInstallSection === 'usage' ? '已复制' : copiedInstallSection === 'failed' ? '复制失败，请重试' : '复制'"
+              @click="copyInstallGuide('usage')"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="8" y="8" width="11" height="11" rx="2" />
+                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -439,6 +353,173 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
       </label>
     </div>
 
+    <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
+      <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
+      <h2 id="docs-home-overview-title">不只算出答案，也把每一步变成可编辑、可回溯的界面</h2>
+      <p class="docs-home-lead">竖式·Shushi 把“怎么算、怎么排、怎么画”拆成可以单独验证的层：计算器产出过程数据，排版引擎生成可读宏源码，宏编译器建立 AST 和 GridScene，DOM/CSS、SVG 与字符串输出再消费同一份场景。</p>
+    </section>
+
+    <section id="docs-home-feature-input" class="docs-home-feature-section" aria-labelledby="docs-home-feature-input-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">INPUT &amp; API</p>
+          <h2 id="docs-home-feature-input-title">从一句算式，到可控的完整竖式过程</h2>
+          <p class="docs-home-section-lead">入口层把“快速使用”和“精细控制”分开，同时让表达式和结构化请求进入同一条计算、布局、编译和渲染链路。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>什么时候用哪个入口？</h4>
+              <ul class="docs-home-feature-list">
+                <li><code>shushi(expression)</code> 适合输入连续四则表达式、长除法或短除法语法。</li>
+                <li><code>shushiCore(request)</code> 适合指定运算类型、短除法模式、步骤显示和渲染方式。</li>
+                <li>两者都返回 <code>computation</code>、<code>source</code>、<code>scene</code>、<code>rendered</code> 和 <code>inspection</code>。</li>
+              </ul>
+            </div>
+          </div>
+      </div>
+    </section>
+
+    <section id="docs-home-feature-calculator" class="docs-home-feature-section" aria-labelledby="docs-home-feature-calculator-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">CALCULATION ENGINE</p>
+          <h2 id="docs-home-feature-calculator-title">不只算出答案，把每一列的过程留下来</h2>
+          <p class="docs-home-section-lead">计算器输出的是可以被布局器、教学界面和调试工具继续消费的过程对象，而不是一个孤立的最终数字。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>过程数据保留什么？</h4>
+              <p>加法记录每列的进位和结果位；减法记录借位；乘法记录每一行部分积；长除法记录部分被除数、商位、乘积和余数；短除法记录每轮试除。</p>
+              <p>因此同一份计算结果既能生成完整竖式，也能生成“只显示到第几步”的教学画面。</p>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-dsl" class="docs-home-feature-section" aria-labelledby="docs-home-feature-dsl-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">CUSTOM DSL</p>
+          <h2 id="docs-home-feature-dsl-title">用几行宏源码，排出你想要的竖式</h2>
+          <p class="docs-home-section-lead">网格宏语言是面向人的排版输入层：用接近竖式草稿的文本表达行、列、同格图元、定位、边框和样式。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>从显式写法到语法糖</h4>
+              <p>完整宏适合调试，顶层分号行、方括号 CELL 简写和零参数别名适合复制与生成。解析后都会归一化为同一种 AST，不会让渲染器承担语法差异。</p>
+              <p>你可以直接编辑宏源码，也可以让自己的程序生成宏源码。</p>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-ast" class="docs-home-feature-section" aria-labelledby="docs-home-feature-ast-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">AST INSPECTION</p>
+          <h2 id="docs-home-feature-ast-title">从一个图元，回到它的宏源码位置</h2>
+          <p class="docs-home-section-lead">宏源码不是一次性字符串：解析器把它变成可检查的树，检查器再把场景元素和 AST 路径连接起来。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>适合做什么？</h4>
+              <ul class="docs-home-feature-list">
+                <li>点击一个场景图元，定位到它来自哪一个宏调用和参数路径。</li>
+                <li>编辑图元文字后，生成新的 AST 和新的 GridScene。</li>
+                <li>在宏编辑器中做格式化、补全、压缩，并保持语义一致。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-layout" class="docs-home-feature-section" aria-labelledby="docs-home-feature-layout-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">LAYOUT ENGINE</p>
+          <h2 id="docs-home-feature-layout-title">把计算过程，排成可编辑的教学竖式</h2>
+          <p class="docs-home-section-lead">排版引擎负责把计算过程翻译成竖式的视觉结构：行列、对齐、横线、符号、补零和语义样式都在这里决定。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>运算规则和视觉规则分离</h4>
+              <p>计算器只回答“每一步算出了什么”，布局器回答“这一步应该出现在哪一格”。它先生成可复制、可编辑的宏源码，再经过统一宏编译链路得到场景。</p>
+              <p>因此新增 DOM 或 SVG 渲染方式，不需要复制一套加减乘除坐标逻辑。</p>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-playback" class="docs-home-feature-section" aria-labelledby="docs-home-feature-playback-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">STEP PLAYBACK</p>
+          <h2 id="docs-home-feature-playback-title">让每一步计算，都可以暂停、播放和回到现场</h2>
+          <p class="docs-home-section-lead">步骤不是只存在于 JSON 里；布局器可以根据可见步数重建当前场景，让每一帧都来自真实的计算过程。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>教学和调试的共同基础</h4>
+              <p>用 <code>visibleStepCount</code> 显示从开头到当前步骤的内容；用播放步数查询 API 计算总帧数，再接入滑块、逐步按钮或自动播放。</p>
+              <p>除法还可以选择是否显示商为 0 的中间步骤，组合运算则按子运算阶段推进。</p>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-scene" class="docs-home-feature-section" aria-labelledby="docs-home-feature-scene-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">UNIFIED SCENE</p>
+          <h2 id="docs-home-feature-scene-title">一份 GridScene，承接所有排版与渲染</h2>
+          <p class="docs-home-section-lead">GridScene 是计算、宏、布局和渲染之间的公共边界：它描述轨道、单元格、图元、几何和语义 token，但不绑定某个框架。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>渲染器只消费场景</h4>
+              <p>文本单元格可以覆盖场景级对齐，未覆盖时继承默认值；图元通过样式 token 表达“加数、进位、商、余数”等语义。</p>
+              <p>这让 DOM/CSS、SVG 和后续的其他渲染器共享同一份结构化数据。</p>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="docs-home-feature-output" class="docs-home-feature-section" aria-labelledby="docs-home-feature-output-title">
+      <div class="docs-home-section-heading">
+        <div>
+          <p class="docs-home-eyebrow">MULTI-FORMAT OUTPUT</p>
+          <h2 id="docs-home-feature-output-title">同一份场景，交付网页、SVG 和服务端输出</h2>
+          <p class="docs-home-section-lead">同一份 GridScene 可以按宿主场景选择不同输出：需要交互时用 DOM，需要导出或服务端生成时用 SVG。</p>
+        </div>
+      </div>
+      <div class="docs-home-deep-feature">
+          <div class="docs-home-feature-body">
+            <div>
+              <h4>一份场景，多种交付形态</h4>
+              <ul class="docs-home-feature-list">
+                <li><code>renderDomGrid</code>：适合网页交互、选中和播放。</li>
+                <li><code>renderSvgGrid</code>：返回可插入页面的 SVG DOM。</li>
+                <li><code>renderSvgString</code>：适合 SSR、导出、截图和缓存。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+    </section>
+
     <section class="docs-home-flow" aria-labelledby="docs-home-flow-title">
       <div class="docs-home-section-heading">
         <div>
@@ -447,34 +528,6 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
         </div>
       </div>
       <div ref="flowHost" class="docs-home-mermaid" aria-label="从输入入口经解析和编译到渲染器的项目流程图"></div>
-    </section>
-
-    <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
-      <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
-      <h2 id="docs-home-overview-title">把“怎么算、怎么排、怎么画”拆成可验证的三层</h2>
-      <p class="docs-home-lead">竖式·Shushi 面向教学、调试和前端集成：表达式门户、结构化请求、人工宏源码和分层计算器都能进入统一链路；需要计算时先得到 Computation 和可编辑宏源码，直接宏输入则进入同一个宏编译器，最终由 DOM/CSS、SVG 或 SVG 字符串消费同一份 GridScene。</p>
-      <div class="docs-home-feature-grid">
-        <article class="docs-home-feature">
-          <span class="docs-home-feature-index">01</span>
-          <h3>多种运算过程</h3>
-          <p>覆盖加法、减法、乘法、除法和短除法，并保留进位、借位、余数等教学过程。</p>
-        </article>
-        <article class="docs-home-feature">
-          <span class="docs-home-feature-index">02</span>
-          <h3>多入口与宏编译</h3>
-          <p><code>shushi</code> 先把表达式解析为请求再调用 <code>shushiCore</code>；宏源码经过 <code>parseMacro</code> 生成 AST，再由 <code>compileMacroAst</code> 生成场景，并可通过 AST 检查器回溯和编辑图元。</p>
-        </article>
-        <article class="docs-home-feature">
-          <span class="docs-home-feature-index">03</span>
-          <h3>统一 GridScene</h3>
-          <p>轨道、单元格、文本、横线和语义 token 组成稳定契约；GridScene 只由宏编译器产生。</p>
-        </article>
-        <article class="docs-home-feature">
-          <span class="docs-home-feature-index">04</span>
-          <h3>双渲染器</h3>
-          <p>同一份场景既可以输出绝对定位的 DOM/CSS，也可以输出 SVG，适应文档和应用页面。</p>
-        </article>
-      </div>
     </section>
   </div>
 </template>
@@ -487,7 +540,6 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
 }
 
 .docs-home-install,
-.docs-home-demo,
 .docs-home-flow,
 .docs-home-overview {
   scroll-margin-top: calc(var(--navbar-height) + 2rem);
@@ -507,18 +559,61 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   margin-top: .35rem;
 }
 
-/* 安装方式按“npm → Skill → Agent”排列，保持页面阅读顺序与使用流程一致。 */
-.docs-home-install-method--skill { order: 1; }
-.docs-home-install-method--agent { order: 2; }
-
-.docs-home-demo-agent-method {
-  margin-top: 1rem;
+.docs-home-install-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: min(100%, 72rem);
+  margin-top: .55rem;
+  padding: 4px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 13px;
+  background: var(--vp-c-bg-alt);
 }
 
-/* demo 下方的两个 Agent 入口按“Skill 实现 → Agent 实现”排列。 */
-.docs-home-demo { display: grid; }
-.docs-home-demo-agent-method--skill { order: 1; }
-.docs-home-demo-agent-method--agent { order: 2; }
+.docs-home-install-tab {
+  border: 0;
+  border-radius: 9px;
+  padding: .65rem .8rem;
+  color: var(--vp-c-text-mute);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  transition: background-color .2s, color .2s, box-shadow .2s;
+}
+
+.docs-home-install-tab:hover {
+  color: var(--vp-c-accent-hover);
+  background: var(--vp-c-accent-soft);
+}
+
+.docs-home-install-tab--active,
+.docs-home-install-tab--active:hover {
+  color: var(--vp-c-bg);
+  background: var(--vp-c-accent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--vp-c-accent) 28%, transparent);
+}
+
+.docs-home-install-tab:focus-visible {
+  outline: 2px solid var(--vp-c-accent-hover);
+  outline-offset: 2px;
+}
+
+.docs-home-install-panel {
+  display: grid;
+  gap: .55rem;
+  width: min(100%, 72rem);
+  padding: .85rem 1rem 1rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-elv);
+}
+
+.docs-home-install-method--usage {
+  margin-top: .6rem;
+}
 
 .docs-home-install-heading {
   display: flex;
@@ -556,8 +651,7 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   line-height: 1.2;
 }
 
-.docs-home-install-command,
-.docs-home-code {
+.docs-home-install-command {
   margin: 0;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
@@ -568,9 +662,8 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   overflow-x: auto;
 }
 
-/* VuePress 会给正文内所有 code 添加内联背景；代码块内部只保留外层面板背景。 */
-.vp-home [vp-content] .docs-home-install-command code,
-.vp-home [vp-content] .docs-home-code code {
+/* VuePress 会给正文内所有 code 添加内联背景；安装命令内部只保留外层面板背景。 */
+.vp-home [vp-content] .docs-home-install-command code {
   padding: 0;
   border-radius: 0;
   color: inherit;
@@ -677,69 +770,6 @@ console.<span class="docs-code-function">log</span>(computation, source, rendere
   gap: 1.5rem;
   margin-bottom: 1.25rem;
 }
-
-.docs-home-demo-result {
-  flex: 0 0 auto;
-  border: 1px solid var(--vp-c-accent-soft);
-  border-radius: 999px;
-  padding: .4rem .7rem;
-  color: var(--vp-c-accent-hover);
-  background: var(--vp-c-accent-soft);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: .72rem;
-  font-weight: 700;
-}
-
-.docs-home-demo-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
-  align-items: stretch;
-}
-
-.docs-home-code-panel {
-  display: grid;
-  align-content: start;
-  gap: .45rem;
-  position: relative;
-  min-width: 0;
-}
-
-.docs-home-code-block {
-  position: relative;
-  min-width: 0;
-}
-
-.docs-home-code {
-  height: auto;
-  box-sizing: border-box;
-  min-height: 250px;
-  padding: 1.2rem 1.35rem;
-  padding-right: 4.25rem;
-  font-size: .78rem;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  overflow-x: hidden;
-}
-
-.docs-home-code-copy-button {
-  position: absolute;
-  top: .75rem;
-  right: .75rem;
-  z-index: 1;
-}
-
-.docs-home-code .docs-code-keyword { color: #9b267d; font-weight: 700; }
-.docs-home-code .docs-code-function { color: #1c63b7; }
-.docs-home-code .docs-code-string { color: #27834d; }
-.docs-home-code .docs-code-number { color: #b56700; }
-.docs-home-code .docs-code-comment { color: #788497; }
-
-html[data-theme='dark'] .docs-home-code .docs-code-keyword { color: #e7a4ff; }
-html[data-theme='dark'] .docs-home-code .docs-code-function { color: #91bcff; }
-html[data-theme='dark'] .docs-home-code .docs-code-string { color: #8ed6a8; }
-html[data-theme='dark'] .docs-home-code .docs-code-number { color: #ffc57d; }
-html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
 
 .docs-home-result-host {
   --docs-home-demo-height: 228px;
@@ -977,46 +1007,81 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   line-height: 1.85;
 }
 
-.docs-home-feature-grid {
+.docs-home-feature-section {
+  scroll-margin-top: calc(var(--navbar-height) + 2rem);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .85rem;
-  margin-top: 1.6rem;
+  gap: .75rem;
+  padding-top: 1.7rem;
 }
 
-.docs-home-feature {
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 14px;
-  padding: 1.1rem;
-  background: var(--vp-c-bg-elv);
+.docs-home-feature-section .docs-home-section-heading {
+  width: 100%;
+  margin-bottom: 0;
 }
 
-.docs-home-feature-index {
-  color: var(--vp-c-accent);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: .7rem;
-  font-weight: 800;
+.docs-home-feature-section .docs-home-section-heading > div {
+  width: 100%;
 }
 
-.docs-home-feature h3 {
-  margin: .6rem 0 .4rem;
-  /* 首页概览卡片不需要 VuePress 为锚点标题预留的顶部偏移。 */
-  padding-top: 0;
+.docs-home-feature-section .docs-home-section-heading h2 {
+  width: 100%;
+  border-bottom: 1px solid var(--vp-c-divider);
+  padding-bottom: .85rem !important;
+}
+
+.vp-home [vp-content] .docs-home-section-lead {
+  max-width: 58rem;
+  margin: .65rem 0 0 !important;
+  color: var(--vp-c-text-mute);
+  font-size: .94rem;
+  line-height: 1.7;
+}
+
+.docs-home-deep-feature {
+  min-width: 0;
+}
+
+.vp-home [vp-content] .docs-home-feature-section h4 {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  line-height: 1.35;
+}
+
+.docs-home-feature-body {
+  display: grid;
+  max-width: 58rem;
+}
+
+.vp-home [vp-content] .docs-home-feature-body h4 {
+  margin: 0 0 .3rem !important;
+  padding-top: 0 !important;
   color: var(--vp-c-text);
-  font-size: 1rem;
+  font-size: .9rem;
 }
 
-.docs-home-feature p {
-  margin: 0;
+.vp-home [vp-content] .docs-home-feature-body p {
+  margin: 0 0 .7rem !important;
   color: var(--vp-c-text-mute);
   font-size: .84rem;
-  line-height: 1.7;
+  line-height: 1.8;
+}
+
+.vp-home [vp-content] .docs-home-feature-body p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.docs-home-feature-list {
+  display: grid;
+  gap: .5rem;
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--vp-c-text-mute);
+  font-size: .84rem;
+  line-height: 1.75;
 }
 
 @media (max-width: 800px) {
   .docs-home-section-heading { align-items: start; flex-direction: column; gap: .75rem; }
-  .docs-home-demo-grid { grid-template-columns: 1fr; }
-  .docs-home-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 520px) {
@@ -1024,7 +1089,6 @@ html[data-theme='dark'] .docs-home-code .docs-code-comment { color: #9aa9bf; }
   .docs-home-install-command-row { align-items: stretch; }
   .docs-home-install-heading { align-items: start; flex-direction: column; gap: .2rem; }
   .docs-home-copy-button { padding: 0; }
-  .docs-home-feature-grid { grid-template-columns: 1fr; }
   .docs-home-mermaid svg { width: 920px; max-width: none; }
 }
 
