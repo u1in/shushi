@@ -1,12 +1,12 @@
-import type { GridElement, GridLineContent, GridScene } from '@u1in/shushi-grid'
+import { DEFAULT_GRID_FONT_FAMILY, type GridElement, type GridLineContent, type GridScene } from '@u1in/shushi-grid'
 import type { MacroCall, MacroNode, MacroStyle } from './types'
 import {
-  AUTO_COLOR_MAX_ROWS,
   AUTO_COLOR_THEME,
+  type AutoColorTheme,
   getAutoBorrowColor,
   getAutoCarryColor,
   getAutoOperatorColor,
-  getAutoRowTextColor,
+  getAutoTextColor,
 } from './auto-color-theme'
 import { BASIC_ZERO_ARGUMENT_MACROS, resolveLineStyle } from './basic-macros'
 import { getBoolean, getMacroCall, getMacroValue, getPositiveInteger, getPositiveNumber, splitMacroOptions } from './macro-ast'
@@ -226,21 +226,21 @@ const getLineRange = (
  * 自动配色在宏层完成：渲染器只接收通用的 renderer-neutral 色值。
  * MT/MTD 约定为借位提示、RB 约定为进位提示；运算符和 DOT 的独占色优先级最高。
  */
-const applyAutoColor = (element: GridElement, node: MacroNode, row: number): GridElement => {
+const applyAutoColor = (element: GridElement, node: MacroNode, theme: AutoColorTheme): GridElement => {
   const macroName = getCall(node)?.name
   if (element.content.kind === 'line') {
-    const lineTheme = macroName === 'BRACKET' ? AUTO_COLOR_THEME.bracketRule : AUTO_COLOR_THEME.rule
+    const lineTheme = macroName === 'BRACKET' ? theme.bracketRule : theme.rule
     return { ...element, content: { ...element.content, ...lineTheme } }
   }
   if (element.content.kind === 'corner') {
-    return { ...element, content: { ...element.content, ...AUTO_COLOR_THEME.bracketRule } }
+    return { ...element, content: { ...element.content, ...theme.bracketRule } }
   }
 
-  const operatorColor = getAutoOperatorColor(element.content.text)
+  const operatorColor = getAutoOperatorColor(theme, element.content.text)
   const color = isDotMacro(node)
-    ? AUTO_COLOR_THEME.decimal
+    ? theme.decimal
     : operatorColor
-      ?? (macroName === 'RB' ? getAutoCarryColor(row) : macroName === 'MT' || macroName === 'MTD' ? getAutoBorrowColor(row) : getAutoRowTextColor(row))
+      ?? (macroName === 'RB' ? getAutoCarryColor(theme) : macroName === 'MT' || macroName === 'MTD' ? getAutoBorrowColor(theme) : getAutoTextColor(theme))
   return { ...element, content: { ...element.content, color } }
 }
 
@@ -263,20 +263,21 @@ const compileCellElements = (
   cell: PositionedCell,
   row: number,
   autoColor: boolean,
+  colorTheme: AutoColorTheme,
   nextId: { value: number },
   columns?: number,
   onElement?: MacroElementObserver,
 ): void => {
   cell.elements.forEach((node) => {
     const element = compileSugarCellElement(node, cell, row, nextId.value)
-    const compiledElement = autoColor ? applyAutoColor(element, node, row) : element
+    const compiledElement = autoColor ? applyAutoColor(element, node, colorTheme) : element
     elements.push(compiledElement)
     onElement?.(compiledElement, node)
     nextId.value += 1
     if (columns !== undefined && getBracketMacro(node)) {
       const bracketHead = compileBracketHead(cell, row, columns, nextId.value)
       if (bracketHead) {
-        const compiledBracketHead = autoColor ? applyAutoColor(bracketHead, node, row) : bracketHead
+        const compiledBracketHead = autoColor ? applyAutoColor(bracketHead, node, colorTheme) : bracketHead
         elements.push(compiledBracketHead)
         onElement?.(compiledBracketHead, node)
         nextId.value += 1
@@ -301,6 +302,7 @@ const compileShortDivisionMacro = (
   rows: MacroCall[],
   options: Map<string, string>,
   autoColor: boolean,
+  colorTheme: AutoColorTheme,
   onElement?: MacroElementObserver,
 ): GridScene => {
   const normalizedRows = rows.map(readShortDivisionRow)
@@ -339,7 +341,7 @@ const compileShortDivisionMacro = (
   normalizedRows.forEach((row, rowIndex) => {
     if (row.divisor) {
       const separatorColumn = leftHalfTrackCount + dividerOffsets[processIndex]
-      compileCellElements(elements, { ...row.divisor, column: separatorColumn - 2 }, rowIndex, autoColor, nextId, undefined, onElement)
+      compileCellElements(elements, { ...row.divisor, column: separatorColumn - 2 }, rowIndex, autoColor, colorTheme, nextId, undefined, onElement)
       const dividerNode = row.dividerNode ?? { kind: 'symbol' as const, name: 'DIV' }
       const separator: GridElement = {
         id: `macro-div-separator-${processIndex}`,
@@ -353,8 +355,8 @@ const compileShortDivisionMacro = (
         content: { kind: 'line' },
         styleToken: row.barStyleToken,
       }
-      const compiledSeparator = autoColor ? applyAutoColor(separator, dividerNode, rowIndex) : separator
-      const compiledBar = autoColor ? applyAutoColor(bar, dividerNode, rowIndex) : bar
+      const compiledSeparator = autoColor ? applyAutoColor(separator, dividerNode, colorTheme) : separator
+      const compiledBar = autoColor ? applyAutoColor(bar, dividerNode, colorTheme) : bar
       elements.push(compiledSeparator)
       elements.push(compiledBar)
       onElement?.(compiledSeparator, dividerNode)
@@ -364,7 +366,7 @@ const compileShortDivisionMacro = (
     row.valueGroups.forEach((group, groupIndex) => {
       const startIndex = groupWidths[groupIndex] - group.length
       group.forEach((cell, digitIndex) => {
-        compileCellElements(elements, { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] }, rowIndex, autoColor, nextId, undefined, onElement)
+        compileCellElements(elements, { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] }, rowIndex, autoColor, colorTheme, nextId, undefined, onElement)
       })
     })
   })
@@ -395,9 +397,21 @@ const compileShortDivisionMacro = (
  * 将已解析宏降级为 renderer-neutral GridScene。
  * 该层只处理行列、对齐、横线和样式，不理解任何具体运算。
  */
-const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementObserver): GridScene => {
+export interface MacroCompileOptions {
+  /** autoColor 生成的颜色；缺省使用带 CSS fallback 的内置主题。 */
+  colorTheme?: AutoColorTheme
+  /** 写入 GridScene 的默认字体；渲染器只读取场景，不再额外接收字体配置。 */
+  fontFamily?: string
+}
+
+const compileMacroAstWithObserver = (
+  root: MacroCall,
+  compileOptions: MacroCompileOptions = {},
+  onElement?: MacroElementObserver,
+): GridScene => {
   if (root.name !== 'GRID') throw new Error('根节点必须是 GRID(...)。')
   const { content, options } = splitOptions(root.arguments)
+  const colorTheme = compileOptions.colorTheme ?? AUTO_COLOR_THEME
   const autoColor = getBoolean(options.get('autoColor'), 'GRID 的 autoColor', true)
   const trackUnit = options.get('trackUnit') ?? 'full'
   if (trackUnit !== 'full' && trackUnit !== 'half') throw new Error('GRID 的 trackUnit 只能是 full 或 half。')
@@ -410,7 +424,8 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
     if (!content.every((node) => getCall(node, 'ROW') || getCall(node, 'KV'))) {
       throw new Error('包含 DIV 或 VALUE 的短除法 GRID 只能包含 ROW 与 KV。')
     }
-    return compileShortDivisionMacro(rowCalls, options, autoColor, onElement)
+    const scene = compileShortDivisionMacro(rowCalls, options, autoColor, colorTheme, onElement)
+    return { ...scene, fontFamily: compileOptions.fontFamily ?? DEFAULT_GRID_FONT_FAMILY }
   }
   const rows: NormalizedRow[] = []
   const lineCalls: Array<{ call: MacroCall, afterRow: number, sourceNode: MacroNode }> = []
@@ -429,9 +444,6 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
     throw new Error(`GRID 不支持子节点 ${call.name}。`)
   })
   if (rows.length === 0) throw new Error('GRID 至少需要一个 ROW。')
-  if (autoColor && rows.length > AUTO_COLOR_MAX_ROWS) {
-    throw new Error(`GRID 的 autoColor 最多支持 ${AUTO_COLOR_MAX_ROWS} 行。`)
-  }
   const configuredLineSpan = options.get('lineSpan')
   if (configuredLineSpan !== undefined && configuredLineSpan !== 'previous' && configuredLineSpan !== 'longest' && configuredLineSpan !== 'full') {
     throw new Error('GRID 的 lineSpan 只能是 previous、longest 或 full。')
@@ -459,7 +471,7 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
   }))
   const elements: GridElement[] = []
   const nextId = { value: 0 }
-  positionedRows.forEach((cells, row) => cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, nextId, columns, onElement)))
+  positionedRows.forEach((cells, row) => cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, colorTheme, nextId, columns, onElement)))
   lines.forEach((line, index) => {
     const range = getLineRange(line.span, positionedRows[line.afterRow], positionedRows, columns)
     const contentValue: GridLineContent = { kind: 'line', ...line.style }
@@ -469,7 +481,7 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
       content: contentValue,
       styleToken: line.styleToken,
     }
-    const compiledLine = autoColor ? applyAutoColor(element, { kind: 'symbol', name: 'LINE' }, line.afterRow) : element
+    const compiledLine = autoColor ? applyAutoColor(element, { kind: 'symbol', name: 'LINE' }, colorTheme) : element
     elements.push(compiledLine)
     onElement?.(compiledLine, line.sourceNode)
   })
@@ -497,6 +509,7 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
       'GRID 的 fontSize',
       unitWidth * getPositiveNumber(options.get('fontSizeRatio'), 'GRID 的 fontSizeRatio', DEFAULTS.fontSizeRatio),
     ),
+    fontFamily: compileOptions.fontFamily ?? DEFAULT_GRID_FONT_FAMILY,
     defaultTextStyleToken: options.get('style'),
     textHorizontalAlign: 'center',
     textVerticalAlign: 'center',
@@ -511,10 +524,11 @@ const compileMacroAstWithObserver = (root: MacroCall, onElement?: MacroElementOb
 }
 
 /** 常规编译入口不暴露检查器细节，保持原有 AST → GridScene 契约。 */
-export const compileMacroAst = (root: MacroCall): GridScene => compileMacroAstWithObserver(root)
+export const compileMacroAst = (root: MacroCall, options?: MacroCompileOptions): GridScene => compileMacroAstWithObserver(root, options)
 
 /** AST 检查器专用编译入口：额外报告每个渲染元素的来源宏节点。 */
 export const compileMacroAstForInspection = (
   root: MacroCall,
   onElement: MacroElementObserver,
-): GridScene => compileMacroAstWithObserver(root, onElement)
+  options?: MacroCompileOptions,
+): GridScene => compileMacroAstWithObserver(root, options, onElement)

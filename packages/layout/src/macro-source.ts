@@ -1,5 +1,6 @@
 import type { GridScene } from '@u1in/shushi-grid'
 import { compileMacro } from '@u1in/shushi-macro'
+import type { MacroCompileOptions } from '@u1in/shushi-macro'
 import type { GridRenderSettings } from './types'
 
 /**
@@ -62,4 +63,4 @@ export const macroGrid = (
 }
 
 /** 自动竖式与人工输入刻意共用 parse + compile 的公共入口。 */
-export const compileCalculatorMacro = (source: string): GridScene => compileMacro(source)
+export const compileCalculatorMacro = (source: string, options?: MacroCompileOptions): GridScene => compileMacro(source, options)

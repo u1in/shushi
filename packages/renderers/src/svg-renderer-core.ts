@@ -75,6 +75,8 @@ const createElementNode = (
       ...elementId(element),
       style: serializeStyle([
         ['fill', element.content.color],
+        // 每个文字图元显式继承场景字体，确保脱离宿主 CSS 的 SVG 也能稳定切换字体。
+        ['font-family', element.content.fontFamily ?? scene.fontFamily],
         ['font-size', element.content.fontSizeRatio === undefined ? undefined : `${scene.fontSize * element.content.fontSizeRatio}px`],
         ['text-anchor', horizontalAlign === 'left' ? 'start' : horizontalAlign === 'right' ? 'end' : 'middle'],
         ['dominant-baseline', verticalAlign === 'top' ? 'hanging' : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'],
@@ -135,6 +137,9 @@ export const createSvgRenderTree = (scene: GridScene): SvgRenderNode => {
     style: serializeStyle([
       ['display', 'block'],
       ['--grid-font-size', `${scene.fontSize}px`],
+      ['--grid-font-family', scene.fontFamily],
+      // SVG 字符串可脱离公共 CSS 单独嵌入，直接写入属性以保留场景字体继承。
+      ['font-family', scene.fontFamily],
     ]),
     viewBox: `0 0 ${metrics.width} ${metrics.height}`,
     width: metrics.width,

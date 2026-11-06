@@ -41,4 +41,30 @@ describe('renderSvgString', () => {
     expect(svg).toContain('style="fill:red&amp;blue')
     expect(svg).toContain('&lt;&amp;&quot;</text>')
   })
+
+  it('从场景读取默认字体及元素级字体覆盖', () => {
+    const scene: GridScene = {
+      columns: [{ id: 'column', size: 1 }],
+      rows: [{ id: 'row', size: 1 }],
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      unitWidth: 30,
+      unitHeight: 40,
+      fontSize: 27,
+      fontFamily: 'STIX Two Math',
+      textHorizontalAlign: 'center',
+      textVerticalAlign: 'center',
+      elements: [{
+        id: 'text',
+        position: { kind: 'cell', column: 0, row: 0 },
+        content: { kind: 'text', text: '5', fontFamily: 'Noto Sans Math' },
+      }],
+      showGuideGrid: false,
+      ariaLabel: '字体场景',
+    }
+
+    const svg = renderSvgString(scene)
+
+    expect(svg).toContain('--grid-font-family:STIX Two Math')
+    expect(svg).toContain('font-family:Noto Sans Math')
+  })
 })

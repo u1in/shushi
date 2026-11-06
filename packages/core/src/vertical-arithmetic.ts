@@ -40,7 +40,7 @@ import {
   createShortDivisionMacroSource,
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
-import type { MacroAstInspection } from '@u1in/shushi-macro'
+import type { AutoColorTheme, MacroAstInspection } from '@u1in/shushi-macro'
 import { createMacroAstInspection } from '@u1in/shushi-macro'
 import { renderDomGrid, renderSvgGrid, renderSvgString } from '@u1in/shushi-renderers'
 
@@ -54,7 +54,15 @@ export type ShushiRendered<TMode extends ShushiRenderMode> = TMode extends 'div'
     : string
 
 /** 客户端挂载点只对 DOM 渲染有效；svg-string 不能直接挂载到元素。 */
-export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
+/** 在编译阶段写入 GridScene 的通用外观配置。 */
+export type ShushiAppearanceOptions = {
+  /** autoColor 使用的颜色配置；未传入时使用 CSS 变量主题和 fallback。 */
+  colorTheme?: AutoColorTheme
+  /** 场景默认字体；字体文件仍需由宿主按需导入。 */
+  fontFamily?: string
+}
+
+export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = ShushiAppearanceOptions & {
   renderMode?: TMode
   el?: TMode extends 'svg-string' ? never : Element
 }
@@ -220,8 +228,11 @@ const createResult = <TComputation>(
   options: ShushiRenderOptions<ShushiRenderMode>,
 ): VerticalArithmeticResult<TComputation> => {
   // 自动生成和人工录入都使用相同的宏编译器，不能由门户直接拼装 GridScene。
-  const scene = compileCalculatorMacro(source)
-  const inspection = createMacroAstInspection(source)
+  const compileOptions = options.colorTheme || options.fontFamily
+    ? { colorTheme: options.colorTheme, fontFamily: options.fontFamily }
+    : undefined
+  const scene = compileCalculatorMacro(source, compileOptions)
+  const inspection = createMacroAstInspection(source, compileOptions)
   return {
     computation,
     source,
@@ -304,6 +315,8 @@ const createExpressionOptions = <TMode extends ShushiRenderMode>(
 ): ShushiRenderOptions<TMode> => ({
   renderMode: options?.renderMode,
   el: options?.el,
+  colorTheme: options?.colorTheme,
+  fontFamily: options?.fontFamily,
 })
 
 /**

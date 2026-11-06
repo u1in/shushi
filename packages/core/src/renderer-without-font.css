@@ -1,0 +1,2 @@
+/* 开发态无字体入口：供宿主自行注册 @font-face。 */
+@import '../../renderers/src/style.css';

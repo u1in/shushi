@@ -1,0 +1,16 @@
+{
+  "name": "@u1in/shushi-fonts",
+  "description": "@u1in/shushi 首页与核心渲染器共享的数学字体资源。",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./fonts.css": "./src/fonts.css",
+    "./fonts/cmu-serif.css": "./src/fonts/cmu-serif.css",
+    "./fonts/stix-two-math.css": "./src/fonts/stix-two-math.css",
+    "./fonts/noto-sans-math.css": "./src/fonts/noto-sans-math.css"
+  },
+  "files": [
+    "src"
+  ]
+}

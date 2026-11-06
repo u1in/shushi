@@ -1,0 +1,3 @@
+/* 开发态 CSS 入口：与发布包的 renderer.css 保持相同的默认 STIX 策略。 */
+@import '../../fonts/src/fonts/stix-two-math.css';
+@import '../../renderers/src/style.css';

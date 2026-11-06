@@ -59,6 +59,9 @@ const renderDomElement = (
     if (element.content.fontSizeRatio !== undefined) {
       node.style.fontSize = `${scene.fontSize * element.content.fontSizeRatio}px`
     }
+    // 文本可覆盖场景字体；把场景默认值也写到文字节点，避免宿主 CSS 覆盖继承变量后字体选择失效。
+    const fontFamily = element.content.fontFamily ?? scene.fontFamily
+    if (fontFamily) node.style.fontFamily = fontFamily
     setElementId(node, element)
     parent.appendChild(node)
     return
@@ -147,6 +150,7 @@ export const renderDomGrid = (scene: GridScene): HTMLElement => {
   stage.style.width = `${metrics.width}px`
   stage.style.height = `${metrics.height}px`
   stage.style.setProperty('--grid-font-size', `${scene.fontSize}px`)
+  if (scene.fontFamily) stage.style.setProperty('--grid-font-family', scene.fontFamily)
 
   const lineLayer = document.createElement('div')
   lineLayer.className = 'grid-line-layer'

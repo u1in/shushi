@@ -1,5 +1,15 @@
 import { defineConfig, type Plugin } from 'vite'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+
+const rendererStyle = readFileSync(new URL('../renderers/src/style.css', import.meta.url), 'utf8')
+const stixTwoMathStyle = readFileSync(new URL('../fonts/src/fonts/stix-two-math.css', import.meta.url), 'utf8')
+  // 字体 CSS 原本位于 fonts/ 目录；拼入 dist/renderer.css 后需保留正确的发布相对路径。
+  .replaceAll("url('./", "url('./fonts/")
+const fontStyleNames = ['cmu-serif', 'stix-two-math', 'noto-sans-math'] as const
+const sharedFontImports = fontStyleNames
+  .map(name => `@import './fonts/${name}.css';`)
+  .join('\n')
+const sharedFontDirectory = new URL('../fonts/src/fonts/', import.meta.url)
 
 /**
  * 核心包发布时只构建一个 JS 入口，但渲染器 CSS 也必须作为稳定的子路径产物发布。
@@ -10,9 +20,31 @@ const rendererStyleAsset: Plugin = {
   generateBundle() {
     this.emitFile({
       type: 'asset',
-      fileName: 'style.css',
-      source: readFileSync(new URL('../renderers/src/style.css', import.meta.url), 'utf8'),
+      fileName: 'renderer.css',
+      // 默认入口自带 STIX Two Math，普通用户只需导入一个 CSS 文件。
+      source: `${stixTwoMathStyle}\n\n${rendererStyle}`,
     })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'renderer-without-font.css',
+      // 自定义字体时使用此入口，避免默认字体进入最终产物。
+      source: rendererStyle,
+    })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'fonts.css',
+      source: sharedFontImports,
+    })
+
+    readdirSync(sharedFontDirectory, { withFileTypes: true })
+      .filter(entry => entry.isFile())
+      .forEach((entry) => {
+        this.emitFile({
+          type: 'asset',
+          fileName: `fonts/${entry.name}`,
+          source: readFileSync(new URL(entry.name, sharedFontDirectory)),
+        })
+      })
   },
 }
 

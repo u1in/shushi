@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import { AUTO_COLOR_THEME } from '@u1in/shushi-macro'
+import {
+  AUTO_COLOR_THEME,
+  AUTO_COLOR_THEME_FALLBACK,
+  AUTO_COLOR_THEME_VARIABLES,
+  compileMacro,
+} from '@u1in/shushi-macro'
 
 /** 把 sRGB 通道转换为 WCAG 相对亮度计算所需的线性值。 */
 const linearize = (channel: number): number => {
@@ -14,71 +19,52 @@ const contrastOnWhite = (color: string): number => {
   return 1.05 / (0.2126 * red + 0.7152 * green + 0.0722 * blue + 0.05)
 }
 
-/** 以 OKLab 距离衡量两个色在感知上是否足够分开。 */
-const toOklab = (color: string): [number, number, number] => {
-  const [red, green, blue] = readRgb(color).map(linearize)
-  const long = 0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue
-  const medium = 0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue
-  const short = 0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue
-  const [l, m, s] = [long, medium, short].map((value) => Math.cbrt(value))
-  return [
-    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
-    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
-  ]
-}
+describe('autoColor 固定语义主题', () => {
+  test('默认主题使用 CSS 变量并保留 fallback', () => {
+    const entries = [
+      ['text', AUTO_COLOR_THEME.text, AUTO_COLOR_THEME_VARIABLES.text],
+      ['carry', AUTO_COLOR_THEME.carry, AUTO_COLOR_THEME_VARIABLES.carry],
+      ['borrow', AUTO_COLOR_THEME.borrow, AUTO_COLOR_THEME_VARIABLES.borrow],
+      ['operator', AUTO_COLOR_THEME.operator, AUTO_COLOR_THEME_VARIABLES.operator],
+      ['decimal', AUTO_COLOR_THEME.decimal, AUTO_COLOR_THEME_VARIABLES.decimal],
+      ['rule', AUTO_COLOR_THEME.rule.color, AUTO_COLOR_THEME_VARIABLES.rule],
+      ['bracketRule', AUTO_COLOR_THEME.bracketRule.color, AUTO_COLOR_THEME_VARIABLES.bracketRule],
+    ] as const
 
-const deltaE = (first: string, second: string): number => {
-  const [l1, a1, b1] = toOklab(first)
-  const [l2, a2, b2] = toOklab(second)
-  return Math.hypot(l1 - l2, a1 - a2, b1 - b2)
-}
-
-// 展开为 string[]，避免 as const 字面量联合类型限制 includes / 索引比较。
-const rowText: string[] = [...AUTO_COLOR_THEME.rowText]
-const carry: string[] = [...AUTO_COLOR_THEME.carry]
-const borrow: string[] = [...AUTO_COLOR_THEME.borrow]
-
-describe('autoColor 固定主题', () => {
-  test('三组各 40 色且互不复用', () => {
-    for (const palette of [rowText, carry, borrow]) {
-      expect(palette).toHaveLength(40)
-      expect(new Set(palette).size).toBe(40)
-    }
-    expect(rowText.filter((color) => carry.includes(color) || borrow.includes(color))).toEqual([])
-    expect(carry.filter((color) => borrow.includes(color))).toEqual([])
-  })
-
-  test('正文与进位/借位色在白底上保持屏幕可读对比度', () => {
-    for (const palette of [rowText, carry, borrow]) {
-      expect(Math.min(...palette.map(contrastOnWhite))).toBeGreaterThanOrEqual(3)
-    }
-  })
-
-  test('相邻正文行同时靠色相与明度拉开', () => {
-    const adjacent = rowText.slice(0, -1).map((color, index) => deltaE(color, rowText[index + 1]))
-    expect(Math.min(...adjacent)).toBeGreaterThanOrEqual(0.08)
-
-    const lightness = rowText.map((color) => toOklab(color)[0])
-    const lightnessSteps = lightness.slice(0, -1).map((value, index) => Math.abs(value - lightness[index + 1]))
-    expect(Math.min(...lightnessSteps)).toBeGreaterThanOrEqual(0.035)
-  })
-
-  test('短竖式常用的前 10 行任意两色可区分', () => {
-    const distances = rowText.slice(0, 10).flatMap((first, index) => rowText.slice(index + 1, 10).map((second) => deltaE(first, second)))
-    expect(Math.min(...distances)).toBeGreaterThanOrEqual(0.05)
-  })
-
-  test('运算符、小数点与线条使用可读的独占色', () => {
-    const operatorColors = Object.values(AUTO_COLOR_THEME.operators)
-    operatorColors.forEach((color) => {
-      expect(contrastOnWhite(color)).toBeGreaterThanOrEqual(3)
-      expect(rowText).not.toContain(color)
-      expect(carry).not.toContain(color)
-      expect(borrow).not.toContain(color)
+    entries.forEach(([, value, variable]) => {
+      expect(value).toContain(`var(${variable},`)
     })
-    expect(contrastOnWhite(AUTO_COLOR_THEME.decimal)).toBeGreaterThanOrEqual(3)
-    expect(contrastOnWhite(AUTO_COLOR_THEME.rule.color)).toBeGreaterThanOrEqual(3)
-    expect(contrastOnWhite(AUTO_COLOR_THEME.bracketRule.color)).toBeGreaterThanOrEqual(3)
+  })
+
+  test('fallback 颜色在白底上保持屏幕可读对比度', () => {
+    const colors = [
+      AUTO_COLOR_THEME_FALLBACK.text,
+      AUTO_COLOR_THEME_FALLBACK.carry,
+      AUTO_COLOR_THEME_FALLBACK.borrow,
+      AUTO_COLOR_THEME_FALLBACK.operator,
+      AUTO_COLOR_THEME_FALLBACK.decimal,
+      AUTO_COLOR_THEME_FALLBACK.rule.color!,
+      AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
+    ]
+
+    colors.forEach((color) => expect(contrastOnWhite(color)).toBeGreaterThanOrEqual(3))
+  })
+
+  test('fallback 使用首页的蓝色主轴和低饱和语义色', () => {
+    expect(AUTO_COLOR_THEME_FALLBACK).toEqual({
+      text: '#d95070',
+      carry: '#0b9b86',
+      borrow: '#8957c8',
+      operator: '#e27624',
+      decimal: '#d74783',
+      rule: { color: '#7c5366', thickness: 2 },
+      bracketRule: { color: '#a84b6b', thickness: 2 },
+    })
+  })
+
+  test('固定主题不再按行数限制 autoColor', () => {
+    const rowCount = 80
+    const source = Array.from({ length: rowCount }, (_, index) => `ROW(MM(${index % 10}))`).join(', ')
+    expect(() => compileMacro(source)).not.toThrow()
   })
 })

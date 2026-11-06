@@ -43,7 +43,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./style.css": "./dist/style.css"
+    "./renderer.css": "./dist/renderer.css",
+    "./renderer-without-font.css": "./dist/renderer-without-font.css",
+    "./fonts.css": "./dist/fonts.css",
+    "./fonts/cmu-serif.css": "./dist/fonts/cmu-serif.css",
+    "./fonts/stix-two-math.css": "./dist/fonts/stix-two-math.css",
+    "./fonts/noto-sans-math.css": "./dist/fonts/noto-sans-math.css"
   },
   "scripts": {
     "build": "vite build && npm run build:types",

@@ -65,8 +65,29 @@ describe('统一竖式门户 API', () => {
 
     expect(typeof result.rendered).toBe('string')
     expect(result.rendered).toMatch(/^<svg/)
+    expect(result.scene.fontFamily).toBe('STIX Two Math')
     expect(result.inspection.scene).toEqual(result.scene)
     expect(Object.keys(result.inspection.references).length).toBeGreaterThan(0)
+  })
+
+  it('将颜色和字体在同一次宏编译中写入场景', () => {
+    const result = shushi('2 + 3', {
+      fontFamily: 'Noto Sans Math',
+      colorTheme: {
+        text: '#111111',
+        carry: '#222222',
+        borrow: '#333333',
+        operator: '#444444',
+        decimal: '#555555',
+        rule: { color: '#666666', thickness: 2 },
+        bracketRule: { color: '#777777', thickness: 2 },
+      },
+    })
+
+    expect(result.scene.fontFamily).toBe('Noto Sans Math')
+    expect(result.inspection.scene).toEqual(result.scene)
+    expect(result.rendered).toContain('--grid-font-family:Noto Sans Math')
+    expect(result.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '+')?.content).toMatchObject({ color: '#444444' })
   })
 
   it('客户端 DOM 渲染模式在服务端环境中明确拒绝执行', () => {

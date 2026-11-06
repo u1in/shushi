@@ -1,0 +1,8 @@
+/* STIX Two Math 数学字体。 */
+@font-face {
+  font-family: 'STIX Two Math';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./stix-two-math-latin-400-normal.woff2') format('woff2');
+}

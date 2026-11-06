@@ -1,0 +1,4 @@
+/* 全部内置数学字体；需要更细粒度时可直接导入 fonts/*.css。 */
+@import './fonts/cmu-serif.css';
+@import './fonts/stix-two-math.css';
+@import './fonts/noto-sans-math.css';

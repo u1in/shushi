@@ -3,6 +3,9 @@ export type GridTextHorizontalAlign = 'left' | 'center' | 'right'
 export type GridTextVerticalAlign = 'top' | 'center' | 'bottom'
 export type GridEdge = 'top' | 'right' | 'bottom' | 'left'
 
+/** 核心 renderer.css 内置并由所有编译入口默认写入场景的数学字体。 */
+export const DEFAULT_GRID_FONT_FAMILY = 'STIX Two Math'
+
 /**
  * A variable-sized row or column expressed in normal-cell units.
  *
@@ -67,6 +70,8 @@ export interface GridTextContent {
   color?: string
   /** Optional multiplier of the scene font size for compact annotations such as carries. */
   fontSizeRatio?: number
+  /** Optional per-element font override. Omitted text inherits the scene font family. */
+  fontFamily?: string
   /**
    * Optional per-element override. Omitted values inherit the grid configuration.
    * At an edge or intersection, `center` straddles the anchor while the other
@@ -115,6 +120,8 @@ export interface GridScene {
   unitWidth: number
   unitHeight: number
   fontSize: number
+  /** Default font family resolved while compiling the scene; text elements can override it locally. */
+  fontFamily?: string
   /** Render configuration inherited by text cells without a local style token. */
   defaultTextStyleToken?: string
   textHorizontalAlign: GridTextHorizontalAlign

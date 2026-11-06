@@ -237,7 +237,7 @@ describe('网格宏编译器', () => {
       position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
       content: {
         horizontalAlign: 'center', verticalAlign: 'top', fontSizeRatio: 0.42,
-        color: AUTO_COLOR_THEME.borrow[0],
+        color: AUTO_COLOR_THEME.borrow,
       },
     })
     expect(compact.elements).toEqual(explicit.elements)
@@ -328,11 +328,11 @@ ROW(MM(6), MM(3), MM(4))`)
     const lines = scene.elements.filter(({ content }) => content.kind === 'line')
     const bracket = scene.elements.find(({ content }) => content.kind === 'corner')
 
-    expect(textByValue('5')?.content).toMatchObject({ color: AUTO_COLOR_THEME.rowText[0] })
-    expect(textByValue('+')?.content).toMatchObject({ color: AUTO_COLOR_THEME.operators['+'] })
+    expect(textByValue('5')?.content).toMatchObject({ color: AUTO_COLOR_THEME.text })
+    expect(textByValue('+')?.content).toMatchObject({ color: AUTO_COLOR_THEME.operator })
     expect(textByValue('.')?.content).toMatchObject({ color: AUTO_COLOR_THEME.decimal })
-    expect(textByValue('·')?.content).toMatchObject({ color: AUTO_COLOR_THEME.borrow[0] })
-    expect(scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '1')[0]?.content).toMatchObject({ color: AUTO_COLOR_THEME.carry[0] })
+    expect(textByValue('·')?.content).toMatchObject({ color: AUTO_COLOR_THEME.borrow })
+    expect(scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '1')[0]?.content).toMatchObject({ color: AUTO_COLOR_THEME.carry })
     const bracketHead = lines.find(({ id }) => id.startsWith('macro-bracket-head-'))
     const ordinaryLine = lines.find(({ id }) => id.startsWith('macro-line-'))
     expect(lines).toHaveLength(2)
@@ -341,14 +341,44 @@ ROW(MM(6), MM(3), MM(4))`)
     expect(bracket?.content).toMatchObject({ color: AUTO_COLOR_THEME.bracketRule.color, thickness: AUTO_COLOR_THEME.bracketRule.thickness })
   })
 
-  test('相邻普通文本行使用色轮跳跃后的不同颜色', () => {
+  test('普通文本行共享固定主题色', () => {
     const scene = compileMacro('ROW(MM(1)), ROW(MM(2)), ROW(MM(3))')
     const colors = scene.elements
       .filter(({ content }) => content.kind === 'text')
       .map(({ content }) => content.kind === 'text' ? content.color : undefined)
 
-    expect(colors).toEqual([AUTO_COLOR_THEME.rowText[0], AUTO_COLOR_THEME.rowText[1], AUTO_COLOR_THEME.rowText[2]])
-    expect(new Set(colors).size).toBe(3)
+    expect(colors).toEqual([AUTO_COLOR_THEME.text, AUTO_COLOR_THEME.text, AUTO_COLOR_THEME.text])
+    expect(new Set(colors).size).toBe(1)
+  })
+
+  test('可以通过编译选项传入纯色主题', () => {
+    const customTheme = {
+      text: '#111111',
+      carry: '#222222',
+      borrow: '#333333',
+      operator: '#444444',
+      decimal: '#555555',
+      rule: { color: '#666666', thickness: 3 },
+      bracketRule: { color: '#777777', thickness: 4 },
+    }
+    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(7), DOT), MTD), LINE)', { colorTheme: customTheme })
+    const text = scene.elements.filter(({ content }) => content.kind === 'text')
+    const line = scene.elements.find(({ content }) => content.kind === 'line')
+
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '5')?.content).toMatchObject({ color: '#111111' })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '1')?.content).toMatchObject({ color: '#222222' })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '+')?.content).toMatchObject({ color: '#444444' })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '.')?.content).toMatchObject({ color: '#555555' })
+    expect(line?.content).toMatchObject({ color: '#666666', thickness: 3 })
+  })
+
+  test('编译入口默认使用 STIX，并允许用选项覆盖场景字体', () => {
+    const defaultScene = compileMacro('GRID(ROW(MM(5)))')
+    const scene = compileMacro('GRID(ROW(MM(5)))', { fontFamily: 'Noto Sans Math' })
+
+    expect(defaultScene.fontFamily).toBe('STIX Two Math')
+    expect(scene.fontFamily).toBe('Noto Sans Math')
+    expect(scene.elements[0].content).not.toHaveProperty('fontFamily')
   })
 
   test('VALUE 可保留语义样式，并允许末行使用空数值组占位', () => {

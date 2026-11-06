@@ -1,0 +1,8 @@
+/* Noto Sans Math 数学字体。 */
+@font-face {
+  font-family: 'Noto Sans Math';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./noto-sans-math-latin-400-normal.woff2') format('woff2');
+}
