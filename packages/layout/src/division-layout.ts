@@ -23,10 +23,10 @@ const createDivisionPlaybackEvents = (
   showZeroQuotientSteps: boolean,
 ): DivisionPlaybackEvent[] => {
   const integerSteps = computation.steps.filter(
-    ({ dividendColumn }) => dividendColumn < computation.dividendDigits.length,
+    ({ dividendColumn }) => dividendColumn < computation.integerDividendDigitCount,
   )
   const fractionalSteps = computation.steps.filter(
-    ({ dividendColumn }) => dividendColumn >= computation.dividendDigits.length,
+    ({ dividendColumn }) => dividendColumn >= computation.integerDividendDigitCount,
   )
   const eventForStep = (step: LongDivisionStep): DivisionPlaybackEvent[] =>
     showZeroQuotientSteps || step.quotientDigit !== '0'
@@ -46,9 +46,61 @@ export const getDivisionPlaybackStepCount = (
 const createDotCell = (digit: string, digitToken: string, dotToken: string): string =>
   `CELL(MM(${macroLiteral(digit)}, ${macroOption('style', digitToken)}), DOT, ${macroOption('style', dotToken)})`
 
+/** 只组合删除线宏；STRIKE 划当前数字，STRIKEDOT 同时输出小数点与短删除线。 */
+const createStrike = (): string => `STRIKE(${macroOption('style', 'division.normalization-strike')})`
+
+const createDisplayCell = (
+  digit: string,
+  digitToken: string,
+  dotToken: string,
+  hasDot: boolean,
+  strikeDigit: boolean,
+  strikeDot: boolean,
+): string =>
+  `CELL(${[
+    `MM(${macroLiteral(digit)}, ${macroOption('style', digitToken)})`,
+    ...(strikeDigit ? [createStrike()] : []),
+    ...(hasDot ? [strikeDot ? 'STRIKEDOT' : 'DOT', macroOption('style', dotToken)] : []),
+  ].join(', ')})`
+
 const putNumber = (cells: string[], value: string, endColumn: number, token: string): void => {
   ;[...value].forEach((digit, index) => {
     cells[endColumn - value.length + index + 1] = macroTextCell(digit, token)
+  })
+}
+
+/**
+ * 小数除法仍按等值整数过程计算，但输入行保留原始写法。
+ * 被右移的小数点和除数中被消去的前导零以独立 STRIKE 图元标出，
+ * 所以渲染器不需要知道任何除法规则。
+ */
+const putNormalizedInput = (
+  cells: string[],
+  sourceValue: string,
+  normalizedValue: string,
+  startColumn: number,
+  digitToken: string,
+  dotToken: string,
+  normalizationShift: number,
+  strikeLeadingZeroCount = 0,
+): void => {
+  const sourceDigits = sourceValue.replace('.', '')
+  const normalizedDigits = normalizedValue.replace('.', '')
+  const displayDigits = `${sourceDigits}${normalizedDigits.slice(sourceDigits.length)}`
+  const sourceDotIndex = sourceValue.includes('.') ? sourceValue.indexOf('.') - 1 : -1
+  const normalizedDotIndex = normalizedValue.includes('.') ? normalizedValue.indexOf('.') - 1 : -1
+
+  ;[...displayDigits].forEach((digit, index) => {
+    const hasSourceDot = index === sourceDotIndex
+    const hasNormalizedDot = index === normalizedDotIndex
+    cells[startColumn + index] = createDisplayCell(
+      digit,
+      digitToken,
+      dotToken,
+      hasSourceDot || hasNormalizedDot,
+      index < strikeLeadingZeroCount,
+      normalizationShift > 0 && hasSourceDot,
+    )
   })
 }
 
@@ -67,32 +119,30 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
         event.kind !== 'decimal-separator',
     )
     .at(-1)?.step
-  const divisorColumnCount = computation.divisorDigits.length
+  const sourceDivisorDigitCount = computation.sourceDivisorText.replace('.', '').length
+  const sourceDividendDigitCount = computation.sourceDividendText.replace('.', '').length
+  const transformedDividendDigitCount = computation.dividendText.replace('.', '').length
+  const divisorColumnCount = Math.max(computation.divisorDigits.length, sourceDivisorDigitCount)
   const bracketColumn = divisorColumnCount
   const dividendStart = bracketColumn + 1
-  const totalColumns = dividendStart + computation.digitColumnCount
+  const totalColumns =
+    dividendStart + Math.max(computation.digitColumnCount, sourceDividendDigitCount, transformedDividendDigitCount)
   const hasVisibleDecimalSeparator = visibleEvents.some(({ kind }) => kind === 'decimal-separator')
   const children: string[] = []
 
   const quotientCells = Array.from({ length: totalColumns }, macroEmptyCell)
-  const latestTokenColumn = latestVisibleQuotientStep
-    ? latestVisibleQuotientStep.dividendColumn +
-      (computation.hasFraction && latestVisibleQuotientStep.dividendColumn >= computation.dividendDigits.length ? 1 : 0)
-    : -1
+  const latestTokenColumn = latestVisibleQuotientStep ? latestVisibleQuotientStep.dividendColumn : -1
   computation.quotientTokens.forEach((token) => {
     if (token.kind === 'digit') {
       if (settings.visibleStepCount !== undefined && token.column > latestTokenColumn) return
-      const column =
-        dividendStart +
-        token.column -
-        (computation.hasFraction && token.column > computation.dividendDigits.length ? 1 : 0)
+      const column = dividendStart + token.column
       quotientCells[column] = macroTextCell(token.digit, 'division.quotient')
       return
     }
     if (hasVisibleDecimalSeparator) {
-      const column = dividendStart + computation.dividendDigits.length - 1
+      const column = dividendStart + computation.integerDividendDigitCount - 1
       const digitBeforeSeparator = computation.quotientTokens.find(
-        (item) => item.kind === 'digit' && item.column === computation.dividendDigits.length - 1,
+        (item) => item.kind === 'digit' && item.column === computation.integerDividendDigitCount - 1,
       )
       quotientCells[column] =
         digitBeforeSeparator === undefined
@@ -103,17 +153,31 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
   children.push(macroRow(quotientCells))
 
   const dividendCells = Array.from({ length: totalColumns }, macroEmptyCell)
-  ;[...computation.divisorDigits].forEach((digit, index) => {
-    dividendCells[index] = macroTextCell(digit, 'division.divisor')
-  })
+  const divisorLeadingZeroCount = Math.max(sourceDivisorDigitCount - computation.divisorDigits.length, 0)
+  putNormalizedInput(
+    dividendCells,
+    computation.sourceDivisorText,
+    computation.divisorText,
+    divisorColumnCount - sourceDivisorDigitCount,
+    'division.divisor',
+    'division.divisor-decimal-separator',
+    computation.normalizationShift,
+    divisorLeadingZeroCount,
+  )
   dividendCells[bracketColumn] = `CELL(BRACKET, ${macroOption('style', 'division.bracket')})`
-  ;[...computation.dividendDigits].forEach((digit, index) => {
-    dividendCells[dividendStart + index] = macroTextCell(digit, 'division.dividend')
-  })
-  if (computation.hasFraction && hasVisibleDecimalSeparator) {
-    const lastDividendColumn = dividendStart + computation.dividendDigits.length - 1
+  putNormalizedInput(
+    dividendCells,
+    computation.sourceDividendText,
+    computation.dividendText,
+    dividendStart,
+    'division.dividend',
+    'division.dividend-decimal-separator',
+    computation.normalizationShift,
+  )
+  if (computation.hasFraction && hasVisibleDecimalSeparator && !computation.dividendText.includes('.')) {
+    const lastDividendColumn = dividendStart + computation.integerDividendDigitCount - 1
     dividendCells[lastDividendColumn] = createDotCell(
-      computation.dividendDigits.at(-1)!,
+      computation.dividendDigits[computation.integerDividendDigitCount - 1],
       'division.dividend',
       'division.dividend-decimal-separator',
     )
@@ -160,7 +224,7 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
   return macroGrid(
     totalColumns,
     settings,
-    `${computation.dividendDigits} 除以 ${computation.divisorDigits} 的竖式`,
+    `${computation.dividendText} 除以 ${computation.divisorText} 的竖式`,
     children,
   )
 }

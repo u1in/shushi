@@ -23,6 +23,7 @@ const entries: ThemeColorEntry[] = [
   { key: 'borrow', label: '借位', description: 'MT / MTD 借位提示' },
   { key: 'operator', label: '运算符', description: '加减乘除运算符' },
   { key: 'decimal', label: '小数点', description: 'DOT 与小数点' },
+  { key: 'strike', label: '删除线', description: 'STRIKE 等值变换标记' },
   { key: 'rule', label: '普通线条', description: '横线、边框与短除法分割线' },
   { key: 'bracketRule', label: '厂字线条', description: '除法厂字弯与厂字横' },
 ]

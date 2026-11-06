@@ -42,6 +42,7 @@ const previewTheme = ref<AutoColorThemeColorValues>({
   borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
   operator: AUTO_COLOR_THEME_FALLBACK.operator,
   decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  strike: AUTO_COLOR_THEME_FALLBACK.strike,
   rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
   bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
 })
@@ -57,7 +58,7 @@ const canUseTrailingZeroShortcut = computed(
   () => standaloneMultiplicationOperands.value?.some((value) => value !== '0' && value.endsWith('0')) ?? false,
 )
 const trailingZeroShortcutEnabled = computed(() => canUseTrailingZeroShortcut.value && useTrailingZeroShortcut.value)
-const isLongDivisionExpression = computed(() => /^\d+\s*[÷/]\s*\d+$/.test(expression.value))
+const isLongDivisionExpression = computed(() => /^\d+(?:\.\d+)?\s*[÷/]\s*\d+(?:\.\d+)?$/.test(expression.value))
 const isCommonFactorResult = computed(() => {
   const computation = result.value?.computation
   return Boolean(computation && 'gcd' in computation && 'lcm' in computation)
@@ -72,10 +73,10 @@ const answer = computed(() => {
   const computation = result.value?.computation
   if (!computation) return '—'
   if ('resultDigits' in computation) return computation.resultDigits
-  if ('sumDigits' in computation) return computation.sumDigits
+  if ('sumText' in computation) return computation.sumText
   if ('differenceDigits' in computation)
     return computation.isNegative ? `-${computation.differenceDigits}` : computation.differenceDigits
-  if ('productDigits' in computation) return computation.productDigits
+  if ('productText' in computation) return computation.productText
   if ('quotientText' in computation)
     return computation.remainder === '0'
       ? computation.quotientText
@@ -237,7 +238,8 @@ calculate()
             >支持连续 <code>+</code>、<code>-</code>、<code>×</code>（也可输入 <code>*</code> 或
             <code>x</code>）。</span
           >
-          <span>长除法用 <code>10230 ÷ 25</code> 或 <code>10230 / 25</code>。</span>
+          <span>加法、乘法和长除法可输入小数，例如 <code>1.2 × 3.4</code>、<code>34.5 / 5</code>。</span>
+          <span>长除法也可用 <code>10230 ÷ 25</code> 或 <code>10230 / 25</code>。</span>
           <span>分解质因数：<code>|48</code>。</span>
           <span>求最大公约数和最小公倍数：<code>|12 18</code>（自动试除）。</span>
           <span>进制转换：<code>(13)2</code>，表示把十进制 13 转为二进制。</span>

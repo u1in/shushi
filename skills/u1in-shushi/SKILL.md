@@ -40,6 +40,8 @@ const result = shushi('125 + 75 - 20 × 3')
 
 加法、减法和乘法也接受 `*`、`x`、`X` 作为乘号。连续表达式不使用乘法优先级，从左到右计算；除法不能与其他运算混写。
 
+加法、乘法和长除法可使用非负小数，例如 `1.2 + 3.04`、`1.2 × 3.4`、`34.5 ÷ 5`；减法和短除法始终只处理整数。长除法会先把除数右移为整数，并同步处理被除数；未除尽时默认补零展开最多十位商小数。
+
 ### 1.2 用户明确要求结构化控制
 
 使用 `shushiCore`：
@@ -123,7 +125,7 @@ addition | subtraction | multiplication | division | shortDivision | composite
 - `addition`：`values`；
 - `subtraction`：`operands: [被减数, 减数]`；
 - `multiplication`：`operands`，可选 `calculation`；
-- `division`：`divisor` 在前、`dividend` 在后；`calculation.maxDecimalDigits` 可选，省略时返回整数商和余数，传入正整数时最多计算到该小数位并保留当前余数；
+- `division`：`divisor` 在前、`dividend` 在后；两者可为非负小数。`calculation.maxDecimalDigits` 可选，已有输入小数会先计算完，省略时后续默认最多补零十位，传入正整数时覆盖该上限；
 - `shortDivision`：`mode`、`values`，指定除数时增加 `divisor`，进制转换时增加 `targetBase`；
 - `composite`：`expression`。
 

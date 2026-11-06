@@ -53,21 +53,22 @@ const createCalculatorApiPage = ({
 
 export const computeAdditionPage = createCalculatorApiPage({
   slug: 'computeAddition',
-  summary: '计算两个或多个非负整数字符串的逐列加法过程。',
+  summary: '计算两个或多个非负十进制字符串的逐列加法过程。',
   example: `import { computeAddition } from '@u1in/shushi-core'
 
 // 结果保留字符串，适合处理超出 JavaScript 安全整数范围的输入。
-const computation = computeAddition('356', '278')
+const computation = computeAddition('1.2', '3.04')
 
-console.log(computation.sumDigits) // '634'
+console.log(computation.sumText) // '4.24'
 console.log(computation.steps)`,
-  purpose: '它校验加数并输出每列的输入数字、进位、总和、结果位和最终和。布局层只消费这个过程，不重新执行加法。',
+  purpose:
+    '它收集最长小数位并将输入右补零，输出去点后的逐列输入数字、进位、总和、结果位和带小数点的最终和。布局层只消费这个过程，不重新执行加法。',
   signature: `type ComputeAddition = (...values: unknown[]) => AdditionComputation`,
   parameters: [
-    ['`values`', '`unknown[]`', '至少两个非负整数字符串；也可传入一个数组表达连加。'],
-    ['返回值', '`AdditionComputation`', '包含 `addendDigits`、`sumDigits` 和逐列 `steps`。'],
+    ['`values`', '`unknown[]`', '至少两个非负十进制字符串；也可传入一个数组表达连加。'],
+    ['返回值', '`AdditionComputation`', '包含去点过程数字、`addendTexts`、`sumText` 和逐列 `steps`。'],
   ],
-  caution: '输入必须是十进制非负整数；函数不生成宏源码、GridScene 或 DOM。',
+  caution: '输入必须是十进制非负数；函数不生成宏源码、GridScene 或 DOM。',
 })
 
 export const computeSubtractionPage = createCalculatorApiPage({
@@ -95,56 +96,62 @@ console.log(computation.steps)`,
 
 export const computeDivisionPage = createCalculatorApiPage({
   slug: 'computeDivision',
-  summary: '计算十进制长除法的商、余数和逐轮试商过程。',
+  summary: '计算非负十进制长除法的商、余数和逐轮试商过程。',
   example: `import { computeDivision } from '@u1in/shushi-core'
 
 // 参数顺序是除数在前、被除数在后。
-const computation = computeDivision('25', '10230', {
+const computation = computeDivision('0.5', '3.45', {
   maxDecimalDigits: 4,
 })
 
-console.log(computation.quotientText) // '409.2'
+console.log(computation.quotientText) // '6.9'
 console.log(computation.steps)`,
-  purpose: '它以十进制字符串计算长除法，输出商 token、每轮部分被除数、乘积、余数和按需展开的小数过程。',
+  purpose:
+    '它先把除数右移为整数、同步变换被除数，再以十进制字符串计算长除法，输出原输入文本、等值变换位数、商 token、每轮部分被除数、乘积、余数和按需补零展开的小数过程。',
   signature: `type ComputeDivision = (
   divisorValue: unknown,
   dividendValue: unknown,
   options?: DivisionOptions,
 ) => DivisionComputation`,
   parameters: [
-    ['`divisorValue`', '`unknown`', '除数，不能为 0。'],
-    ['`dividendValue`', '`unknown`', '被除数，要求为非负十进制整数。'],
+    ['`divisorValue`', '`unknown`', '除数，要求为非负十进制数且不能为 0。'],
+    ['`dividendValue`', '`unknown`', '被除数，要求为非负十进制数。'],
     [
       '`options.maxDecimalDigits`',
       '`number`',
-      '可选的正整数。省略时返回整数商和余数；配置后最多展开该位数，未除尽时保留截断小数与当前余数。',
+      '可选的正整数。省略时默认最多补零展开十位；配置后最多补零该位数，未除尽时保留截断小数与当前余数。',
     ],
-    ['返回值', '`DivisionComputation`', '包含 `quotientText`、`quotientTokens`、`steps` 和 `remainder`。'],
+    [
+      '返回值',
+      '`DivisionComputation`',
+      '包含 `sourceDivisorText`、`sourceDividendText`、`normalizationShift`、`quotientText`、`quotientTokens`、`steps` 和 `remainder`。',
+    ],
   ],
   caution: '除数为 0、非正整数的小数位上限都会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
 })
 
 export const computeMultiplicationPage = createCalculatorApiPage({
   slug: 'computeMultiplication',
-  summary: '计算十进制逐位乘法、部分积和最终积。',
+  summary: '计算非负十进制数的逐位乘法、部分积和最终积。',
   example: `import { computeMultiplication } from '@u1in/shushi-core'
 
-const computation = computeMultiplication('97', '89', {
+const computation = computeMultiplication('1.2', '3.4', {
   // 关闭后始终保留完整的逐位乘法过程。
   useTrailingZeroShortcut: false,
 })
 
-console.log(computation.productDigits) // '8633'
+console.log(computation.productText) // '4.08'
 console.log(computation.partialProducts)`,
-  purpose: '它记录乘数每一位产生的部分积、十进制位移、逐位进位和最终列加法步骤，供乘法布局器生成教学竖式。',
+  purpose:
+    '它先去除小数点并记录逐位乘法、部分积、十进制位移、进位和最终列加法步骤，再按两输入的小数位数之和输出 `productText`，供乘法布局器生成教学竖式。',
   signature: `type ComputeMultiplication = (
   multiplicandValue: unknown,
   multiplierValue: unknown,
   options?: MultiplicationOptions,
 ) => MultiplicationComputation`,
   parameters: [
-    ['`multiplicandValue`', '`unknown`', '被乘数，要求为非负十进制整数。'],
-    ['`multiplierValue`', '`unknown`', '乘数，要求为非负十进制整数。'],
+    ['`multiplicandValue`', '`unknown`', '被乘数，要求为非负十进制数。'],
+    ['`multiplierValue`', '`unknown`', '乘数，要求为非负十进制数。'],
     ['`options.useTrailingZeroShortcut`', '`boolean`', '是否启用乘数末尾零的教学快捷计算，默认开启。'],
     ['`options.preserveOperandOrder`', '`boolean`', '为 `true` 时不为排版交换两个操作数；组合运算乘法固定使用该选项。'],
     ['返回值', '`MultiplicationComputation`', '包含部分积、列加法步骤、最终积和快捷计算信息。'],

@@ -55,7 +55,7 @@ const result = shushiCore({
   operation: 'division',
   divisor: '25',
   dividend: '10230',
-  // 省略 maxDecimalDigits 时，直接返回整数商和余数。
+  // 已有输入小数会先计算完；省略 maxDecimalDigits 后默认最多补零十位。
 })
 ```
 

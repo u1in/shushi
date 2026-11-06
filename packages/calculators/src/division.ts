@@ -1,23 +1,14 @@
 /** Division calculator: validates inputs and produces the renderer-independent long-division process. */
 import type { DivisionComputation, DivisionOptions, LongDivisionStep } from './types'
+import { formatDecimal, parseDecimal, trimLeadingZeros } from './decimal'
 
 interface PositionedQuotientDigit {
   column: number
   digit: string
 }
 
-const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
-
-/** Validates an integer input and returns its canonical decimal-string form. */
-const parseIntegerDigits = (value: unknown, label: string): string => {
-  const raw = String(value ?? '')
-
-  if (!/^\d+$/.test(raw)) {
-    throw new Error(`${label}请输入非负整数，例如 12 或 3456。`)
-  }
-
-  return trimLeadingZeros(raw)
-}
+/** 循环小数必须有终止点；调用方仍可通过选项提高或收紧此默认教学上限。 */
+export const DEFAULT_MAX_DECIMAL_DIGITS = 10
 
 /** Compares two non-negative decimal strings without converting them to large numbers. */
 const compareDigitStrings = (left: string, right: string): number => {
@@ -101,71 +92,7 @@ const createStep = (
   remainder,
 })
 
-interface DecimalExpansion {
-  fractionalDigits: string[]
-  quotientDigits: PositionedQuotientDigit[]
-  steps: LongDivisionStep[]
-  remainder: string
-  truncated: boolean
-}
-
-/**
- * 从整数余数继续补零试商。小数位数由调用方明确限定，因此循环小数也会
- * 保留已经完成的步骤，而不是丢弃过程再退回整数余数。
- */
-const calculateDecimalExpansion = ({
-  divisorDigits,
-  dividendDigits,
-  quotientDigits,
-  steps,
-  remainder,
-  maxDecimalDigits,
-}: {
-  divisorDigits: string
-  dividendDigits: string
-  quotientDigits: PositionedQuotientDigit[]
-  steps: LongDivisionStep[]
-  remainder: string
-  maxDecimalDigits: number
-}): DecimalExpansion => {
-  const decimalQuotientDigits = [...quotientDigits]
-  const decimalSteps = [...steps]
-  const fractionalDigits: string[] = []
-  let workingRemainder = remainder
-
-  for (let fractionIndex = 0; fractionIndex < maxDecimalDigits; fractionIndex += 1) {
-    const dividendColumn = dividendDigits.length + fractionIndex
-    const partialDividend = appendDigit(workingRemainder, '0')
-    const { digit, product } = findQuotientDigit(partialDividend, divisorDigits)
-
-    workingRemainder = subtractDigitStrings(partialDividend, product)
-    fractionalDigits.push(String(digit))
-    decimalQuotientDigits.push({ column: dividendColumn, digit: String(digit) })
-    decimalSteps.push(
-      createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder),
-    )
-
-    if (workingRemainder === '0') {
-      return {
-        fractionalDigits,
-        quotientDigits: decimalQuotientDigits,
-        steps: decimalSteps,
-        remainder: workingRemainder,
-        truncated: false,
-      }
-    }
-  }
-
-  return {
-    fractionalDigits,
-    quotientDigits: decimalQuotientDigits,
-    steps: decimalSteps,
-    remainder: workingRemainder,
-    truncated: true,
-  }
-}
-
-const normalizeOptions = ({ maxDecimalDigits }: DivisionOptions): DivisionOptions => {
+const normalizeOptions = ({ maxDecimalDigits = DEFAULT_MAX_DECIMAL_DIGITS }: DivisionOptions): DivisionOptions => {
   if (maxDecimalDigits !== undefined && (!Number.isInteger(maxDecimalDigits) || maxDecimalDigits < 1)) {
     throw new Error('小数最大位数必须是正整数。')
   }
@@ -178,8 +105,8 @@ const normalizeOptions = ({ maxDecimalDigits }: DivisionOptions): DivisionOption
  *
  * 具体规则见 `packages/calculators/docs/除法计算规则.md`：开头被跳过的商零不记录为步骤；
  * 商开始后，每次试除（包括商位为 `0`）都会记录。商全为零时保留最后一次
- * `partialDividend - 0` 步骤。未配置小数位上限时直接返回整数商和余数；配置后
- * 会保留到达上限前的所有小数过程。返回结果不含布局信息，因而任意渲染器都可将其编排为竖式。
+ * `partialDividend - 0` 步骤。整数部分有余数时自动补零展开商小数；配置小数位上限后
+ * 会采用该上限，未配置时最多计算十位。返回结果不含布局信息，因而任意渲染器都可将其编排为竖式。
  */
 export const computeDivision = (
   divisorValue: unknown,
@@ -187,8 +114,16 @@ export const computeDivision = (
   options: DivisionOptions = {},
 ): DivisionComputation => {
   const { maxDecimalDigits } = normalizeOptions(options)
-  const divisorDigits = parseIntegerDigits(divisorValue, '除数')
-  const dividendDigits = parseIntegerDigits(dividendValue, '被除数')
+  const decimalLimit = maxDecimalDigits ?? DEFAULT_MAX_DECIMAL_DIGITS
+  const divisor = parseDecimal(divisorValue, '除数')
+  const dividend = parseDecimal(dividendValue, '被除数')
+  // 先把除数的小数点右移为整数；被除数同步右移，保留剩余的小数部分供逐位过程处理。
+  const divisorDigits = trimLeadingZeros(divisor.digits)
+  const dividendDigits = `${dividend.digits}${'0'.repeat(Math.max(divisor.decimalPlaces - dividend.decimalPlaces, 0))}`
+  const decimalPlaces = Math.max(dividend.decimalPlaces - divisor.decimalPlaces, 0)
+  const integerDividendDigitCount = dividendDigits.length - decimalPlaces
+  const divisorText = formatDecimal(divisorDigits, 0)
+  const dividendText = formatDecimal(dividendDigits, decimalPlaces)
 
   if (divisorDigits === '0') {
     throw new Error('除数不能为 0。')
@@ -201,7 +136,7 @@ export const computeDivision = (
   let quotientStarted = false
   let integerStartColumn = -1
 
-  for (let dividendColumn = 0; dividendColumn < dividendDigits.length; dividendColumn += 1) {
+  for (let dividendColumn = 0; dividendColumn < integerDividendDigitCount; dividendColumn += 1) {
     const partialDividend = appendDigit(remainder, dividendDigits[dividendColumn])
 
     if (!quotientStarted && compareDigitStrings(partialDividend, divisorDigits) < 0) {
@@ -221,45 +156,62 @@ export const computeDivision = (
 
   // R5/R6: a zero integer quotient still has one visible `partialDividend - 0` step.
   if (!quotientStarted) {
-    const dividendColumn = dividendDigits.length - 1
+    const dividendColumn = integerDividendDigitCount - 1
     quotientDigits.push({ column: dividendColumn, digit: '0' })
     steps.push(createStep(dividendColumn, divisorDigits, '0', remainder, '0', remainder))
   }
 
   const integerText = quotientStarted ? integerQuotientDigits.join('') : '0'
-  const decimalExpansion =
-    maxDecimalDigits !== undefined && remainder !== '0'
-      ? calculateDecimalExpansion({
-          divisorDigits,
-          dividendDigits,
-          quotientDigits,
-          steps,
-          remainder,
-          maxDecimalDigits,
-        })
-      : undefined
-  const hasFraction = decimalExpansion !== undefined
-  const fractionalDigitCount = decimalExpansion?.fractionalDigits.length ?? 0
+  const fractionalDigits: string[] = []
+  let fractionalDigitCount = 0
 
-  const finalQuotientDigits = decimalExpansion?.quotientDigits ?? quotientDigits
-  const quotientTokens = finalQuotientDigits.flatMap(({ column, digit }) => {
-    const displayColumn = column + (hasFraction && column >= dividendDigits.length ? 1 : 0)
-    const token = { kind: 'digit' as const, digit, column: displayColumn }
-    return hasFraction && column === dividendDigits.length
-      ? [{ kind: 'decimalSeparator' as const, digit: '.' as const, column }, token]
+  /** 继续使用整数试商步骤处理原输入的小数位或后续补出的零。 */
+  const calculateFractionalDigit = (dividendColumn: number, digit: string): void => {
+    const partialDividend = appendDigit(remainder, digit)
+    const trial = findQuotientDigit(partialDividend, divisorDigits)
+    remainder = subtractDigitStrings(partialDividend, trial.product)
+    const quotientDigit = String(trial.digit)
+    fractionalDigits.push(quotientDigit)
+    quotientDigits.push({ column: dividendColumn, digit: quotientDigit })
+    steps.push(createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, trial.product, remainder))
+  }
+
+  // 原被除数带小数时，点后每一位都属于商的小数过程；否则只在有余数时补零展开。
+  const hasFraction = decimalPlaces > 0 || remainder !== '0'
+  if (hasFraction) {
+    for (let dividendColumn = integerDividendDigitCount; dividendColumn < dividendDigits.length; dividendColumn += 1) {
+      calculateFractionalDigit(dividendColumn, dividendDigits[dividendColumn])
+    }
+    for (let fractionIndex = 0; fractionIndex < decimalLimit && remainder !== '0'; fractionIndex += 1) {
+      calculateFractionalDigit(dividendDigits.length + fractionIndex, '0')
+      fractionalDigitCount += 1
+    }
+  }
+
+  const decimalTruncated = hasFraction && remainder !== '0' && fractionalDigitCount === decimalLimit
+  const quotientTokens = quotientDigits.flatMap(({ column, digit }) => {
+    const token = { kind: 'digit' as const, digit, column }
+    return hasFraction && column === integerDividendDigitCount
+      ? [{ kind: 'decimalSeparator' as const, digit: '.' as const, column: integerDividendDigitCount - 1 }, token]
       : [token]
   })
 
   return {
+    sourceDivisorText: divisor.text,
+    sourceDividendText: dividend.text,
+    normalizationShift: divisor.decimalPlaces,
     divisorDigits,
+    divisorText,
+    dividendText,
     dividendDigits,
-    quotientText: hasFraction ? `${integerText}.${decimalExpansion.fractionalDigits.join('')}` : integerText,
+    integerDividendDigitCount,
+    quotientText: hasFraction ? `${integerText}.${fractionalDigits.join('')}` : integerText,
     quotientTokens,
-    steps: decimalExpansion?.steps ?? steps,
-    remainder: decimalExpansion?.remainder ?? remainder,
+    steps,
+    remainder,
     hasFraction,
     fractionalDigitCount,
-    decimalTruncated: decimalExpansion?.truncated ?? false,
+    decimalTruncated,
     integerStartColumn,
     digitColumnCount: dividendDigits.length + fractionalDigitCount,
   }

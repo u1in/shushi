@@ -25,7 +25,7 @@ const error = ref('')
 const computation = ref<MultiplicationComputation>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
-const answer = computed(() => computation.value?.productDigits ?? '—')
+const answer = computed(() => computation.value?.productText ?? '—')
 
 const renderScene = (): void => {
   const result = shushi(`${multiplicand.value} × ${multiplier.value}`, {
@@ -105,12 +105,12 @@ calculate()
         <div class="input-grid">
           <label class="field"
             ><span>第一个乘数</span
-            ><input v-model="multiplicand" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><input v-model="multiplicand" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
           <span class="division-operator" aria-hidden="true">×</span>
           <label class="field"
             ><span>第二个乘数</span
-            ><input v-model="multiplier" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><input v-model="multiplier" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>

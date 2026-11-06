@@ -12,8 +12,21 @@ export interface LongDivisionStep {
 }
 
 export interface DivisionComputation {
+  /** 规范化前的除数文本；布局用它保留并标记被右移的小数位。 */
+  sourceDivisorText: string
+  /** 规范化前的被除数文本；布局用它保留并标记被右移的小数位。 */
+  sourceDividendText: string
+  /** 为把除数化为整数而同步右移的小数位数。 */
+  normalizationShift: number
+  /** 完成“除数小数点右移”后的整数除数过程数字。 */
   divisorDigits: string
+  /** 与整数除数等值的过程文本；原输入显示使用 sourceDivisorText。 */
+  divisorText: string
+  /** 完成同倍率右移后、仍可能带小数点的过程文本；原输入显示使用 sourceDividendText。 */
+  dividendText: string
   dividendDigits: string
+  /** 原始被除数在等值变换后的整数位数，也是商小数点出现前的输入位数。 */
+  integerDividendDigitCount: number
   quotientText: string
   quotientTokens: QuotientToken[]
   steps: LongDivisionStep[]
@@ -28,7 +41,7 @@ export interface DivisionComputation {
 
 export interface DivisionOptions {
   /**
-   * 最多继续计算的小数位数。省略时在整数部分结束后直接返回余数；
+   * 最多继续计算的小数位数。省略时默认计算十位；
    * 指定后即使余数未归零也保留已经计算出的各位小数。
    */
   maxDecimalDigits?: number
@@ -150,11 +163,20 @@ export interface MultiplicationOptions {
 }
 
 export interface MultiplicationComputation {
+  /** 去掉小数点后的计算数字；整数输入时等于对应文本。 */
   multiplicandDigits: string
   multiplierDigits: string
+  /** 规范化后的原始输入文本，供布局恢复小数点。 */
+  multiplicandText: string
+  multiplierText: string
+  multiplicandDecimalPlaces: number
+  multiplierDecimalPlaces: number
+  /** 最终积应从右侧计入的小数位数。 */
+  decimalPlaces: number
   /** 为兼容已有调用方保留；乘法器不再交换输入，因此始终为 false。 */
   operandsSwapped: boolean
   productDigits: string
+  productText: string
   /** 非空时表示最终积由基础积补零得到。 */
   trailingZeroShortcut: MultiplicationTrailingZeroShortcut | null
   partialProducts: MultiplicationPartialProduct[]
@@ -171,10 +193,16 @@ export interface AdditionColumnStep {
   carryOut: number
 }
 
-/** 不含任何布局坐标的非负整数加法过程。 */
+/** 不含任何布局坐标的非负十进制加法过程。 */
 export interface AdditionComputation {
+  /** 去掉小数点后的计算数字；整数输入时等于对应文本。 */
   addendDigits: string[]
+  addendTexts: string[]
+  addendDecimalPlaces: number[]
+  /** 所有加数右补零后采用的公共小数位数。 */
+  decimalPlaces: number
   sumDigits: string
+  sumText: string
   steps: AdditionColumnStep[]
 }
 

@@ -184,6 +184,7 @@ describe('首页宏调试示例', () => {
       borrow: '#333333',
       operator: '#444444',
       decimal: '#555555',
+      strike: '#5b21b6',
       rule: '#666666',
       bracketRule: '#777777',
     }
@@ -204,5 +205,6 @@ describe('首页宏调试示例', () => {
     expect(macroCode).toContain("    colorTheme: {\n      text: '#111111',")
     expect(formatAutoColorThemeObject(colorTheme, { prefix: 'const colorTheme = ' })).toContain('const colorTheme = {')
     expect(formatAutoColorThemeObject(colorTheme)).toContain("rule: { color: '#666666', thickness: 2 },")
+    expect(formatAutoColorThemeObject(colorTheme)).toContain("strike: '#5b21b6'")
   })
 })

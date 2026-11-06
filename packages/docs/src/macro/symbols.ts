@@ -279,6 +279,74 @@ const fixedSymbolPages: MacroDocPage[] = [
 
 export const symbolPages: MacroDocPage[] = [
   {
+    slug: 'strike',
+    title: 'STRIKE / STRIKEDOT · 删除线图元',
+    navLabel: 'STRIKE',
+    kicker: 'SYMBOL MACRO · STRIKE',
+    group: 'symbol',
+    summary: 'STRIKE 标记当前单元格，STRIKEDOT 则是带短删除线的右侧小数点。',
+    sections: [
+      {
+        id: 'purpose',
+        title: '作用',
+        blocks: [
+          {
+            type: 'paragraph',
+            text: 'STRIKE 编译为通用 GridStrikeContent。STRIKEDOT 同时编译为 DOT 文本和短删除线；两者均以当前 CELL 为基准，因而宿主可通过 style token 单独改变线条形态。',
+          },
+        ],
+      },
+      {
+        id: 'signature',
+        title: '函数签名和属性说明',
+        blocks: [
+          {
+            type: 'code',
+            title: '宏签名',
+            code: 'STRIKE(KV(x1, number), KV(y1, number), KV(x2, number), KV(y2, number), KV(style, token))',
+          },
+          {
+            type: 'table',
+            columns: ['属性', '说明'],
+            rows: [
+              ['自动长度', 'STRIKE 始终使用数字长度；STRIKEDOT 是带短删除线的 DOT。'],
+              [
+                '`x1` / `y1` / `x2` / `y2`',
+                '两端相对当前单元格宽高的比例；会覆盖 STRIKE 的默认预设，端点允许超出 0–1。',
+              ],
+              ['`thickness` / `color`', '可选的跨渲染器线宽和颜色覆盖。'],
+              ['`style`', '可选语义 token，用于由宿主主题统一定义删除线。'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'example',
+        title: '例子',
+        blocks: [
+          {
+            type: 'example',
+            title: '划去小数点',
+            code: 'GRID(ROW(CELL(MM(5), STRIKEDOT, KV(style, division.normalization-strike))))',
+            note: 'STRIKEDOT 与 DOT 一样附着在数字右侧，同时以较短删除线划去小数点。',
+          },
+        ],
+      },
+      {
+        id: 'caution',
+        title: '注意事项',
+        blocks: [
+          {
+            type: 'callout',
+            tone: 'warn',
+            title: '必须位于 CELL',
+            text: 'STRIKE 只能置于 CELL 或作为 ROW 中的独立单元格，且仅接受 KV 配置；它不新增轨道，也不修改文字内容。',
+          },
+        ],
+      },
+    ],
+  },
+  {
     slug: 'dot',
     title: 'DOT · 小数点符号宏',
     navLabel: 'DOT',

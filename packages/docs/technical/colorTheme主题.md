@@ -4,7 +4,7 @@ title: colorTheme 颜色主题
 
 # `colorTheme` 颜色主题
 
-`colorTheme` 用来统一设置竖式中的语义颜色，例如普通数字、进位、借位、运算符、小数点和线条。
+`colorTheme` 用来统一设置竖式中的语义颜色，例如普通数字、进位、借位、运算符、小数点、删除线和线条。
 
 主题在编译阶段写入 `GridScene`。因此 DOM、SVG 和 SVG 字符串渲染使用同一份颜色配置，不会受到外层容器 CSS 继承或覆盖的影响。渲染器仍需要导入公共样式来获得布局、字体和基础图元样式，但颜色主题始终通过 JavaScript 配置。
 
@@ -19,18 +19,20 @@ const colorTheme: AutoColorTheme = {
   borrow: '#8b5cf6',
   operator: '#be123c',
   decimal: '#c026d3',
+  strike: '#949494',
   rule: { color: '#334155', thickness: 2 },
   bracketRule: { color: '#2563eb', thickness: 2 },
 }
 ```
 
-七个字段的作用如下：
+八个字段的作用如下：
 
 - `text`：普通数字和未分类文字。
 - `carry`：`RB` 生成的进位提示。
 - `borrow`：`MT` / `MTD` 生成的借位提示。
 - `operator`：加、减、乘、除运算符。
 - `decimal`：`DOT` 和小数点。
+- `strike`：`STRIKE` 与 `STRIKEDOT` 的删除线，例如除法等值变换标记。
 - `rule`：普通横线、边框和短除法分割线。
 - `bracketRule`：除法厂字弯和厂字横。
 

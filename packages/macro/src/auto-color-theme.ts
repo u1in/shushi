@@ -17,6 +17,8 @@ export interface AutoColorTheme {
   operator: string
   /** DOT 与小数点。 */
   decimal: string
+  /** STRIKE 删除线。 */
+  strike: string
   /** 普通横线、边框和短除法分割线。 */
   rule: MacroStyle
   /** BRACKET 厂字弯与厂字横。 */
@@ -32,6 +34,7 @@ export const AUTO_COLOR_THEME_FALLBACK: AutoColorTheme = {
   borrow: '#8957c8',
   operator: '#e27624',
   decimal: '#d74783',
+  strike: '#949494',
   rule: { color: '#7c5366', thickness: 2 },
   bracketRule: { color: '#a84b6b', thickness: 2 },
 }
@@ -43,6 +46,7 @@ export const AUTO_COLOR_THEME: AutoColorTheme = {
   borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
   operator: AUTO_COLOR_THEME_FALLBACK.operator,
   decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  strike: AUTO_COLOR_THEME_FALLBACK.strike,
   rule: { ...AUTO_COLOR_THEME_FALLBACK.rule },
   bracketRule: { ...AUTO_COLOR_THEME_FALLBACK.bracketRule },
 }

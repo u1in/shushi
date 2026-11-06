@@ -1,4 +1,4 @@
-import type { GridElement, GridPosition, GridTextContent } from '@u1in/shushi-grid'
+import type { GridElement, GridPosition, GridStrikeContent, GridTextContent } from '@u1in/shushi-grid'
 import type { MacroCall, MacroNode } from './types'
 import { getMacroCall, getMacroValue, getPositiveNumber, splitMacroOptions } from './macro-ast'
 import { resolveLineStyle } from './basic-macros'
@@ -20,6 +20,8 @@ export const SUGAR_MACRO_NAMES = [
   'RBL',
   'MTD',
   'DOT',
+  'STRIKE',
+  'STRIKEDOT',
   'BRACKET',
   'SQUARE',
   'TRIANGLE',
@@ -40,6 +42,8 @@ export const SUGAR_ZERO_ARGUMENT_MACROS = new Set([
   'SQUARE',
   'TRIANGLE',
   'ROUND',
+  'STRIKE',
+  'STRIKEDOT',
 ])
 
 const POSITION_MACRO_NAMES = new Set([
@@ -95,6 +99,51 @@ export const getBracketMacro = (node: MacroNode): MacroCall | undefined =>
 
 export const isDotMacro = (node: MacroNode): boolean => node.kind === 'symbol' && node.name === 'DOT'
 
+/** STRIKEDOT 与 DOT 同属零参数图元，但会额外生成独立的小数点删除线。 */
+export const isStrikeDotMacro = (node: MacroNode): boolean => node.kind === 'symbol' && node.name === 'STRIKEDOT'
+
+export const getStrikeMacro = (node: MacroNode): MacroCall | undefined =>
+  getMacroCall(node, 'STRIKE', SUGAR_ZERO_ARGUMENT_MACROS)
+
+const getFiniteNumber = (value: string | undefined, label: string, fallback: number): number => {
+  if (value === undefined) return fallback
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) throw new Error(`${label} 必须是有限数字。`)
+  return numericValue
+}
+
+/** 删除线的预设端点以单元格宽高比例表达；小数点预设允许略越过右边界。 */
+const STRIKE_PRESETS = {
+  // 以默认 0.68 跨度为基准，数字删除线按中心缩短约 10%。
+  digit: { x1: 0.194, y1: 0.194, x2: 0.806, y2: 0.806 },
+  // DOT 位于右侧边中点，小数点删除线按中心缩短为数字删除线的一半。
+  decimal: { x1: 0.92, y1: 0.46, x2: 1.08, y2: 0.66 },
+} as const
+
+/** STRIKE 的端点可由调用方覆盖；普通 STRIKE 始终使用数字删除线预设。 */
+const getStrikeContent = (call: MacroCall): GridStrikeContent => {
+  const { content, options } = splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS)
+  if (content.length > 0) throw new Error('STRIKE 只接受 KV 配置，不接受文字或其他图元。')
+  const allowedOptions = new Set(['style', 'color', 'thickness', 'x1', 'y1', 'x2', 'y2'])
+  options.forEach((_, key) => {
+    if (!allowedOptions.has(key)) throw new Error(`STRIKE 不支持 ${key} 配置。`)
+  })
+  const preset = STRIKE_PRESETS.digit
+  const thickness = options.has('thickness')
+    ? getPositiveNumber(options.get('thickness'), 'STRIKE 的 thickness', 2)
+    : undefined
+  return {
+    kind: 'strike',
+    // 预设始终从左上划向右下，避免与普通算式横线混淆。
+    x1Ratio: getFiniteNumber(options.get('x1'), 'STRIKE 的 x1', preset.x1),
+    y1Ratio: getFiniteNumber(options.get('y1'), 'STRIKE 的 y1', preset.y1),
+    x2Ratio: getFiniteNumber(options.get('x2'), 'STRIKE 的 x2', preset.x2),
+    y2Ratio: getFiniteNumber(options.get('y2'), 'STRIKE 的 y2', preset.y2),
+    ...(options.has('color') ? { color: options.get('color') } : {}),
+    ...(thickness === undefined ? {} : { thickness }),
+  }
+}
+
 const getTextAlignment = (name: string): Pick<GridTextContent, 'horizontalAlign' | 'verticalAlign'> => {
   const alignments: Record<string, Pick<GridTextContent, 'horizontalAlign' | 'verticalAlign'>> = {
     LT: { horizontalAlign: 'left', verticalAlign: 'top' },
@@ -122,10 +171,38 @@ export const compileSugarCellElement = (
   cell: SugarCellPlacement,
   row: number,
   id: number,
-): GridElement => {
+): GridElement | GridElement[] => {
   const dot = isDotMacro(node)
-  const call = dot ? undefined : getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
-  if (!dot && !call) throw new Error('单元格包含无法编译的内容。')
+  const strikeDot = isStrikeDotMacro(node)
+  const call = dot || strikeDot ? undefined : getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
+  if (!dot && !strikeDot && !call) throw new Error('单元格包含无法编译的内容。')
+  if (strikeDot) {
+    return [
+      {
+        id: `macro-text-${id}`,
+        position: { kind: 'edgeMidpoint', column: cell.column, row, columnSpan: cell.columnSpan, edge: 'right' },
+        content: {
+          kind: 'text',
+          text: '.',
+          styleToken: cell.styleToken,
+          horizontalAlign: 'center',
+          verticalAlign: 'center',
+        },
+      },
+      {
+        id: `macro-strike-${id}`,
+        position: { kind: 'cell', column: cell.column, row, columnSpan: cell.columnSpan },
+        content: {
+          kind: 'strike',
+          x1Ratio: STRIKE_PRESETS.decimal.x1,
+          y1Ratio: STRIKE_PRESETS.decimal.y1,
+          x2Ratio: STRIKE_PRESETS.decimal.x2,
+          y2Ratio: STRIKE_PRESETS.decimal.y2,
+        },
+        styleToken: cell.styleToken,
+      },
+    ]
+  }
   const bracketCall = dot ? undefined : getBracketMacro(node)
   if (bracketCall) {
     if (bracketCall.arguments.length > 0) throw new Error('BRACKET 是零参数宏；请在 CELL 上设置样式配置。')
@@ -139,6 +216,17 @@ export const compileSugarCellElement = (
         thickness: BRACKET_STROKE_THICKNESS,
       },
       styleToken: cell.styleToken,
+    }
+  }
+  const strikeCall = dot ? undefined : getStrikeMacro(node)
+  if (strikeCall) {
+    const { options } = splitMacroOptions(strikeCall.arguments, SUGAR_ZERO_ARGUMENT_MACROS)
+    const resolvedStyleToken = options.get('style') ?? cell.styleToken
+    return {
+      id: `macro-strike-${id}`,
+      position: { kind: 'cell', column: cell.column, row, columnSpan: cell.columnSpan },
+      content: getStrikeContent(strikeCall),
+      styleToken: resolvedStyleToken,
     }
   }
   const borderCall = dot ? undefined : getBorderMacro(node)

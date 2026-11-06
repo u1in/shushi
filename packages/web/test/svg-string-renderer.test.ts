@@ -71,4 +71,16 @@ describe('renderSvgString', () => {
     expect(svg).toContain('--grid-font-family:STIX Two Math')
     expect(svg).toContain('font-family:Noto Sans Math')
   })
+
+  it('把独立删除线作为跨渲染器图元输出', () => {
+    const scene = compileMacro('GRID(ROW(CELL(MM(5), STRIKE(KV(x1, 0.2), KV(x2, 0.8)))))')
+    const svg = renderSvgString(scene)
+
+    expect(scene.elements).toContainEqual(
+      expect.objectContaining({
+        content: expect.objectContaining({ kind: 'strike', x1Ratio: 0.2, x2Ratio: 0.8 }),
+      }),
+    )
+    expect(svg).toContain('<line class="grid-strike"')
+  })
 })

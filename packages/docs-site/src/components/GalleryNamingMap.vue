@@ -295,7 +295,9 @@ watch(selected, syncHighlightVisibility, { deep: true })
   font-weight: 700;
 }
 .gallery-map-render-host .grid-text[data-style-token='division.decimal-separator'],
-.gallery-map-render-host .grid-text[data-style-token='division.dividend-decimal-separator'] {
+.gallery-map-render-host .grid-text[data-style-token='division.dividend-decimal-separator'],
+.gallery-map-render-host .grid-text[data-style-token='addition.decimal-separator'],
+.gallery-map-render-host .grid-text[data-style-token='multiplication.decimal-separator'] {
   color: #c2185b;
   font-weight: 800;
 }
@@ -540,5 +542,8 @@ watch(selected, syncHighlightVisibility, { deep: true })
 }
 .tone-product {
   --highlight-color: #227e69;
+}
+.tone-decimal {
+  --highlight-color: #c2185b;
 }
 </style>

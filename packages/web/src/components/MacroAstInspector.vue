@@ -32,6 +32,7 @@ const previewTheme = ref<AutoColorThemeColorValues>({
   borrow: AUTO_COLOR_THEME_FALLBACK.borrow,
   operator: AUTO_COLOR_THEME_FALLBACK.operator,
   decimal: AUTO_COLOR_THEME_FALLBACK.decimal,
+  strike: AUTO_COLOR_THEME_FALLBACK.strike,
   rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
   bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
 })

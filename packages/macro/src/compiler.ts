@@ -25,6 +25,8 @@ import {
   isBorderMacro,
   isDotMacro,
   isPositionMacro,
+  isStrikeDotMacro,
+  getStrikeMacro,
   SUGAR_ZERO_ARGUMENT_MACROS,
 } from './sugar-macros'
 
@@ -102,10 +104,10 @@ const readCell = (node: MacroNode, defaultColumnSpan = 1): NormalizedCell => {
   const valueNodes = cellCall?.arguments ?? emptyCall?.arguments
   if (!valueNodes) {
     if (getBracketMacro(node)) return { elements: [node], columnSpan: 1, trackSize: BRACKET_TRACK_SIZE }
-    if (isPositionMacro(node) || isDotMacro(node)) {
+    if (isPositionMacro(node) || isDotMacro(node) || isStrikeDotMacro(node) || getStrikeMacro(node)) {
       return { elements: [node], columnSpan: defaultColumnSpan }
     }
-    throw new Error('ROW 只能包含 CELL、EMPTY、定位宏或 DOT。')
+    throw new Error('ROW 只能包含 CELL、EMPTY、定位宏、DOT 或 STRIKE。')
   }
   const { content, options } = splitOptions(valueNodes)
   const columnSpan = getPositiveInteger(options.get('columnSpan'), 'CELL 的 columnSpan', defaultColumnSpan)
@@ -116,8 +118,15 @@ const readCell = (node: MacroNode, defaultColumnSpan = 1): NormalizedCell => {
     throw new Error('BRACKET 必须独占一个 columnSpan 为 1 的 CELL。')
   }
   content.forEach((child) => {
-    if (!isPositionMacro(child) && !isBorderMacro(child) && !getBracketMacro(child) && !isDotMacro(child)) {
-      throw new Error('CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。')
+    if (
+      !isPositionMacro(child) &&
+      !isBorderMacro(child) &&
+      !getBracketMacro(child) &&
+      !isDotMacro(child) &&
+      !isStrikeDotMacro(child) &&
+      !getStrikeMacro(child)
+    ) {
+      throw new Error('CELL 内只能包含定位宏、边框宏、BRACKET、DOT、STRIKE 或 KV 配置。')
     }
   })
   return { elements: content, columnSpan, styleToken, trackSize: bracketCount > 0 ? BRACKET_TRACK_SIZE : undefined }
@@ -257,16 +266,18 @@ const applyAutoColor = (element: GridElement, node: MacroNode, theme: AutoColorT
   if (element.content.kind === 'corner') {
     return { ...element, content: { ...element.content, ...theme.bracketRule } }
   }
+  if (element.content.kind === 'strike') return { ...element, content: { ...element.content, color: theme.strike } }
 
   const operatorColor = getAutoOperatorColor(theme, element.content.text)
-  const color = isDotMacro(node)
-    ? theme.decimal
-    : (operatorColor ??
-      (macroName === 'RB'
-        ? getAutoCarryColor(theme)
-        : macroName === 'MT' || macroName === 'MTD'
-          ? getAutoBorrowColor(theme)
-          : getAutoTextColor(theme)))
+  const color =
+    isDotMacro(node) || isStrikeDotMacro(node)
+      ? theme.decimal
+      : (operatorColor ??
+        (macroName === 'RB'
+          ? getAutoCarryColor(theme)
+          : macroName === 'MT' || macroName === 'MTD'
+            ? getAutoBorrowColor(theme)
+            : getAutoTextColor(theme)))
   return { ...element, content: { ...element.content, color } }
 }
 
@@ -300,10 +311,12 @@ const compileCellElements = (
   onElement?: MacroElementObserver,
 ): void => {
   cell.elements.forEach((node) => {
-    const element = compileSugarCellElement(node, cell, row, nextId.value)
-    const compiledElement = autoColor ? applyAutoColor(element, node, colorTheme) : element
-    elements.push(compiledElement)
-    onElement?.(compiledElement, node)
+    const generatedElements = compileSugarCellElement(node, cell, row, nextId.value)
+    const compiledElements = (Array.isArray(generatedElements) ? generatedElements : [generatedElements]).map(
+      (element) => (autoColor ? applyAutoColor(element, node, colorTheme) : element),
+    )
+    elements.push(...compiledElements)
+    compiledElements.forEach((element) => onElement?.(element, node))
     nextId.value += 1
     if (columns !== undefined && getBracketMacro(node)) {
       const bracketHead = compileBracketHead(cell, row, columns, nextId.value)

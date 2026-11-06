@@ -4,8 +4,6 @@ import { computeMultiplication } from './multiplication'
 import { computeSubtraction } from './subtraction'
 import type { CompositeArithmeticComputation, CompositeArithmeticOperator, CompositeArithmeticStep } from './types'
 
-const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
-
 /** 组合表达式有意不采用通常的乘法优先级；文本顺序就是教学步骤顺序。 */
 const parseExpression = (
   expression: unknown,
@@ -13,17 +11,17 @@ const parseExpression = (
   const source = String(expression ?? '')
     .replace(/\s+/g, '')
     .replace(/[xX*]/g, '×')
-  if (!/^\d+(?:[+\-×]\d+)+$/.test(source)) {
-    throw new Error('组合表达式请使用至少两个非负整数，并以 +、- 或 × 连接，例如 125 + 75 - 20 × 3。')
+  if (!/^\d+(?:\.\d+)?(?:[+\-×]\d+(?:\.\d+)?)+$/.test(source)) {
+    throw new Error('组合表达式请使用至少两个非负十进制数，并以 +、- 或 × 连接，例如 12.5 + 7.5 × 3。')
   }
 
   const tokens = source.split(/([+\-×])/)
-  const initialValueDigits = trimLeadingZeros(tokens[0])
+  const initialValueDigits = tokens[0]
   const operations = [] as { operator: CompositeArithmeticOperator; operandDigits: string }[]
   for (let index = 1; index < tokens.length; index += 2) {
     operations.push({
       operator: tokens[index] as CompositeArithmeticOperator,
-      operandDigits: trimLeadingZeros(tokens[index + 1]),
+      operandDigits: tokens[index + 1],
     })
   }
   return { initialValueDigits, operations }
@@ -45,11 +43,14 @@ export const computeCompositeArithmetic = (expression: unknown): CompositeArithm
     const base = { index, leftOperandDigits: accumulator, rightOperandDigits: operandDigits }
     if (operator === '+') {
       const computation = computeAddition(accumulator, operandDigits)
-      steps.push({ ...base, operator, resultDigits: computation.sumDigits, computation })
-      accumulator = computation.sumDigits
+      steps.push({ ...base, operator, resultDigits: computation.sumText, computation })
+      accumulator = computation.sumText
       return
     }
     if (operator === '-') {
+      if (accumulator.includes('.') || operandDigits.includes('.')) {
+        throw new Error('组合表达式中的减法暂不支持小数；请改为单独的整数减法。')
+      }
       const computation = computeSubtraction(accumulator, operandDigits)
       steps.push({ ...base, operator, resultDigits: computation.resultText, computation })
       accumulator = computation.resultText
@@ -60,8 +61,8 @@ export const computeCompositeArithmetic = (expression: unknown): CompositeArithm
       useTrailingZeroShortcut: false,
       preserveOperandOrder: true,
     })
-    steps.push({ ...base, operator, resultDigits: computation.productDigits, computation })
-    accumulator = computation.productDigits
+    steps.push({ ...base, operator, resultDigits: computation.productText, computation })
+    accumulator = computation.productText
   })
 
   return { expression: String(expression), initialValueDigits, steps, resultDigits: accumulator }

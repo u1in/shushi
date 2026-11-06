@@ -39,7 +39,7 @@
 - [宏说明总览](./packages/docs/macro/README.md)：宏语言的入门、命令、语法糖和排错入口。
 - [图例文档总览](./packages/docs/gallery/README.md)：运算图元命名、语义 token 和 VuePress 图例入口。
 - [Agent 安装说明](./packages/docs/agent/installation.md) 与 [Agent 能力说明](./packages/docs/agent/capabilities.md)：第三方项目使用 `@u1in/shushi-core` 和 `u1in-shushi` Skill 的公开指南。
-- [u1in-shushi Skill](./skills/u1in-shushi/SKILL.md)：Agent 执行竖式实现任务时的操作规则和按需读取的参考资料。
+- [u1in-shushi Skill](./skills/u1in-shushi/SKILL.md)：第三方项目接入 `@u1in/shushi-core` 的公开使用说明；它不是本仓库实现任务的开发操作指引。本仓库开发应以本文件、对应的技术规则文档、源码和测试为准。
 
 `packages/docs-site/vuepress.config.ts` 会排除 README、Agent 指南以及部分技术规则文档；不要因为某个 Markdown 没有生成 VuePress 页面，就把它当作过时或无效文档。VuePress 只是发布适配层，`packages/docs/` 才是框架无关的内容源。
 

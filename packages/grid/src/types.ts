@@ -101,7 +101,23 @@ export interface GridLineContent {
   thickness?: number
 }
 
-export type GridElementContent = GridTextContent | GridCornerContent | GridLineContent
+/**
+ * A free-form straight mark within a cell. Ratios are intentionally retained
+ * in the scene so hosts can change a deletion mark's form without touching text.
+ */
+export interface GridStrikeContent {
+  kind: 'strike'
+  x1Ratio: number
+  y1Ratio: number
+  x2Ratio: number
+  y2Ratio: number
+  /** Optional renderer-neutral stroke colour. */
+  color?: string
+  /** Optional positive stroke thickness in CSS pixels. */
+  thickness?: number
+}
+
+export type GridElementContent = GridTextContent | GridCornerContent | GridLineContent | GridStrikeContent
 
 /** The single drawable primitive, placed at a cell, edge, edge midpoint or intersection. */
 export interface GridElement {

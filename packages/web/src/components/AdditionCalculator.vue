@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { shushi } from '@u1in/shushi-core'
+import { getAdditionStepCount, shushi } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
@@ -23,7 +23,7 @@ const error = ref('')
 const computation = ref<AdditionComputation>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
-const answer = computed(() => computation.value?.sumDigits ?? '—')
+const answer = computed(() => computation.value?.sumText ?? '—')
 
 const renderScene = (): void => {
   const result = shushi(`${firstAddend.value} + ${secondAddend.value}`, {
@@ -46,7 +46,7 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
   renderScene()
 }
 const playback = useCalculatorStepPlayback({
-  getStepCount: () => computation.value?.steps.length ?? 0,
+  getStepCount: () => (computation.value ? getAdditionStepCount(computation.value) : 0),
   render: renderScene,
 })
 const visibleStepCount = playback.visibleStepCount
@@ -95,12 +95,12 @@ calculate()
         <div class="input-grid">
           <label class="field"
             ><span>第一个加数</span
-            ><input v-model="firstAddend" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><input v-model="firstAddend" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
           <span class="division-operator" aria-hidden="true">+</span>
           <label class="field"
             ><span>第二个加数</span
-            ><input v-model="secondAddend" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><input v-model="secondAddend" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>

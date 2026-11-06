@@ -13,7 +13,7 @@ const scenario = computed<GridScene>(() => {
     case 'addition':
       return shushiCore({
         operation: 'addition',
-        values: ['356', '278'],
+        values: ['1.2', '3.04'],
         settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showCarrySteps: true },
       }).scene
     case 'subtraction':
@@ -25,7 +25,7 @@ const scenario = computed<GridScene>(() => {
     case 'multiplication':
       return shushiCore({
         operation: 'multiplication',
-        operands: ['97', '89'],
+        operands: ['1.2', '3.4'],
         settings: {
           cellWidth: 60,
           rowHeight: 64,

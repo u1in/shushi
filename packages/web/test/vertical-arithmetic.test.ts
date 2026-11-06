@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { shushi, shushiCore, compileMacro } from '@u1in/shushi-core'
+import { compileMacro, getAdditionStepCount, getMultiplicationStepCount, shushi, shushiCore } from '@u1in/shushi-core'
 
 /** 门户返回的源码仍须由统一宏编译器复刻，避免便利入口绕过可编辑源码。 */
 const expectPortalResult = (result: {
@@ -40,13 +40,14 @@ describe('统一竖式门户 API', () => {
     expectPortalResult(division)
   })
 
-  it('未配置小数位时返回整数余数，配置后保留到目标位的截断小数过程', () => {
-    const remainder = shushiCore({ operation: 'division', divisor: '3', dividend: '1' })
-    expect(remainder.computation).toMatchObject({
-      quotientText: '0',
+  it('长除法在整数未除尽时默认展开商小数，并允许覆盖位数上限', () => {
+    const defaultDecimal = shushiCore({ operation: 'division', divisor: '3', dividend: '1' })
+    expect(defaultDecimal.computation).toMatchObject({
+      quotientText: '0.3333333333',
       remainder: '1',
-      hasFraction: false,
-      decimalTruncated: false,
+      hasFraction: true,
+      fractionalDigitCount: 10,
+      decimalTruncated: true,
     })
 
     const cappedDecimal = shushiCore({
@@ -76,6 +77,109 @@ describe('统一竖式门户 API', () => {
       remainder: '0',
       decimalTruncated: false,
     })
+  })
+
+  it('加法和乘法按小数位转换为整数过程，并在输入、结果行恢复小数点', () => {
+    const addition = shushi('1.2 + 3.04')
+    if (!('sumText' in addition.computation)) throw new Error('应解析为加法。')
+    expect(addition.computation).toMatchObject({
+      addendTexts: ['1.2', '3.04'],
+      decimalPlaces: 2,
+      sumDigits: '424',
+      sumText: '4.24',
+    })
+    expect(addition.source).toContain('addition.decimal-separator')
+    expectPortalResult(addition)
+
+    const multiplication = shushi('1.2 × 3.4')
+    if (!('productText' in multiplication.computation)) throw new Error('应解析为乘法。')
+    expect(multiplication.computation).toMatchObject({
+      multiplicandText: '1.2',
+      multiplierText: '3.4',
+      decimalPlaces: 2,
+      productDigits: '408',
+      productText: '4.08',
+      trailingZeroShortcut: null,
+    })
+    expect(multiplication.source).toContain('multiplication.decimal-separator')
+    expectPortalResult(multiplication)
+
+    const carriedZero = shushi('35.2 × 1.3')
+    if (!('productText' in carriedZero.computation)) throw new Error('应解析为乘法。')
+    expect(carriedZero.computation.partialProducts[0].value).toBe('1056')
+    expect(
+      carriedZero.scene.elements.some(
+        ({ content }) =>
+          content.kind === 'text' && content.text === '0' && content.styleToken === 'multiplication.partial-product',
+      ),
+    ).toBe(true)
+    expectPortalResult(carriedZero)
+
+    const leadingFractionalZeros = shushi('0.02 × 0.03')
+    if (!('productText' in leadingFractionalZeros.computation)) throw new Error('应解析为乘法。')
+    expect(leadingFractionalZeros.computation.productText).toBe('0.0006')
+    expectPortalResult(leadingFractionalZeros)
+  })
+
+  it('长除法保留原小数输入，并以独立删除线标记等值变换', () => {
+    const division = shushi('35.5 / 0.5')
+    if (!('sourceDivisorText' in division.computation)) throw new Error('应解析为长除法。')
+    expect(division.computation).toMatchObject({
+      sourceDividendText: '35.5',
+      sourceDivisorText: '0.5',
+      divisorText: '5',
+      dividendText: '355',
+      normalizationShift: 1,
+      quotientText: '71',
+    })
+    expect(division.source).toContain('STRIKE(')
+    expect(division.source).toContain('STRIKEDOT')
+    expect(division.source).not.toContain('KV(target')
+    const strikes = division.scene.elements.filter(({ content }) => content.kind === 'strike')
+    expect(strikes).toHaveLength(3)
+    expect(strikes.filter(({ styleToken }) => styleToken === 'division.normalization-strike')).toHaveLength(1)
+    expect(strikes.filter(({ styleToken }) => styleToken?.endsWith('decimal-separator'))).toHaveLength(2)
+    expect(
+      strikes.every(
+        ({ content }) =>
+          content.kind === 'strike' && content.x1Ratio < content.x2Ratio && content.y1Ratio < content.y2Ratio,
+      ),
+    ).toBe(true)
+    const strikeRatios = strikes.map(({ content }) => {
+      if (content.kind !== 'strike') throw new Error('删除线图元应保留端点比例。')
+      return {
+        x1: content.x1Ratio,
+        y1: content.y1Ratio,
+        x2: content.x2Ratio,
+        y2: content.y2Ratio,
+      }
+    })
+    // 数字删除线相对默认 0.68 的跨度缩短 10%，小数点删除线则缩短为原来的 50%。
+    expect(strikeRatios).toContainEqual({ x1: 0.194, y1: 0.194, x2: 0.806, y2: 0.806 })
+    expect(
+      strikeRatios.filter(({ x1, y1, x2, y2 }) => x1 === 0.92 && y1 === 0.46 && x2 === 1.08 && y2 === 0.66),
+    ).toHaveLength(2)
+    expect(division.rendered).toContain('class="grid-strike"')
+    expectPortalResult(division)
+  })
+
+  it('把加法和乘法结果的小数点作为独立播放步骤补回', () => {
+    const addition = shushiCore({ operation: 'addition', values: ['1.2', '3.04'] })
+    expect(getAdditionStepCount(addition.computation)).toBe(addition.computation.steps.length + 1)
+    const additionBeforeDecimal = shushiCore({
+      operation: 'addition',
+      values: ['1.2', '3.04'],
+      settings: { visibleStepCount: addition.computation.steps.length },
+    })
+    const additionDecimalTokens = additionBeforeDecimal.scene.elements.filter(
+      ({ content }) => content.kind === 'text' && content.styleToken === 'addition.decimal-separator',
+    )
+    expect(additionDecimalTokens).toHaveLength(2)
+
+    const multiplication = shushiCore({ operation: 'multiplication', operands: ['1.2', '3.4'] })
+    expect(getMultiplicationStepCount(multiplication.computation)).toBeGreaterThan(
+      multiplication.computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0),
+    )
   })
 
   it('覆盖短除、组合表达式及专项设置覆盖', () => {
@@ -118,6 +222,7 @@ describe('统一竖式门户 API', () => {
         borrow: '#333333',
         operator: '#444444',
         decimal: '#555555',
+        strike: '#5b21b6',
         rule: { color: '#666666', thickness: 2 },
         bracketRule: { color: '#777777', thickness: 2 },
       },
@@ -129,6 +234,24 @@ describe('统一竖式门户 API', () => {
     expect(
       result.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '+')?.content,
     ).toMatchObject({ color: '#444444' })
+
+    const division = shushi('35.5 / 0.5', {
+      colorTheme: {
+        text: '#111111',
+        carry: '#222222',
+        borrow: '#333333',
+        operator: '#444444',
+        decimal: '#555555',
+        strike: '#5b21b6',
+        rule: { color: '#666666', thickness: 2 },
+        bracketRule: { color: '#777777', thickness: 2 },
+      },
+    })
+    expect(
+      division.scene.elements
+        .filter(({ content }) => content.kind === 'strike')
+        .every(({ content }) => content.kind === 'strike' && content.color === '#5b21b6'),
+    ).toBe(true)
   })
 
   it('客户端 DOM 渲染模式在服务端环境中明确拒绝执行', () => {
@@ -184,6 +307,29 @@ describe('统一竖式门户 API', () => {
     expect(() => shushi('12 + 8 / 5')).toThrow('长除法必须单独书写')
   })
 
+  it('长除法接受小数被除数和除数，并在等值变换后逐位计算', () => {
+    const decimalDividend = shushi('34.5 / 5')
+    if (!('quotientText' in decimalDividend.computation)) throw new Error('应解析为长除法。')
+    expect(decimalDividend.computation).toMatchObject({
+      divisorText: '5',
+      dividendText: '34.5',
+      quotientText: '6.9',
+      remainder: '0',
+      integerDividendDigitCount: 2,
+    })
+    expectPortalResult(decimalDividend)
+
+    const decimalDivisor = shushi('3.45 ÷ 0.5')
+    if (!('quotientText' in decimalDivisor.computation)) throw new Error('应解析为长除法。')
+    expect(decimalDivisor.computation).toMatchObject({
+      divisorText: '5',
+      dividendText: '34.5',
+      quotientText: '6.9',
+      remainder: '0',
+    })
+    expectPortalResult(decimalDivisor)
+  })
+
   it('shushi 将 | 分派给短除法、公因数和进制转换', () => {
     const factorization = shushi('|48')
     if (!('mode' in factorization.computation)) throw new Error('应解析为短除法。')
@@ -216,5 +362,6 @@ describe('统一竖式门户 API', () => {
     expect(conversion.computation.mode).toBe('baseConversion')
     if (conversion.computation.mode !== 'baseConversion') throw new Error('应解析为进制转换短除法。')
     expect(conversion.computation.convertedText).toBe('1111100')
+    expect(() => shushi('|1.2')).toThrow()
   })
 })

@@ -13,7 +13,7 @@ import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const dividend = ref('10230')
 const divisor = ref('25')
-// 留空时沿用整数除法的余数结果；老师填写后才展开对应位数的小数过程。
+// 留空时采用默认小数展开上限；老师可填写更精确的位数。
 const maxDecimalDigits = ref('')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
@@ -118,11 +118,11 @@ calculate()
         <p class="normalization">输入被除数和除数，查看试商、减法与商的生成过程。</p>
         <div class="input-grid">
           <label class="field"
-            ><span>被除数</span><input v-model="dividend" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><span>被除数</span><input v-model="dividend" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
           <span class="division-operator" aria-hidden="true">÷</span>
           <label class="field"
-            ><span>除数</span><input v-model="divisor" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><span>除数</span><input v-model="divisor" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
@@ -158,14 +158,14 @@ calculate()
                 ><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate"
               /></label>
               <label class="field"
-                ><span>最大小数位（留空取余）</span
+                ><span>最大小数位（留空默认 10 位）</span
                 ><input
                   v-model="maxDecimalDigits"
                   type="number"
                   min="1"
                   step="1"
                   inputmode="numeric"
-                  placeholder="留空时返回余数"
+                  placeholder="留空时默认 10 位"
                   @input="calculate"
               /></label>
             </div>

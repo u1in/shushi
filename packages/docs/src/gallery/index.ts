@@ -9,8 +9,8 @@ export const galleryPages: GalleryPage[] = [
     operation: 'addition',
     title: '加法竖式元素命名图谱',
     eyebrow: 'VERTICAL ADDITION · NAMING MAP',
-    intro: '进位、横线和数字都来自同一份加法 GridScene。',
-    sample: '356 + 278',
+    intro: '进位、横线、数字和小数点都来自同一份加法 GridScene。',
+    sample: '1.2 + 3.04',
     items: [
       {
         key: '01',
@@ -56,6 +56,14 @@ export const galleryPages: GalleryPage[] = [
       },
       {
         key: '06',
+        name: '小数点',
+        description: '附着在整数个位右侧，并与各行小数点对齐。',
+        token: 'addition.decimal-separator',
+        tone: 'tone-decimal',
+        source: 'rendered-text',
+      },
+      {
+        key: '07',
         name: '辅助网格',
         description: '观察数位对齐和进位位置的参考网格。',
         token: 'guide-grid',
@@ -134,8 +142,8 @@ export const galleryPages: GalleryPage[] = [
     operation: 'multiplication',
     title: '乘法竖式元素命名图谱',
     eyebrow: 'VERTICAL MULTIPLICATION · NAMING MAP',
-    intro: '图谱的选中状态由 Vue 组件驱动；网格与高亮边界仍来自同一份乘法 GridScene。',
-    sample: '97 × 89',
+    intro: '图谱的选中状态由 Vue 组件驱动；网格、小数点与高亮边界仍来自同一份乘法 GridScene。',
+    sample: '1.2 × 3.4',
     items: [
       {
         key: '01',
@@ -215,6 +223,14 @@ export const galleryPages: GalleryPage[] = [
       },
       {
         key: '10',
+        name: '小数点',
+        description: '输入行和最终积的整数个位右侧小数点。',
+        token: 'multiplication.decimal-separator',
+        tone: 'tone-decimal',
+        source: 'rendered-text',
+      },
+      {
+        key: '11',
         name: '辅助网格',
         description: '帮助观察数字列、行和错位位置的参考网格。',
         token: 'guide-grid',
@@ -322,6 +338,14 @@ export const galleryPages: GalleryPage[] = [
       },
       {
         key: '12',
+        name: '等值变换删除线',
+        description: '除数小数化整数时，标记被右移的小数点和被消去的除数前导零；它独立于数字文字。',
+        token: 'division.normalization-strike',
+        tone: 'tone-subtraction',
+        source: 'cell',
+      },
+      {
+        key: '13',
         name: '辅助网格',
         description: '帮助观察数字列和行位置的参考网格。',
         token: 'guide-grid',

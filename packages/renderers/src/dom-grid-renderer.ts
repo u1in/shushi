@@ -58,6 +58,29 @@ const renderDomElement = (parent: HTMLElement, element: GridElement, scene: Grid
     return
   }
 
+  if (element.content.kind === 'strike') {
+    if (element.position.kind !== 'cell') {
+      throw new Error(`删除线元素 ${element.id} 必须定位在单元格区域。`)
+    }
+    const startX = rect.left + rect.width * element.content.x1Ratio
+    const startY = rect.top + rect.height * element.content.y1Ratio
+    const endX = rect.left + rect.width * element.content.x2Ratio
+    const endY = rect.top + rect.height * element.content.y2Ratio
+    const thickness = element.content.thickness ?? 2
+    const node = document.createElement('div')
+    node.className = 'grid-strike'
+    setStyleToken(node, element.styleToken)
+    node.style.left = `${startX}px`
+    node.style.top = `${startY - thickness / 2}px`
+    node.style.width = `${Math.hypot(endX - startX, endY - startY)}px`
+    node.style.height = `${thickness}px`
+    node.style.transform = `rotate(${Math.atan2(endY - startY, endX - startX)}rad)`
+    if (element.content.color) node.style.backgroundColor = element.content.color
+    setElementId(node, element)
+    parent.appendChild(node)
+    return
+  }
+
   const strokeWidth = element.content.thickness ?? 3
   const halfStroke = strokeWidth / 2
   const node = document.createElement('div')
@@ -121,7 +144,10 @@ const renderDomLayers = (lineLayer: HTMLElement, contentLayer: HTMLElement, scen
   contentLayer.replaceChildren()
   renderGuideGrid(lineLayer, scene, metrics)
   scene.elements.forEach((element) => {
-    const layer = element.content.kind === 'line' || element.content.kind === 'corner' ? lineLayer : contentLayer
+    const layer =
+      element.content.kind === 'line' || element.content.kind === 'corner' || element.content.kind === 'strike'
+        ? lineLayer
+        : contentLayer
     renderDomElement(layer, element, scene, metrics)
   })
 }

@@ -39,7 +39,7 @@ const themedScene = compileMacro('3,5,6;LN;6,3,4;', {
   fontFamily: 'STIX Two Math',
   colorTheme: {
     text: '#243b64', carry: '#0f766e', borrow: '#8b5cf6',
-    operator: '#be123c', decimal: '#c026d3',
+    operator: '#be123c', decimal: '#c026d3', strike: '#949494',
     rule: { color: '#334155', thickness: 2 },
     bracketRule: { color: '#2563eb', thickness: 2 },
   },

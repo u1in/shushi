@@ -392,7 +392,7 @@ export const shushi = ((
     })
   }
 
-  const division = /^(\d+)\s*[÷/]\s*(\d+)$/.exec(source)
+  const division = /^(\d+(?:\.\d+)?)\s*[÷/]\s*(\d+(?:\.\d+)?)$/.exec(source)
   if (division) {
     return shushiCore({
       operation: 'division',
@@ -410,8 +410,8 @@ export const shushi = ((
   }
 
   const arithmetic = source.replace(/\s+/g, '').replace(/[xX*]/g, '×')
-  if (!/^\d+(?:[+\-×]\d+)+$/.test(arithmetic)) {
-    throw new Error('请使用由非负整数与 +、-、×（也可输入 *）组成的算式。')
+  if (!/^\d+(?:\.\d+)?(?:[+\-×]\d+(?:\.\d+)?)+$/.test(arithmetic)) {
+    throw new Error('请使用由非负十进制数与 +、-、×（也可输入 *）组成的算式。')
   }
   const operators = arithmetic.match(/[+\-×]/g) ?? []
   if (operators.length > 1) {

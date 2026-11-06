@@ -418,10 +418,11 @@ ROW(MM(6), MM(3), MM(4))`)
       borrow: '#333333',
       operator: '#444444',
       decimal: '#555555',
+      strike: '#5b21b6',
       rule: { color: '#666666', thickness: 3 },
       bracketRule: { color: '#777777', thickness: 4 },
     }
-    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(7), DOT), MTD), LINE)', {
+    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(7), STRIKE, STRIKEDOT), MTD), LINE)', {
       colorTheme: customTheme,
     })
     const text = scene.elements.filter(({ content }) => content.kind === 'text')
@@ -440,6 +441,13 @@ ROW(MM(6), MM(3), MM(4))`)
       color: '#555555',
     })
     expect(line?.content).toMatchObject({ color: '#666666', thickness: 3 })
+    const strikes = scene.elements.filter(({ content }) => content.kind === 'strike')
+    expect(strikes.map(({ content }) => content)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ color: '#5b21b6', x1Ratio: 0.194, y1Ratio: 0.194, x2Ratio: 0.806, y2Ratio: 0.806 }),
+        expect.objectContaining({ color: '#5b21b6', x1Ratio: 0.92, y1Ratio: 0.46, x2Ratio: 1.08, y2Ratio: 0.66 }),
+      ]),
+    )
   })
 
   test('编译入口默认使用 STIX，并允许用选项覆盖场景字体', () => {

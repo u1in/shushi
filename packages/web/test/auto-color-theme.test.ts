@@ -27,6 +27,7 @@ describe('autoColor 固定语义主题', () => {
       AUTO_COLOR_THEME_FALLBACK.borrow,
       AUTO_COLOR_THEME_FALLBACK.operator,
       AUTO_COLOR_THEME_FALLBACK.decimal,
+      AUTO_COLOR_THEME_FALLBACK.strike,
       AUTO_COLOR_THEME_FALLBACK.rule.color!,
       AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
     ]
@@ -41,6 +42,7 @@ describe('autoColor 固定语义主题', () => {
       borrow: '#8957c8',
       operator: '#e27624',
       decimal: '#d74783',
+      strike: '#949494',
       rule: { color: '#7c5366', thickness: 2 },
       bracketRule: { color: '#a84b6b', thickness: 2 },
     })

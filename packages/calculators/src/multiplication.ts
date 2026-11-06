@@ -6,19 +6,7 @@ import type {
   MultiplicationOptions,
   MultiplicationPartialProduct,
 } from './types'
-
-const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
-
-/** Validates an integer input and returns its canonical decimal-string form. */
-const parseIntegerDigits = (value: unknown, label: string): string => {
-  const raw = String(value ?? '')
-
-  if (!/^\d+$/.test(raw)) {
-    throw new Error(`${label}请输入非负整数，例如 12 或 3456。`)
-  }
-
-  return trimLeadingZeros(raw)
-}
+import { formatDecimal, parseDecimal, trimLeadingZeros } from './decimal'
 
 /** 零本身没有可计算的有效位，不能作为“末尾补零”的快捷乘数。 */
 const isTrailingZeroMultiple = (value: string): boolean => value !== '0' && value.endsWith('0')
@@ -107,8 +95,10 @@ export const computeMultiplication = (
   multiplierValue: unknown,
   options: MultiplicationOptions = {},
 ): MultiplicationComputation => {
-  const firstOperandDigits = parseIntegerDigits(multiplicandValue, '被乘数')
-  const secondOperandDigits = parseIntegerDigits(multiplierValue, '乘数')
+  const multiplicand = parseDecimal(multiplicandValue, '被乘数')
+  const multiplier = parseDecimal(multiplierValue, '乘数')
+  const firstOperandDigits = multiplicand.digits
+  const secondOperandDigits = multiplier.digits
   const firstIsTrailingZeroMultiple = isTrailingZeroMultiple(firstOperandDigits)
   const secondIsTrailingZeroMultiple = isTrailingZeroMultiple(secondOperandDigits)
   const useTrailingZeroShortcut = options.useTrailingZeroShortcut !== false
@@ -116,10 +106,13 @@ export const computeMultiplication = (
   const operandsSwapped = false
   const multiplicandDigits = firstOperandDigits
   const multiplierDigits = secondOperandDigits
+  // 小数点后的零是小数位值的一部分，不能套用整数“末尾补零”教学快捷规则。
+  const canUseTrailingZeroShortcut =
+    multiplicand.decimalPlaces === 0 && multiplier.decimalPlaces === 0 && useTrailingZeroShortcut
   const multiplicandShortcut =
-    useTrailingZeroShortcut && firstIsTrailingZeroMultiple ? splitTrailingZeros(multiplicandDigits) : null
+    canUseTrailingZeroShortcut && firstIsTrailingZeroMultiple ? splitTrailingZeros(multiplicandDigits) : null
   const multiplierShortcut =
-    useTrailingZeroShortcut && secondIsTrailingZeroMultiple ? splitTrailingZeros(multiplierDigits) : null
+    canUseTrailingZeroShortcut && secondIsTrailingZeroMultiple ? splitTrailingZeros(multiplierDigits) : null
   const trailingZeroShortcut =
     multiplicandShortcut || multiplierShortcut
       ? {
@@ -153,11 +146,18 @@ export const computeMultiplication = (
       ? `${baseProductDigits}${'0'.repeat(trailingZeroShortcut.trailingZeroCount)}`
       : baseProductDigits
 
+  const decimalPlaces = multiplicand.decimalPlaces + multiplier.decimalPlaces
   return {
     multiplicandDigits,
     multiplierDigits,
+    multiplicandText: multiplicand.text,
+    multiplierText: multiplier.text,
+    multiplicandDecimalPlaces: multiplicand.decimalPlaces,
+    multiplierDecimalPlaces: multiplier.decimalPlaces,
+    decimalPlaces,
     operandsSwapped,
     productDigits,
+    productText: formatDecimal(productDigits, decimalPlaces),
     trailingZeroShortcut,
     partialProducts,
     additionSteps,

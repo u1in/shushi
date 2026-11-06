@@ -274,7 +274,7 @@ describe('网格宏文档', () => {
     ])
     expect(pagesOf('orientation')).toEqual(['lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl'])
     expect(pagesOf('alias')).toEqual(['mtd', 'dot', 'square', 'triangle', 'round'])
-    expect(pagesOf('symbol')).toEqual(['bracket', 'tbd', 'rbd', 'bbd', 'lbd'])
+    expect(pagesOf('symbol')).toEqual(['strike', 'bracket', 'tbd', 'rbd', 'bbd', 'lbd'])
     expect(pagesOf('sugar')).toEqual(['row-shorthand', 'cell-shorthand', 'zero-argument'])
     for (const page of macroDocPages) {
       expect(

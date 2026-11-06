@@ -7,6 +7,7 @@ export type AutoColorThemeColorValues = {
   borrow: string
   operator: string
   decimal: string
+  strike: string
   rule: string
   bracketRule: string
 }
@@ -18,6 +19,7 @@ export const toAutoColorTheme = (theme: AutoColorThemeColorValues): AutoColorThe
   borrow: theme.borrow,
   operator: theme.operator,
   decimal: theme.decimal,
+  strike: theme.strike,
   rule: { color: theme.rule, thickness: 2 },
   bracketRule: { color: theme.bracketRule, thickness: 2 },
 })
@@ -43,6 +45,7 @@ export const formatAutoColorThemeObject = (
     `${indent}  borrow: ${quoteString(theme.borrow)},`,
     `${indent}  operator: ${quoteString(theme.operator)},`,
     `${indent}  decimal: ${quoteString(theme.decimal)},`,
+    `${indent}  strike: ${quoteString(theme.strike)},`,
     `${indent}  rule: { color: ${quoteString(theme.rule)}, thickness: 2 },`,
     `${indent}  bracketRule: { color: ${quoteString(theme.bracketRule)}, thickness: 2 },`,
     `${indent}}${comma}`,

@@ -87,6 +87,25 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
     )
   }
 
+  if (element.content.kind === 'strike') {
+    if (element.position.kind !== 'cell') {
+      throw new Error(`删除线元素 ${element.id} 必须定位在单元格区域。`)
+    }
+    return createNode('line', {
+      class: 'grid-strike',
+      x1: rect.left + rect.width * element.content.x1Ratio,
+      y1: rect.top + rect.height * element.content.y1Ratio,
+      x2: rect.left + rect.width * element.content.x2Ratio,
+      y2: rect.top + rect.height * element.content.y2Ratio,
+      ...styleToken(element.styleToken),
+      ...elementId(element),
+      style: serializeStyle([
+        ['stroke', element.content.color],
+        ['stroke-width', element.content.thickness === undefined ? undefined : `${element.content.thickness}px`],
+      ]),
+    })
+  }
+
   if (element.position.kind !== 'cell') {
     throw new Error(`圆角元素 ${element.id} 必须定位在单元格区域。`)
   }
@@ -139,7 +158,7 @@ const createGuideGridNodes = (scene: GridScene, metrics: GridMetrics): SvgRender
 export const createSvgRenderTree = (scene: GridScene): SvgRenderNode => {
   const metrics = resolveGridMetrics(scene)
   const lineNodes = scene.elements
-    .filter(({ content }) => content.kind === 'line' || content.kind === 'corner')
+    .filter(({ content }) => content.kind === 'line' || content.kind === 'corner' || content.kind === 'strike')
     .map((element) => createElementNode(element, scene, metrics))
   const textNodes = scene.elements
     .filter(({ content }) => content.kind === 'text')

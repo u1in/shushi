@@ -4,6 +4,8 @@ import { getCanonicalMacroName } from './macro-aliases'
 /** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
 const CELL_ZERO_ARGUMENT_SYMBOLS = new Set([
   'DOT',
+  'STRIKE',
+  'STRIKEDOT',
   'MTD',
   'EMPTY',
   'STYLE',
@@ -19,6 +21,8 @@ const CELL_ZERO_ARGUMENT_SYMBOLS = new Set([
 /** 方括号首项可以直接承载的零参数图元；EMPTY/STYLE 只能作为单元格结构或配置，不能充当图元。 */
 const CELL_SHORTHAND_FIRST_SYMBOLS = new Set([
   'DOT',
+  'STRIKE',
+  'STRIKEDOT',
   'MTD',
   'BRACKET',
   'TBD',

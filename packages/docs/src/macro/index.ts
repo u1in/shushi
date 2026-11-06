@@ -25,7 +25,7 @@ export const macroDocGroups: DocGroup[] = [
   { id: 'basic', title: '基础宏命令', description: '结构、配置与短除法；每个宏一页。' },
   { id: 'alias', title: '别名宏', description: 'MTD、DOT 以及固定符号的专用零参数简写。' },
   { id: 'orientation', title: '方位宏命令', description: '九宫格文本定位、借位点简写与右边界文字；每个宏一页。' },
-  { id: 'symbol', title: '符号与边框宏命令', description: '小数点、厂字弯与单元格边框；每个宏一页。' },
+  { id: 'symbol', title: '符号与边框宏命令', description: '小数点、删除线、厂字弯与单元格边框；每个宏一页。' },
   { id: 'sugar', title: '语法糖', description: '只改变源码写法的压缩规则；每个语法糖一页。' },
   { id: 'practice', title: '实践与排错', description: '完整版与语法糖版对照，以及注意事项。' },
 ]

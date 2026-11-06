@@ -50,7 +50,7 @@ const canUseCellShorthand = (node: MacroCall): boolean => {
   if (firstArgument?.kind === 'literal' || firstArgument?.kind === 'call') return true
   return (
     firstArgument?.kind === 'symbol' &&
-    ['DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'].includes(firstArgument.name)
+    ['DOT', 'STRIKE', 'STRIKEDOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'].includes(firstArgument.name)
   )
 }
 
@@ -70,8 +70,23 @@ const readMacroKv = (node: MacroNode): MacroKv | undefined => {
 const isMacroCall = (node: MacroNode, name: string): node is MacroCall => node.kind === 'call' && node.name === name
 
 /** 这些单图元在 ROW 中本来就可独立作为一个单元格，最简化时无需保留无配置的 CELL 外壳。 */
-const CELL_ELIDABLE_CALLS = new Set(['LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL', 'MTD', 'BRACKET'])
-const CELL_ELIDABLE_SYMBOLS = new Set(['DOT', 'MTD', 'BRACKET'])
+const CELL_ELIDABLE_CALLS = new Set([
+  'LT',
+  'MT',
+  'RT',
+  'ML',
+  'MM',
+  'MR',
+  'LB',
+  'MB',
+  'RB',
+  'RBL',
+  'MTD',
+  'BRACKET',
+  'STRIKE',
+  'STRIKEDOT',
+])
+const CELL_ELIDABLE_SYMBOLS = new Set(['DOT', 'STRIKE', 'STRIKEDOT', 'MTD', 'BRACKET'])
 
 const canElideSingletonCell = (node: MacroNode): boolean =>
   (node.kind === 'call' && CELL_ELIDABLE_CALLS.has(node.name)) ||
