@@ -18,7 +18,7 @@ import {
   createSubtractionGridScene,
   createSubtractionMacroSource,
 } from '@u1in/shushi-layout'
-import type { GridScene } from '@u1in/shushi-grid'
+import type { GridScene, GridTextContent } from '@u1in/shushi-grid'
 import { compileMacro, formatMacro, minifyMacroForCopy, parseMacro } from '@u1in/shushi-macro'
 
 /** 自动竖式必须先成为人工可输入的源码，再走同一解析与编译链路。 */
@@ -52,6 +52,77 @@ const expectAutoColorScene = (source: string, scene: GridScene): void => {
 }
 
 describe('计算器宏源码布局', () => {
+  it('两个乘数的末尾零均从基础过程移出，并在最终积右侧合并补回', () => {
+    const multiplication = computeMultiplication('1230', '200')
+    const settings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, uniformMultiplicationBars: false, showCarrySteps: true }
+    const source = createMultiplicationMacroSource(multiplication, settings)
+    const scene = createMultiplicationGridScene(multiplication, settings)
+    const shortcut = multiplication.trailingZeroShortcut
+    if (!shortcut) throw new Error('1230 × 200 应启用末尾零快捷计算。')
+
+    expect(multiplication).toMatchObject({
+      multiplicandDigits: '1230',
+      multiplierDigits: '200',
+      operandsSwapped: false,
+      productDigits: '246000',
+    })
+    expect(shortcut).toEqual({
+      significantMultiplicandDigits: '123',
+      multiplicandTrailingZeroCount: 1,
+      significantMultiplierDigits: '2',
+      multiplierTrailingZeroCount: 2,
+      trailingZeroCount: 3,
+    })
+    expect(multiplication.partialProducts.map(({ value }) => value)).toEqual(['246'])
+    expectHumanReproducible(source, scene)
+
+    const findColumn = (styleToken: string, text: string, occurrence = 0): number => {
+      const matchingElements = scene.elements.filter((element): element is typeof element & { content: GridTextContent } => (
+        element.content.kind === 'text'
+        && element.content.styleToken === styleToken
+        && element.content.text === text
+      ))
+      const element = matchingElements[occurrence]
+      if (!element || element.position.kind !== 'cell') throw new Error(`未找到 ${styleToken} 的数字 ${text}。`)
+      return element.position.column
+    }
+
+    const baseOnesColumn = findColumn('multiplication.multiplicand', '3')
+    expect(findColumn('multiplication.multiplier', '2')).toBe(baseOnesColumn)
+    expect(findColumn('multiplication.multiplicand', '0')).toBe(baseOnesColumn + 1)
+    expect(findColumn('multiplication.multiplier', '0')).toBe(baseOnesColumn + 1)
+    expect(findColumn('multiplication.multiplier', '0', 1)).toBe(baseOnesColumn + 2)
+    expect(findColumn('multiplication.product', '6')).toBe(baseOnesColumn)
+    expect(findColumn('multiplication.product', '0')).toBe(baseOnesColumn + 1)
+    expect(findColumn('multiplication.product', '0', 2)).toBe(baseOnesColumn + 3)
+  })
+
+  it('乘法竖式严格保留用户输入的上下行顺序', () => {
+    const multiplication = computeMultiplication('24', '10')
+
+    expect(multiplication).toMatchObject({
+      multiplicandDigits: '24',
+      multiplierDigits: '10',
+      operandsSwapped: false,
+      productDigits: '240',
+    })
+  })
+
+  it('普通乘法也保留小数在上的用户输入顺序', () => {
+    const multiplication = computeMultiplication('24', '97')
+
+    expect(multiplication).toMatchObject({
+      multiplicandDigits: '24',
+      multiplierDigits: '97',
+      operandsSwapped: false,
+      productDigits: '2328',
+    })
+    expect(multiplication.partialProducts.map(({ value, shift }) => [value, shift])).toEqual([
+      ['168', 0],
+      ['216', 1],
+    ])
+  })
+
   it('加法、减法和乘法不直接构造 GridScene', () => {
     const addition = computeAddition('356', '278')
     const additionSettings = { cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false, showCarrySteps: true }

@@ -127,24 +127,31 @@ export interface MultiplicationAdditionStep {
   carryOut: number
 }
 
-/** 乘数末尾零的快捷计算信息；为空时使用完整逐位乘法。 */
+/** 两个乘数末尾零的快捷计算信息；为空时使用完整逐位乘法。 */
 export interface MultiplicationTrailingZeroShortcut {
-  /** 从乘数末尾暂时移出的零位数，最终积在基础积后补回这些零。 */
-  trailingZeroCount: number
-  /** 去掉末尾零后实际参与逐位计算的乘数。 */
+  /** 第一行乘数去掉末尾零后实际参与逐位计算的数字。 */
+  significantMultiplicandDigits: string
+  /** 第一行乘数暂时移出的末尾零位数。 */
+  multiplicandTrailingZeroCount: number
+  /** 第二行乘数去掉末尾零后实际参与逐位计算的数字。 */
   significantMultiplierDigits: string
+  /** 第二行乘数暂时移出的末尾零位数。 */
+  multiplierTrailingZeroCount: number
+  /** 两个乘数移出零位数的总和，最终积在基础积后补回这些零。 */
+  trailingZeroCount: number
 }
 
 /** 乘法器可选行为；未指定时保持教学页面的默认快捷计算。 */
 export interface MultiplicationOptions {
   useTrailingZeroShortcut?: boolean
-  /** 保留调用方输入的上下行顺序；组合运算用它避免为了版面交换操作数。 */
+  /** 为兼容已有调用方保留；乘法器现在始终按输入顺序排版。 */
   preserveOperandOrder?: boolean
 }
 
 export interface MultiplicationComputation {
   multiplicandDigits: string
   multiplierDigits: string
+  /** 为兼容已有调用方保留；乘法器不再交换输入，因此始终为 false。 */
   operandsSwapped: boolean
   productDigits: string
   /** 非空时表示最终积由基础积补零得到。 */

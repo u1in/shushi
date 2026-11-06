@@ -25,6 +25,19 @@ const putNumber = (row: NumberRowContent, value: string, rightIndex: number): vo
   ;[...value].forEach((digit, index) => row.digits.set(rightIndex - value.length + index + 1, digit))
 }
 
+/** 快捷计算中，保留原数的末尾零在有效数字个位的右侧，而不是移到最终积右边界。 */
+const putShortcutOperand = (
+  row: NumberRowContent,
+  significantDigits: string,
+  trailingZeroCount: number,
+  baseRightmostNumberIndex: number,
+): void => {
+  putNumber(row, significantDigits, baseRightmostNumberIndex)
+  for (let index = 1; index <= trailingZeroCount; index += 1) {
+    row.digits.set(baseRightmostNumberIndex + index, '0')
+  }
+}
+
 /**
  * 乘法进位默认附着在左侧目标数字的右上角；跨过横线时改附着到上行数字右下角。
  * 两种情况都复用既有 RB / RT 宏，保证自动生成源码可以直接在宏编辑器中复刻。
@@ -71,6 +84,7 @@ export const createMultiplicationMacroSource = (
   settings: MultiplicationRenderSettings,
 ): string => {
   const isTrailingZeroShortcut = computation.trailingZeroShortcut !== null
+  const significantMultiplicandDigits = computation.trailingZeroShortcut?.significantMultiplicandDigits ?? computation.multiplicandDigits
   const significantMultiplierDigits = computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
   const totalStepCount = getMultiplicationStepCount(computation)
@@ -83,7 +97,7 @@ export const createMultiplicationMacroSource = (
     ? computation.productDigits.slice(0, -trailingZeroCount)
     : computation.productDigits
   const baseNumberColumnCount = Math.max(
-    computation.multiplicandDigits.length,
+    significantMultiplicandDigits.length,
     significantMultiplierDigits.length,
     baseProductDigits.length,
     partialWidth,
@@ -97,13 +111,28 @@ export const createMultiplicationMacroSource = (
   const children: string[] = []
 
   const multiplicand = createNumberRow()
-  putNumber(multiplicand, computation.multiplicandDigits, isTrailingZeroShortcut ? baseRightmostNumberIndex : rightmostNumberIndex)
+  if (isTrailingZeroShortcut) {
+    putShortcutOperand(
+      multiplicand,
+      significantMultiplicandDigits,
+      computation.trailingZeroShortcut!.multiplicandTrailingZeroCount,
+      baseRightmostNumberIndex,
+    )
+  } else {
+    putNumber(multiplicand, computation.multiplicandDigits, rightmostNumberIndex)
+  }
 
   const multiplier = createNumberRow()
-  const multiplierToDisplay = isTrailingZeroShortcut && !isComplete
-    ? computation.trailingZeroShortcut!.significantMultiplierDigits
-    : computation.multiplierDigits
-  putNumber(multiplier, multiplierToDisplay, isTrailingZeroShortcut && !isComplete ? baseRightmostNumberIndex : rightmostNumberIndex)
+  if (isTrailingZeroShortcut) {
+    putShortcutOperand(
+      multiplier,
+      significantMultiplierDigits,
+      computation.trailingZeroShortcut!.multiplierTrailingZeroCount,
+      baseRightmostNumberIndex,
+    )
+  } else {
+    putNumber(multiplier, computation.multiplierDigits, rightmostNumberIndex)
+  }
 
   if (isTrailingZeroShortcut && !isMultiDigitMultiplier) {
     const product = createNumberRow()
@@ -126,17 +155,17 @@ export const createMultiplicationMacroSource = (
     const firstNonZeroIndex = completedDigitSteps.findIndex(({ resultDigit }) => resultDigit !== '0')
     const displayedSteps = firstNonZeroIndex === -1 ? completedDigitSteps.slice(-1) : completedDigitSteps.slice(firstNonZeroIndex)
     displayedSteps.forEach(({ multiplicandDigitIndex, resultDigit }) => {
-      const columnFromRight = computation.multiplicandDigits.length - 1 - multiplicandDigitIndex
+      const columnFromRight = significantMultiplicandDigits.length - 1 - multiplicandDigitIndex
       row.digits.set(arithmeticRightmostNumberIndex - partialProduct.shift - columnFromRight, resultDigit)
     })
     const leadingStep = partialProduct.digitSteps[0]
     if (visibleDigitStepCount === partialProduct.digitSteps.length && leadingStep.carryOut > 0) {
-      row.digits.set(arithmeticRightmostNumberIndex - partialProduct.shift - computation.multiplicandDigits.length, String(leadingStep.carryOut))
+      row.digits.set(arithmeticRightmostNumberIndex - partialProduct.shift - significantMultiplicandDigits.length, String(leadingStep.carryOut))
     }
     if (settings.showCarrySteps && visibleDigitStepCount > 0) {
       completedDigitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {
         if (carryOut === 0 || multiplicandDigitIndex === 0) return
-        const targetColumnFromRight = computation.multiplicandDigits.length - multiplicandDigitIndex
+        const targetColumnFromRight = significantMultiplicandDigits.length - multiplicandDigitIndex
         const targetIndex = arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight
         // 第一条部分积紧跟乘法横线；进位改放在横线上方的乘数数字右下角。
         const anchorRow = partialProductIndex === 0 ? multiplier : row
