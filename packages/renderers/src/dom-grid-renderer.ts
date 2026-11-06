@@ -1,9 +1,5 @@
 /** DOM + CSS grid renderer: draws a GridScene without knowing any operation rules. */
-import {
-  getGridElementRect,
-  getGridTextAnchor,
-  resolveGridMetrics,
-} from '@u1in/shushi-grid'
+import { getGridElementRect, getGridTextAnchor, resolveGridMetrics } from '@u1in/shushi-grid'
 import type { GridElement, GridMetrics, GridScene } from '@u1in/shushi-grid'
 
 const setStyleToken = (node: HTMLElement, styleToken: string | undefined): void => {
@@ -15,12 +11,7 @@ const setElementId = (node: HTMLElement, element: GridElement): void => {
   node.dataset.gridElementId = element.id
 }
 
-const renderDomElement = (
-  parent: HTMLElement,
-  element: GridElement,
-  scene: GridScene,
-  metrics: GridMetrics,
-): void => {
+const renderDomElement = (parent: HTMLElement, element: GridElement, scene: GridScene, metrics: GridMetrics): void => {
   const rect = getGridElementRect(element, metrics)
   if (element.content.kind === 'line') {
     if (element.position.kind !== 'edge') {
@@ -79,7 +70,10 @@ const renderDomElement = (
   node.style.top = `${rect.top - halfStroke}px`
   node.style.width = `${rect.width + strokeWidth}px`
   node.style.height = `${rect.height + strokeWidth}px`
-  node.style.setProperty('--grid-corner-radius', `${Math.min(rect.width, rect.height) * element.content.radiusRatio + halfStroke}px`)
+  node.style.setProperty(
+    '--grid-corner-radius',
+    `${Math.min(rect.width, rect.height) * element.content.radiusRatio + halfStroke}px`,
+  )
   if (element.content.color) {
     node.style.borderRightColor = element.content.color
     node.style.borderBottomColor = element.content.color
@@ -117,11 +111,7 @@ const renderGuideGrid = (parent: HTMLElement, scene: GridScene, metrics: GridMet
 }
 
 /** 在已有图层中绘制；清空旧图元，避免复用容器时残留上一次结果。 */
-const renderDomLayers = (
-  lineLayer: HTMLElement,
-  contentLayer: HTMLElement,
-  scene: GridScene,
-): void => {
+const renderDomLayers = (lineLayer: HTMLElement, contentLayer: HTMLElement, scene: GridScene): void => {
   const metrics = resolveGridMetrics(scene)
   const grid = lineLayer.parentElement
   grid?.style.setProperty('--grid-font-size', `${scene.fontSize}px`)

@@ -10,11 +10,7 @@ export const getMacroCall = (
   zeroArgumentMacros: ReadonlySet<string> = new Set(),
 ): MacroCall | undefined => {
   if (node.kind === 'call') return name === undefined || node.name === name ? node : undefined
-  if (
-    node.kind === 'symbol'
-    && zeroArgumentMacros.has(node.name)
-    && (name === undefined || node.name === name)
-  ) {
+  if (node.kind === 'symbol' && zeroArgumentMacros.has(node.name) && (name === undefined || node.name === name)) {
     return { kind: 'call', name: node.name, arguments: [] }
   }
   return undefined
@@ -29,7 +25,7 @@ export const getMacroValue = (node: MacroNode, context: string): string => {
 export const getMacroKv = (
   node: MacroNode,
   zeroArgumentMacros: ReadonlySet<string>,
-): { key: string, value: string } | undefined => {
+): { key: string; value: string } | undefined => {
   const call = getMacroCall(node, 'KV', zeroArgumentMacros)
   if (!call) return undefined
   if (call.arguments.length !== 2) throw new Error('KV 必须包含键和值两个参数，例如 KV(span, previous)。')
@@ -43,7 +39,7 @@ export const getMacroKv = (
 export const splitMacroOptions = (
   nodes: MacroNode[],
   zeroArgumentMacros: ReadonlySet<string>,
-): { content: MacroNode[], options: Map<string, string> } => {
+): { content: MacroNode[]; options: Map<string, string> } => {
   const content: MacroNode[] = []
   const options = new Map<string, string>()
   nodes.forEach((node) => {

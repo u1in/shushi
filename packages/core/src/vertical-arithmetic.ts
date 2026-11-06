@@ -67,9 +67,8 @@ export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> =
   el?: TMode extends 'svg-string' ? never : Element
 }
 
-export type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> = (
-  TRequest & ShushiRenderOptions<TMode>
-)
+export type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> = TRequest &
+  ShushiRenderOptions<TMode>
 
 /** 所有门户调用共享的视觉尺寸；专项开关由各运算的默认设置补齐。 */
 const DEFAULT_GRID_SETTINGS = {
@@ -111,10 +110,11 @@ const DEFAULT_COMPOSITE_SETTINGS: CompositeArithmeticRenderSettings = {
 }
 
 /** 忽略显式 undefined，避免可选 settings 意外覆盖门户的教学默认值。 */
-const mergeSettings = <T extends object>(defaults: T, settings: Partial<T> | undefined): T => ({
-  ...defaults,
-  ...Object.fromEntries(Object.entries(settings ?? {}).filter(([, value]) => value !== undefined)),
-}) as T
+const mergeSettings = <T extends object>(defaults: T, settings: Partial<T> | undefined): T =>
+  ({
+    ...defaults,
+    ...Object.fromEntries(Object.entries(settings ?? {}).filter(([, value]) => value !== undefined)),
+  }) as T
 
 export interface AdditionVerticalArithmeticRequest {
   operation: 'addition'
@@ -179,12 +179,18 @@ export interface VerticalArithmeticResult<TComputation, TRendered = ShushiRender
   inspection: MacroAstInspection
 }
 
-export type AdditionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<AdditionComputation, ShushiRendered<TMode>>
-export type SubtractionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<SubtractionComputation, ShushiRendered<TMode>>
-export type MultiplicationVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<MultiplicationComputation, ShushiRendered<TMode>>
-export type DivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<DivisionComputation, ShushiRendered<TMode>>
-export type ShortDivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<ShortDivisionComputation, ShushiRendered<TMode>>
-export type CompositeVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> = VerticalArithmeticResult<CompositeArithmeticComputation, ShushiRendered<TMode>>
+export type AdditionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<AdditionComputation, ShushiRendered<TMode>>
+export type SubtractionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<SubtractionComputation, ShushiRendered<TMode>>
+export type MultiplicationVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<MultiplicationComputation, ShushiRendered<TMode>>
+export type DivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<DivisionComputation, ShushiRendered<TMode>>
+export type ShortDivisionVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<ShortDivisionComputation, ShushiRendered<TMode>>
+export type CompositeVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
+  VerticalArithmeticResult<CompositeArithmeticComputation, ShushiRendered<TMode>>
 
 export type AnyVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiRenderMode> =
   | AdditionVerticalArithmeticResult<TMode>
@@ -197,17 +203,35 @@ export type AnyVerticalArithmeticResult<TMode extends ShushiRenderMode = ShushiR
 /** 用调用签名保留 operation 与 computation 类型之间的窄化关系。 */
 /** `shushiCore` 的结构化请求签名；供需要精确指定运算类型的高级调用方使用。 */
 export interface ShushiCore {
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<AdditionVerticalArithmeticRequest, TMode>): AdditionVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<SubtractionVerticalArithmeticRequest, TMode>): SubtractionVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<MultiplicationVerticalArithmeticRequest, TMode>): MultiplicationVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<DivisionVerticalArithmeticRequest, TMode>): DivisionVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<ShortDivisionVerticalArithmeticRequest, TMode>): ShortDivisionVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<CompositeVerticalArithmeticRequest, TMode>): CompositeVerticalArithmeticResult<TMode>
-  <TMode extends ShushiRenderMode = 'svg-string'>(request: ShushiRequest<VerticalArithmeticRequest, TMode>): AnyVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<AdditionVerticalArithmeticRequest, TMode>,
+  ): AdditionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<SubtractionVerticalArithmeticRequest, TMode>,
+  ): SubtractionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<MultiplicationVerticalArithmeticRequest, TMode>,
+  ): MultiplicationVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<DivisionVerticalArithmeticRequest, TMode>,
+  ): DivisionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<ShortDivisionVerticalArithmeticRequest, TMode>,
+  ): ShortDivisionVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<CompositeVerticalArithmeticRequest, TMode>,
+  ): CompositeVerticalArithmeticResult<TMode>
+  <TMode extends ShushiRenderMode = 'svg-string'>(
+    request: ShushiRequest<VerticalArithmeticRequest, TMode>,
+  ): AnyVerticalArithmeticResult<TMode>
 }
 
 /** 执行客户端挂载或 SSR 字符串渲染，并保持三种渲染器共用同一 GridScene。 */
-const renderPortalResult = (scene: GridScene, renderMode: ShushiRenderMode, el: Element | undefined): ShushiRendered<ShushiRenderMode> => {
+const renderPortalResult = (
+  scene: GridScene,
+  renderMode: ShushiRenderMode,
+  el: Element | undefined,
+): ShushiRendered<ShushiRenderMode> => {
   if (renderMode === 'svg-string') {
     if (el) throw new Error('renderMode 为 svg-string 时不能传入 el；请使用 div 或 svg 客户端渲染模式。')
     return renderSvgString(scene)
@@ -228,9 +252,10 @@ const createResult = <TComputation>(
   options: ShushiRenderOptions<ShushiRenderMode>,
 ): VerticalArithmeticResult<TComputation> => {
   // 自动生成和人工录入都使用相同的宏编译器，不能由门户直接拼装 GridScene。
-  const compileOptions = options.colorTheme || options.fontFamily
-    ? { colorTheme: options.colorTheme, fontFamily: options.fontFamily }
-    : undefined
+  const compileOptions =
+    options.colorTheme || options.fontFamily
+      ? { colorTheme: options.colorTheme, fontFamily: options.fontFamily }
+      : undefined
   const scene = compileCalculatorMacro(source, compileOptions)
   const inspection = createMacroAstInspection(source, compileOptions)
   return {
@@ -289,11 +314,11 @@ export const shushiCore = ((
 
 /** 表达式入口可覆盖所有运算共有的渲染选项与各专项教学开关。 */
 export type ShushiExpressionSettings = Partial<
-  GridRenderSettings
-  & Pick<RenderSettings, 'bracketBend' | 'uniformSubtractionBars' | 'showZeroQuotientSteps'>
-  & Pick<MultiplicationRenderSettings, 'uniformMultiplicationBars' | 'showCarrySteps'>
-  & Pick<SubtractionRenderSettings, 'showBorrowSteps'>
-  & Pick<ShortDivisionRenderSettings, 'showRemainders'>
+  GridRenderSettings &
+    Pick<RenderSettings, 'bracketBend' | 'uniformSubtractionBars' | 'showZeroQuotientSteps'> &
+    Pick<MultiplicationRenderSettings, 'uniformMultiplicationBars' | 'showCarrySteps'> &
+    Pick<SubtractionRenderSettings, 'showBorrowSteps'> &
+    Pick<ShortDivisionRenderSettings, 'showRemainders'>
 >
 
 /** `shushi` 将字符串表达式转换为 `shushiCore` 请求；计算和渲染选项仍然可按需传入。 */
@@ -394,7 +419,20 @@ export const shushi = ((
   }
 
   const [left, operator, right] = arithmetic.split(/([+\-×])/) as [string, '+' | '-' | '×', string]
-  if (operator === '+') return shushiCore({ operation: 'addition', values: [left, right], settings: options.settings, ...renderOptions })
-  if (operator === '-') return shushiCore({ operation: 'subtraction', operands: [left, right], settings: options.settings, ...renderOptions })
-  return shushiCore({ operation: 'multiplication', operands: [left, right], calculation: options.calculation, settings: options.settings, ...renderOptions })
+  if (operator === '+')
+    return shushiCore({ operation: 'addition', values: [left, right], settings: options.settings, ...renderOptions })
+  if (operator === '-')
+    return shushiCore({
+      operation: 'subtraction',
+      operands: [left, right],
+      settings: options.settings,
+      ...renderOptions,
+    })
+  return shushiCore({
+    operation: 'multiplication',
+    operands: [left, right],
+    calculation: options.calculation,
+    settings: options.settings,
+    ...renderOptions,
+  })
 }) as Shushi

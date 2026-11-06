@@ -99,11 +99,11 @@ console.log(rendered, source, scene, inspection)
 
 渲染模式：
 
-| 模式 | `rendered` 类型 | 使用环境 |
-| --- | --- | --- |
-| `svg-string`（默认） | `string` | Node.js、SSR、导出文件或不需要 DOM 的场景 |
-| `div` | `HTMLElement` | 浏览器 DOM/CSS |
-| `svg` | `SVGSVGElement` | 浏览器 SVG DOM |
+| 模式                 | `rendered` 类型 | 使用环境                                  |
+| -------------------- | --------------- | ----------------------------------------- |
+| `svg-string`（默认） | `string`        | Node.js、SSR、导出文件或不需要 DOM 的场景 |
+| `div`                | `HTMLElement`   | 浏览器 DOM/CSS                            |
+| `svg`                | `SVGSVGElement` | 浏览器 SVG DOM                            |
 
 `el` 只能与 `div` 或 `svg` 一起使用。Node.js/SSR 不要调用 DOM 渲染器；需要 SVG 时使用默认的 `svg-string`。
 

@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import {
-  shushi,
-  shushiCore,
-  compileMacro,
-} from '@u1in/shushi-core'
+import { shushi, shushiCore, compileMacro } from '@u1in/shushi-core'
 
 /** 门户返回的源码仍须由统一宏编译器复刻，避免便利入口绕过可编辑源码。 */
-const expectPortalResult = (result: { source: string, scene: unknown, rendered: unknown, inspection: unknown }): void => {
+const expectPortalResult = (result: {
+  source: string
+  scene: unknown
+  rendered: unknown
+  inspection: unknown
+}): void => {
   expect(result.source).not.toBe('')
   expect(compileMacro(result.source)).toEqual(result.scene)
   expect(result.rendered).toBeDefined()
@@ -125,30 +126,38 @@ describe('统一竖式门户 API', () => {
     expect(result.scene.fontFamily).toBe('Noto Sans Math')
     expect(result.inspection.scene).toEqual(result.scene)
     expect(result.rendered).toContain('--grid-font-family:Noto Sans Math')
-    expect(result.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '+')?.content).toMatchObject({ color: '#444444' })
+    expect(
+      result.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '+')?.content,
+    ).toMatchObject({ color: '#444444' })
   })
 
   it('客户端 DOM 渲染模式在服务端环境中明确拒绝执行', () => {
-    expect(() => shushiCore({
-      operation: 'addition',
-      values: ['2', '3'],
-      renderMode: 'div',
-    })).toThrow('需要客户端 DOM 环境')
+    expect(() =>
+      shushiCore({
+        operation: 'addition',
+        values: ['2', '3'],
+        renderMode: 'div',
+      }),
+    ).toThrow('需要客户端 DOM 环境')
 
-    expect(() => shushiCore({
-      operation: 'addition',
-      values: ['2', '3'],
-      renderMode: 'svg',
-    })).toThrow('需要客户端 DOM 环境')
+    expect(() =>
+      shushiCore({
+        operation: 'addition',
+        values: ['2', '3'],
+        renderMode: 'svg',
+      }),
+    ).toThrow('需要客户端 DOM 环境')
   })
 
   it('svg-string 模式不允许传入客户端挂载点', () => {
-    expect(() => shushiCore({
-      operation: 'addition',
-      values: ['2', '3'],
-      renderMode: 'svg-string',
-      el: {} as never,
-    })).toThrow('不能传入 el')
+    expect(() =>
+      shushiCore({
+        operation: 'addition',
+        values: ['2', '3'],
+        renderMode: 'svg-string',
+        el: {} as never,
+      }),
+    ).toThrow('不能传入 el')
   })
 
   it('shushi 解析加减乘表达式，并兼容 * 与 ×', () => {

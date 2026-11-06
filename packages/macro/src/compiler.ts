@@ -9,7 +9,14 @@ import {
   getAutoTextColor,
 } from './auto-color-theme'
 import { BASIC_ZERO_ARGUMENT_MACROS, resolveLineStyle } from './basic-macros'
-import { getBoolean, getMacroCall, getMacroValue, getPositiveInteger, getPositiveNumber, splitMacroOptions } from './macro-ast'
+import {
+  getBoolean,
+  getMacroCall,
+  getMacroValue,
+  getPositiveInteger,
+  getPositiveNumber,
+  splitMacroOptions,
+} from './macro-ast'
 import {
   BRACKET_STROKE_THICKNESS,
   BRACKET_TRACK_SIZE,
@@ -83,13 +90,11 @@ const DEFAULTS: MacroCompileDefaults = {
 /** 汇总两层允许省略括号的宏，保证嵌套解析的规则一致。 */
 const ZERO_ARGUMENT_MACROS = new Set([...BASIC_ZERO_ARGUMENT_MACROS, ...SUGAR_ZERO_ARGUMENT_MACROS])
 
-const getCall = (node: MacroNode, name?: string): MacroCall | undefined => (
+const getCall = (node: MacroNode, name?: string): MacroCall | undefined =>
   getMacroCall(node, name, ZERO_ARGUMENT_MACROS)
-)
 
-const splitOptions = (nodes: MacroNode[]): { content: MacroNode[], options: Map<string, string> } => (
+const splitOptions = (nodes: MacroNode[]): { content: MacroNode[]; options: Map<string, string> } =>
   splitMacroOptions(nodes, ZERO_ARGUMENT_MACROS)
-)
 
 const readCell = (node: MacroNode, defaultColumnSpan = 1): NormalizedCell => {
   const cellCall = getCall(node, 'CELL')
@@ -137,16 +142,30 @@ const readValueGroup = (node: MacroNode): NormalizedCell[] => {
   const value = getMacroValue(content[0], 'VALUE 的数值')
   const digits = [...value]
   // 空 VALUE 只用于末行的可编辑占位组；它不产生图元，但仍保留数值组边界。
-  return digits.map((digit) => readCell({
-    kind: 'call',
-    name: 'MM',
-    arguments: [
-      { kind: 'literal', value: digit },
-      ...(options.has('style')
-        ? [{ kind: 'call' as const, name: 'KV', arguments: [{ kind: 'literal' as const, value: 'style' }, { kind: 'literal' as const, value: options.get('style')! }] }]
-        : []),
-    ],
-  }, 2))
+  return digits.map((digit) =>
+    readCell(
+      {
+        kind: 'call',
+        name: 'MM',
+        arguments: [
+          { kind: 'literal', value: digit },
+          ...(options.has('style')
+            ? [
+                {
+                  kind: 'call' as const,
+                  name: 'KV',
+                  arguments: [
+                    { kind: 'literal' as const, value: 'style' },
+                    { kind: 'literal' as const, value: options.get('style')! },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+      2,
+    ),
+  )
 }
 
 /**
@@ -156,7 +175,7 @@ const readValueGroup = (node: MacroNode): NormalizedCell[] => {
 const readShortDivisionRow = (node: MacroCall): NormalizedShortDivisionRow => {
   const { content, options } = splitOptions(node.arguments)
   if (options.size > 0) throw new Error('包含 DIV 的短除法 ROW 不支持 KV 配置。')
-  const dividerIndices = content.flatMap((child, index) => getCall(child, 'DIV') ? [index] : [])
+  const dividerIndices = content.flatMap((child, index) => (getCall(child, 'DIV') ? [index] : []))
   if (dividerIndices.length > 1) throw new Error('短除法 ROW 最多只能包含一个 DIV。')
   if (dividerIndices.length === 0) {
     if (content.length === 0) throw new Error('短除法底行至少需要一个 VALUE。')
@@ -167,7 +186,10 @@ const readShortDivisionRow = (node: MacroCall): NormalizedShortDivisionRow => {
   const right = content.slice(dividerIndex + 1)
   const dividerCall = getCall(content[dividerIndex], 'DIV')
   const { content: dividerContent, options: dividerOptions } = splitOptions(dividerCall?.arguments ?? [])
-  if (dividerContent.length > 0 || [...dividerOptions.keys()].some((key) => key !== 'separatorStyle' && key !== 'barStyle')) {
+  if (
+    dividerContent.length > 0 ||
+    [...dividerOptions.keys()].some((key) => key !== 'separatorStyle' && key !== 'barStyle')
+  ) {
     throw new Error('DIV 只支持 KV(separatorStyle, token) 与 KV(barStyle, token)。')
   }
   if (left.length !== 1) throw new Error('短除法 DIV 左侧必须恰有一个除数单元格。')
@@ -204,7 +226,7 @@ const getLineRange = (
   row: PositionedCell[],
   allRows: PositionedCell[][],
   columns: number,
-): { start: number, end: number } => {
+): { start: number; end: number } => {
   if (span === 'full') return { start: 0, end: columns }
   const rows = span === 'previous' ? [row] : allRows
   const cells = rows.flat()
@@ -239,13 +261,22 @@ const applyAutoColor = (element: GridElement, node: MacroNode, theme: AutoColorT
   const operatorColor = getAutoOperatorColor(theme, element.content.text)
   const color = isDotMacro(node)
     ? theme.decimal
-    : operatorColor
-      ?? (macroName === 'RB' ? getAutoCarryColor(theme) : macroName === 'MT' || macroName === 'MTD' ? getAutoBorrowColor(theme) : getAutoTextColor(theme))
+    : (operatorColor ??
+      (macroName === 'RB'
+        ? getAutoCarryColor(theme)
+        : macroName === 'MT' || macroName === 'MTD'
+          ? getAutoBorrowColor(theme)
+          : getAutoTextColor(theme)))
   return { ...element, content: { ...element.content, color } }
 }
 
 /** BRACKET 的右上角自动延伸至当前网格右边界，形成完整厂字横。 */
-const compileBracketHead = (cell: PositionedCell, row: number, columns: number, id: number): GridElement | undefined => {
+const compileBracketHead = (
+  cell: PositionedCell,
+  row: number,
+  columns: number,
+  id: number,
+): GridElement | undefined => {
   const startColumn = cell.column + cell.columnSpan
   const columnSpan = columns - startColumn
   if (columnSpan <= 0) return undefined
@@ -315,12 +346,15 @@ const compileShortDivisionMacro = (
   if (normalizedRows.some(({ valueGroups }) => valueGroups.length !== valueGroupCount)) {
     throw new Error('短除法每行 VALUE 数值组数量必须一致。')
   }
-  const groupWidths = Array.from({ length: valueGroupCount }, (_, groupIndex) => Math.max(
-    ...normalizedRows.map(({ valueGroups }) => valueGroups[groupIndex].length),
-  ))
+  const groupWidths = Array.from({ length: valueGroupCount }, (_, groupIndex) =>
+    Math.max(...normalizedRows.map(({ valueGroups }) => valueGroups[groupIndex].length)),
+  )
   const dividerOffsets = getDividerOffsets(normalizedRows, groupWidths[0])
   const leftHalfTrackCount = processRows.length === 0 ? 0 : Math.max(2, 2 - Math.min(...dividerOffsets, 0))
-  const columns = Array.from({ length: leftHalfTrackCount }, (_, index) => ({ id: `macro-div-stagger-${index}`, size: 0.5 }))
+  const columns = Array.from({ length: leftHalfTrackCount }, (_, index) => ({
+    id: `macro-div-stagger-${index}`,
+    size: 0.5,
+  }))
   const groupColumns: number[][] = []
   groupWidths.forEach((width, groupIndex) => {
     const digitColumns: number[] = []
@@ -341,7 +375,16 @@ const compileShortDivisionMacro = (
   normalizedRows.forEach((row, rowIndex) => {
     if (row.divisor) {
       const separatorColumn = leftHalfTrackCount + dividerOffsets[processIndex]
-      compileCellElements(elements, { ...row.divisor, column: separatorColumn - 2 }, rowIndex, autoColor, colorTheme, nextId, undefined, onElement)
+      compileCellElements(
+        elements,
+        { ...row.divisor, column: separatorColumn - 2 },
+        rowIndex,
+        autoColor,
+        colorTheme,
+        nextId,
+        undefined,
+        onElement,
+      )
       const dividerNode = row.dividerNode ?? { kind: 'symbol' as const, name: 'DIV' }
       const separator: GridElement = {
         id: `macro-div-separator-${processIndex}`,
@@ -351,7 +394,13 @@ const compileShortDivisionMacro = (
       }
       const bar: GridElement = {
         id: `macro-div-bar-${processIndex}`,
-        position: { kind: 'edge', column: separatorColumn, row: rowIndex, columnSpan: valueAreaEnd - separatorColumn, edge: 'bottom' },
+        position: {
+          kind: 'edge',
+          column: separatorColumn,
+          row: rowIndex,
+          columnSpan: valueAreaEnd - separatorColumn,
+          edge: 'bottom',
+        },
         content: { kind: 'line' },
         styleToken: row.barStyleToken,
       }
@@ -366,7 +415,16 @@ const compileShortDivisionMacro = (
     row.valueGroups.forEach((group, groupIndex) => {
       const startIndex = groupWidths[groupIndex] - group.length
       group.forEach((cell, digitIndex) => {
-        compileCellElements(elements, { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] }, rowIndex, autoColor, colorTheme, nextId, undefined, onElement)
+        compileCellElements(
+          elements,
+          { ...cell, column: groupColumns[groupIndex][startIndex + digitIndex] },
+          rowIndex,
+          autoColor,
+          colorTheme,
+          nextId,
+          undefined,
+          onElement,
+        )
       })
     })
   })
@@ -376,19 +434,43 @@ const compileShortDivisionMacro = (
     columns,
     rows: normalizedRows.map((_, index) => ({ id: `macro-div-row-${index}`, size: 1 })),
     padding: {
-      top: getPositiveNumber(uniformPadding ?? options.get('paddingY'), 'GRID 的 padding / paddingY', DEFAULTS.verticalPadding),
-      right: getPositiveNumber(uniformPadding ?? options.get('paddingX'), 'GRID 的 padding / paddingX', DEFAULTS.horizontalPadding),
-      bottom: getPositiveNumber(uniformPadding ?? options.get('paddingY'), 'GRID 的 padding / paddingY', DEFAULTS.verticalPadding),
-      left: getPositiveNumber(uniformPadding ?? options.get('paddingX'), 'GRID 的 padding / paddingX', DEFAULTS.horizontalPadding),
+      top: getPositiveNumber(
+        uniformPadding ?? options.get('paddingY'),
+        'GRID 的 padding / paddingY',
+        DEFAULTS.verticalPadding,
+      ),
+      right: getPositiveNumber(
+        uniformPadding ?? options.get('paddingX'),
+        'GRID 的 padding / paddingX',
+        DEFAULTS.horizontalPadding,
+      ),
+      bottom: getPositiveNumber(
+        uniformPadding ?? options.get('paddingY'),
+        'GRID 的 padding / paddingY',
+        DEFAULTS.verticalPadding,
+      ),
+      left: getPositiveNumber(
+        uniformPadding ?? options.get('paddingX'),
+        'GRID 的 padding / paddingX',
+        DEFAULTS.horizontalPadding,
+      ),
     },
     unitWidth,
     unitHeight: getPositiveNumber(options.get('unitHeight'), 'GRID 的 unitHeight', DEFAULTS.unitHeight),
-    fontSize: getPositiveNumber(options.get('fontSize'), 'GRID 的 fontSize', unitWidth * getPositiveNumber(options.get('fontSizeRatio'), 'GRID 的 fontSizeRatio', DEFAULTS.fontSizeRatio)),
+    fontSize: getPositiveNumber(
+      options.get('fontSize'),
+      'GRID 的 fontSize',
+      unitWidth * getPositiveNumber(options.get('fontSizeRatio'), 'GRID 的 fontSizeRatio', DEFAULTS.fontSizeRatio),
+    ),
     defaultTextStyleToken: options.get('style'),
     textHorizontalAlign: 'center',
     textVerticalAlign: 'center',
     elements,
-    showGuideGrid: getBoolean(options.get('showGrid') ?? options.get('showGuideGrid'), 'GRID 的 showGrid', DEFAULTS.showGuideGrid),
+    showGuideGrid: getBoolean(
+      options.get('showGrid') ?? options.get('showGuideGrid'),
+      'GRID 的 showGrid',
+      DEFAULTS.showGuideGrid,
+    ),
     ariaLabel: options.get('ariaLabel') ?? '短除法宏公式预览',
   }
 }
@@ -428,7 +510,7 @@ const compileMacroAstWithObserver = (
     return { ...scene, fontFamily: compileOptions.fontFamily ?? DEFAULT_GRID_FONT_FAMILY }
   }
   const rows: NormalizedRow[] = []
-  const lineCalls: Array<{ call: MacroCall, afterRow: number, sourceNode: MacroNode }> = []
+  const lineCalls: Array<{ call: MacroCall; afterRow: number; sourceNode: MacroNode }> = []
   content.forEach((node) => {
     const call = getCall(node)
     if (!call) throw new Error('GRID 只能包含 ROW、LINE 或 KV 配置。')
@@ -445,7 +527,12 @@ const compileMacroAstWithObserver = (
   })
   if (rows.length === 0) throw new Error('GRID 至少需要一个 ROW。')
   const configuredLineSpan = options.get('lineSpan')
-  if (configuredLineSpan !== undefined && configuredLineSpan !== 'previous' && configuredLineSpan !== 'longest' && configuredLineSpan !== 'full') {
+  if (
+    configuredLineSpan !== undefined &&
+    configuredLineSpan !== 'previous' &&
+    configuredLineSpan !== 'longest' &&
+    configuredLineSpan !== 'full'
+  ) {
     throw new Error('GRID 的 lineSpan 只能是 previous、longest 或 full。')
   }
   // 单条横线是竖式最常见情形，默认贯穿推导后的完整列宽；多条横线仍默认各自贴合上一行。
@@ -454,30 +541,43 @@ const compileMacroAstWithObserver = (
 
   const inferredColumns = Math.max(...rows.map(({ cells }) => cells.reduce((sum, cell) => sum + cell.columnSpan, 0)))
   const columns = getPositiveInteger(options.get('columns'), 'GRID 的 columns', inferredColumns)
-  if (columns < inferredColumns) throw new Error(`GRID 的 columns=${columns} 小于最长 ROW 所需的 ${inferredColumns} 列。`)
+  if (columns < inferredColumns)
+    throw new Error(`GRID 的 columns=${columns} 小于最长 ROW 所需的 ${inferredColumns} 列。`)
   const positionedRows = rows.map(({ cells, align }) => {
     const rowWidth = cells.reduce((sum, cell) => sum + cell.columnSpan, 0)
     let nextColumn = align === 'right' ? columns - rowWidth : 0
-      return cells.map((cell): PositionedCell => {
-        const positioned = { ...cell, column: nextColumn, rowAlign: align }
+    return cells.map((cell): PositionedCell => {
+      const positioned = { ...cell, column: nextColumn, rowAlign: align }
       nextColumn += cell.columnSpan
       return positioned
     })
   })
   // 先按逻辑列对齐，再把厂字弯对应的真实轨道缩窄；不会改变其他单元格的列索引。
-  const columnSizes: number[] = Array.from({ length: columns }, () => trackUnit === 'half' ? 0.5 : 1)
-  positionedRows.forEach((cells) => cells.forEach(({ column, trackSize }) => {
-    if (trackSize !== undefined) columnSizes[column] = trackSize
-  }))
+  const columnSizes: number[] = Array.from({ length: columns }, () => (trackUnit === 'half' ? 0.5 : 1))
+  positionedRows.forEach((cells) =>
+    cells.forEach(({ column, trackSize }) => {
+      if (trackSize !== undefined) columnSizes[column] = trackSize
+    }),
+  )
   const elements: GridElement[] = []
   const nextId = { value: 0 }
-  positionedRows.forEach((cells, row) => cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, colorTheme, nextId, columns, onElement)))
+  positionedRows.forEach((cells, row) =>
+    cells.forEach((cell) =>
+      compileCellElements(elements, cell, row, autoColor, colorTheme, nextId, columns, onElement),
+    ),
+  )
   lines.forEach((line, index) => {
     const range = getLineRange(line.span, positionedRows[line.afterRow], positionedRows, columns)
     const contentValue: GridLineContent = { kind: 'line', ...line.style }
     const element: GridElement = {
       id: `macro-line-${index}`,
-      position: { kind: 'edge', column: range.start, row: line.afterRow, columnSpan: range.end - range.start, edge: 'bottom' },
+      position: {
+        kind: 'edge',
+        column: range.start,
+        row: line.afterRow,
+        columnSpan: range.end - range.start,
+        edge: 'bottom',
+      },
       content: contentValue,
       styleToken: line.styleToken,
     }
@@ -524,7 +624,8 @@ const compileMacroAstWithObserver = (
 }
 
 /** 常规编译入口不暴露检查器细节，保持原有 AST → GridScene 契约。 */
-export const compileMacroAst = (root: MacroCall, options?: MacroCompileOptions): GridScene => compileMacroAstWithObserver(root, options)
+export const compileMacroAst = (root: MacroCall, options?: MacroCompileOptions): GridScene =>
+  compileMacroAstWithObserver(root, options)
 
 /** AST 检查器专用编译入口：额外报告每个渲染元素的来源宏节点。 */
 export const compileMacroAstForInspection = (

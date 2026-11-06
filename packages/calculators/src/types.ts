@@ -1,7 +1,6 @@
 /** Semantic process contracts emitted by operation calculators. */
 export type QuotientToken =
-  | { kind: 'digit', digit: string, column: number }
-  | { kind: 'decimalSeparator', digit: '.', column: number }
+  { kind: 'digit'; digit: string; column: number } | { kind: 'decimalSeparator'; digit: '.'; column: number }
 
 export interface LongDivisionStep {
   dividendColumn: number
@@ -217,9 +216,9 @@ interface CompositeArithmeticStepBase {
 }
 
 export type CompositeArithmeticStep =
-  | (CompositeArithmeticStepBase & { operator: '+', computation: AdditionComputation })
-  | (CompositeArithmeticStepBase & { operator: '-', computation: SubtractionComputation })
-  | (CompositeArithmeticStepBase & { operator: '×', computation: MultiplicationComputation })
+  | (CompositeArithmeticStepBase & { operator: '+'; computation: AdditionComputation })
+  | (CompositeArithmeticStepBase & { operator: '-'; computation: SubtractionComputation })
+  | (CompositeArithmeticStepBase & { operator: '×'; computation: MultiplicationComputation })
 
 export interface CompositeArithmeticComputation {
   expression: string

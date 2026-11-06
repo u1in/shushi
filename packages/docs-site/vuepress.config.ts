@@ -45,7 +45,13 @@ export default defineUserConfig({
       heroText: '竖式·Shushi',
       tagline: '表达式 API、人工宏源码与计算器生成的宏都经同一编译链路得到竖式',
       actions: [
-        { text: '查看主页', link: 'https://u1in.github.io/shushi/', type: 'demo', target: '_blank', rel: 'noopener noreferrer' },
+        {
+          text: '查看主页',
+          link: 'https://u1in.github.io/shushi/',
+          type: 'demo',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        },
         { text: '查看 API 文档', link: '/technical/api/shushi', type: 'default' },
         { text: '查看宏命令', link: '/macro/语法基础', type: 'default' },
         { text: '查看图例文档', link: '/gallery/加法', type: 'default' },
@@ -176,9 +182,7 @@ export default defineUserConfig({
         {
           text: '主题与渲染外观',
           collapsible: false,
-          children: [
-            { text: 'colorTheme 颜色主题', link: '/technical/colorTheme主题' },
-          ],
+          children: [{ text: 'colorTheme 颜色主题', link: '/technical/colorTheme主题' }],
         },
         {
           text: 'API 文档',
@@ -223,7 +227,10 @@ export default defineUserConfig({
                 { text: 'createMultiplicationMacroSource', link: '/technical/api/createMultiplicationMacroSource' },
                 { text: 'createDivisionMacroSource', link: '/technical/api/createDivisionMacroSource' },
                 { text: 'createShortDivisionMacroSource', link: '/technical/api/createShortDivisionMacroSource' },
-                { text: 'createCompositeArithmeticMacroSource', link: '/technical/api/createCompositeArithmeticMacroSource' },
+                {
+                  text: 'createCompositeArithmeticMacroSource',
+                  link: '/technical/api/createCompositeArithmeticMacroSource',
+                },
                 { text: 'createAdditionGridScene', link: '/technical/api/createAdditionGridScene' },
                 { text: 'createSubtractionGridScene', link: '/technical/api/createSubtractionGridScene' },
                 { text: 'createMultiplicationGridScene', link: '/technical/api/createMultiplicationGridScene' },

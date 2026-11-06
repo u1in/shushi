@@ -13,7 +13,9 @@ export const useClipboard = (duration = 1600) => {
       await navigator.clipboard.writeText(text)
       copied.value = true
       if (timer) clearTimeout(timer)
-      timer = setTimeout(() => { copied.value = false }, duration)
+      timer = setTimeout(() => {
+        copied.value = false
+      }, duration)
     } catch {
       copied.value = false
     }

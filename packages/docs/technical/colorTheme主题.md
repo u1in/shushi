@@ -74,10 +74,7 @@ const result = shushiCore({
 ```typescript
 import { compileMacro } from '@u1in/shushi-core'
 
-const scene = compileMacro(
-  'GRID(ROW(MM(3), MM(+), MM(5)), LINE, ROW(MM(8)))',
-  { colorTheme },
-)
+const scene = compileMacro('GRID(ROW(MM(3), MM(+), MM(5)), LINE, ROW(MM(8)))', { colorTheme })
 ```
 
 `compileMacroAst` 和 `createMacroAstInspection` 也接受相同的编译选项。直接使用 `renderDomGrid`、`renderSvgGrid` 或 `renderSvgString` 时，传入已经包含主题的 `scene` 即可。
@@ -87,10 +84,7 @@ const scene = compileMacro(
 省略 `colorTheme` 时使用 `AUTO_COLOR_THEME` 内置主题。需要读取默认色值时，可以使用 `AUTO_COLOR_THEME_FALLBACK`：
 
 ```typescript
-import {
-  AUTO_COLOR_THEME,
-  AUTO_COLOR_THEME_FALLBACK,
-} from '@u1in/shushi-core'
+import { AUTO_COLOR_THEME, AUTO_COLOR_THEME_FALLBACK } from '@u1in/shushi-core'
 
 console.log(AUTO_COLOR_THEME.text)
 console.log(AUTO_COLOR_THEME_FALLBACK.rule)

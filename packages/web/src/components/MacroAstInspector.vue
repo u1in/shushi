@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { AUTO_COLOR_THEME_FALLBACK, shushiCore } from '@u1in/shushi-core'
-import { completeMacro, createMacroAstInspection, formatMacro, minifyMacro, minifyMacroForCopy, unformatMacro } from '@u1in/shushi-macro'
+import {
+  completeMacro,
+  createMacroAstInspection,
+  formatMacro,
+  minifyMacro,
+  minifyMacroForCopy,
+  unformatMacro,
+} from '@u1in/shushi-macro'
 import type { MacroAstInspection, MacroNode } from '@u1in/shushi-macro'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
@@ -35,7 +42,12 @@ const getCompileOptions = (): { fontFamily: RendererFontFamily; colorTheme: Retu
 
 /** 示例按钮使用正式门户生成宏源码；调试区本身只负责接收、编译和修改宏。 */
 const createInspectionFromExpression = (inputExpression: string): MacroAstInspection => {
-  const normalizedExpression = inputExpression.trim().replace(/\s+/g, '').replace(/[xX*]/g, '×').replace(/÷/g, '/').replace(/−/g, '-')
+  const normalizedExpression = inputExpression
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[xX*]/g, '×')
+    .replace(/÷/g, '/')
+    .replace(/−/g, '-')
   const divisionCount = (normalizedExpression.match(/\//g) ?? []).length
   if (divisionCount > 0) {
     if (divisionCount !== 1 || /[+\-×]/.test(normalizedExpression) || !/^\d+\/\d+$/.test(normalizedExpression)) {
@@ -75,9 +87,8 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
 }
 
 /** 统一生成宏调试默认展示的源码：先使用最简可粘贴形式，再保留分号行结构做可读格式化。 */
-const createFormattedMinimalInspection = (inspection: MacroAstInspection): MacroAstInspection => (
+const createFormattedMinimalInspection = (inspection: MacroAstInspection): MacroAstInspection =>
   createMacroAstInspection(formatMacro(minifyMacroForCopy(inspection.source)), getCompileOptions())
-)
 
 const initialInspection = createFormattedMinimalInspection(createInspectionFromExpression(DEFAULT_MACRO_EXPRESSION))
 const source = ref(initialInspection.source)
@@ -97,7 +108,9 @@ const getReadableMacroError = (reason: unknown, fallback: string): string => {
 }
 
 const selectedReference = computed(() => inspection.value.references[selectedElementId.value])
-const firstEditableReference = computed(() => Object.values(inspection.value.references).find(reference => reference.literalPath))
+const firstEditableReference = computed(() =>
+  Object.values(inspection.value.references).find((reference) => reference.literalPath),
+)
 const selectedNode = computed<MacroNode | undefined>(() => selectedReference.value?.node)
 const selectedNodeLabel = computed(() => {
   const node = selectedNode.value
@@ -140,7 +153,10 @@ const loadExample = (exampleExpression: string): void => {
 /** 重新解析用户输入的宏；解析失败时保留上一次可渲染结果，避免画布突然消失。 */
 const compileSource = (fontFamily = rendererFont.value): boolean => {
   try {
-    inspection.value = createMacroAstInspection(source.value, { fontFamily, colorTheme: toAutoColorTheme(previewTheme.value) })
+    inspection.value = createMacroAstInspection(source.value, {
+      fontFamily,
+      colorTheme: toAutoColorTheme(previewTheme.value),
+    })
     selectedElementId.value = ''
     editedText.value = ''
     error.value = ''
@@ -171,10 +187,18 @@ const transformSource = (transform: (value: string) => string): boolean => {
   }
 }
 
-const formatSource = (): void => { transformSource(formatMacro) }
-const completeSource = (): void => { transformSource(completeMacro) }
-const minifySource = (): void => { transformSource(minifyMacro) }
-const unformatSource = (): void => { transformSource(unformatMacro) }
+const formatSource = (): void => {
+  transformSource(formatMacro)
+}
+const completeSource = (): void => {
+  transformSource(completeMacro)
+}
+const minifySource = (): void => {
+  transformSource(minifyMacro)
+}
+const unformatSource = (): void => {
+  transformSource(unformatMacro)
+}
 
 /** 输入宏源码时立即尝试编译，错误源码保留上一次可渲染结果。 */
 const handleSourceInput = (event: Event): void => {
@@ -253,11 +277,21 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
         <label class="macro-source-field">
           <span>宏源码</span>
           <textarea :value="source" aria-label="宏源码" spellcheck="false" @input="handleSourceInput" />
-          <p v-if="errorTarget === 'source' || (!errorTarget && error)" class="error-message" role="alert">{{ error }}</p>
+          <p v-if="errorTarget === 'source' || (!errorTarget && error)" class="error-message" role="alert">
+            {{ error }}
+          </p>
         </label>
         <div class="form-actions">
           <span class="macro-example-label">加载示例</span>
-          <button v-for="example in arithmeticExamples" :key="example.label" class="ghost-button macro-example-button" type="button" @click="useExample(example)">{{ example.label }}</button>
+          <button
+            v-for="example in arithmeticExamples"
+            :key="example.label"
+            class="ghost-button macro-example-button"
+            type="button"
+            @click="useExample(example)"
+          >
+            {{ example.label }}
+          </button>
         </div>
       </section>
 
@@ -273,18 +307,42 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
           <section class="ast-inspection-panel" aria-label="图元 AST 定位修改">
             <p class="ast-inspection-panel__hint">点击任一宏图元，可查看 AST 并单独修改。</p>
             <dl class="ast-selection-details">
-              <div><dt>渲染元素</dt><dd>{{ selectedElementId || '尚未选择元素' }}</dd></div>
-              <div><dt>AST 节点</dt><dd>{{ selectedNodeLabel }}</dd></div>
-              <div><dt>AST 路径</dt><dd>{{ selectedPath }}</dd></div>
+              <div>
+                <dt>渲染元素</dt>
+                <dd>{{ selectedElementId || '尚未选择元素' }}</dd>
+              </div>
+              <div>
+                <dt>AST 节点</dt>
+                <dd>{{ selectedNodeLabel }}</dd>
+              </div>
+              <div>
+                <dt>AST 路径</dt>
+                <dd>{{ selectedPath }}</dd>
+              </div>
               <div class="ast-edit-cell">
                 <dt>局部修改</dt>
                 <dd>
-                  <input v-model="editedText" :disabled="!canEditSelectedText" maxlength="1" aria-label="局部修改 AST 文字" @input="handleEditedTextInput" />
+                  <input
+                    v-model="editedText"
+                    :disabled="!canEditSelectedText"
+                    maxlength="1"
+                    aria-label="局部修改 AST 文字"
+                    @input="handleEditedTextInput"
+                  />
                 </dd>
               </div>
             </dl>
           </section>
-          <GridPreview :key="inspection.scene.fontFamily" :scene="inspection.scene" :font-family="rendererFont" mode="both" interactive :selected-element-id="selectedElementId" @element-click="selectElement" @font-change="handleFontChange">
+          <GridPreview
+            :key="inspection.scene.fontFamily"
+            :scene="inspection.scene"
+            :font-family="rendererFont"
+            mode="both"
+            interactive
+            :selected-element-id="selectedElementId"
+            @element-click="selectElement"
+            @font-change="handleFontChange"
+          >
             <template #theme-control>
               <AutoColorThemeEditor :model-value="previewTheme" @update:model-value="handleThemeChange" />
             </template>

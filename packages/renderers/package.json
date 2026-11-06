@@ -7,9 +7,17 @@
     "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/renderers"
   },
-  "bugs": { "url": "https://github.com/u1in/shushi/issues/new" },
+  "bugs": {
+    "url": "https://github.com/u1in/shushi/issues/new"
+  },
   "homepage": "https://github.com/u1in/shushi/tree/main/packages/renderers#readme",
-  "keywords": ["vertical-arithmetic", "renderer", "dom", "svg", "grid"],
+  "keywords": [
+    "vertical-arithmetic",
+    "renderer",
+    "dom",
+    "svg",
+    "grid"
+  ],
   "version": "0.1.0",
   "private": true,
   "type": "module",

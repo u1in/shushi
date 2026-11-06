@@ -31,26 +31,60 @@ export const macroDocGroups: DocGroup[] = [
 ]
 
 /** 用户手册不再发布可编辑练习；保留旧数据文件只为兼容历史链接与测试素材。 */
-const removePracticeSections = (pages: MacroDocPage[]): MacroDocPage[] => pages.map((page) => ({
-  ...page,
-  sections: page.sections.filter(({ id }) => id !== 'practice'),
-}))
+const removePracticeSections = (pages: MacroDocPage[]): MacroDocPage[] =>
+  pages.map((page) => ({
+    ...page,
+    sections: page.sections.filter(({ id }) => id !== 'practice'),
+  }))
 
 /** 按调用频率和使用门槛维护 API 页面顺序，顺序同时用于目录和页尾翻页。 */
 const apiTierOrder: Record<ApiTierId, string[]> = {
   common: [
-    'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
-    'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
+    'shushi',
+    'compileMacro',
+    'parseMacro',
+    'formatMacro',
+    'completeMacro',
+    'unformatMacro',
+    'minifyMacro',
+    'minifyMacroForCopy',
+    'createMacroAstInspection',
+    'renderDomGrid',
+    'renderSvgGrid',
+    'renderSvgString',
+    'GridScene',
+    'extractVisibleTextRows',
   ],
   advanced: [
     'shushiCore',
-    'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
-    'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
-    'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
-    'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
+    'compileMacroAst',
+    'minifyMacroAst',
+    'minifyMacroForCopyAst',
+    'computeAddition',
+    'computeSubtraction',
+    'computeMultiplication',
+    'computeDivision',
+    'computeShortDivision',
+    'computeCompositeArithmetic',
+    'createAdditionMacroSource',
+    'createSubtractionMacroSource',
+    'createMultiplicationMacroSource',
+    'createDivisionMacroSource',
+    'createShortDivisionMacroSource',
+    'createCompositeArithmeticMacroSource',
+    'createAdditionGridScene',
+    'createSubtractionGridScene',
+    'createMultiplicationGridScene',
+    'createDivisionGridScene',
+    'createShortDivisionGridScene',
     'compileCalculatorMacro',
-    'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
-    'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
+    'resolveGridMetrics',
+    'getGridPositionRect',
+    'getGridElementRect',
+    'getGridTextAnchor',
+    'getMultiplicationStepCount',
+    'getDivisionPlaybackStepCount',
+    'getCompositeArithmeticStepCount',
   ],
 }
 
@@ -65,18 +99,24 @@ const pagesByGroup: Record<DocGroup['id'], MacroDocPage[]> = {
     ...calculatorApiPages,
   ]),
   basic: removePracticeSections([...basicPagesPartOne, ...basicPagesPartTwo, ...basicPagesPartThree]),
-  alias: removePracticeSections([
-    ...orientationPages,
-    ...symbolPages,
-  ].filter(({ slug }) => ['mtd', 'dot', 'square', 'triangle', 'round'].includes(slug))),
+  alias: removePracticeSections(
+    [...orientationPages, ...symbolPages].filter(({ slug }) =>
+      ['mtd', 'dot', 'square', 'triangle', 'round'].includes(slug),
+    ),
+  ),
   orientation: removePracticeSections(orientationPages.filter(({ slug }) => slug !== 'mtd')),
-  symbol: removePracticeSections(symbolPages.filter(({ slug }) => !['dot', 'square', 'triangle', 'round'].includes(slug))),
+  symbol: removePracticeSections(
+    symbolPages.filter(({ slug }) => !['dot', 'square', 'triangle', 'round'].includes(slug)),
+  ),
   sugar: removePracticeSections(sugarSyntaxPages),
   practice: removePracticeSections(practicePages),
 }
 
 const apiPagesBySlug = new Map(pagesByGroup.api.map((page) => [page.slug, page]))
-const orderedApiPages = (Object.values(apiTierOrder).flat()).map((slug) => apiPagesBySlug.get(slug)).filter((page): page is MacroDocPage => Boolean(page))
+const orderedApiPages = Object.values(apiTierOrder)
+  .flat()
+  .map((slug) => apiPagesBySlug.get(slug))
+  .filter((page): page is MacroDocPage => Boolean(page))
 const orderedPagesByGroup: Record<DocGroup['id'], MacroDocPage[]> = { ...pagesByGroup, api: orderedApiPages }
 
 /** 按导航顺序展开的全部页面。 */
@@ -89,13 +129,22 @@ export const macroDocNavGroups: MacroDocNavGroup[] = macroDocGroups.map((group) 
 }))
 
 const apiTierMeta: Record<ApiTierId, Omit<MacroDocApiNavGroup, 'pages'>> = {
-  common: { id: 'common', title: '常用 API', description: '大多数应用从这里开始：门户调用、宏源码处理、AST 交互和直接渲染。' },
-  advanced: { id: 'advanced', title: '高级 API', description: '面向定制渲染、逐层调试和框架内部扩展；普通调用通常不需要直接使用。' },
+  common: {
+    id: 'common',
+    title: '常用 API',
+    description: '大多数应用从这里开始：门户调用、宏源码处理、AST 交互和直接渲染。',
+  },
+  advanced: {
+    id: 'advanced',
+    title: '高级 API',
+    description: '面向定制渲染、逐层调试和框架内部扩展；普通调用通常不需要直接使用。',
+  },
 }
 
-const getOrderedApiPages = (tier: ApiTierId): MacroDocPage[] => apiTierOrder[tier]
-  .map((slug) => apiPagesBySlug.get(slug))
-  .filter((page): page is MacroDocPage => Boolean(page?.apiTier === tier))
+const getOrderedApiPages = (tier: ApiTierId): MacroDocPage[] =>
+  apiTierOrder[tier]
+    .map((slug) => apiPagesBySlug.get(slug))
+    .filter((page): page is MacroDocPage => Boolean(page?.apiTier === tier))
 
 /** API 可见分层清单；每组内部已按预估使用频率从高到低排列。 */
 export const macroDocApiNavGroups: MacroDocApiNavGroup[] = (Object.keys(apiTierMeta) as ApiTierId[]).map((id) => ({
@@ -116,7 +165,7 @@ export const getMacroDocPath = (slug: string): string => {
 }
 
 /** 页尾翻页只在同一入口内进行，不跨越 API 文档与宏语言参考。 */
-export const getMacroDocNeighbors = (slug: string): { previous?: MacroDocPage, next?: MacroDocPage } => {
+export const getMacroDocNeighbors = (slug: string): { previous?: MacroDocPage; next?: MacroDocPage } => {
   const page = macroDocPageBySlug.get(slug)
   if (!page) return {}
   const isApi = isApiGroup(page.group)

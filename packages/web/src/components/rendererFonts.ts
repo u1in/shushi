@@ -20,14 +20,14 @@ const extraRendererFontCssPath: Partial<Record<RendererFontFamily, string>> = {
 }
 
 /** 默认字体由 renderer.css 内置；改用其他内置字体时避免同时打包 STIX。 */
-export const getRendererStyleCssPath = (fontFamily: RendererFontFamily): string => (
+export const getRendererStyleCssPath = (fontFamily: RendererFontFamily): string =>
   fontFamily === DEFAULT_RENDERER_FONT
     ? '@u1in/shushi-core/renderer.css'
     : '@u1in/shushi-core/renderer-without-font.css'
-)
 
 /** 只有非默认字体才需要额外导入字体资源。 */
-export const getRendererFontCssPath = (fontFamily: RendererFontFamily): string | undefined => extraRendererFontCssPath[fontFamily]
+export const getRendererFontCssPath = (fontFamily: RendererFontFamily): string | undefined =>
+  extraRendererFontCssPath[fontFamily]
 
 /** Font Loading API 的字体简写需要对包含空格的字体名称显式加引号。 */
 export const getRendererFontFace = (fontFamily: RendererFontFamily): string => `400 27px "${fontFamily}"`

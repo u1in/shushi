@@ -39,15 +39,15 @@ shushiCore(
 
 ## 2. 表达式语法
 
-| 语法 | 规则 |
-| --- | --- |
-| `12 + 3 - 4 × 2` | 连续表达式按书写顺序执行，不使用乘法优先级 |
-| `12 + 3`、`12 - 3`、`12 × 3` | 单项加、减、乘 |
-| `12 * 3`、`12 x 3` | `×` 的 ASCII 写法 |
-| `10230 ÷ 25`、`10230 / 25` | 长除法，必须单独输入 |
-| `|48` | 分解质因数 |
-| `|12 18` | 自动试除求公因数 |
-| `(13)2` | 十进制 13 转目标进制 2；目标进制为 2–36 |
+| 语法                         | 规则                                       |
+| ---------------------------- | ------------------------------------------ |
+| `12 + 3 - 4 × 2`             | 连续表达式按书写顺序执行，不使用乘法优先级 |
+| `12 + 3`、`12 - 3`、`12 × 3` | 单项加、减、乘                             |
+| `12 * 3`、`12 x 3`           | `×` 的 ASCII 写法                          |
+| `10230 ÷ 25`、`10230 / 25`   | 长除法，必须单独输入                       |
+| `                            | 48`                                        | 分解质因数       |
+| `                            | 12 18`                                     | 自动试除求公因数 |
+| `(13)2`                      | 十进制 13 转目标进制 2；目标进制为 2–36    |
 
 表达式输入由非负整数组成。除法不能和 `+`、`-`、`×` 混排；不符合模式时让门户抛出错误，不要在调用方偷偷改写。
 
@@ -80,11 +80,11 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
 }
 ```
 
-| 模式 | `rendered` | 环境 |
-| --- | --- | --- |
-| `svg-string` | `string` | Node.js、SSR、导出 |
-| `div` | `HTMLElement` | 浏览器 DOM/CSS |
-| `svg` | `SVGSVGElement` | 浏览器 SVG |
+| 模式         | `rendered`      | 环境               |
+| ------------ | --------------- | ------------------ |
+| `svg-string` | `string`        | Node.js、SSR、导出 |
+| `div`        | `HTMLElement`   | 浏览器 DOM/CSS     |
+| `svg`        | `SVGSVGElement` | 浏览器 SVG         |
 
 浏览器入口导入：
 
@@ -100,9 +100,27 @@ import '@u1in/shushi-core/renderer.css'
 type VerticalArithmeticRequest =
   | { operation: 'addition'; values: readonly unknown[]; settings?: Partial<AdditionRenderSettings> }
   | { operation: 'subtraction'; operands: readonly [unknown, unknown]; settings?: Partial<SubtractionRenderSettings> }
-  | { operation: 'multiplication'; operands: readonly [unknown, unknown]; calculation?: MultiplicationOptions; settings?: Partial<MultiplicationRenderSettings> }
-  | { operation: 'division'; divisor: unknown; dividend: unknown; calculation?: DivisionOptions; settings?: Partial<RenderSettings> }
-  | { operation: 'shortDivision'; mode: ShortDivisionMode; values: unknown[]; divisor?: unknown; targetBase?: unknown; settings?: Partial<ShortDivisionRenderSettings> }
+  | {
+      operation: 'multiplication'
+      operands: readonly [unknown, unknown]
+      calculation?: MultiplicationOptions
+      settings?: Partial<MultiplicationRenderSettings>
+    }
+  | {
+      operation: 'division'
+      divisor: unknown
+      dividend: unknown
+      calculation?: DivisionOptions
+      settings?: Partial<RenderSettings>
+    }
+  | {
+      operation: 'shortDivision'
+      mode: ShortDivisionMode
+      values: unknown[]
+      divisor?: unknown
+      targetBase?: unknown
+      settings?: Partial<ShortDivisionRenderSettings>
+    }
   | { operation: 'composite'; expression: unknown; settings?: Partial<CompositeArithmeticRenderSettings> }
 ```
 

@@ -15,7 +15,9 @@ import {
 
 const placeNumber = (cells: string[], value: string, token: string): void => {
   const start = cells.length - value.length
-  ;[...value].forEach((digit, index) => { cells[start + index] = macroTextCell(digit, token) })
+  ;[...value].forEach((digit, index) => {
+    cells[start + index] = macroTextCell(digit, token)
+  })
 }
 
 /** 所有借位提示都降级为人类可输入的 MTD，而不是直接写边中点坐标。 */
@@ -23,7 +25,10 @@ export const createSubtractionMacroSource = (
   computation: SubtractionComputation,
   settings: SubtractionRenderSettings,
 ): string => {
-  const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? computation.steps.length, 0), computation.steps.length)
+  const visibleStepCount = Math.min(
+    Math.max(settings.visibleStepCount ?? computation.steps.length, 0),
+    computation.steps.length,
+  )
   const visibleSteps = computation.steps.slice(0, visibleStepCount)
   const numberColumnCount = Math.max(
     computation.workingMinuendDigits.length,
@@ -39,13 +44,15 @@ export const createSubtractionMacroSource = (
     const visibleColumns = new Set(visibleSteps.map(({ columnFromRight }) => columnFromRight))
     computation.steps.forEach((step) => {
       const targetFromRight = step.columnFromRight + 1
-      if (!visibleColumns.has(step.columnFromRight) || step.borrowOut === 0 || targetFromRight >= numberColumnCount) return
+      if (!visibleColumns.has(step.columnFromRight) || step.borrowOut === 0 || targetFromRight >= numberColumnCount)
+        return
       const target = columns - 1 - targetFromRight
       const digitIndex = target - firstNumberColumn
       const dot = macroBorrowDot('subtraction.borrow')
-      minuendCells[target] = digitIndex < 0 || digitIndex >= computation.workingMinuendDigits.length
-        ? macroAnnotationCell(dot)
-        : macroTextCell(computation.workingMinuendDigits[digitIndex], 'subtraction.minuend', [dot])
+      minuendCells[target] =
+        digitIndex < 0 || digitIndex >= computation.workingMinuendDigits.length
+          ? macroAnnotationCell(dot)
+          : macroTextCell(computation.workingMinuendDigits[digitIndex], 'subtraction.minuend', [dot])
     })
   }
 
@@ -54,7 +61,10 @@ export const createSubtractionMacroSource = (
   placeNumber(subtrahendCells, computation.workingSubtrahendDigits, 'subtraction.subtrahend')
 
   const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
-  const visibleDifference = visibleSteps.map(({ resultDigit }) => resultDigit).reverse().join('')
+  const visibleDifference = visibleSteps
+    .map(({ resultDigit }) => resultDigit)
+    .reverse()
+    .join('')
   const differenceCells = Array.from({ length: columns }, macroEmptyCell)
   if (computation.isNegative && isComplete) differenceCells[0] = macroTextCell('−', 'subtraction.negative-sign')
   placeNumber(differenceCells, isComplete ? computation.differenceDigits : visibleDifference, 'subtraction.difference')

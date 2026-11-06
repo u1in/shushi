@@ -71,14 +71,14 @@ createMacroAstInspection
 
 使用边界：
 
-| 需求 | API |
-| --- | --- |
-| 解析并检查源码 | `parseMacro`、`compileMacro` |
-| 只整理空白 | `formatMacro`、`unformatMacro` |
-| 展开完整结构 | `completeMacro` |
-| 输出最简宏 | `minifyMacro`、`minifyMacroAst` |
-| 复制计算器宏 | `minifyMacroForCopy`、`minifyMacroForCopyAst` |
-| 点击图元并修改文字 | `createMacroAstInspection` |
+| 需求               | API                                           |
+| ------------------ | --------------------------------------------- |
+| 解析并检查源码     | `parseMacro`、`compileMacro`                  |
+| 只整理空白         | `formatMacro`、`unformatMacro`                |
+| 展开完整结构       | `completeMacro`                               |
+| 输出最简宏         | `minifyMacro`、`minifyMacroAst`               |
+| 复制计算器宏       | `minifyMacroForCopy`、`minifyMacroForCopyAst` |
+| 点击图元并修改文字 | `createMacroAstInspection`                    |
 
 ## 5. 场景、几何和文本
 
@@ -99,11 +99,11 @@ renderSvgGrid(scene)
 renderSvgString(scene)
 ```
 
-| 环境 | 选择 |
-| --- | --- |
-| 浏览器 DOM/CSS | `renderDomGrid` 或门户 `renderMode: 'div'` |
-| 浏览器 SVG | `renderSvgGrid` 或门户 `renderMode: 'svg'` |
-| Node.js/SSR/导出 | `renderSvgString` 或门户默认 `svg-string` |
+| 环境             | 选择                                       |
+| ---------------- | ------------------------------------------ |
+| 浏览器 DOM/CSS   | `renderDomGrid` 或门户 `renderMode: 'div'` |
+| 浏览器 SVG       | `renderSvgGrid` 或门户 `renderMode: 'svg'` |
+| Node.js/SSR/导出 | `renderSvgString` 或门户默认 `svg-string`  |
 
 浏览器入口导入 `@u1in/shushi-core/renderer.css`，默认 STIX Two Math 已包含其中；自定义字体时使用 `@u1in/shushi-core/renderer-without-font.css` 再导入自己的或对应字体 CSS。纯计算、宏处理和 `renderSvgString` 不需要 DOM。
 

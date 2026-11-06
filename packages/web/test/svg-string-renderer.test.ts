@@ -25,11 +25,13 @@ describe('renderSvgString', () => {
       fontSize: 16,
       textHorizontalAlign: 'center',
       textVerticalAlign: 'center',
-      elements: [{
-        id: 'text&"',
-        position: { kind: 'cell', column: 0, row: 0 },
-        content: { kind: 'text', text: '<&"', color: 'red&blue' },
-      }],
+      elements: [
+        {
+          id: 'text&"',
+          position: { kind: 'cell', column: 0, row: 0 },
+          content: { kind: 'text', text: '<&"', color: 'red&blue' },
+        },
+      ],
       showGuideGrid: false,
       ariaLabel: '网格 <&"',
     }
@@ -53,11 +55,13 @@ describe('renderSvgString', () => {
       fontFamily: 'STIX Two Math',
       textHorizontalAlign: 'center',
       textVerticalAlign: 'center',
-      elements: [{
-        id: 'text',
-        position: { kind: 'cell', column: 0, row: 0 },
-        content: { kind: 'text', text: '5', fontFamily: 'Noto Sans Math' },
-      }],
+      elements: [
+        {
+          id: 'text',
+          position: { kind: 'cell', column: 0, row: 0 },
+          content: { kind: 'text', text: '5', fontFamily: 'Noto Sans Math' },
+        },
+      ],
       showGuideGrid: false,
       ariaLabel: '字体场景',
     }

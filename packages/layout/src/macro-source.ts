@@ -9,36 +9,30 @@ import type { GridRenderSettings } from './types'
  */
 export const macroLiteral = (value: string): string => JSON.stringify(value)
 
-export const macroOption = (key: string, value: string | number | boolean): string => (
+export const macroOption = (key: string, value: string | number | boolean): string =>
   `KV(${key}, ${typeof value === 'string' ? macroLiteral(value) : String(value)})`
-)
 
-export const macroTextCell = (text: string, styleToken: string, annotations: string[] = []): string => (
+export const macroTextCell = (text: string, styleToken: string, annotations: string[] = []): string =>
   `CELL(MM(${macroLiteral(text)}, ${macroOption('style', styleToken)})${annotations.length ? `, ${annotations.join(', ')}` : ''})`
-)
 
 export const macroEmptyCell = (): string => 'EMPTY()'
 
 export const macroAnnotationCell = (annotation: string): string => `CELL(${annotation})`
 
-export const macroRightBottom = (text: string, styleToken: string): string => (
+export const macroRightBottom = (text: string, styleToken: string): string =>
   `RB(${macroLiteral(text)}, ${macroOption('style', styleToken)})`
-)
 
 /** 乘法进位默认放在目标数字右上角。 */
-export const macroRightTop = (text: string, styleToken: string): string => (
+export const macroRightTop = (text: string, styleToken: string): string =>
   `RT(${macroLiteral(text)}, ${macroOption('style', styleToken)})`
-)
 
 export const macroBorrowDot = (styleToken: string): string => `MTD(${macroOption('style', styleToken)})`
 
-export const macroRow = (cells: string[], align: 'left' | 'right' = 'right'): string => (
+export const macroRow = (cells: string[], align: 'left' | 'right' = 'right'): string =>
   `ROW(${cells.join(', ')}${align === 'right' ? '' : `, ${macroOption('align', align)}`})`
-)
 
-export const macroLine = (styleToken: string, span: 'previous' | 'longest' | 'full' = 'previous'): string => (
+export const macroLine = (styleToken: string, span: 'previous' | 'longest' | 'full' = 'previous'): string =>
   `LINE(${macroOption('span', span)}, ${macroOption('style', styleToken)})`
-)
 
 /** 同一套场景参数写入宏源码，禁止计算器绕过宏编译器直接构造 GridScene。 */
 export const macroGrid = (
@@ -63,4 +57,5 @@ export const macroGrid = (
 }
 
 /** 自动竖式与人工输入刻意共用 parse + compile 的公共入口。 */
-export const compileCalculatorMacro = (source: string, options?: MacroCompileOptions): GridScene => compileMacro(source, options)
+export const compileCalculatorMacro = (source: string, options?: MacroCompileOptions): GridScene =>
+  compileMacro(source, options)

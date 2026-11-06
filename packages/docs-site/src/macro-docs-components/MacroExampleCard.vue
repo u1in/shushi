@@ -11,15 +11,18 @@ import type { DocCodeLanguage } from '@u1in/shushi-docs/macro/types'
  * 可运行示例：展示源码并即时编译右侧预览。
  * 示例内容由文档数据提供，并在测试中统一编译，保证页面不会出现失效代码。
  */
-const props = withDefaults(defineProps<{
-  title: string
-  code: string
-  note?: string
-  language?: DocCodeLanguage
-}>(), {
-  note: '',
-  language: 'macro',
-})
+const props = withDefaults(
+  defineProps<{
+    title: string
+    code: string
+    note?: string
+    language?: DocCodeLanguage
+  }>(),
+  {
+    note: '',
+    language: 'macro',
+  },
+)
 
 const result = computed(() => {
   try {
@@ -37,13 +40,20 @@ const { copied, copy } = useClipboard()
     <header class="mdocs-example-head">
       <span class="mdocs-example-label">{{ props.title }}</span>
       <span v-if="result.scene" class="mdocs-example-result-label">结果</span>
-      <button class="mdocs-copy-button mdocs-copy-button--light" type="button" :aria-label="copied ? '已复制示例' : '复制示例'" @click="copy(props.code)">
+      <button
+        class="mdocs-copy-button mdocs-copy-button--light"
+        type="button"
+        :aria-label="copied ? '已复制示例' : '复制示例'"
+        @click="copy(props.code)"
+      >
         {{ copied ? '已复制' : '复制' }}
       </button>
     </header>
 
     <div class="mdocs-example-body">
-      <pre class="mdocs-example-code"><code><HighlightedCode :code="props.code" :language="props.language" /></code></pre>
+      <pre
+        class="mdocs-example-code"
+      ><code><HighlightedCode :code="props.code" :language="props.language" /></code></pre>
       <div class="mdocs-example-preview">
         <template v-if="result.scene">
           <div class="mdocs-preview">

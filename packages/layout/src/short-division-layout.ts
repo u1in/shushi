@@ -5,7 +5,8 @@ import type { ShortDivisionRenderSettings } from './types'
 import { compileCalculatorMacro, macroLiteral, macroOption } from './macro-source'
 
 const value = (text: string, token: string): string => `VALUE(${macroLiteral(text)}, ${macroOption('style', token)})`
-const divisor = (text: string): string => `CELL(MM(${macroLiteral(text)}, ${macroOption('style', 'short-division.divisor')}))`
+const divisor = (text: string): string =>
+  `CELL(MM(${macroLiteral(text)}, ${macroOption('style', 'short-division.divisor')}))`
 
 /**
  * `DIV` 和 `VALUE` 是短除法唯一的结构真相；自动结果只填写这些公开命令。
@@ -15,18 +16,23 @@ export const createShortDivisionMacroSource = (
   computation: ShortDivisionComputation,
   settings: ShortDivisionRenderSettings,
 ): string => {
-  const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? computation.steps.length, 0), computation.steps.length)
+  const visibleStepCount = Math.min(
+    Math.max(settings.visibleStepCount ?? computation.steps.length, 0),
+    computation.steps.length,
+  )
   const visibleSteps = computation.steps.slice(0, visibleStepCount)
   const showRemainders = computation.mode === 'baseConversion' && settings.showRemainders
   const groupCount = computation.inputValues.length + (showRemainders ? 2 : 0)
   const children = visibleSteps.map((step) => {
     const groups = step.dividends.map((item) => value(item, 'short-division.dividend'))
-    if (showRemainders) groups.push(value('余', 'short-division.remainder-label'), value(step.remainders[0], 'short-division.remainder'))
+    if (showRemainders)
+      groups.push(value('余', 'short-division.remainder-label'), value(step.remainders[0], 'short-division.remainder'))
     return `ROW(${divisor(step.divisor)}, DIV(${macroOption('separatorStyle', 'short-division.separator')}, ${macroOption('barStyle', 'short-division.bar')}), ${groups.join(', ')})`
   })
-  const resultValues = settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
-    ? computation.finalValues
-    : (visibleSteps.at(-1)?.quotients ?? [])
+  const resultValues =
+    settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
+      ? computation.finalValues
+      : (visibleSteps.at(-1)?.quotients ?? [])
   const finalGroups = resultValues.map((item) => value(item, 'short-division.final'))
   while (finalGroups.length < groupCount) finalGroups.push(value('', 'short-division.final'))
   children.push(`ROW(${finalGroups.join(', ')})`)

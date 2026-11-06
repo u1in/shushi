@@ -8,13 +8,12 @@
   --mdocs-blue-strong: #214b9f;
   --mdocs-border: #dfe7f3;
   --mdocs-soft: #f5f8fd;
-  --mdocs-mono: ui-monospace, "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --mdocs-mono: ui-monospace, 'Cascadia Code', Consolas, 'Liberation Mono', monospace;
   min-height: 100vh;
   color: var(--mdocs-ink);
   background:
     radial-gradient(circle at 8% 0%, rgba(198, 222, 255, 0.66), transparent 30rem),
-    radial-gradient(circle at 92% 10%, rgba(219, 240, 235, 0.52), transparent 26rem),
-    #f5f7fb;
+    radial-gradient(circle at 92% 10%, rgba(219, 240, 235, 0.52), transparent 26rem), #f5f7fb;
 }
 
 /* ---------- 顶栏 ---------- */
@@ -661,8 +660,7 @@
   place-items: center;
   background:
     linear-gradient(rgba(227, 235, 247, 0.55) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(227, 235, 247, 0.55) 1px, transparent 1px),
-    #fbfcff;
+    linear-gradient(90deg, rgba(227, 235, 247, 0.55) 1px, transparent 1px), #fbfcff;
   background-size: 22px 22px;
   overflow: auto;
 }
@@ -867,7 +865,10 @@
   color: inherit;
   background: #fbfdff;
   text-decoration: none;
-  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .mdocs-card:hover {
@@ -910,8 +911,7 @@
   padding: 5px;
   background:
     linear-gradient(rgba(227, 236, 249, 0.8) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(227, 236, 249, 0.8) 1px, transparent 1px),
-    #f7faff;
+    linear-gradient(90deg, rgba(227, 236, 249, 0.8) 1px, transparent 1px), #f7faff;
   background-size: calc(100% / 3) calc(100% / 3);
 }
 
@@ -951,9 +951,7 @@
   border: 1px solid #e0e9f5;
   border-radius: 18px;
   padding: 56px 86px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%),
-    #f8fbff;
+  background: radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%), #f8fbff;
 }
 
 .mdocs-border-cell {
@@ -970,7 +968,9 @@
   position: absolute;
   border-radius: 999px;
   background: #d5e0ee;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .mdocs-border-line--top {
@@ -1088,7 +1088,7 @@
   width: 2px;
   height: 20px;
   background: #b8c9e1;
-  content: "";
+  content: '';
 }
 
 .mdocs-border-label--top::after {
@@ -1106,7 +1106,7 @@
   width: 17px;
   height: 2px;
   background: #b8c9e1;
-  content: "";
+  content: '';
 }
 
 .mdocs-border-label--right::after {
@@ -1124,9 +1124,7 @@
   border: 1px solid #e0e9f5;
   border-radius: 18px;
   padding: 30px 58px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%),
-    #f8fbff;
+  background: radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%), #f8fbff;
 }
 
 .mdocs-edge-text-cell {
@@ -1214,9 +1212,7 @@
   border: 1px solid #e0e9f5;
   border-radius: 18px;
   padding: 54px 26px 38px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%),
-    #f8fbff;
+  background: radial-gradient(circle at 50% 50%, rgba(238, 245, 255, 0.9), transparent 72%), #f8fbff;
 }
 
 .mdocs-bracket-scene {
@@ -1321,7 +1317,7 @@
   width: 2px;
   height: 16px;
   background: #b8c9e1;
-  content: "";
+  content: '';
 }
 
 .mdocs-bracket-size {
@@ -1352,7 +1348,7 @@
   margin-right: 5px;
   border-radius: 999px;
   background: #4166b6;
-  content: "";
+  content: '';
   vertical-align: middle;
 }
 
@@ -1473,7 +1469,9 @@
   color: inherit;
   background: #fcfdff;
   text-decoration: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .mdocs-pager-link:hover {
@@ -1713,7 +1711,6 @@
   .mdocs-hero h1 {
     font-size: 1.8rem;
   }
-
 }
 
 /* 位置相同、但简写带有额外配色语义时的中性徽标。 */
@@ -1776,4 +1773,3 @@
   stroke-dasharray: 2 5;
   stroke-width: 1px;
 }
-

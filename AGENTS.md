@@ -45,18 +45,18 @@
 
 ## 包职责与架构边界
 
-| 包 | 职责 | 不应承担的职责 |
-| --- | --- | --- |
-| `packages/calculators/src/` | 输入校验、运算算法、过程数据和结果契约 | DOM、CSS、SVG、像素坐标或网格排版 |
-| `packages/layout/src/` | 把运算结果填写为可编辑的宏源码，并提供兼容的场景入口 | 在布局器中直接复制渲染器逻辑或维护第二套视觉坐标协议 |
-| `packages/macro/src/` | 解析、格式化、补全、压缩宏源码，并编译为 `GridScene` | 判断具体运算的进位、借位、商或部分积规则 |
-| `packages/grid/src/` | 通用场景类型、轨道、单元格、图元、几何和样式 token | 识别加法、减法、乘法或除法语义 |
-| `packages/renderers/src/` | 只消费 `GridScene`，提供 DOM/CSS 和 SVG 渲染 | 重新计算运算过程、布局坐标或运算专属规则 |
-| `packages/core/` | 汇总公开导出、构建 npm 入口和公共 CSS | 形成与底层包不一致的第二套 API |
-| `packages/docs/` | 维护框架无关的规则、API、宏和图例内容 | 依赖 Vue 组件才能成立的页面逻辑 |
-| `packages/docs-site/src/macro-docs-components/` | 把宏文档源转换为 Vue 页面、预览和交互组件 | 成为宏语言规则的另一份事实来源 |
-| `packages/docs-site/` | 配置 VuePress、主题、导航、宏文档展示和发布 | 直接维护计算规则或宏语义 |
-| `packages/web/src/` | 首页、路由、计算器页面和宿主交互 | 把运算规则散落到页面或通用渲染器 |
+| 包                                              | 职责                                                 | 不应承担的职责                                       |
+| ----------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| `packages/calculators/src/`                     | 输入校验、运算算法、过程数据和结果契约               | DOM、CSS、SVG、像素坐标或网格排版                    |
+| `packages/layout/src/`                          | 把运算结果填写为可编辑的宏源码，并提供兼容的场景入口 | 在布局器中直接复制渲染器逻辑或维护第二套视觉坐标协议 |
+| `packages/macro/src/`                           | 解析、格式化、补全、压缩宏源码，并编译为 `GridScene` | 判断具体运算的进位、借位、商或部分积规则             |
+| `packages/grid/src/`                            | 通用场景类型、轨道、单元格、图元、几何和样式 token   | 识别加法、减法、乘法或除法语义                       |
+| `packages/renderers/src/`                       | 只消费 `GridScene`，提供 DOM/CSS 和 SVG 渲染         | 重新计算运算过程、布局坐标或运算专属规则             |
+| `packages/core/`                                | 汇总公开导出、构建 npm 入口和公共 CSS                | 形成与底层包不一致的第二套 API                       |
+| `packages/docs/`                                | 维护框架无关的规则、API、宏和图例内容                | 依赖 Vue 组件才能成立的页面逻辑                      |
+| `packages/docs-site/src/macro-docs-components/` | 把宏文档源转换为 Vue 页面、预览和交互组件            | 成为宏语言规则的另一份事实来源                       |
+| `packages/docs-site/`                           | 配置 VuePress、主题、导航、宏文档展示和发布          | 直接维护计算规则或宏语义                             |
+| `packages/web/src/`                             | 首页、路由、计算器页面和宿主交互                     | 把运算规则散落到页面或通用渲染器                     |
 
 必须保持以下数据流：
 

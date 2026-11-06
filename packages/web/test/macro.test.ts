@@ -36,27 +36,41 @@ describe('网格宏编译器', () => {
     const cellTexts = scene.elements.filter(({ content }) => content.kind === 'text')
 
     expect(scene.columns).toHaveLength(2)
-    expect(cellTexts).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
-        content: expect.objectContaining({ kind: 'text', text: '6' }),
-      }),
-      expect.objectContaining({
-        position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
-        content: expect.objectContaining({ kind: 'text', text: '1', horizontalAlign: 'right', verticalAlign: 'bottom' }),
-      }),
-    ]))
+    expect(cellTexts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
+          content: expect.objectContaining({ kind: 'text', text: '6' }),
+        }),
+        expect.objectContaining({
+          position: { kind: 'cell', column: 1, row: 0, columnSpan: 1 },
+          content: expect.objectContaining({
+            kind: 'text',
+            text: '1',
+            horizontalAlign: 'right',
+            verticalAlign: 'bottom',
+          }),
+        }),
+      ]),
+    )
   })
 
   test('方括号首项可直接使用完整定位宏，表示没有正文的同格标记', () => {
     const scene = compileMacro('[RB(1)];')
 
-    expect(scene.elements).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
-        content: expect.objectContaining({ kind: 'text', text: '1', horizontalAlign: 'right', verticalAlign: 'bottom' }),
-      }),
-    ]))
+    expect(scene.elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
+          content: expect.objectContaining({
+            kind: 'text',
+            text: '1',
+            horizontalAlign: 'right',
+            verticalAlign: 'bottom',
+          }),
+        }),
+      ]),
+    )
     expect(minifyMacro('CELL(RB(1));')).toBe('RB(1);')
   })
 
@@ -78,12 +92,24 @@ describe('网格宏编译器', () => {
   })
 
   test('SQ、TRI 与 RND 会渲染为固定的几何符号', () => {
-    const scene = compileMacro('GRID(ROW(SQUARE, TRIANGLE, ROUND), ROW(CELL(MM(5), SQ), CELL(MM(6), TRI), CELL(MM(7), RND)))')
-    const symbolTexts = scene.elements
-      .filter(({ content }) => content.kind === 'text' && ['☐', '△', '◯'].includes(content.text))
+    const scene = compileMacro(
+      'GRID(ROW(SQUARE, TRIANGLE, ROUND), ROW(CELL(MM(5), SQ), CELL(MM(6), TRI), CELL(MM(7), RND)))',
+    )
+    const symbolTexts = scene.elements.filter(
+      ({ content }) => content.kind === 'text' && ['☐', '△', '◯'].includes(content.text),
+    )
 
-    expect(symbolTexts.map(({ content }) => content.kind === 'text' ? content.text : '')).toEqual(['☐', '△', '◯', '☐', '△', '◯'])
-    expect(symbolTexts.every(({ content }) => content.kind === 'text' && content.fontSizeRatio === undefined)).toBe(true)
+    expect(symbolTexts.map(({ content }) => (content.kind === 'text' ? content.text : ''))).toEqual([
+      '☐',
+      '△',
+      '◯',
+      '☐',
+      '△',
+      '◯',
+    ])
+    expect(symbolTexts.every(({ content }) => content.kind === 'text' && content.fontSizeRatio === undefined)).toBe(
+      true,
+    )
     expect(minifyMacro('SQUARE,TRIANGLE,ROUND')).toBe('SQ,TRI,RND')
   })
 
@@ -175,7 +201,11 @@ describe('网格宏编译器', () => {
     ])
     expect(bars).toHaveLength(3)
     expect(firstDigit).toMatchObject({ position: { kind: 'cell', column: 4, row: 0, columnSpan: 2 } })
-    expect(scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '5' && content.styleToken === undefined).at(-1)).toMatchObject({
+    expect(
+      scene.elements
+        .filter(({ content }) => content.kind === 'text' && content.text === '5' && content.styleToken === undefined)
+        .at(-1),
+    ).toMatchObject({
       position: { kind: 'cell', column: 6, row: 3, columnSpan: 2 },
     })
   })
@@ -193,7 +223,9 @@ describe('网格宏编译器', () => {
   })
 
   test('最大公约数分号写法自动保留多 VALUE 组', () => {
-    const scene = compileMacro('2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);')
+    const scene = compileMacro(
+      '2,DIV,VALUE(60),VALUE(84);2,DIV,VALUE(30),VALUE(42);3,DIV,VALUE(15),VALUE(21);VALUE(5),VALUE(7);',
+    )
 
     expect(scene.columns).toHaveLength(13)
     expect(scene.rows).toHaveLength(4)
@@ -201,7 +233,9 @@ describe('网格宏编译器', () => {
   })
 
   test('多 VALUE 组自动保留半格空隙，适用于最大公约数短除法', () => {
-    const scene = compileMacro('GRID(KV(trackUnit, half), KV(autoColor, false), ROW(MM(2), DIV, VALUE(60), VALUE(84)), ROW(VALUE(3), VALUE(7)))')
+    const scene = compileMacro(
+      'GRID(KV(trackUnit, half), KV(autoColor, false), ROW(MM(2), DIV, VALUE(60), VALUE(84)), ROW(VALUE(3), VALUE(7)))',
+    )
     const firstGroupLastDigit = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '0')
     const secondGroupFirstDigit = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '8')
 
@@ -214,7 +248,11 @@ describe('网格宏编译器', () => {
 
     expect(scene.rows).toHaveLength(1)
     expect(scene.columns.every(({ size }) => size === 0.5)).toBe(true)
-    expect(scene.elements.filter(({ content }) => content.kind === 'text').map(({ content }) => content.kind === 'text' ? content.text : '')).toEqual(['1', '2', '2', '8', '3', '3'])
+    expect(
+      scene.elements
+        .filter(({ content }) => content.kind === 'text')
+        .map(({ content }) => (content.kind === 'text' ? content.text : '')),
+    ).toEqual(['1', '2', '2', '8', '3', '3'])
   })
 
   test('非单元格中心的文本默认使用进位教学字号，但不改写颜色 token', () => {
@@ -222,7 +260,7 @@ describe('网格宏编译器', () => {
     const [middle, annotation] = scene.elements
 
     expect(middle.content).toMatchObject({ kind: 'text', text: '9' })
-    expect((middle.content.kind === 'text' ? middle.content.fontSizeRatio : undefined)).toBeUndefined()
+    expect(middle.content.kind === 'text' ? middle.content.fontSizeRatio : undefined).toBeUndefined()
     expect(annotation.content).toMatchObject({ kind: 'text', text: '·', fontSizeRatio: 0.42 })
     expect(annotation.content.kind === 'text' && annotation.content.styleToken).toBeUndefined()
   })
@@ -236,7 +274,9 @@ describe('网格宏编译器', () => {
     expect(annotations[0]).toMatchObject({
       position: { kind: 'cell', column: 0, row: 0, columnSpan: 1 },
       content: {
-        horizontalAlign: 'center', verticalAlign: 'top', fontSizeRatio: 0.42,
+        horizontalAlign: 'center',
+        verticalAlign: 'top',
+        fontSizeRatio: 0.42,
         color: AUTO_COLOR_THEME.borrow,
       },
     })
@@ -253,7 +293,9 @@ describe('网格宏编译器', () => {
 
   test('MTD 不接受文字参数，但可带 KV 配置', () => {
     expect(() => compileMacro('GRID(ROW(CELL(MM(3), MTD(·))))')).toThrow(/MTD.*零参数/)
-    const scene = compileMacro('GRID(KV(autoColor, false), ROW(CELL(MM(3), MTD(KV(style, borrow.dot)), KV(columnSpan, 2))))')
+    const scene = compileMacro(
+      'GRID(KV(autoColor, false), ROW(CELL(MM(3), MTD(KV(style, borrow.dot)), KV(columnSpan, 2))))',
+    )
     const annotation = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '·')
 
     expect(annotation).toMatchObject({
@@ -270,20 +312,24 @@ ROW(MM(6), MM(3), MM(4))`)
     const carries = scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '1')
 
     expect(carries).toHaveLength(2)
-    expect(carries).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        position: { kind: 'cell', column: 1, row: 1, columnSpan: 1 },
-        content: expect.objectContaining({ horizontalAlign: 'right', verticalAlign: 'bottom', fontSizeRatio: 0.42 }),
-      }),
-      expect.objectContaining({
-        position: { kind: 'cell', column: 2, row: 1, columnSpan: 1 },
-        content: expect.objectContaining({ horizontalAlign: 'right', verticalAlign: 'bottom', fontSizeRatio: 0.42 }),
-      }),
-    ]))
+    expect(carries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          position: { kind: 'cell', column: 1, row: 1, columnSpan: 1 },
+          content: expect.objectContaining({ horizontalAlign: 'right', verticalAlign: 'bottom', fontSizeRatio: 0.42 }),
+        }),
+        expect.objectContaining({
+          position: { kind: 'cell', column: 2, row: 1, columnSpan: 1 },
+          content: expect.objectContaining({ horizontalAlign: 'right', verticalAlign: 'bottom', fontSizeRatio: 0.42 }),
+        }),
+      ]),
+    )
   })
 
   test('LINE 使用受限 STYLE 声明和上一行有效跨度', () => {
-    const scene = compileMacro('GRID(KV(autoColor, false), KV(columns, 4), ROW(MM(5), MM(6)), LINE(STYLE(KV(color, "#999"), KV(thickness, 2)), KV(span, previous), KV(style, macro.rule)))')
+    const scene = compileMacro(
+      'GRID(KV(autoColor, false), KV(columns, 4), ROW(MM(5), MM(6)), LINE(STYLE(KV(color, "#999"), KV(thickness, 2)), KV(span, previous), KV(style, macro.rule)))',
+    )
     const line = scene.elements.find(({ content }) => content.kind === 'line')
 
     expect(line).toMatchObject({
@@ -323,8 +369,11 @@ ROW(MM(6), MM(3), MM(4))`)
   })
 
   test('autoColor 默认开启，为运算符、文字行、进位、借位、小数点及所有线段分配固定主题色', () => {
-    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(9), DOT), CELL(MM(7), MT(·)), BRACKET, MM(8)), LINE)')
-    const textByValue = (text: string) => scene.elements.find(({ content }) => content.kind === 'text' && content.text === text)
+    const scene = compileMacro(
+      'GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(9), DOT), CELL(MM(7), MT(·)), BRACKET, MM(8)), LINE)',
+    )
+    const textByValue = (text: string) =>
+      scene.elements.find(({ content }) => content.kind === 'text' && content.text === text)
     const lines = scene.elements.filter(({ content }) => content.kind === 'line')
     const bracket = scene.elements.find(({ content }) => content.kind === 'corner')
 
@@ -332,20 +381,31 @@ ROW(MM(6), MM(3), MM(4))`)
     expect(textByValue('+')?.content).toMatchObject({ color: AUTO_COLOR_THEME.operator })
     expect(textByValue('.')?.content).toMatchObject({ color: AUTO_COLOR_THEME.decimal })
     expect(textByValue('·')?.content).toMatchObject({ color: AUTO_COLOR_THEME.borrow })
-    expect(scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '1')[0]?.content).toMatchObject({ color: AUTO_COLOR_THEME.carry })
+    expect(
+      scene.elements.filter(({ content }) => content.kind === 'text' && content.text === '1')[0]?.content,
+    ).toMatchObject({ color: AUTO_COLOR_THEME.carry })
     const bracketHead = lines.find(({ id }) => id.startsWith('macro-bracket-head-'))
     const ordinaryLine = lines.find(({ id }) => id.startsWith('macro-line-'))
     expect(lines).toHaveLength(2)
-    expect(ordinaryLine?.content).toMatchObject({ color: AUTO_COLOR_THEME.rule.color, thickness: AUTO_COLOR_THEME.rule.thickness })
-    expect(bracketHead?.content).toMatchObject({ color: AUTO_COLOR_THEME.bracketRule.color, thickness: AUTO_COLOR_THEME.bracketRule.thickness })
-    expect(bracket?.content).toMatchObject({ color: AUTO_COLOR_THEME.bracketRule.color, thickness: AUTO_COLOR_THEME.bracketRule.thickness })
+    expect(ordinaryLine?.content).toMatchObject({
+      color: AUTO_COLOR_THEME.rule.color,
+      thickness: AUTO_COLOR_THEME.rule.thickness,
+    })
+    expect(bracketHead?.content).toMatchObject({
+      color: AUTO_COLOR_THEME.bracketRule.color,
+      thickness: AUTO_COLOR_THEME.bracketRule.thickness,
+    })
+    expect(bracket?.content).toMatchObject({
+      color: AUTO_COLOR_THEME.bracketRule.color,
+      thickness: AUTO_COLOR_THEME.bracketRule.thickness,
+    })
   })
 
   test('普通文本行共享固定主题色', () => {
     const scene = compileMacro('ROW(MM(1)), ROW(MM(2)), ROW(MM(3))')
     const colors = scene.elements
       .filter(({ content }) => content.kind === 'text')
-      .map(({ content }) => content.kind === 'text' ? content.color : undefined)
+      .map(({ content }) => (content.kind === 'text' ? content.color : undefined))
 
     expect(colors).toEqual([AUTO_COLOR_THEME.text, AUTO_COLOR_THEME.text, AUTO_COLOR_THEME.text])
     expect(new Set(colors).size).toBe(1)
@@ -361,14 +421,24 @@ ROW(MM(6), MM(3), MM(4))`)
       rule: { color: '#666666', thickness: 3 },
       bracketRule: { color: '#777777', thickness: 4 },
     }
-    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(7), DOT), MTD), LINE)', { colorTheme: customTheme })
+    const scene = compileMacro('GRID(ROW(CELL(MM(5), RB(1)), MM(+), CELL(MM(7), DOT), MTD), LINE)', {
+      colorTheme: customTheme,
+    })
     const text = scene.elements.filter(({ content }) => content.kind === 'text')
     const line = scene.elements.find(({ content }) => content.kind === 'line')
 
-    expect(text.find(({ content }) => content.kind === 'text' && content.text === '5')?.content).toMatchObject({ color: '#111111' })
-    expect(text.find(({ content }) => content.kind === 'text' && content.text === '1')?.content).toMatchObject({ color: '#222222' })
-    expect(text.find(({ content }) => content.kind === 'text' && content.text === '+')?.content).toMatchObject({ color: '#444444' })
-    expect(text.find(({ content }) => content.kind === 'text' && content.text === '.')?.content).toMatchObject({ color: '#555555' })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '5')?.content).toMatchObject({
+      color: '#111111',
+    })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '1')?.content).toMatchObject({
+      color: '#222222',
+    })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '+')?.content).toMatchObject({
+      color: '#444444',
+    })
+    expect(text.find(({ content }) => content.kind === 'text' && content.text === '.')?.content).toMatchObject({
+      color: '#555555',
+    })
     expect(line?.content).toMatchObject({ color: '#666666', thickness: 3 })
   })
 
@@ -382,9 +452,15 @@ ROW(MM(6), MM(3), MM(4))`)
   })
 
   test('VALUE 可保留语义样式，并允许末行使用空数值组占位', () => {
-    const scene = compileMacro('GRID(KV(autoColor, false), ROW(MM(2), DIV, VALUE(13, KV(style, short-division.dividend)), VALUE(余), VALUE(1)), ROW(VALUE(6, KV(style, short-division.final)), VALUE(""), VALUE("")))')
-    expect(scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.dividend')).toBe(true)
-    expect(scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.final')).toBe(true)
+    const scene = compileMacro(
+      'GRID(KV(autoColor, false), ROW(MM(2), DIV, VALUE(13, KV(style, short-division.dividend)), VALUE(余), VALUE(1)), ROW(VALUE(6, KV(style, short-division.final)), VALUE(""), VALUE("")))',
+    )
+    expect(
+      scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.dividend'),
+    ).toBe(true)
+    expect(
+      scene.elements.some(({ content }) => content.kind === 'text' && content.styleToken === 'short-division.final'),
+    ).toBe(true)
   })
 
   test('显式列数不足会报错，字符串和括号也有清晰诊断', () => {
@@ -431,12 +507,7 @@ CELL(
   })
 
   test('去格式化只移除空白，不执行最简形式的语法糖和默认配置省略', () => {
-    const source = [
-      'GRID(',
-      '  KV(showGrid, true),',
-      '  ROW(CELL(MM(5), RB(1)), LINE())',
-      ')',
-    ].join('\n')
+    const source = ['GRID(', '  KV(showGrid, true),', '  ROW(CELL(MM(5), RB(1)), LINE())', ')'].join('\n')
 
     expect(unformatMacro(source)).toBe('GRID(KV(showGrid,true),ROW(CELL(MM(5),RB(1)),LN))')
     expect(unformatMacro(source)).not.toContain('[')
@@ -475,7 +546,8 @@ CELL(
   })
 
   test('最简化仅为需要与最长横线对齐的短横线保留 full 跨度', () => {
-    const source = 'GRID(KV(columns,3),ROW(MM(1),MM(2),MM(3)),LINE(KV(span,full)),ROW(MM(4)),LINE(KV(span,full)),ROW(MM(5)))'
+    const source =
+      'GRID(KV(columns,3),ROW(MM(1),MM(2),MM(3)),LINE(KV(span,full)),ROW(MM(4)),LINE(KV(span,full)),ROW(MM(5)))'
     const compact = minifyMacro(source)
 
     expect(compact).toBe('1,2,3;LN;4;LN(KV(span,full));5;')
@@ -497,14 +569,17 @@ CELL(
   })
 
   test('最简化带 GRID 配置的完整宏时保留必要的 GRID 根节点', () => {
-    expect(minifyMacro(` GRID(
+    expect(
+      minifyMacro(` GRID(
   KV(showGrid, true),
   ROW( MM(5), CELL( MM(6), MT(·) ) )
- ) `)).toBe('GRID(KV(showGrid,true),ROW(MM(5),[6,MT(·)]))')
+ ) `),
+    ).toBe('GRID(KV(showGrid,true),ROW(MM(5),[6,MT(·)]))')
   })
 
   test('最简化会把纯图元 CELL 缩为以图元开头的方括号', () => {
-    const source = 'GRID(ROW(CELL(BRACKET, KV(style, division.bracket)), CELL(DOT, KV(style, division.decimal-separator))))'
+    const source =
+      'GRID(ROW(CELL(BRACKET, KV(style, division.bracket)), CELL(DOT, KV(style, division.decimal-separator))))'
     const compact = minifyMacro(source)
 
     expect(compact).toBe('[BRKT,KV(style,division.bracket)],[DOT,KV(style,division.decimal-separator)];')
@@ -545,19 +620,20 @@ CELL(
   })
 
   test('复制导出 API 会移除计算器页面专属 aria 与 style，并保留自动配色后的可见结果', () => {
-    const source = 'GRID(KV(columns,2),KV(autoColor,true),KV(ariaLabel,"加法 5 加 6"),ROW(MM(5,KV(style,addition.addend)),CELL(MM(6,KV(style,addition.addend)),RB(1,KV(style,addition.carry)))))'
+    const source =
+      'GRID(KV(columns,2),KV(autoColor,true),KV(ariaLabel,"加法 5 加 6"),ROW(MM(5,KV(style,addition.addend)),CELL(MM(6,KV(style,addition.addend)),RB(1,KV(style,addition.carry)))))'
     const compact = minifyMacroForCopy(source)
 
     expect(compact).toBe('5,[6,RB(1)];')
     expect(minifyMacroForCopyAst(parseMacro(source))).toBe(compact)
     expect(compact).not.toContain('KV(')
-    const toVisibleElements = (value: string) => compileMacro(value).elements.map(({ position, content }) => ({
-      position,
-      content: content.kind === 'text' ? (({ styleToken: _, ...visibleContent }) => visibleContent)(content) : content,
-    }))
-    expect(toVisibleElements(compact)).toEqual(
-      toVisibleElements(source),
-    )
+    const toVisibleElements = (value: string) =>
+      compileMacro(value).elements.map(({ position, content }) => ({
+        position,
+        content:
+          content.kind === 'text' ? (({ styleToken: _, ...visibleContent }) => visibleContent)(content) : content,
+      }))
+    expect(toVisibleElements(compact)).toEqual(toVisibleElements(source))
     expect(minifyMacroForCopy('GRID(KV(unitWidth,44),KV(ariaLabel,"演示"),ROW(MM(5,KV(style,addition.addend))))')).toBe(
       'GRID(KV(unitWidth,44),ROW(MM(5)))',
     )
@@ -600,7 +676,9 @@ CELL(
   test('AST 检查器会保留格式化最简源码的分号行形式', () => {
     const source = formatMacro('3,[5,RB(1)];LN;8;')
     const inspection = createMacroAstInspection(source)
-    const textElement = inspection.scene.elements.find((element) => element.content.kind === 'text' && element.content.text === '5')
+    const textElement = inspection.scene.elements.find(
+      (element) => element.content.kind === 'text' && element.content.text === '5',
+    )
 
     expect(inspection.sourceStyle).toBe('formatted')
     expect(inspection.source).toBe(source)
@@ -620,5 +698,4 @@ CELL(
     expect(inspection.references[lineElement!.id]?.node).toMatchObject({ kind: 'symbol', name: 'LINE' })
     expect(() => inspection.updateElementText(lineElement!.id, '9')).toThrow(/不包含可编辑文字/)
   })
-
 })

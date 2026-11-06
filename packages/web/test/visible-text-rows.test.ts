@@ -8,8 +8,14 @@ import { createAdditionGridScene, createSubtractionGridScene } from '@u1in/shush
 import { compileMacro } from '@u1in/shushi-macro'
 
 const createScene = (elements: GridScene['elements']): GridScene => ({
-  columns: [{ id: 'left', size: 1 }, { id: 'right', size: 1 }],
-  rows: [{ id: 'top', size: 1 }, { id: 'bottom', size: 1 }],
+  columns: [
+    { id: 'left', size: 1 },
+    { id: 'right', size: 1 },
+  ],
+  rows: [
+    { id: 'top', size: 1 },
+    { id: 'bottom', size: 1 },
+  ],
   padding: { top: 0, right: 0, bottom: 0, left: 0 },
   unitWidth: 30,
   unitHeight: 40,
@@ -25,7 +31,11 @@ describe('extractVisibleTextRows', () => {
   test('从左到右输出可见文本，忽略空白行与非文本图元', () => {
     const scene = createScene([
       { id: 'right', position: { kind: 'cell', column: 1, row: 0 }, content: { kind: 'text', text: '2' } },
-      { id: 'line', position: { kind: 'edge', column: 0, row: 1, edge: 'top', columnSpan: 2 }, content: { kind: 'line' } },
+      {
+        id: 'line',
+        position: { kind: 'edge', column: 0, row: 1, edge: 'top', columnSpan: 2 },
+        content: { kind: 'line' },
+      },
       { id: 'left', position: { kind: 'cell', column: 0, row: 0 }, content: { kind: 'text', text: '1' } },
       { id: 'bottom', position: { kind: 'cell', column: 1, row: 1 }, content: { kind: 'text', text: '3' } },
     ])
@@ -36,9 +46,17 @@ describe('extractVisibleTextRows', () => {
   test('交点与横向边界文本单列为注记行，竖向边中点仍与数字行合并', () => {
     const scene = createScene([
       { id: 'top-digit', position: { kind: 'cell', column: 0, row: 0 }, content: { kind: 'text', text: '8' } },
-      { id: 'decimal', position: { kind: 'edgeMidpoint', column: 0, row: 0, edge: 'right' }, content: { kind: 'text', text: '.' } },
+      {
+        id: 'decimal',
+        position: { kind: 'edgeMidpoint', column: 0, row: 0, edge: 'right' },
+        content: { kind: 'text', text: '.' },
+      },
       { id: 'top-right', position: { kind: 'cell', column: 1, row: 0 }, content: { kind: 'text', text: '5' } },
-      { id: 'carry', position: { kind: 'intersection', columnLine: 1, rowLine: 1 }, content: { kind: 'text', text: '1' } },
+      {
+        id: 'carry',
+        position: { kind: 'intersection', columnLine: 1, rowLine: 1 },
+        content: { kind: 'text', text: '1' },
+      },
       { id: 'bottom', position: { kind: 'cell', column: 1, row: 1 }, content: { kind: 'text', text: '3' } },
     ])
 

@@ -64,21 +64,23 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
-const implementationCode = computed(() => createShushiImplementationSnippet({
-  operation: 'multiplication',
-  fontFamily: rendererFont.value,
-  fields: [['operands', [multiplicand.value, multiplier.value]]],
-  calculation: [['useTrailingZeroShortcut', useTrailingZeroShortcut.value]],
-  settings: [
-    ['cellWidth', cellWidth.value],
-    ['rowHeight', rowHeight.value],
-    ['fontSizeRatio', fontSizeRatio.value],
-    ['showGuideGrid', showGuideGrid.value],
-    ['uniformMultiplicationBars', uniformMultiplicationBars.value],
-    ['showCarrySteps', showCarrySteps.value],
-    ['visibleStepCount', visibleStepCount.value],
-  ],
-}))
+const implementationCode = computed(() =>
+  createShushiImplementationSnippet({
+    operation: 'multiplication',
+    fontFamily: rendererFont.value,
+    fields: [['operands', [multiplicand.value, multiplier.value]]],
+    calculation: [['useTrailingZeroShortcut', useTrailingZeroShortcut.value]],
+    settings: [
+      ['cellWidth', cellWidth.value],
+      ['rowHeight', rowHeight.value],
+      ['fontSizeRatio', fontSizeRatio.value],
+      ['showGuideGrid', showGuideGrid.value],
+      ['uniformMultiplicationBars', uniformMultiplicationBars.value],
+      ['showCarrySteps', showCarrySteps.value],
+      ['visibleStepCount', visibleStepCount.value],
+    ],
+  }),
+)
 
 const calculate = (): void => {
   try {
@@ -101,26 +103,78 @@ calculate()
         <h2>乘法竖式计算器</h2>
         <p class="normalization">输入两个乘数，查看部分积、进位与最终结果。</p>
         <div class="input-grid">
-          <label class="field"><span>第一个乘数</span><input v-model="multiplicand" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"
+            ><span>第一个乘数</span
+            ><input v-model="multiplicand" inputmode="numeric" autocomplete="off" @input="calculate"
+          /></label>
           <span class="division-operator" aria-hidden="true">×</span>
-          <label class="field"><span>第二个乘数</span><input v-model="multiplier" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"
+            ><span>第二个乘数</span
+            ><input v-model="multiplier" inputmode="numeric" autocomplete="off" @input="calculate"
+          /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
         <div class="form-actions">
-          <button class="ghost-button" type="button" @click="multiplicand = '97'; multiplier = '89'; calculate()">试试 97 × 89</button>
+          <button
+            class="ghost-button"
+            type="button"
+            @click="
+              multiplicand = '97'
+              multiplier = '89'
+              calculate()
+            "
+          >
+            试试 97 × 89
+          </button>
         </div>
         <div class="settings-panel">
           <div class="settings-controls">
             <div class="settings-range-group">
-              <label class="range-field"><span>方格宽度 <output>{{ cellWidth }}px</output></span><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate" /></label>
-              <label class="range-field"><span>行高 <output>{{ rowHeight }}px</output></span><input v-model.number="rowHeight" type="range" min="36" max="64" @input="calculate" /></label>
-              <label class="range-field"><span>字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate" /></label>
+              <label class="range-field"
+                ><span
+                  >方格宽度 <output>{{ cellWidth }}px</output></span
+                ><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >行高 <output>{{ rowHeight }}px</output></span
+                ><input v-model.number="rowHeight" type="range" min="36" max="64" @input="calculate"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span
+                ><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate"
+              /></label>
             </div>
             <div class="settings-switch-group">
-              <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
-              <label class="switch-field"><input v-model="uniformMultiplicationBars" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>乘法横线等宽</span></label>
-              <label class="switch-field"><input v-model="showCarrySteps" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示进位步骤</span></label>
-              <label class="switch-field"><input v-model="useTrailingZeroShortcut" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>启用 10 倍数快捷计算</span></label>
+              <label class="switch-field"
+                ><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示辅助网格</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="uniformMultiplicationBars" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>乘法横线等宽</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showCarrySteps" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示进位步骤</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="useTrailingZeroShortcut" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>启用 10 倍数快捷计算</span></label
+              >
             </div>
           </div>
         </div>
@@ -128,10 +182,36 @@ calculate()
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">CALCULATION</p>
-          <div class="result-heading"><h2>{{ multiplicand }} × {{ multiplier }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
-          <p class="normalization">{{ computation?.trailingZeroShortcut ? `保留输入顺序，先计算 ${computation.trailingZeroShortcut.significantMultiplicandDigits} × ${computation.trailingZeroShortcut.significantMultiplierDigits}；两个乘数末尾共 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0 补在最终积后。` : '严格按输入顺序从右到左逐位相乘。' }}</p>
-          <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
+          <div class="result-heading">
+            <h2>{{ multiplicand }} × {{ multiplier }} =</h2>
+            <output class="answer">{{ answer }}</output
+            ><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" />
+          </div>
+          <p class="normalization">
+            {{
+              computation?.trailingZeroShortcut
+                ? `保留输入顺序，先计算 ${computation.trailingZeroShortcut.significantMultiplicandDigits} × ${computation.trailingZeroShortcut.significantMultiplierDigits}；两个乘数末尾共 ${computation.trailingZeroShortcut.trailingZeroCount} 个 0 补在最终积后。`
+                : '严格按输入顺序从右到左逐位相乘。'
+            }}
+          </p>
+          <StepPlaybackControls
+            :current-step="currentStep"
+            :step-count="stepCount"
+            :can-start="canStart"
+            :can-previous="canPrevious"
+            :can-next="canNext"
+            @start="playback.start"
+            @previous="playback.previous"
+            @next="playback.next"
+            @reset="playback.reset"
+          />
+          <GridPreview
+            v-if="scene"
+            :scene="scene"
+            :font-family="rendererFont"
+            mode="both"
+            @font-change="handleFontChange"
+          />
         </div>
       </section>
       <CodeImplementationPanel

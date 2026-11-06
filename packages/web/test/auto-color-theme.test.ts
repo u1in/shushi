@@ -1,9 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import {
-  AUTO_COLOR_THEME,
-  AUTO_COLOR_THEME_FALLBACK,
-  compileMacro,
-} from '@u1in/shushi-macro'
+import { AUTO_COLOR_THEME, AUTO_COLOR_THEME_FALLBACK, compileMacro } from '@u1in/shushi-macro'
 
 /** 把 sRGB 通道转换为 WCAG 相对亮度计算所需的线性值。 */
 const linearize = (channel: number): number => {
@@ -11,7 +7,8 @@ const linearize = (channel: number): number => {
   return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
 }
 
-const readRgb = (color: string): [number, number, number] => [1, 3, 5].map((offset) => Number.parseInt(color.slice(offset, offset + 2), 16)) as [number, number, number]
+const readRgb = (color: string): [number, number, number] =>
+  [1, 3, 5].map((offset) => Number.parseInt(color.slice(offset, offset + 2), 16)) as [number, number, number]
 
 const contrastOnWhite = (color: string): number => {
   const [red, green, blue] = readRgb(color).map(linearize)

@@ -11,7 +11,8 @@ export const basicPagesPartOne: MacroDocPage[] = [
     navLabel: 'GRID',
     kicker: 'BASE MACRO · 01',
     group: 'basic',
-    summary: 'GRID 是整份宏源码的根节点。它收集 ROW、LINE 与场景配置，推导列数，并决定单位格尺寸、留白、自动配色和无障碍标签。',
+    summary:
+      'GRID 是整份宏源码的根节点。它收集 ROW、LINE 与场景配置，推导列数，并决定单位格尺寸、留白、自动配色和无障碍标签。',
     sections: [
       {
         id: 'purpose',
@@ -46,7 +47,12 @@ export const basicPagesPartOne: MacroDocPage[] = [
             type: 'table',
             columns: ['参数', '类型', '必填', '说明'],
             rows: [
-              ['`children`', '`ROW`、`LINE` 或 `KV`', '至少一个 `ROW`', '按出现顺序组织数字行与横线；`KV` 在解析阶段被拆出，不占行。'],
+              [
+                '`children`',
+                '`ROW`、`LINE` 或 `KV`',
+                '至少一个 `ROW`',
+                '按出现顺序组织数字行与横线；`KV` 在解析阶段被拆出，不占行。',
+              ],
             ],
           },
           {
@@ -64,7 +70,12 @@ export const basicPagesPartOne: MacroDocPage[] = [
             columns: ['键', '取值', '默认值', '作用'],
             rows: [
               ['`columns`', '正整数', '按最长 ROW 推导', '场景真实列数。短行会按对齐方式贴齐这个宽度。'],
-              ['`trackUnit`', '`full` 或 `half`', '`full`', '`half` 把每条真实轨道设为 0.5u；普通单元格默认跨两条轨道。含 `DIV` 时自动强制为 `half`。'],
+              [
+                '`trackUnit`',
+                '`full` 或 `half`',
+                '`full`',
+                '`half` 把每条真实轨道设为 0.5u；普通单元格默认跨两条轨道。含 `DIV` 时自动强制为 `half`。',
+              ],
               ['`unitWidth`', '正数（px）', '30', '单位格宽；短除法中每个数字仍占两个半格轨道。'],
               ['`unitHeight`', '正数（px）', '46', '单行行高。'],
               ['`padding`', '正数（px）', '未设置', '同时覆盖上下左右留白；设置后优先于 `paddingX` / `paddingY`。'],
@@ -73,8 +84,18 @@ export const basicPagesPartOne: MacroDocPage[] = [
               ['`fontSizeRatio`', '正数', '1', '字号比例：实际字号 = `unitWidth × fontSizeRatio`。'],
               ['`fontSize`', '正数（px）', '未设置', '绝对字号覆盖；设置后优先于比例计算。'],
               ['`showGrid`', '`true` 或 `false`', '`false`', '显示辅助网格轨道。旧写法 `showGuideGrid` 仍兼容。'],
-              ['`lineSpan`', '`previous`、`longest` 或 `full`', '单条 LINE 为 `full`；多条 LINE 为 `previous`', '为多条横线设置共同跨度；个别横线可用自身的 `span` 覆盖。'],
-              ['`autoColor`', '`true` 或 `false`', '`true`', '启用固定语义区域的自动配色，并覆盖线条的显式颜色与粗细；颜色由编译选项中的 `colorTheme` 配置。'],
+              [
+                '`lineSpan`',
+                '`previous`、`longest` 或 `full`',
+                '单条 LINE 为 `full`；多条 LINE 为 `previous`',
+                '为多条横线设置共同跨度；个别横线可用自身的 `span` 覆盖。',
+              ],
+              [
+                '`autoColor`',
+                '`true` 或 `false`',
+                '`true`',
+                '启用固定语义区域的自动配色，并覆盖线条的显式颜色与粗细；颜色由编译选项中的 `colorTheme` 配置。',
+              ],
               ['`style`', '语义样式 token', '未设置', '场景默认文本样式 token；单元格或图元可以覆盖。'],
               ['`ariaLabel`', '文本', '`宏公式预览`', '渲染结果的 ARIA 标签；短除法模式默认是 `短除法宏公式预览`。'],
             ],
@@ -83,7 +104,7 @@ export const basicPagesPartOne: MacroDocPage[] = [
             type: 'callout',
             tone: 'warn',
             title: '自动配色的两个副作用',
-              text: '`autoColor` 默认开启：它会按固定语义区域分配文字颜色，并让 LINE、边框、BRACKET 使用主题线条；默认颜色来自内置 JavaScript 主题，此时 `STYLE` 里的颜色和线宽只保留在源码，不参与最终输出。需要精确样式时写 `KV(autoColor, false)`。',
+            text: '`autoColor` 默认开启：它会按固定语义区域分配文字颜色，并让 LINE、边框、BRACKET 使用主题线条；默认颜色来自内置 JavaScript 主题，此时 `STYLE` 里的颜色和线宽只保留在源码，不参与最终输出。需要精确样式时写 `KV(autoColor, false)`。',
           },
         ],
       },
@@ -135,9 +156,21 @@ export const basicPagesPartOne: MacroDocPage[] = [
             columns: ['错误信息或现象', '触发原因', '修正'],
             rows: [
               ['`GRID 至少需要一个 ROW。`', '只写了 KV 或空 GRID。', '加入至少一个 `ROW(...)`。'],
-              ['`GRID 只能包含 ROW、LINE 或 KV 配置。`', '把定位宏、`STYLE` 或裸文字直接放在 GRID 下。', '先包一层 `ROW`，图元放进 `CELL`。'],
-              ['`GRID 的 columns=... 小于最长 ROW 所需的 ... 列。`', '显式列数不足。', '增大 `columns`，或删除该配置交给自动推导。'],
-              ['`autoColor` 不再有 40 行限制。', '自动配色使用固定语义颜色，不依赖行号色板。', '通过 `colorTheme` 配置主题颜色。'],
+              [
+                '`GRID 只能包含 ROW、LINE 或 KV 配置。`',
+                '把定位宏、`STYLE` 或裸文字直接放在 GRID 下。',
+                '先包一层 `ROW`，图元放进 `CELL`。',
+              ],
+              [
+                '`GRID 的 columns=... 小于最长 ROW 所需的 ... 列。`',
+                '显式列数不足。',
+                '增大 `columns`，或删除该配置交给自动推导。',
+              ],
+              [
+                '`autoColor` 不再有 40 行限制。',
+                '自动配色使用固定语义颜色，不依赖行号色板。',
+                '通过 `colorTheme` 配置主题颜色。',
+              ],
               ['`GRID 不支持子节点 ...`', '在显式 GRID 里混入了简写行。', '不要混用顶层分号简写与显式 GRID。'],
             ],
           },
@@ -213,7 +246,12 @@ export const basicPagesPartOne: MacroDocPage[] = [
             type: 'table',
             columns: ['参数', '类型', '必填', '说明'],
             rows: [
-              ['`cells`', '`CELL`、`EMPTY`、定位宏或 `DOT`', '至少一项', '按顺序占用列；每个单元格的跨度由 `columnSpan` 决定。'],
+              [
+                '`cells`',
+                '`CELL`、`EMPTY`、定位宏或 `DOT`',
+                '至少一项',
+                '按顺序占用列；每个单元格的跨度由 `columnSpan` 决定。',
+              ],
               ['`KV(align, ...)`', '`left` 或 `right`', '否', '行内对齐方式，默认 `right`。'],
             ],
           },
@@ -268,8 +306,16 @@ export const basicPagesPartOne: MacroDocPage[] = [
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
               ['`ROW 至少需要一个单元格。`', '写了 `ROW()` 或只有配置。', '加入至少一个 `CELL`、`EMPTY` 或定位宏。'],
-              ['`ROW 的 align 只能是 left 或 right。`', '写了其他值。', '改成 `KV(align, left)` 或 `KV(align, right)`。'],
-              ['`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`', '把 `LINE`、`STYLE` 或裸文字塞进行内。', '横线移到 ROW 外；文字先包 `MM(...)`。'],
+              [
+                '`ROW 的 align 只能是 left 或 right。`',
+                '写了其他值。',
+                '改成 `KV(align, left)` 或 `KV(align, right)`。',
+              ],
+              [
+                '`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`',
+                '把 `LINE`、`STYLE` 或裸文字塞进行内。',
+                '横线移到 ROW 外；文字先包 `MM(...)`。',
+              ],
             ],
           },
         ],
@@ -310,7 +356,8 @@ export const basicPagesPartOne: MacroDocPage[] = [
     navLabel: 'CELL',
     kicker: 'BASE MACRO · 03',
     group: 'basic',
-    summary: 'CELL 定义一个真实单元格，也是多个图元共用同一格的唯一组合边界。数字、进位点、借位点、小数点与边框都必须先在 CELL 内组织。',
+    summary:
+      'CELL 定义一个真实单元格，也是多个图元共用同一格的唯一组合边界。数字、进位点、借位点、小数点与边框都必须先在 CELL 内组织。',
     sections: [
       {
         id: 'purpose',
@@ -393,8 +440,16 @@ export const basicPagesPartOne: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`', '把 `LINE`、`VALUE`、裸文字或另一个 CELL 放进 CELL。', '只保留单元格图元；结构宏放回 ROW 或 GRID。'],
-              ['`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`', 'BRACKET 与数字、边框同格，或设置了跨度。', '为 BRACKET 单独开一个 `CELL(BRKT)`。'],
+              [
+                '`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`',
+                '把 `LINE`、`VALUE`、裸文字或另一个 CELL 放进 CELL。',
+                '只保留单元格图元；结构宏放回 ROW 或 GRID。',
+              ],
+              [
+                '`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`',
+                'BRACKET 与数字、边框同格，或设置了跨度。',
+                '为 BRACKET 单独开一个 `CELL(BRKT)`。',
+              ],
               ['`CELL 的 columnSpan 必须是正整数。`', '写了 0、负数或小数。', '改成 1、2、3 等正整数。'],
             ],
           },
@@ -523,7 +578,11 @@ export const basicPagesPartOne: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`EMPTY 只能包含配置，不能包含单元格图元。`', '写了 `EMPTY(MM(5))` 或加了边框。', '删除图元；只需要占位时保留 `KV`。'],
+              [
+                '`EMPTY 只能包含配置，不能包含单元格图元。`',
+                '写了 `EMPTY(MM(5))` 或加了边框。',
+                '删除图元；只需要占位时保留 `KV`。',
+              ],
               ['`EMPTY 的 columnSpan 必须是正整数。`', '写了 0、负数或小数。', '改成 1、2、3 等正整数。'],
             ],
           },
@@ -550,7 +609,11 @@ export const basicPagesPartOne: MacroDocPage[] = [
           {
             type: 'cards',
             items: [
-              { title: '零参数省略与别名', text: '`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 的完整规则。', to: '/macro-rules/zero-argument' },
+              {
+                title: '零参数省略与别名',
+                text: '`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 的完整规则。',
+                to: '/macro-rules/zero-argument',
+              },
               { title: 'ROW · 数字行', text: '理解短行右对齐为什么有时不需要 EMPTY。', to: '/macro-rules/row' },
             ],
           },

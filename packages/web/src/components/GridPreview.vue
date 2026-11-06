@@ -10,16 +10,19 @@ import {
   type RendererFontFamily,
 } from './rendererFonts'
 
-const props = withDefaults(defineProps<{
-  scene: GridScene
-  mode: 'dom' | 'svg' | 'both'
-  /** 检查器需要捕获渲染元素点击；普通预览保持纯展示。 */
-  interactive?: boolean
-  /** 可选的已选元素 ID，仅用于交互预览的视觉反馈。 */
-  selectedElementId?: string
-  /** 当前场景的编译字体；选择器只请求父组件重新编译，绝不在渲染后改写样式。 */
-  fontFamily?: RendererFontFamily
-}>(), { interactive: false, selectedElementId: undefined })
+const props = withDefaults(
+  defineProps<{
+    scene: GridScene
+    mode: 'dom' | 'svg' | 'both'
+    /** 检查器需要捕获渲染元素点击；普通预览保持纯展示。 */
+    interactive?: boolean
+    /** 可选的已选元素 ID，仅用于交互预览的视觉反馈。 */
+    selectedElementId?: string
+    /** 当前场景的编译字体；选择器只请求父组件重新编译，绝不在渲染后改写样式。 */
+    fontFamily?: RendererFontFamily
+  }>(),
+  { interactive: false, selectedElementId: undefined },
+)
 const emit = defineEmits<{
   elementClick: [elementId: string]
   fontChange: [fontFamily: RendererFontFamily]
@@ -40,7 +43,10 @@ const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const syncSelectedElement = (): void => {
   for (const host of [svgHost.value, domHost.value]) {
     host?.querySelectorAll<HTMLElement | SVGElement>('[data-grid-element-id]').forEach((node) => {
-      node.classList.toggle('grid-element--selected', node.getAttribute('data-grid-element-id') === props.selectedElementId)
+      node.classList.toggle(
+        'grid-element--selected',
+        node.getAttribute('data-grid-element-id') === props.selectedElementId,
+      )
     })
   }
 
@@ -48,8 +54,9 @@ const syncSelectedElement = (): void => {
   svg?.querySelectorAll('.grid-element--selection-border').forEach((node) => node.remove())
   if (!svg || !props.selectedElementId) return
 
-  const selectedNode = Array.from(svg.querySelectorAll<SVGGraphicsElement>('[data-grid-element-id]'))
-    .find((node) => node.getAttribute('data-grid-element-id') === props.selectedElementId)
+  const selectedNode = Array.from(svg.querySelectorAll<SVGGraphicsElement>('[data-grid-element-id]')).find(
+    (node) => node.getAttribute('data-grid-element-id') === props.selectedElementId,
+  )
   if (!selectedNode) return
 
   const bounds = selectedNode.getBBox()
@@ -159,7 +166,10 @@ const handleElementClick = (event: MouseEvent): void => {
 </script>
 
 <template>
-  <div class="renderer-comparison" :class="{ 'renderer-comparison--both': mode === 'both', 'renderer-comparison--interactive': interactive }">
+  <div
+    class="renderer-comparison"
+    :class="{ 'renderer-comparison--both': mode === 'both', 'renderer-comparison--interactive': interactive }"
+  >
     <div class="renderer-font-picker">
       <label>
         <span>竖式字体</span>
@@ -174,13 +184,23 @@ const handleElementClick = (event: MouseEvent): void => {
       <h3>SVG</h3>
       <div ref="svgViewport" class="stage-scroll">
         <!-- 该相对定位容器为渲染器返回的绝对定位图元提供统一坐标系。 -->
-        <div ref="svgHost" class="division-stage" :style="{ width: '100%', height: svgStageHeight + 'px' }" @click="handleElementClick"></div>
+        <div
+          ref="svgHost"
+          class="division-stage"
+          :style="{ width: '100%', height: svgStageHeight + 'px' }"
+          @click="handleElementClick"
+        ></div>
       </div>
     </section>
     <section v-if="mode !== 'svg'" class="renderer-panel">
       <h3>DIV + CSS</h3>
       <div ref="domViewport" class="stage-scroll">
-        <div ref="domHost" class="division-stage" :style="{ width: '100%', height: domStageHeight + 'px' }" @click="handleElementClick"></div>
+        <div
+          ref="domHost"
+          class="division-stage"
+          :style="{ width: '100%', height: domStageHeight + 'px' }"
+          @click="handleElementClick"
+        ></div>
       </div>
     </section>
   </div>

@@ -43,7 +43,8 @@ export const practicePages: MacroDocPage[] = [
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
+            leftCode:
+              'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
             rightTitle: '语法糖版',
             rightCode: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;\nLN;\n6,3,4;',
             note: '首行 3 5 6 右对齐到四列；第二行的 + 和结果 8 都是独立单元格，只有进位点与数字同格。',
@@ -61,9 +62,11 @@ export const practicePages: MacroDocPage[] = [
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  KV(lineSpan, full),\n  ROW(MM(9), MM(7)),\n  ROW(MM(×), CELL(MM(8), RB(6)), MM(9)),\n  LINE,\n  ROW(MM(8), MM(7), MM(3)),\n  ROW(CELL(MM(7), RB(1)), CELL(MM(7), RB(1), RT(5)), MM(6), EMPTY()),\n  LINE,\n  ROW(MM(8), MM(6), MM(3), MM(3))\n)',
+            leftCode:
+              'GRID(\n  KV(lineSpan, full),\n  ROW(MM(9), MM(7)),\n  ROW(MM(×), CELL(MM(8), RB(6)), MM(9)),\n  LINE,\n  ROW(MM(8), MM(7), MM(3)),\n  ROW(CELL(MM(7), RB(1)), CELL(MM(7), RB(1), RT(5)), MM(6), EMPTY()),\n  LINE,\n  ROW(MM(8), MM(6), MM(3), MM(3))\n)',
             rightTitle: '最简版',
-            rightCode: 'GRID(KV(lineSpan,full),ROW(MM(9),MM(7)),ROW(MM(×),CELL(MM(8),RB(6)),MM(9)),LN,ROW(MM(8),MM(7),MM(3)),ROW(CELL(MM(7),RB(1)),CELL(MM(7),RB(1),RT(5)),MM(6),EMP),LN,ROW(MM(8),MM(6),MM(3),MM(3)))',
+            rightCode:
+              'GRID(KV(lineSpan,full),ROW(MM(9),MM(7)),ROW(MM(×),CELL(MM(8),RB(6)),MM(9)),LN,ROW(MM(8),MM(7),MM(3)),ROW(CELL(MM(7),RB(1)),CELL(MM(7),RB(1),RT(5)),MM(6),EMP),LN,ROW(MM(8),MM(6),MM(3),MM(3)))',
             note: '多条横线共享全宽时，最简宏将 `span` 提升到根 GRID；LN 本身不需要属性。',
           },
         ],
@@ -79,7 +82,8 @@ export const practicePages: MacroDocPage[] = [
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  ROW(MM(2), DIV, VALUE(60)),\n  ROW(MM(2), DIV, VALUE(30)),\n  ROW(MM(3), DIV, VALUE(15)),\n  ROW(VALUE(5))\n)',
+            leftCode:
+              'GRID(\n  ROW(MM(2), DIV, VALUE(60)),\n  ROW(MM(2), DIV, VALUE(30)),\n  ROW(MM(3), DIV, VALUE(15)),\n  ROW(VALUE(5))\n)',
             rightTitle: '语法糖版',
             rightCode: '2,DIV,VALUE(60);\n2,DIV,VALUE(30);\n3,DIV,VALUE(15);\nVALUE(5);',
             note: '短除法只有 ROW 与 VALUE，没有 LINE；横线和竖线由 DIV 自动生成。',
@@ -97,9 +101,11 @@ export const practicePages: MacroDocPage[] = [
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  ROW(MM(4), MM(0), CELL(MM(9), DOT), MM(2)),\n  ROW(MM(2), MM(5), BRACKET, MM(1), MM(0), MM(2), MM(3), CELL(MM(0), DOT), MM(0)),\n  ROW(MM(1), MM(0), MM(0), EMPTY(), EMPTY(), EMPTY()),\n  LINE,\n  ROW(MM(2), MM(3), MM(0), EMPTY()),\n  ROW(MM(2), MM(2), MM(5), EMPTY()),\n  LINE,\n  ROW(MM(5), MM(0)),\n  ROW(MM(5), MM(0)),\n  LINE,\n  ROW(MM(0))\n)',
+            leftCode:
+              'GRID(\n  ROW(MM(4), MM(0), CELL(MM(9), DOT), MM(2)),\n  ROW(MM(2), MM(5), BRACKET, MM(1), MM(0), MM(2), MM(3), CELL(MM(0), DOT), MM(0)),\n  ROW(MM(1), MM(0), MM(0), EMPTY(), EMPTY(), EMPTY()),\n  LINE,\n  ROW(MM(2), MM(3), MM(0), EMPTY()),\n  ROW(MM(2), MM(2), MM(5), EMPTY()),\n  LINE,\n  ROW(MM(5), MM(0)),\n  ROW(MM(5), MM(0)),\n  LINE,\n  ROW(MM(0))\n)',
             rightTitle: '语法糖版',
-            rightCode: '4,0,[9,DOT],2;2,5,BRKT,1,0,2,3,[0,DOT],0;1,0,0,EMP,EMP,EMP;LN;2,3,0,EMP;2,2,5,EMP;LN;5,0;5,0;LN;0;',
+            rightCode:
+              '4,0,[9,DOT],2;2,5,BRKT,1,0,2,3,[0,DOT],0;1,0,0,EMP,EMP,EMP;LN;2,3,0,EMP;2,2,5,EMP;LN;5,0;5,0;LN;0;',
             note: 'ROW 默认右对齐，因此最简版省略了只用于行首缩进的 EMP；尾部 EMP 仍保留以表达横线和列跨度。BRACKET 独占一格并自动生成厂字横；被除数末尾补 0 并标出小数点，商为 409.2。',
           },
         ],
@@ -112,10 +118,19 @@ export const practicePages: MacroDocPage[] = [
             type: 'steps',
             items: [
               { title: '先确认列数一致', text: '找出最长行，数清每行的单元格跨度；语法糖只改写法，不应改变列数。' },
-              { title: '把 GRID 改成顶层行', text: '如果不需要场景配置，删除最外层 `GRID(...)`，把每个 `ROW(...)` 改成以分号结尾的片段。' },
+              {
+                title: '把 GRID 改成顶层行',
+                text: '如果不需要场景配置，删除最外层 `GRID(...)`，把每个 `ROW(...)` 改成以分号结尾的片段。',
+              },
               { title: '把 ROW 改成裸文字', text: '去掉 `ROW(...)` 与 `MM(...)`，保留逗号分格；横线单独写 `LN;`。' },
-              { title: '把 CELL 改成方括号', text: '首项为正文时去掉 `MM`；只有定位标记时可直接写成 `[RB(1)]`，后续定位宏保持完整调用。' },
-              { title: '应用零参数省略', text: '把 `EMPTY()`、`LINE()`、`BRACKET()` 改成 `EMP`、`LN`、`BRKT`，边框宏也可以去掉空括号。' },
+              {
+                title: '把 CELL 改成方括号',
+                text: '首项为正文时去掉 `MM`；只有定位标记时可直接写成 `[RB(1)]`，后续定位宏保持完整调用。',
+              },
+              {
+                title: '应用零参数省略',
+                text: '把 `EMPTY()`、`LINE()`、`BRACKET()` 改成 `EMP`、`LN`、`BRKT`，边框宏也可以去掉空括号。',
+              },
               { title: '重新对照输出', text: '逐项检查列数、行数、横线位置和同格图元；有差异时退回完整版定位。' },
             ],
           },
@@ -154,7 +169,8 @@ export const practicePages: MacroDocPage[] = [
             title: '把加法语法糖版展开为完整命令',
             task: '把左侧的加法语法糖版改写为完整命令版：保留每个进位点与横线，输出必须一致。',
             starter: '3,5,6;\n+,[2,RB(1)],[7,RB(1)],8;\nLN;\n6,3,4;',
-            answer: 'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
+            answer:
+              'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
             hint: '先把每一行包成 ROW，再把方括号展开为 CELL，最后整体包进 GRID。',
             mode: 'source',
           },
@@ -168,7 +184,8 @@ export const practicePages: MacroDocPage[] = [
     navLabel: '注意事项',
     kicker: 'PRACTICE · CAUTIONS',
     group: 'practice',
-    summary: '宏语言的限制大多来自“结构边界”和“自动配色”。记住这些高频陷阱，再按错误信息对照表排查，通常几分钟内就能定位问题。',
+    summary:
+      '宏语言的限制大多来自“结构边界”和“自动配色”。记住这些高频陷阱，再按错误信息对照表排查，通常几分钟内就能定位问题。',
     sections: [
       {
         id: 'pitfalls',
@@ -228,14 +245,30 @@ export const practicePages: MacroDocPage[] = [
               ['`GRID 只能包含 ROW、LINE 或 KV 配置。`', '把定位宏或裸文字直接放在 GRID 下。', '包一层 ROW。'],
               ['`GRID 至少需要一个 ROW。`', '只写了 KV。', '加入至少一个数字行。'],
               ['`GRID 的 columns=... 小于最长 ROW 所需的 ... 列。`', '显式列数不足。', '增大 columns 或删除配置。'],
-              ['`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`', '把 LINE、STYLE 或裸文字塞进行内。', '横线移出 ROW；文字用 MM。'],
-              ['`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`', 'CELL 内放了结构宏或裸文字。', '只保留单元格图元。'],
-              ['`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`', 'BRACKET 与别的图元同格。', '拆成单独 `CELL(BRKT)`。'],
+              [
+                '`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`',
+                '把 LINE、STYLE 或裸文字塞进行内。',
+                '横线移出 ROW；文字用 MM。',
+              ],
+              [
+                '`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`',
+                'CELL 内放了结构宏或裸文字。',
+                '只保留单元格图元。',
+              ],
+              [
+                '`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`',
+                'BRACKET 与别的图元同格。',
+                '拆成单独 `CELL(BRKT)`。',
+              ],
               ['`LINE 前必须先有一个 ROW。`', 'LINE 出现在第一条 ROW 之前。', '移到需要画线的 ROW 之后。'],
               ['`LINE 的 span 只能是 previous、longest 或 full。`', 'span 拼写错误。', '改成三个枚举之一。'],
               ['`短除法每行 VALUE 数值组数量必须一致。`', '过程行与底行组数不同。', '统一每行的 VALUE 数量。'],
               ['`短除法最后一行必须是不含 DIV 的 VALUE 底行。`', '最后一行仍是过程行。', '补一行只含 VALUE 的底行。'],
-              ['自动配色颜色不符合预期。', '`colorTheme` 配置覆盖了默认主题。', '检查传入的主题对象是否包含正确的七个颜色字段。'],
+              [
+                '自动配色颜色不符合预期。',
+                '`colorTheme` 配置覆盖了默认主题。',
+                '检查传入的主题对象是否包含正确的七个颜色字段。',
+              ],
               ['`配置 ... 被重复设置。`', '同一个宏里写了两次同名 KV。', '删除重复项。'],
             ],
           },
@@ -290,7 +323,8 @@ export const practicePages: MacroDocPage[] = [
             title: '修复被自动配色覆盖的样式',
             task: '左侧横线写了蓝色 STYLE，但预览仍是主题色。补上必要配置，让蓝色 3px 生效。',
             starter: 'GRID(\n  ROW(MM(5), MM(6)),\n  LINE(STYLE(KV(color, "#2563eb"), KV(thickness, 3)))\n)',
-            answer: 'GRID(\n  KV(autoColor, false),\n  ROW(MM(5), MM(6)),\n  LINE(STYLE(KV(color, "#2563eb"), KV(thickness, 3)))\n)',
+            answer:
+              'GRID(\n  KV(autoColor, false),\n  ROW(MM(5), MM(6)),\n  LINE(STYLE(KV(color, "#2563eb"), KV(thickness, 3)))\n)',
             hint: 'autoColor 是 GRID 级配置，默认开启。',
           },
         ],

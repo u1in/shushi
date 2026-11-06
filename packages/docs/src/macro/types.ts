@@ -35,12 +35,33 @@ export type DocBlock =
   | { type: 'code'; code: string; title?: string; language?: DocCodeLanguage }
   | { type: 'example'; title: string; code: string; note?: string; language?: DocCodeLanguage }
   | { type: 'callout'; tone: 'info' | 'tip' | 'warn' | 'danger'; title: string; text: string }
-  | { type: 'sandbox'; title: string; task: string; starter: string; answer: string; hint?: string; mode?: 'scene' | 'source' }
-  | { type: 'compare'; leftTitle: string; leftCode: string; rightTitle: string; rightCode: string; note?: string; equivalent?: boolean }
-  | { type: 'steps'; items: Array<{ title: string, text: string }> }
-  | { type: 'cards'; items: Array<{ title: string, text: string, to?: string }> }
+  | {
+      type: 'sandbox'
+      title: string
+      task: string
+      starter: string
+      answer: string
+      hint?: string
+      mode?: 'scene' | 'source'
+    }
+  | {
+      type: 'compare'
+      leftTitle: string
+      leftCode: string
+      rightTitle: string
+      rightCode: string
+      note?: string
+      equivalent?: boolean
+    }
+  | { type: 'steps'; items: Array<{ title: string; text: string }> }
+  | { type: 'cards'; items: Array<{ title: string; text: string; to?: string }> }
   | { type: 'position-board'; active: string; note?: string }
-  | { type: 'border-board'; macro: 'TBD' | 'RBD' | 'BBD' | 'LBD'; edge: 'top' | 'right' | 'bottom' | 'left'; note?: string }
+  | {
+      type: 'border-board'
+      macro: 'TBD' | 'RBD' | 'BBD' | 'LBD'
+      edge: 'top' | 'right' | 'bottom' | 'left'
+      note?: string
+    }
   | { type: 'edge-text-board'; note?: string }
   | { type: 'bracket-board'; note?: string }
 

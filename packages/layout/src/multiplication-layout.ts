@@ -16,7 +16,7 @@ import {
 
 interface NumberRowContent {
   digits: Map<number, string>
-  annotations: Map<number, { text: string, token: string, position: 'rightTop' | 'rightBottom' }[]>
+  annotations: Map<number, { text: string; token: string; position: 'rightTop' | 'rightBottom' }[]>
 }
 
 const createNumberRow = (): NumberRowContent => ({ digits: new Map(), annotations: new Map() })
@@ -54,24 +54,24 @@ const putAnnotation = (
   row.annotations.set(index, annotations)
 }
 
-const renderNumberCells = (row: NumberRowContent, count: number, token: string): string[] => (
+const renderNumberCells = (row: NumberRowContent, count: number, token: string): string[] =>
   Array.from({ length: count }, (_, index) => {
-    const annotations = (row.annotations.get(index) ?? []).map(({ text, token: annotationToken, position }) => (
-      position === 'rightTop'
-        ? macroRightTop(text, annotationToken)
-        : macroRightBottom(text, annotationToken)
-    ))
+    const annotations = (row.annotations.get(index) ?? []).map(({ text, token: annotationToken, position }) =>
+      position === 'rightTop' ? macroRightTop(text, annotationToken) : macroRightBottom(text, annotationToken),
+    )
     const digit = row.digits.get(index)
     return digit === undefined
-      ? annotations.length ? macroAnnotationCell(annotations.join(', ')) : macroEmptyCell()
+      ? annotations.length
+        ? macroAnnotationCell(annotations.join(', '))
+        : macroEmptyCell()
       : macroTextCell(digit, token, annotations)
   })
-)
 
 /** 逐位乘法与列加法总步数；播放控制和宏快照共用该定义。 */
 export const getMultiplicationStepCount = (computation: MultiplicationComputation): number => {
   const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
-  const significantMultiplierDigits = computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
+  const significantMultiplierDigits =
+    computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   return multiplicationStepCount + (significantMultiplierDigits.length > 1 ? computation.additionSteps.length : 0)
 }
 
@@ -84,8 +84,10 @@ export const createMultiplicationMacroSource = (
   settings: MultiplicationRenderSettings,
 ): string => {
   const isTrailingZeroShortcut = computation.trailingZeroShortcut !== null
-  const significantMultiplicandDigits = computation.trailingZeroShortcut?.significantMultiplicandDigits ?? computation.multiplicandDigits
-  const significantMultiplierDigits = computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
+  const significantMultiplicandDigits =
+    computation.trailingZeroShortcut?.significantMultiplicandDigits ?? computation.multiplicandDigits
+  const significantMultiplierDigits =
+    computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
   const totalStepCount = getMultiplicationStepCount(computation)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
@@ -93,9 +95,10 @@ export const createMultiplicationMacroSource = (
   const visibleAdditionStepCount = Math.max(0, visibleStepCount - multiplicationStepCount)
   const partialWidth = Math.max(...computation.partialProducts.map(({ value, shift }) => value.length + shift))
   const trailingZeroCount = computation.trailingZeroShortcut?.trailingZeroCount ?? 0
-  const baseProductDigits = isTrailingZeroShortcut && computation.productDigits !== '0'
-    ? computation.productDigits.slice(0, -trailingZeroCount)
-    : computation.productDigits
+  const baseProductDigits =
+    isTrailingZeroShortcut && computation.productDigits !== '0'
+      ? computation.productDigits.slice(0, -trailingZeroCount)
+      : computation.productDigits
   const baseNumberColumnCount = Math.max(
     significantMultiplicandDigits.length,
     significantMultiplierDigits.length,
@@ -136,12 +139,32 @@ export const createMultiplicationMacroSource = (
 
   if (isTrailingZeroShortcut && !isMultiDigitMultiplier) {
     const product = createNumberRow()
-    if (isComplete) putNumber(product, computation.productDigits, computation.productDigits === '0' ? baseRightmostNumberIndex : rightmostNumberIndex)
-    children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
-    children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
+    if (isComplete)
+      putNumber(
+        product,
+        computation.productDigits,
+        computation.productDigits === '0' ? baseRightmostNumberIndex : rightmostNumberIndex,
+      )
+    children.push(
+      macroRow([
+        macroEmptyCell(),
+        ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand'),
+      ]),
+    )
+    children.push(
+      macroRow([
+        macroTextCell('×', 'multiplication.operator'),
+        ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier'),
+      ]),
+    )
     children.push(macroLine('multiplication.input-bar'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
-    return macroGrid(numberColumnCount + 1, settings, `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的十倍数快捷竖式`, children)
+    return macroGrid(
+      numberColumnCount + 1,
+      settings,
+      `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的十倍数快捷竖式`,
+      children,
+    )
   }
 
   let remainingVisibleSteps = visibleMultiplicationStepCount
@@ -151,16 +174,21 @@ export const createMultiplicationMacroSource = (
     remainingVisibleSteps -= visibleDigitStepCount
     const row = createNumberRow()
     // slice(-0) 会被 JavaScript 解释为 slice(0)，必须显式保留空步骤。
-    const completedDigitSteps = visibleDigitStepCount === 0 ? [] : partialProduct.digitSteps.slice(-visibleDigitStepCount)
+    const completedDigitSteps =
+      visibleDigitStepCount === 0 ? [] : partialProduct.digitSteps.slice(-visibleDigitStepCount)
     const firstNonZeroIndex = completedDigitSteps.findIndex(({ resultDigit }) => resultDigit !== '0')
-    const displayedSteps = firstNonZeroIndex === -1 ? completedDigitSteps.slice(-1) : completedDigitSteps.slice(firstNonZeroIndex)
+    const displayedSteps =
+      firstNonZeroIndex === -1 ? completedDigitSteps.slice(-1) : completedDigitSteps.slice(firstNonZeroIndex)
     displayedSteps.forEach(({ multiplicandDigitIndex, resultDigit }) => {
       const columnFromRight = significantMultiplicandDigits.length - 1 - multiplicandDigitIndex
       row.digits.set(arithmeticRightmostNumberIndex - partialProduct.shift - columnFromRight, resultDigit)
     })
     const leadingStep = partialProduct.digitSteps[0]
     if (visibleDigitStepCount === partialProduct.digitSteps.length && leadingStep.carryOut > 0) {
-      row.digits.set(arithmeticRightmostNumberIndex - partialProduct.shift - significantMultiplicandDigits.length, String(leadingStep.carryOut))
+      row.digits.set(
+        arithmeticRightmostNumberIndex - partialProduct.shift - significantMultiplicandDigits.length,
+        String(leadingStep.carryOut),
+      )
     }
     if (settings.showCarrySteps && visibleDigitStepCount > 0) {
       completedDigitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {
@@ -169,14 +197,27 @@ export const createMultiplicationMacroSource = (
         const targetIndex = arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight
         // 第一条部分积紧跟乘法横线；进位改放在横线上方的乘数数字右下角。
         const anchorRow = partialProductIndex === 0 ? multiplier : row
-        putAnnotation(anchorRow, targetIndex, String(carryOut), 'multiplication.carry', partialProductIndex === 0 ? 'rightBottom' : 'rightTop')
+        putAnnotation(
+          anchorRow,
+          targetIndex,
+          String(carryOut),
+          'multiplication.carry',
+          partialProductIndex === 0 ? 'rightBottom' : 'rightTop',
+        )
       })
     }
     partialRows.push(row)
   })
 
-  children.push(macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]))
-  children.push(macroRow([macroTextCell('×', 'multiplication.operator'), ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier')]))
+  children.push(
+    macroRow([macroEmptyCell(), ...renderNumberCells(multiplicand, numberColumnCount, 'multiplication.multiplicand')]),
+  )
+  children.push(
+    macroRow([
+      macroTextCell('×', 'multiplication.operator'),
+      ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier'),
+    ]),
+  )
   children.push(macroLine('multiplication.input-bar'))
 
   if (isMultiDigitMultiplier) {
@@ -186,23 +227,43 @@ export const createMultiplicationMacroSource = (
         const targetColumnFromRight = step.columnFromRight + 1
         if (step.carryOut === 0 || targetColumnFromRight >= baseProductDigits.length) return
         // 最终积也紧跟求和横线，进位固定写在最后一条部分积的相应数字右下角。
-        putAnnotation(partialRows.at(-1)!, arithmeticRightmostNumberIndex - targetColumnFromRight, String(step.carryOut), 'multiplication.addition-carry', 'rightBottom')
+        putAnnotation(
+          partialRows.at(-1)!,
+          arithmeticRightmostNumberIndex - targetColumnFromRight,
+          String(step.carryOut),
+          'multiplication.addition-carry',
+          'rightBottom',
+        )
       })
     }
-    const visibleProduct = computation.additionSteps.slice(0, visibleAdditionStepCount).map(({ resultDigit }) => resultDigit).reverse().join('')
+    const visibleProduct = computation.additionSteps
+      .slice(0, visibleAdditionStepCount)
+      .map(({ resultDigit }) => resultDigit)
+      .reverse()
+      .join('')
     const productToDisplay = isComplete ? computation.productDigits : visibleProduct
-    putNumber(product, productToDisplay, isComplete && computation.productDigits !== '0' ? rightmostNumberIndex : arithmeticRightmostNumberIndex)
+    putNumber(
+      product,
+      productToDisplay,
+      isComplete && computation.productDigits !== '0' ? rightmostNumberIndex : arithmeticRightmostNumberIndex,
+    )
     // 求和进位已写入最后部分积后，才序列化该行，避免宏源码遗漏最新标记。
     partialRows.forEach((row) => {
       children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.partial-product')))
     })
-    if (visibleAdditionStepCount > 0) children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
+    if (visibleAdditionStepCount > 0)
+      children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
   } else {
     children.push(macroRow(renderNumberCells(partialRows[0], numberColumnCount, 'multiplication.product')))
   }
 
-  return macroGrid(numberColumnCount + 1, settings, `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的竖式`, children)
+  return macroGrid(
+    numberColumnCount + 1,
+    settings,
+    `${computation.multiplicandDigits} 乘以 ${computation.multiplierDigits} 的竖式`,
+    children,
+  )
 }
 
 /** @deprecated 使用宏源码编译；保留名称以兼容既有调用方。 */

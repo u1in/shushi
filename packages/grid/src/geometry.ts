@@ -65,18 +65,18 @@ const getCellRect = (position: Omit<GridCellPosition, 'kind'>, metrics: GridMetr
   const bottomRow = row + rowSpan
 
   if (
-    !Number.isInteger(column)
-    || !Number.isInteger(row)
-    || !Number.isInteger(columnSpan)
-    || !Number.isInteger(rowSpan)
-    || column < 0
-    || row < 0
-    || columnSpan <= 0
-    || rowSpan <= 0
-    || metrics.columnOffsets[column] === undefined
-    || metrics.rowOffsets[row] === undefined
-    || metrics.columnOffsets[rightColumn] === undefined
-    || metrics.rowOffsets[bottomRow] === undefined
+    !Number.isInteger(column) ||
+    !Number.isInteger(row) ||
+    !Number.isInteger(columnSpan) ||
+    !Number.isInteger(rowSpan) ||
+    column < 0 ||
+    row < 0 ||
+    columnSpan <= 0 ||
+    rowSpan <= 0 ||
+    metrics.columnOffsets[column] === undefined ||
+    metrics.rowOffsets[row] === undefined ||
+    metrics.columnOffsets[rightColumn] === undefined ||
+    metrics.rowOffsets[bottomRow] === undefined
   ) {
     throw new Error('网格单元区域超出轨道范围。')
   }
@@ -91,10 +91,10 @@ const getCellRect = (position: Omit<GridCellPosition, 'kind'>, metrics: GridMetr
 
 const getIntersectionRect = (columnLine: number, rowLine: number, metrics: GridMetrics): GridRect => {
   if (
-    !Number.isInteger(columnLine)
-    || !Number.isInteger(rowLine)
-    || metrics.columnOffsets[columnLine] === undefined
-    || metrics.rowOffsets[rowLine] === undefined
+    !Number.isInteger(columnLine) ||
+    !Number.isInteger(rowLine) ||
+    metrics.columnOffsets[columnLine] === undefined ||
+    metrics.rowOffsets[rowLine] === undefined
   ) {
     throw new Error('网格交点超出轨道范围。')
   }
@@ -110,17 +110,17 @@ export const getGridPositionRect = (position: GridPosition, metrics: GridMetrics
   const isHorizontal = position.edge === 'top' || position.edge === 'bottom'
   const edgeRect = isHorizontal
     ? {
-      left: cellRect.left,
-      top: position.edge === 'top' ? cellRect.top : cellRect.top + cellRect.height,
-      width: cellRect.width,
-      height: 0,
-    }
+        left: cellRect.left,
+        top: position.edge === 'top' ? cellRect.top : cellRect.top + cellRect.height,
+        width: cellRect.width,
+        height: 0,
+      }
     : {
-      left: position.edge === 'left' ? cellRect.left : cellRect.left + cellRect.width,
-      top: cellRect.top,
-      width: 0,
-      height: cellRect.height,
-    }
+        left: position.edge === 'left' ? cellRect.left : cellRect.left + cellRect.width,
+        top: cellRect.top,
+        width: 0,
+        height: cellRect.height,
+      }
 
   if (position.kind === 'edge') return edgeRect
   return {
@@ -132,9 +132,8 @@ export const getGridPositionRect = (position: GridPosition, metrics: GridMetrics
 }
 
 /** Resolves the rectangle associated with a drawable element's declared position. */
-export const getGridElementRect = (element: GridElement, metrics: GridMetrics): GridRect => (
+export const getGridElementRect = (element: GridElement, metrics: GridMetrics): GridRect =>
   getGridPositionRect(element.position, metrics)
-)
 
 /**
  * Converts an area, edge, midpoint or intersection rect and its resolved
@@ -146,12 +145,18 @@ export const getGridTextAnchor = (
   horizontalAlign: GridTextHorizontalAlign,
   verticalAlign: GridTextVerticalAlign,
 ): GridTextAnchor => ({
-  x: horizontalAlign === 'left'
-    ? rect.left
-    : horizontalAlign === 'right' ? rect.left + rect.width : rect.left + rect.width / 2,
-  y: verticalAlign === 'top'
-    ? rect.top
-    : verticalAlign === 'bottom' ? rect.top + rect.height : rect.top + rect.height / 2,
+  x:
+    horizontalAlign === 'left'
+      ? rect.left
+      : horizontalAlign === 'right'
+        ? rect.left + rect.width
+        : rect.left + rect.width / 2,
+  y:
+    verticalAlign === 'top'
+      ? rect.top
+      : verticalAlign === 'bottom'
+        ? rect.top + rect.height
+        : rect.top + rect.height / 2,
   horizontalAlign,
   verticalAlign,
 })

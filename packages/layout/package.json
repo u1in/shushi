@@ -7,9 +7,17 @@
     "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/layout"
   },
-  "bugs": { "url": "https://github.com/u1in/shushi/issues/new" },
+  "bugs": {
+    "url": "https://github.com/u1in/shushi/issues/new"
+  },
   "homepage": "https://github.com/u1in/shushi/tree/main/packages/layout#readme",
-  "keywords": ["vertical-arithmetic", "layout-engine", "long-division", "long-multiplication", "grid"],
+  "keywords": [
+    "vertical-arithmetic",
+    "layout-engine",
+    "long-division",
+    "long-multiplication",
+    "grid"
+  ],
   "version": "0.1.0",
   "private": true,
   "type": "module",

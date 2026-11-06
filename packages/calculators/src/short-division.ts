@@ -21,9 +21,8 @@ const parseDecimal = (value: unknown, label: string): string => {
   return trimLeadingZeros(raw)
 }
 
-const compareDecimal = (left: string, right: string): number => (
+const compareDecimal = (left: string, right: string): number =>
   left.length === right.length ? (left === right ? 0 : left > right ? 1 : -1) : left.length > right.length ? 1 : -1
-)
 
 const parsePositiveSafeInteger = (value: unknown, label: string): number => {
   const digits = parseDecimal(value, label)
@@ -87,7 +86,7 @@ const powerDecimal = (base: string, exponent: number): string => {
 }
 
 /** 用小学长除法计算“超长十进制数 ÷ 小进制数”。 */
-const divideDecimalByBase = (digits: string, base: number): { quotient: string, remainder: number } => {
+const divideDecimalByBase = (digits: string, base: number): { quotient: string; remainder: number } => {
   let remainder = 0
   let quotient = ''
   for (const digit of digits) {
@@ -107,7 +106,9 @@ const createDivision = (value: unknown, divisorValue: unknown): DivisionShortDiv
   return {
     mode: 'division',
     inputValues: [dividend],
-    steps: [{ divisor: String(divisor), dividends: [dividend], quotients: [quotient], remainders: [String(remainder)] }],
+    steps: [
+      { divisor: String(divisor), dividends: [dividend], quotients: [quotient], remainders: [String(remainder)] },
+    ],
     finalValues: [quotient],
     divisor: String(divisor),
     quotient,
@@ -125,20 +126,39 @@ const createFactorization = (value: unknown): FactorizationShortDivisionComputat
     const divisor = findSmallestPrimeDivisor(current)
     const quotient = current / divisor
     divisors.push(String(divisor))
-    steps.push({ divisor: String(divisor), dividends: [String(current)], quotients: [String(quotient)], remainders: ['0'] })
+    steps.push({
+      divisor: String(divisor),
+      dividends: [String(current)],
+      quotients: [String(quotient)],
+      remainders: ['0'],
+    })
     current = quotient
   }
   const primeFactors = [...divisors, ...(current > 1 ? [String(current)] : [])]
   const exponents = new Map<string, number>()
   primeFactors.forEach((factor) => exponents.set(factor, (exponents.get(factor) ?? 0) + 1))
-  const factorizationText = [...exponents.entries()].map(([factor, exponent]) => exponent === 1 ? factor : `${factor}^${exponent}`).join(' × ') || '1'
+  const factorizationText =
+    [...exponents.entries()]
+      .map(([factor, exponent]) => (exponent === 1 ? factor : `${factor}^${exponent}`))
+      .join(' × ') || '1'
   const divisorCount = [...exponents.values()].reduce((total, exponent) => total * (exponent + 1), 1)
   const divisorSum = [...exponents.entries()].reduce((total, [factor, exponent]) => {
     let geometricSum = '0'
-    for (let index = 0; index <= exponent; index += 1) geometricSum = addDecimal(geometricSum, powerDecimal(factor, index))
+    for (let index = 0; index <= exponent; index += 1)
+      geometricSum = addDecimal(geometricSum, powerDecimal(factor, index))
     return multiplyDecimal(total, geometricSum)
   }, '1')
-  return { mode: 'factorization', inputValues: [String(input)], steps, finalValues: [String(current)], divisors, primeFactors, factorizationText, divisorCount, divisorSum }
+  return {
+    mode: 'factorization',
+    inputValues: [String(input)],
+    steps,
+    finalValues: [String(current)],
+    divisors,
+    primeFactors,
+    factorizationText,
+    divisorCount,
+    divisorSum,
+  }
 }
 
 const createCommonFactor = (values: unknown[]): CommonFactorShortDivisionComputation => {
@@ -159,18 +179,32 @@ const createCommonFactor = (values: unknown[]): CommonFactorShortDivisionComputa
     if (divisor === 0) break
     const quotients = currentValues.map((value) => value / divisor)
     divisors.push(String(divisor))
-    steps.push({ divisor: String(divisor), dividends: currentValues.map(String), quotients: quotients.map(String), remainders: currentValues.map(() => '0') })
+    steps.push({
+      divisor: String(divisor),
+      dividends: currentValues.map(String),
+      quotients: quotients.map(String),
+      remainders: currentValues.map(() => '0'),
+    })
     currentValues.splice(0, currentValues.length, ...quotients)
   }
   const gcd = divisors.reduce(multiplyDecimal, '1')
   const lcm = [...divisors, ...currentValues.map(String)].reduce(multiplyDecimal, '1')
-  return { mode: 'commonFactor', inputValues: initialValues.map(String), steps, finalValues: currentValues.map(String), divisors, gcd, lcm }
+  return {
+    mode: 'commonFactor',
+    inputValues: initialValues.map(String),
+    steps,
+    finalValues: currentValues.map(String),
+    divisors,
+    gcd,
+    lcm,
+  }
 }
 
 const createBaseConversion = (value: unknown, targetBaseValue: unknown): BaseConversionShortDivisionComputation => {
   const input = parseDecimal(value, '待转换数')
   const targetBase = Number(targetBaseValue)
-  if (!Number.isInteger(targetBase) || targetBase < 2 || targetBase > 36) throw new Error('目标进制必须是 2 到 36 的整数。')
+  if (!Number.isInteger(targetBase) || targetBase < 2 || targetBase > 36)
+    throw new Error('目标进制必须是 2 到 36 的整数。')
   const steps: ShortDivisionStep[] = []
   const remainders: string[] = []
   let current = input
@@ -178,16 +212,34 @@ const createBaseConversion = (value: unknown, targetBaseValue: unknown): BaseCon
   while (current !== '0') {
     const { quotient, remainder } = divideDecimalByBase(current, targetBase)
     const remainderToken = remainder.toString(36).toUpperCase()
-    steps.push({ divisor: String(targetBase), dividends: [current], quotients: [quotient], remainders: [remainderToken] })
+    steps.push({
+      divisor: String(targetBase),
+      dividends: [current],
+      quotients: [quotient],
+      remainders: [remainderToken],
+    })
     remainders.push(remainderToken)
     current = quotient
   }
   const remaindersBottomUp = [...remainders].reverse()
-  return { mode: 'baseConversion', inputValues: [input], steps, finalValues: ['0'], targetBase, remaindersBottomUp, convertedText: remaindersBottomUp.join('') || '0' }
+  return {
+    mode: 'baseConversion',
+    inputValues: [input],
+    steps,
+    finalValues: ['0'],
+    targetBase,
+    remaindersBottomUp,
+    convertedText: remaindersBottomUp.join('') || '0',
+  }
 }
 
 /** 根据用途选择终止条件和记录内容，输出完全不含像素或 DOM 信息的短除法过程。 */
-export const computeShortDivision = ({ mode, values, divisor, targetBase = 2 }: ShortDivisionInput): ShortDivisionComputation => {
+export const computeShortDivision = ({
+  mode,
+  values,
+  divisor,
+  targetBase = 2,
+}: ShortDivisionInput): ShortDivisionComputation => {
   if (!Array.isArray(values)) throw new Error('短除法输入必须提供数值数组。')
   if (mode === 'division') return createDivision(values[0], divisor)
   if (mode === 'factorization') return createFactorization(values[0])

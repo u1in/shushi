@@ -13,18 +13,20 @@ interface TextSegment {
   value: string
 }
 
-const segments = computed<TextSegment[]>(() => props.text
-  .split(/(\*\*[^*]+\*\*|`[^`]*`)/g)
-  .filter((part) => part.length > 0)
-  .map((part) => {
-    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-      return { code: false, bold: true, value: part.slice(2, -2) }
-    }
-    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
-      return { code: true, bold: false, value: part.slice(1, -1) }
-    }
-    return { code: false, bold: false, value: part }
-  }))
+const segments = computed<TextSegment[]>(() =>
+  props.text
+    .split(/(\*\*[^*]+\*\*|`[^`]*`)/g)
+    .filter((part) => part.length > 0)
+    .map((part) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        return { code: false, bold: true, value: part.slice(2, -2) }
+      }
+      if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+        return { code: true, bold: false, value: part.slice(1, -1) }
+      }
+      return { code: false, bold: false, value: part }
+    }),
+)
 </script>
 
 <template>

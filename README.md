@@ -62,9 +62,7 @@ npx skills add https://github.com/u1in/shushi/tree/main/skills/u1in-shushi -a co
 通常只需要调用一个门户 API，就能把 `356 + 278` 计算、生成可编辑宏源码并显示为 DOM 竖式：
 
 ```ts
-import {
-  shushi,
-} from '@u1in/shushi-core'
+import { shushi } from '@u1in/shushi-core'
 import '@u1in/shushi-core/renderer.css'
 
 const host = document.querySelector('#result')
@@ -121,18 +119,18 @@ $u1in-shushi 请开始交互式竖式实现。
 
 ## 选择合适的 API
 
-| 需求 | 推荐链路 |
-| --- | --- |
-| 根据算式直接得到过程、可编辑宏和场景 | `shushi('356 + 278', option)` |
-| 以结构化请求精确控制全部模式 | `shushiCore({ operation, ... })` |
-| 只计算答案和过程 | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
-| 根据数值生成标准竖式 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString` |
-| 让用户继续编辑竖式 | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro` |
-| 逐步展示计算过程 | 使用布局 API 的 `visibleStepCount`，每次生成新的宏源码和 `GridScene` |
-| 按书写顺序组合加、减、乘 | `computeCompositeArithmetic` → `createCompositeArithmeticMacroSource` → `compileMacro` |
-| 用户已经提供宏源码 | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro` |
-| 做 OCR、文本比对或无障碍摘要 | `compileMacro` → `extractVisibleTextRows` |
-| 测量网格或图元 | `resolveGridMetrics`、`getGridPositionRect`、`getGridElementRect` |
+| 需求                                 | 推荐链路                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 根据算式直接得到过程、可编辑宏和场景 | `shushi('356 + 278', option)`                                                                                                               |
+| 以结构化请求精确控制全部模式         | `shushiCore({ operation, ... })`                                                                                                            |
+| 只计算答案和过程                     | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
+| 根据数值生成标准竖式                 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString`                                  |
+| 让用户继续编辑竖式                   | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro`                                                                         |
+| 逐步展示计算过程                     | 使用布局 API 的 `visibleStepCount`，每次生成新的宏源码和 `GridScene`                                                                        |
+| 按书写顺序组合加、减、乘             | `computeCompositeArithmetic` → `createCompositeArithmeticMacroSource` → `compileMacro`                                                      |
+| 用户已经提供宏源码                   | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro`                                                                  |
+| 做 OCR、文本比对或无障碍摘要         | `compileMacro` → `extractVisibleTextRows`                                                                                                   |
+| 测量网格或图元                       | `resolveGridMetrics`、`getGridPositionRect`、`getGridElementRect`                                                                           |
 
 支持的运算包括：
 
@@ -239,11 +237,7 @@ flowchart TB
 ### 切换 DOM 与 SVG
 
 ```ts
-import {
-  compileMacro,
-  renderDomGrid,
-  renderSvgGrid,
-} from '@u1in/shushi-core'
+import { compileMacro, renderDomGrid, renderSvgGrid } from '@u1in/shushi-core'
 import '@u1in/shushi-core/renderer.css'
 
 const source = '3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;'
@@ -301,6 +295,9 @@ const computation = computeAddition('12345678901234567890', '10')
 提交代码前，请确保计算规则、宏语法、布局契约或渲染行为的变更同步更新对应文档与测试，并运行：
 
 ```bash
+npm run format
+npm run lint
+npm run quality:check
 npm run typecheck
 npm run test
 npm run build

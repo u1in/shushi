@@ -42,7 +42,9 @@ const copyMacro = async (): Promise<void> => {
   }, 1600)
 }
 
-const label = computed(() => copyState.value === 'copied' ? '已复制宏命令' : copyState.value === 'error' ? '复制失败，请重试' : '复制宏命令')
+const label = computed(() =>
+  copyState.value === 'copied' ? '已复制宏命令' : copyState.value === 'error' ? '复制失败，请重试' : '复制宏命令',
+)
 
 onBeforeUnmount(() => {
   if (resetTimer) clearTimeout(resetTimer)
@@ -50,5 +52,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <button class="primary-button step-playback__button copy-macro-button" type="button" :aria-label="label" @click="copyMacro">{{ label }}</button>
+  <button
+    class="primary-button step-playback__button copy-macro-button"
+    type="button"
+    :aria-label="label"
+    @click="copyMacro"
+  >
+    {{ label }}
+  </button>
 </template>

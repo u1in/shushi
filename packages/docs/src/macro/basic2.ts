@@ -8,7 +8,8 @@ export const basicPagesPartTwo: MacroDocPage[] = [
     navLabel: 'LINE / LN',
     kicker: 'BASE MACRO · 05',
     group: 'basic',
-    summary: 'LINE 在上一行数字的下边缘画横线。它不创建新行，不改变行高，是竖式中的运算线和分隔线。别名 LN，可省略空括号。',
+    summary:
+      'LINE 在上一行数字的下边缘画横线。它不创建新行，不改变行高，是竖式中的运算线和分隔线。别名 LN，可省略空括号。',
     sections: [
       {
         id: 'purpose',
@@ -43,8 +44,18 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             columns: ['项', '类型', '默认值', '说明'],
             rows: [
               ['`STYLE(...)`', '受限样式', '黑色 2px', '颜色与线宽；最多一个。自动配色开启时会被主题覆盖。'],
-              ['`KV(span, ...)`', '`previous`、`longest` 或 `full`', '继承 `GRID(lineSpan)`', '仅在当前横线需要覆盖根节点共同跨度时设置；横线跨度可取上一行、所有行最小包围范围或整个已解析列宽。'],
-              ['`KV(style, token)`', '语义样式 token', '未设置', '交给渲染器主题控制颜色；与 `STYLE` 同时出现时 token 仍会保留。'],
+              [
+                '`KV(span, ...)`',
+                '`previous`、`longest` 或 `full`',
+                '继承 `GRID(lineSpan)`',
+                '仅在当前横线需要覆盖根节点共同跨度时设置；横线跨度可取上一行、所有行最小包围范围或整个已解析列宽。',
+              ],
+              [
+                '`KV(style, token)`',
+                '语义样式 token',
+                '未设置',
+                '交给渲染器主题控制颜色；与 `STYLE` 同时出现时 token 仍会保留。',
+              ],
             ],
           },
         ],
@@ -57,7 +68,12 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             type: 'table',
             columns: ['span', '起点', '终点', '典型用途'],
             rows: [
-              ['`previous`', '上一行最左单元格', '上一行最右单元格右边界', '只在当前运算行下方画线，不强制与其他横线等宽。'],
+              [
+                '`previous`',
+                '上一行最左单元格',
+                '上一行最右单元格右边界',
+                '只在当前运算行下方画线，不强制与其他横线等宽。',
+              ],
               ['`longest`', '所有数字行的最左列', '所有数字行的最右边界', '让多条横线在视觉上尽量等宽。'],
               ['`full`', '第 0 列', '整个场景列宽', '需要贯穿整张网格的运算线。'],
             ],
@@ -106,7 +122,11 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
               ['`LINE 前必须先有一个 ROW。`', '把 LINE 放在第一条 ROW 之前。', '把 LINE 移到需要画线的 ROW 之后。'],
-              ['`LINE 最多接受一个 STYLE 参数，其余请用 KV 配置。`', '传了两个 STYLE 或其他图元。', '只保留一个 STYLE，其他用 `KV`。'],
+              [
+                '`LINE 最多接受一个 STYLE 参数，其余请用 KV 配置。`',
+                '传了两个 STYLE 或其他图元。',
+                '只保留一个 STYLE，其他用 `KV`。',
+              ],
               ['`LINE 的 span 只能是 previous、longest 或 full。`', '写了其他跨度值。', '改成三个枚举值之一。'],
               ['`LINE 找不到可确定跨度的数字行。`', '场景里没有数字行。', '至少加入一个 ROW。'],
             ],
@@ -149,7 +169,8 @@ export const basicPagesPartTwo: MacroDocPage[] = [
     navLabel: 'DIV',
     kicker: 'BASE MACRO · 06',
     group: 'basic',
-    summary: 'DIV 是短除法结构宏。它把所在 ROW 分成左侧除数格与右侧 VALUE 数值组，并让整个 GRID 自动切换到短除法半格模式。',
+    summary:
+      'DIV 是短除法结构宏。它把所在 ROW 分成左侧除数格与右侧 VALUE 数值组，并让整个 GRID 自动切换到短除法半格模式。',
     sections: [
       {
         id: 'purpose',
@@ -203,7 +224,10 @@ export const basicPagesPartTwo: MacroDocPage[] = [
           {
             type: 'steps',
             items: [
-              { title: '切换半格轨道', text: '只要任意 ROW 含 DIV，GRID 就自动使用 0.5u 的真实轨道；显式 `KV(trackUnit, full)` 也会被覆盖。' },
+              {
+                title: '切换半格轨道',
+                text: '只要任意 ROW 含 DIV，GRID 就自动使用 0.5u 的真实轨道；显式 `KV(trackUnit, full)` 也会被覆盖。',
+              },
               { title: '固定数值组右边界', text: '编译器读取所有行，按每个 VALUE 组的最大位数固定各组的右边界。' },
               { title: '从下向上补阶梯', text: '较上方的过程行会按位宽差向左偏移 0.5u 的整数倍，形成短除法阶梯。' },
               { title: '生成本行线条', text: 'DIV 输出右侧首组左边界上的竖线，以及从该边界到数值区右端的本行横线。' },
@@ -253,12 +277,32 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
               ['`短除法 ROW 最多只能包含一个 DIV。`', '一行写了两个分界。', '每个过程行只保留一个 DIV。'],
-              ['`短除法 DIV 左侧必须恰有一个除数单元格。`', '左侧为空或写了两个单元格。', '把除数合并成一个 CELL，或删除多余项。'],
+              [
+                '`短除法 DIV 左侧必须恰有一个除数单元格。`',
+                '左侧为空或写了两个单元格。',
+                '把除数合并成一个 CELL，或删除多余项。',
+              ],
               ['`短除法 DIV 右侧至少需要一个 VALUE。`', 'DIV 后没有数值组。', '补上 `VALUE(...)`。'],
-              ['`短除法每行 VALUE 数值组数量必须一致。`', '有的行一个组，有的行两个组。', '所有过程行与底行使用相同组数。'],
-              ['`短除法最后一行必须是不含 DIV 的 VALUE 底行。`', '最后一行仍是过程行。', '在末尾补一行只含 VALUE 的底行。'],
-              ['`包含 DIV 的 GRID 只能包含 ROW 与 KV。`', '混入了 LINE、CELL 或其他结构。', '删除 LINE，把单元格包回 ROW。'],
-              ['`包含 DIV 的短除法 ROW 不支持 KV 配置。`', '在过程行上写了 `KV(align, ...)`。', '删除该行配置，对齐由短除法规则决定。'],
+              [
+                '`短除法每行 VALUE 数值组数量必须一致。`',
+                '有的行一个组，有的行两个组。',
+                '所有过程行与底行使用相同组数。',
+              ],
+              [
+                '`短除法最后一行必须是不含 DIV 的 VALUE 底行。`',
+                '最后一行仍是过程行。',
+                '在末尾补一行只含 VALUE 的底行。',
+              ],
+              [
+                '`包含 DIV 的 GRID 只能包含 ROW 与 KV。`',
+                '混入了 LINE、CELL 或其他结构。',
+                '删除 LINE，把单元格包回 ROW。',
+              ],
+              [
+                '`包含 DIV 的短除法 ROW 不支持 KV 配置。`',
+                '在过程行上写了 `KV(align, ...)`。',
+                '删除该行配置，对齐由短除法规则决定。',
+              ],
             ],
           },
         ],
@@ -272,7 +316,8 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             title: '补成公因数短除法',
             task: '把单输入短除法改成同时分解 60 与 84，让每一行右侧有两个数值组。',
             starter: '2,DIV,VALUE(60);\n2,DIV,VALUE(30);\n3,DIV,VALUE(15);\nVALUE(5);',
-            answer: '2,DIV,VALUE(60),VALUE(84);\n2,DIV,VALUE(30),VALUE(42);\n3,DIV,VALUE(15),VALUE(21);\nVALUE(5),VALUE(7);',
+            answer:
+              '2,DIV,VALUE(60),VALUE(84);\n2,DIV,VALUE(30),VALUE(42);\n3,DIV,VALUE(15),VALUE(21);\nVALUE(5),VALUE(7);',
             hint: '每个过程行都要同时给出两个 VALUE；底行也必须是两个 VALUE。',
           },
         ],
@@ -299,7 +344,8 @@ export const basicPagesPartTwo: MacroDocPage[] = [
     navLabel: 'VALUE',
     kicker: 'BASE MACRO · 07',
     group: 'basic',
-    summary: 'VALUE 是短除法右侧或底行的一个数值组。它把数字逐位展开为数字格，让编译器可以按组计算共同右边界与阶梯偏移，并可携带语义样式。',
+    summary:
+      'VALUE 是短除法右侧或底行的一个数值组。它把数字逐位展开为数字格，让编译器可以按组计算共同右边界与阶梯偏移，并可携带语义样式。',
     sections: [
       {
         id: 'purpose',
@@ -332,9 +378,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
           {
             type: 'table',
             columns: ['参数', '类型', '必填', '说明'],
-            rows: [
-              ['`number`', '文本或数字', '是', '按字符逐位展开；`VALUE(60)` 会生成两个数字格。'],
-            ],
+            rows: [['`number`', '文本或数字', '是', '按字符逐位展开；`VALUE(60)` 会生成两个数字格。']],
           },
           {
             type: 'paragraph',
@@ -390,8 +434,16 @@ export const basicPagesPartTwo: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`短除法 DIV 右侧和底行只能包含 VALUE(...)。`', '在 DIV 右侧写了 `MM` 或裸数字。', '改成 `VALUE(...)`。'],
-              ['`VALUE 必须且只能包含一个数值文本；只支持 KV(style, token)。`', '传了多个文本或使用了 style 以外的配置。', '写 `VALUE(60)`，或写 `VALUE(60, KV(style, short-division.final))`。'],
+              [
+                '`短除法 DIV 右侧和底行只能包含 VALUE(...)。`',
+                '在 DIV 右侧写了 `MM` 或裸数字。',
+                '改成 `VALUE(...)`。',
+              ],
+              [
+                '`VALUE 必须且只能包含一个数值文本；只支持 KV(style, token)。`',
+                '传了多个文本或使用了 style 以外的配置。',
+                '写 `VALUE(60)`，或写 `VALUE(60, KV(style, short-division.final))`。',
+              ],
               ['`VALUE 不能为空。`', '写了 `VALUE()` 或空字符串。', '补一个数值。'],
               ['`短除法每行 VALUE 数值组数量必须一致。`', '有的行组数不同。', '让所有行使用相同数量的 VALUE。'],
             ],

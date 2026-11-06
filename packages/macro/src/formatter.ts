@@ -18,9 +18,10 @@ interface GridMinifyContext {
 }
 
 /** 只有遇到语法分隔符时才需要为裸文本补上引号，避免格式化改变宏参数语义。 */
-const serializeLiteral = (value: string): string => (
-  value !== '' && !/[\s,()"\\]/u.test(value) && !value.includes('[') && !value.includes(']') ? value : JSON.stringify(value)
-)
+const serializeLiteral = (value: string): string =>
+  value !== '' && !/[\s,()"\\]/u.test(value) && !value.includes('[') && !value.includes(']')
+    ? value
+    : JSON.stringify(value)
 
 /** 仅在省略 MM 后仍会被解析为文字的场景压缩；例如 MM(LINE) 不能缩为 LINE。 */
 const getElidableMiddleText = (node: MacroNode): string | undefined => {
@@ -33,18 +34,24 @@ const getElidableMiddleText = (node: MacroNode): string | undefined => {
 
 const serializeCellArgument = (node: MacroNode, index: number, usesCellShorthand: boolean): string => {
   const elidedText = index === 0 ? getElidableMiddleText(node) : undefined
-  return elidedText ?? serializeNode(node, {
-    usesCellShorthand,
-    useShortestNames: true,
-    omitZeroArgumentParentheses: true,
-  })
+  return (
+    elidedText ??
+    serializeNode(node, {
+      usesCellShorthand,
+      useShortestNames: true,
+      omitZeroArgumentParentheses: true,
+    })
+  )
 }
 
 /** 方括号首项可承载文字或完整图元宏；纯进位单元格可由 CELL(RB(1)) 缩为 [RB(1)]。 */
 const canUseCellShorthand = (node: MacroCall): boolean => {
   const [firstArgument] = node.arguments
   if (firstArgument?.kind === 'literal' || firstArgument?.kind === 'call') return true
-  return firstArgument?.kind === 'symbol' && ['DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'].includes(firstArgument.name)
+  return (
+    firstArgument?.kind === 'symbol' &&
+    ['DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD'].includes(firstArgument.name)
+  )
 }
 
 /** 读取简单 KV 的键值；复杂表达式不参与自动省略，避免压缩器误判。 */
@@ -66,10 +73,9 @@ const isMacroCall = (node: MacroNode, name: string): node is MacroCall => node.k
 const CELL_ELIDABLE_CALLS = new Set(['LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL', 'MTD', 'BRACKET'])
 const CELL_ELIDABLE_SYMBOLS = new Set(['DOT', 'MTD', 'BRACKET'])
 
-const canElideSingletonCell = (node: MacroNode): boolean => (
-  node.kind === 'call' && CELL_ELIDABLE_CALLS.has(node.name)
-  || node.kind === 'symbol' && CELL_ELIDABLE_SYMBOLS.has(node.name)
-)
+const canElideSingletonCell = (node: MacroNode): boolean =>
+  (node.kind === 'call' && CELL_ELIDABLE_CALLS.has(node.name)) ||
+  (node.kind === 'symbol' && CELL_ELIDABLE_SYMBOLS.has(node.name))
 
 /** EMPTY 只占列、不产生可见图元；CELL 也可能只携带 columnSpan 等配置。 */
 const isEmptyCell = (node: MacroNode): boolean => {
@@ -98,45 +104,52 @@ const trimLeadingEmptyCells = (node: MacroCall): MacroCall => {
   }
 }
 
-const getOptionValue = (nodes: MacroNode[], key: string): string | undefined => (
+const getOptionValue = (nodes: MacroNode[], key: string): string | undefined =>
   nodes.map(readMacroKv).find((option) => option?.key === key)?.value
-)
 
-const isPositiveInteger = (value: string | undefined): value is string => value !== undefined && /^[1-9]\d*$/u.test(value)
+const isPositiveInteger = (value: string | undefined): value is string =>
+  value !== undefined && /^[1-9]\d*$/u.test(value)
 
-const isPositiveNumber = (value: string | undefined): value is string => value !== undefined && Number.isFinite(Number(value)) && Number(value) > 0
+const isPositiveNumber = (value: string | undefined): value is string =>
+  value !== undefined && Number.isFinite(Number(value)) && Number(value) > 0
 
 /** 计算当前 GRID 的最长行，供最简式判断 columns 是否已经可以由结构推导。 */
 const inferGridColumns = (nodes: MacroNode[], trackUnit: 'full' | 'half'): number | undefined => {
-  const rowWidths = nodes.filter((node): node is MacroCall => isMacroCall(node, 'ROW')).map((row) => row.arguments
-    .filter((child) => readMacroKv(child) === undefined)
-    .reduce((width, child) => {
-      const cellCall = isMacroCall(child, 'CELL') || isMacroCall(child, 'EMPTY') ? child : undefined
-      const defaultSpan = trackUnit === 'half' ? 2 : 1
-      const span = getOptionValue(cellCall?.arguments ?? [], 'columnSpan')
-      if (isMacroCall(child, 'BRACKET') || child.kind === 'symbol' && child.name === 'BRACKET') return width + 1
-      return width + (isPositiveInteger(span) ? Number(span) : defaultSpan)
-    }, 0))
+  const rowWidths = nodes
+    .filter((node): node is MacroCall => isMacroCall(node, 'ROW'))
+    .map((row) =>
+      row.arguments
+        .filter((child) => readMacroKv(child) === undefined)
+        .reduce((width, child) => {
+          const cellCall = isMacroCall(child, 'CELL') || isMacroCall(child, 'EMPTY') ? child : undefined
+          const defaultSpan = trackUnit === 'half' ? 2 : 1
+          const span = getOptionValue(cellCall?.arguments ?? [], 'columnSpan')
+          if (isMacroCall(child, 'BRACKET') || (child.kind === 'symbol' && child.name === 'BRACKET')) return width + 1
+          return width + (isPositiveInteger(span) ? Number(span) : defaultSpan)
+        }, 0),
+    )
   return rowWidths.length > 0 ? Math.max(...rowWidths) : undefined
 }
 
-const hasDividerRow = (nodes: MacroNode[]): boolean => nodes.some((node) => (
-  isMacroCall(node, 'ROW') && node.arguments.some((child) => (
-    isMacroCall(child, 'DIV') || child.kind === 'symbol' && child.name === 'DIV'
-  ))
-))
+const hasDividerRow = (nodes: MacroNode[]): boolean =>
+  nodes.some(
+    (node) =>
+      isMacroCall(node, 'ROW') &&
+      node.arguments.some((child) => isMacroCall(child, 'DIV') || (child.kind === 'symbol' && child.name === 'DIV')),
+  )
 
 /** 删除宿主宏已定义的默认配置，同时保留所有非默认的视觉与布局配置。 */
 const filterDefaultOptions = (
   nodes: MacroNode[],
   defaults: Readonly<Record<string, string>>,
   extraFilter?: (option: MacroKv) => boolean,
-): MacroNode[] => nodes.filter((node) => {
-  const option = readMacroKv(node)
-  if (!option) return true
-  if (extraFilter?.(option)) return false
-  return defaults[option.key] !== option.value
-})
+): MacroNode[] =>
+  nodes.filter((node) => {
+    const option = readMacroKv(node)
+    if (!option) return true
+    if (extraFilter?.(option)) return false
+    return defaults[option.key] !== option.value
+  })
 
 const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode => {
   if (node.kind !== 'call') return node
@@ -144,17 +157,25 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
   if (node.name === 'ROW') {
     return trimLeadingEmptyCells({
       ...node,
-      arguments: filterDefaultOptions(node.arguments, { align: 'right' }).map((child) => pruneMinifyNode(child, context)),
+      arguments: filterDefaultOptions(node.arguments, { align: 'right' }).map((child) =>
+        pruneMinifyNode(child, context),
+      ),
     })
   }
   // 横线的共同跨度需要在 GRID 层归并，不能在这里按旧的 previous 默认值提前删除。
-  if (node.name === 'LINE') return { ...node, arguments: node.arguments.map((child) => pruneMinifyNode(child, context)) }
+  if (node.name === 'LINE')
+    return { ...node, arguments: node.arguments.map((child) => pruneMinifyNode(child, context)) }
   if (node.name === 'CELL' || node.name === 'EMPTY') {
-    const hasBracket = node.arguments.some((child) => isMacroCall(child, 'BRACKET') || child.kind === 'symbol' && child.name === 'BRACKET')
+    const hasBracket = node.arguments.some(
+      (child) => isMacroCall(child, 'BRACKET') || (child.kind === 'symbol' && child.name === 'BRACKET'),
+    )
     const defaultSpan = hasBracket || context.hasDivider ? 1 : context.trackUnit === 'half' ? 2 : 1
-    const argumentsList = filterDefaultOptions(node.arguments, { columnSpan: String(defaultSpan) }).map((child) => pruneMinifyNode(child, context))
+    const argumentsList = filterDefaultOptions(node.arguments, { columnSpan: String(defaultSpan) }).map((child) =>
+      pruneMinifyNode(child, context),
+    )
     // CELL 只包裹一个本可直接放进 ROW 的图元时不提供额外语义；例如 [1] → 1、[RB(1)] → RB(1)。
-    if (node.name === 'CELL' && argumentsList.length === 1 && canElideSingletonCell(argumentsList[0])) return argumentsList[0]
+    if (node.name === 'CELL' && argumentsList.length === 1 && canElideSingletonCell(argumentsList[0]))
+      return argumentsList[0]
     return {
       ...node,
       arguments: argumentsList,
@@ -163,7 +184,9 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
   if (node.name === 'STYLE') {
     return {
       ...node,
-      arguments: filterDefaultOptions(node.arguments, { thickness: '2' }).map((child) => pruneMinifyNode(child, context)),
+      arguments: filterDefaultOptions(node.arguments, { thickness: '2' }).map((child) =>
+        pruneMinifyNode(child, context),
+      ),
     }
   }
   return {
@@ -191,19 +214,36 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
     trackUnit: 'full',
     ariaLabel: defaultAriaLabel,
   }
-  const filteredOptions = root.arguments.filter((node) => {
-    const option = readMacroKv(node)
-    if (!option) return false
-    // lineSpan 在过滤完所有 LINE 后统一决定，避免根配置与行级配置重复。
-    if (option.key === 'lineSpan') return false
-    if (option.key === 'columns' && (hasDivider || isPositiveInteger(option.value) && Number(option.value) === inferredColumns)) return false
-    if (option.key === 'paddingX' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '20') return false
-    if (option.key === 'paddingY' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '12') return false
-    if (option.key === 'fontSize' && isPositiveNumber(option.value) && Number(option.value) === resolvedUnitWidth * resolvedFontSizeRatio) return false
-    if ((option.key === 'showGrid' || option.key === 'showGuideGrid') && (getOptionValue(root.arguments, 'showGrid') ?? getOptionValue(root.arguments, 'showGuideGrid')) === 'false') return false
-    if (hasDivider && option.key === 'trackUnit') return false
-    return gridDefaults[option.key] !== option.value
-  }).map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
+  const filteredOptions = root.arguments
+    .filter((node) => {
+      const option = readMacroKv(node)
+      if (!option) return false
+      // lineSpan 在过滤完所有 LINE 后统一决定，避免根配置与行级配置重复。
+      if (option.key === 'lineSpan') return false
+      if (
+        option.key === 'columns' &&
+        (hasDivider || (isPositiveInteger(option.value) && Number(option.value) === inferredColumns))
+      )
+        return false
+      if (option.key === 'paddingX' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '20')
+        return false
+      if (option.key === 'paddingY' && getOptionValue(root.arguments, 'padding') === undefined && option.value === '12')
+        return false
+      if (
+        option.key === 'fontSize' &&
+        isPositiveNumber(option.value) &&
+        Number(option.value) === resolvedUnitWidth * resolvedFontSizeRatio
+      )
+        return false
+      if (
+        (option.key === 'showGrid' || option.key === 'showGuideGrid') &&
+        (getOptionValue(root.arguments, 'showGrid') ?? getOptionValue(root.arguments, 'showGuideGrid')) === 'false'
+      )
+        return false
+      if (hasDivider && option.key === 'trackUnit') return false
+      return gridDefaults[option.key] !== option.value
+    })
+    .map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
   const filteredContent = content.map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
   const lineNodes = filteredContent.filter((node): node is MacroCall => isMacroCall(node, 'LINE'))
   const configuredLineSpan = getOptionValue(root.arguments, 'lineSpan')
@@ -215,63 +255,93 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
     if (span === undefined) return { ...line, arguments: argumentsWithoutSpan }
     return {
       ...line,
-      arguments: [...argumentsWithoutSpan, {
-        kind: 'call',
-        name: 'KV',
-        arguments: [{ kind: 'literal', value: 'span' }, { kind: 'literal', value: span }],
-      }],
+      arguments: [
+        ...argumentsWithoutSpan,
+        {
+          kind: 'call',
+          name: 'KV',
+          arguments: [
+            { kind: 'literal', value: 'span' },
+            { kind: 'literal', value: span },
+          ],
+        },
+      ],
     }
   }
   /** 前一行已占满已解析列宽时，previous 与 full 的实际横线范围一致。 */
   const canUsePreviousSpan = (line: MacroCall): boolean => {
     const lineIndex = filteredContent.indexOf(line)
-    const previousRow = filteredContent.slice(0, lineIndex).reverse().find((node): node is MacroCall => isMacroCall(node, 'ROW'))
+    const previousRow = filteredContent
+      .slice(0, lineIndex)
+      .reverse()
+      .find((node): node is MacroCall => isMacroCall(node, 'ROW'))
     return previousRow !== undefined && inferGridColumns([previousRow], trackUnit) === resolvedColumns
   }
   const resolvedLineSpans = lineNodes.map(getLineSpan)
-  const sharedLineSpan = lineNodes.length > 1
-    && resolvedLineSpans.length > 0
-    && resolvedLineSpans.every((span) => span === resolvedLineSpans[0])
+  const sharedLineSpan =
+    lineNodes.length > 1 &&
+    resolvedLineSpans.length > 0 &&
+    resolvedLineSpans.every((span) => span === resolvedLineSpans[0]) &&
     // 只在每条横线都必须使用 full 时提升为根配置，避免最长横线获得冗余跨度配置。
-    && !(resolvedLineSpans[0] === 'full' && lineNodes.some(canUsePreviousSpan))
-    ? resolvedLineSpans[0]
-    : undefined
+    !(resolvedLineSpans[0] === 'full' && lineNodes.some(canUsePreviousSpan))
+      ? resolvedLineSpans[0]
+      : undefined
   const normalizedContent = filteredContent.map((node) => {
     if (!isMacroCall(node, 'LINE')) return node
     const span = getLineSpan(node)
     if (lineNodes.length === 1) {
-      const canUseSingleLineDefault = span === 'full' || span === 'previous' && canUsePreviousSpan(node)
+      const canUseSingleLineDefault = span === 'full' || (span === 'previous' && canUsePreviousSpan(node))
       return replaceLineSpan(node, canUseSingleLineDefault ? undefined : span)
     }
     if (sharedLineSpan !== undefined) return replaceLineSpan(node, undefined)
     // 多横线时，最长横线的 previous 已等于 full；只有实际较短的横线才保留 full。
-    return replaceLineSpan(node, span === 'previous' || span === 'full' && canUsePreviousSpan(node) ? undefined : span)
+    return replaceLineSpan(
+      node,
+      span === 'previous' || (span === 'full' && canUsePreviousSpan(node)) ? undefined : span,
+    )
   })
-  const normalizedOptions: MacroNode[] = sharedLineSpan !== undefined && sharedLineSpan !== 'previous'
-    ? [...filteredOptions, {
-      kind: 'call',
-      name: 'KV',
-      arguments: [{ kind: 'literal', value: 'lineSpan' }, { kind: 'literal', value: sharedLineSpan }],
-    }]
-    : filteredOptions
+  const normalizedOptions: MacroNode[] =
+    sharedLineSpan !== undefined && sharedLineSpan !== 'previous'
+      ? [
+          ...filteredOptions,
+          {
+            kind: 'call',
+            name: 'KV',
+            arguments: [
+              { kind: 'literal', value: 'lineSpan' },
+              { kind: 'literal', value: sharedLineSpan },
+            ],
+          },
+        ]
+      : filteredOptions
   const normalizedColumns = inferGridColumns(normalizedContent, trackUnit)
-  const needsColumns = !hasDivider
-    && getOptionValue(filteredOptions, 'columns') === undefined
-    && resolvedColumns > (normalizedColumns ?? 0)
+  const needsColumns =
+    !hasDivider &&
+    getOptionValue(filteredOptions, 'columns') === undefined &&
+    resolvedColumns > (normalizedColumns ?? 0)
   const columnsOption: MacroNode[] = needsColumns
-    ? [{
-      kind: 'call',
-      name: 'KV',
-      arguments: [{ kind: 'literal', value: 'columns' }, { kind: 'literal', value: String(resolvedColumns) }],
-    }]
+    ? [
+        {
+          kind: 'call',
+          name: 'KV',
+          arguments: [
+            { kind: 'literal', value: 'columns' },
+            { kind: 'literal', value: String(resolvedColumns) },
+          ],
+        },
+      ]
     : []
   return { ...root, arguments: [...normalizedOptions, ...columnsOption, ...normalizedContent] }
 }
 
 /** 分号行无法承载 ROW 的非默认对齐配置，保留显式 GRID 以避免生成不可编译的源码。 */
-const canUseTopLevelRowShorthand = (root: MacroCall): boolean => root.arguments.every((node) => (
-  !isMacroCall(node, 'ROW') || getOptionValue(node.arguments, 'align') === undefined || getOptionValue(node.arguments, 'align') === 'right'
-))
+const canUseTopLevelRowShorthand = (root: MacroCall): boolean =>
+  root.arguments.every(
+    (node) =>
+      !isMacroCall(node, 'ROW') ||
+      getOptionValue(node.arguments, 'align') === undefined ||
+      getOptionValue(node.arguments, 'align') === 'right',
+  )
 
 interface MacroSerializeOptions {
   usesCellShorthand: boolean
@@ -279,9 +349,8 @@ interface MacroSerializeOptions {
   omitZeroArgumentParentheses: boolean
 }
 
-const getMacroName = (name: string, useShortestNames: boolean): string => (
+const getMacroName = (name: string, useShortestNames: boolean): string =>
   useShortestNames ? getShortestMacroName(name) : name
-)
 
 const serializeNode = (
   node: MacroNode,
@@ -294,7 +363,12 @@ const serializeNode = (
   if (node.kind === 'literal') return serializeLiteral(node.value)
   if (node.kind === 'symbol') return getMacroName(node.name, options.useShortestNames)
   const name = getMacroName(node.name, options.useShortestNames)
-  if (node.arguments.length === 0 && options.omitZeroArgumentParentheses && MINIFIED_ZERO_ARGUMENT_MACROS.has(node.name)) return name
+  if (
+    node.arguments.length === 0 &&
+    options.omitZeroArgumentParentheses &&
+    MINIFIED_ZERO_ARGUMENT_MACROS.has(node.name)
+  )
+    return name
   if (options.usesCellShorthand && node.name === 'CELL' && canUseCellShorthand(node)) {
     return `[${node.arguments.map((argument, index) => serializeCellArgument(argument, index, true)).join(',')}]`
   }
@@ -319,7 +393,8 @@ const formatNode = (
     return `[${node.arguments.map((argument, index) => serializeCellArgument(argument, index, true)).join(', ')}]`
   }
   if (node.arguments.length === 0) return options.omitZeroArgumentParentheses ? name : `${name}()`
-  if (canInlineCall(node)) return `${name}(${node.arguments.map((argument) => serializeNode(argument, options)).join(', ')})`
+  if (canInlineCall(node))
+    return `${name}(${node.arguments.map((argument) => serializeNode(argument, options)).join(', ')})`
 
   const childIndent = INDENT.repeat(level + 1)
   const closingIndent = INDENT.repeat(level)
@@ -364,15 +439,16 @@ const hasCellShorthand = (source: string): boolean => {
 }
 
 /** 将隐式 ROW 还原为分号行，保证格式化不会把快捷输入重新展开。 */
-const formatRowShorthand = (root: MacroCall, pretty: boolean, options: MacroSerializeOptions): string => root.arguments
-  .map((node) => {
-    const row = node.kind === 'call' && node.name === 'ROW' ? node.arguments : [node]
-    return pretty
-      ? row.map((child) => getElidableMiddleText(child) ?? formatNode(child, 0, options)).join(', ')
-      : row.map((child) => getElidableMiddleText(child) ?? serializeNode(child, options)).join(',')
-  })
-  .join(pretty ? ';\n' : ';')
-  .concat(';')
+const formatRowShorthand = (root: MacroCall, pretty: boolean, options: MacroSerializeOptions): string =>
+  root.arguments
+    .map((node) => {
+      const row = node.kind === 'call' && node.name === 'ROW' ? node.arguments : [node]
+      return pretty
+        ? row.map((child) => getElidableMiddleText(child) ?? formatNode(child, 0, options)).join(', ')
+        : row.map((child) => getElidableMiddleText(child) ?? serializeNode(child, options)).join(',')
+    })
+    .join(pretty ? ';\n' : ';')
+    .concat(';')
 
 const formatRoot = (
   root: MacroCall,
@@ -404,12 +480,28 @@ const formatRoot = (
 const minifyRoot = (root: MacroCall, source: string, omitDefaults = false): string => {
   const normalizedRoot = omitDefaults ? pruneGridNode(root) : root
   const hasGridOptions = normalizedRoot.arguments.some((node) => node.kind === 'call' && node.name === 'KV')
-  if (hasExplicitGrid(source) && !hasGridOptions && normalizedRoot.arguments.length > 0 && canUseTopLevelRowShorthand(normalizedRoot)) {
-    return formatRowShorthand(normalizedRoot, false, { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true })
+  if (
+    hasExplicitGrid(source) &&
+    !hasGridOptions &&
+    normalizedRoot.arguments.length > 0 &&
+    canUseTopLevelRowShorthand(normalizedRoot)
+  ) {
+    return formatRowShorthand(normalizedRoot, false, {
+      usesCellShorthand: true,
+      useShortestNames: true,
+      omitZeroArgumentParentheses: true,
+    })
   }
-  if (!hasExplicitGrid(source) && hasTopLevelSemicolon(source)) return formatRowShorthand(normalizedRoot, false, { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true })
+  if (!hasExplicitGrid(source) && hasTopLevelSemicolon(source))
+    return formatRowShorthand(normalizedRoot, false, {
+      usesCellShorthand: true,
+      useShortestNames: true,
+      omitZeroArgumentParentheses: true,
+    })
   const options = { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true }
-  return (hasExplicitGrid(source) ? serializeNode(normalizedRoot, options) : normalizedRoot.arguments.map((node) => serializeNode(node, options)).join(','))
+  return hasExplicitGrid(source)
+    ? serializeNode(normalizedRoot, options)
+    : normalizedRoot.arguments.map((node) => serializeNode(node, options)).join(',')
 }
 
 /** 直接序列化 AST 时不保留输入风格，始终选择可用的最简表达。 */
@@ -417,8 +509,16 @@ export const minifyMacroAst = (root: MacroCall, omitDefaults = true): string => 
   const normalizedRoot = omitDefaults ? pruneGridNode(root) : root
   const hasGridOptions = normalizedRoot.arguments.some((node) => node.kind === 'call' && node.name === 'KV')
   return hasGridOptions || !canUseTopLevelRowShorthand(normalizedRoot)
-    ? serializeNode(normalizedRoot, { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true })
-    : formatRowShorthand(normalizedRoot, false, { usesCellShorthand: true, useShortestNames: true, omitZeroArgumentParentheses: true })
+    ? serializeNode(normalizedRoot, {
+        usesCellShorthand: true,
+        useShortestNames: true,
+        omitZeroArgumentParentheses: true,
+      })
+    : formatRowShorthand(normalizedRoot, false, {
+        usesCellShorthand: true,
+        useShortestNames: true,
+        omitZeroArgumentParentheses: true,
+      })
 }
 
 /**
@@ -446,9 +546,11 @@ export const minifyMacroForCopyAst = (root: MacroCall): string => {
 }
 
 /** 将已更新的 AST 按调用方选择的输入框风格重新输出，并保留源码原本的 GRID/分号行外层形式。 */
-export const formatMacroAst = (root: MacroCall, style: 'formatted' | 'minified' = 'formatted', source = 'GRID('): string => (
-  style === 'minified' ? minifyMacroAst(root) : formatRoot(root, source, true)
-)
+export const formatMacroAst = (
+  root: MacroCall,
+  style: 'formatted' | 'minified' = 'formatted',
+  source = 'GRID(',
+): string => (style === 'minified' ? minifyMacroAst(root) : formatRoot(root, source, true))
 
 /** 将宏源码解析为 AST 后按函数层级格式化，保留显式或隐式 GRID 的写法。 */
 export const formatMacro = (source: string): string => formatRoot(parseMacro(source), source, true)
@@ -457,15 +559,16 @@ export const formatMacro = (source: string): string => formatRoot(parseMacro(sou
 export const unformatMacro = (source: string): string => formatRoot(parseMacro(source), source, false)
 
 /** 将源码展开为显式 GRID、ROW、CELL 与完整宏名，供“完整形式”按钮使用。 */
-export const completeMacro = (source: string): string => formatRoot(parseMacro(source), source, true, {
-  usesCellShorthand: false,
-  useShortestNames: false,
-  omitZeroArgumentParentheses: false,
-})
+export const completeMacro = (source: string): string =>
+  formatRoot(parseMacro(source), source, true, {
+    usesCellShorthand: false,
+    useShortestNames: false,
+    omitZeroArgumentParentheses: false,
+  })
 
 /** 将完整宏源码压缩为最简合法写法，并在可行时降级为分号行与方括号语法糖。 */
-export const minifyMacro = (source: string, omitDefaults = true): string => minifyRoot(parseMacro(source), source, omitDefaults)
+export const minifyMacro = (source: string, omitDefaults = true): string =>
+  minifyRoot(parseMacro(source), source, omitDefaults)
 
 /** 生成适合复制到宏调试的宏源码框的最简源码；由计算器页面统一调用，避免各页面自行裁剪字符串。 */
 export const minifyMacroForCopy = (source: string): string => minifyMacroForCopyAst(parseMacro(source))
-

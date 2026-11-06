@@ -7,9 +7,17 @@
     "url": "git+https://github.com/u1in/shushi.git",
     "directory": "packages/grid"
   },
-  "bugs": { "url": "https://github.com/u1in/shushi/issues/new" },
+  "bugs": {
+    "url": "https://github.com/u1in/shushi/issues/new"
+  },
   "homepage": "https://github.com/u1in/shushi/tree/main/packages/grid#readme",
-  "keywords": ["vertical-arithmetic", "grid", "grid-model", "geometry", "typescript"],
+  "keywords": [
+    "vertical-arithmetic",
+    "grid",
+    "grid-model",
+    "geometry",
+    "typescript"
+  ],
   "version": "0.1.0",
   "private": true,
   "type": "module",

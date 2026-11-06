@@ -7,16 +7,19 @@ import MacroCompare from './MacroCompare.vue'
 import MacroExampleCard from './MacroExampleCard.vue'
 
 /** 文档块渲染器：把纯数据块分派到对应的展示组件。 */
-const props = withDefaults(defineProps<{
-  blocks: DocBlock[]
-  /** VuePress 等外部文档站的内部链接前缀；主应用保留原有绝对路径。 */
-  linkPrefix?: string
-  /** 文档站可按新的阅读目录把旧宏路由映射到分组页锚点。 */
-  linkResolver?: (path: string) => string
-}>(), {
-  linkPrefix: '',
-  linkResolver: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    blocks: DocBlock[]
+    /** VuePress 等外部文档站的内部链接前缀；主应用保留原有绝对路径。 */
+    linkPrefix?: string
+    /** 文档站可按新的阅读目录把旧宏路由映射到分组页锚点。 */
+    linkResolver?: (path: string) => string
+  }>(),
+  {
+    linkPrefix: '',
+    linkResolver: undefined,
+  },
+)
 
 /** 把旧的宏文档路由映射到发布站点的集中式入口。 */
 const resolveDocLink = (path: string): string => {
@@ -28,9 +31,15 @@ const resolveDocLink = (path: string): string => {
 
 /** 九宫格顺序固定为从左到右、从上到下。 */
 const positions = [
-  { macro: 'LT', label: '左上' }, { macro: 'MT', label: '中上' }, { macro: 'RT', label: '右上' },
-  { macro: 'ML', label: '左中' }, { macro: 'MM', label: '居中' }, { macro: 'MR', label: '右中' },
-  { macro: 'LB', label: '左下' }, { macro: 'MB', label: '中下' }, { macro: 'RB', label: '右下' },
+  { macro: 'LT', label: '左上' },
+  { macro: 'MT', label: '中上' },
+  { macro: 'RT', label: '右上' },
+  { macro: 'ML', label: '左中' },
+  { macro: 'MM', label: '居中' },
+  { macro: 'MR', label: '右中' },
+  { macro: 'LB', label: '左下' },
+  { macro: 'MB', label: '中下' },
+  { macro: 'RB', label: '右下' },
 ]
 
 const borderEdgeLabels = {
@@ -60,7 +69,9 @@ const borderEdgeLabels = {
       <div class="mdocs-table-wrap">
         <table>
           <thead>
-            <tr><th v-for="column in block.columns" :key="column">{{ column }}</th></tr>
+            <tr>
+              <th v-for="column in block.columns" :key="column">{{ column }}</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="(row, rowIndex) in block.rows" :key="rowIndex">
@@ -72,7 +83,12 @@ const borderEdgeLabels = {
       <figcaption v-if="block.caption">{{ block.caption }}</figcaption>
     </figure>
 
-    <MacroCodeBlock v-else-if="block.type === 'code'" :code="block.code" :title="block.title" :language="block.language" />
+    <MacroCodeBlock
+      v-else-if="block.type === 'code'"
+      :code="block.code"
+      :title="block.title"
+      :language="block.language"
+    />
 
     <MacroExampleCard
       v-else-if="block.type === 'example'"
@@ -82,11 +98,7 @@ const borderEdgeLabels = {
       :language="block.language"
     />
 
-    <aside
-      v-else-if="block.type === 'callout'"
-      class="mdocs-callout"
-      :class="`mdocs-callout--${block.tone}`"
-    >
+    <aside v-else-if="block.type === 'callout'" class="mdocs-callout" :class="`mdocs-callout--${block.tone}`">
       <strong>{{ block.title }}</strong>
       <p><DocText :text="block.text" /></p>
     </aside>
@@ -165,12 +177,25 @@ const borderEdgeLabels = {
     </div>
 
     <div v-else-if="block.type === 'border-board'" class="mdocs-board-block">
-      <div class="mdocs-border-board" role="img" :aria-label="`${block.macro} 是当前单元格的${borderEdgeLabels[block.edge]}线`">
+      <div
+        class="mdocs-border-board"
+        role="img"
+        :aria-label="`${block.macro} 是当前单元格的${borderEdgeLabels[block.edge]}线`"
+      >
         <div class="mdocs-border-cell">
           <span class="mdocs-border-line mdocs-border-line--top" :class="{ 'is-active': block.edge === 'top' }"></span>
-          <span class="mdocs-border-line mdocs-border-line--right" :class="{ 'is-active': block.edge === 'right' }"></span>
-          <span class="mdocs-border-line mdocs-border-line--bottom" :class="{ 'is-active': block.edge === 'bottom' }"></span>
-          <span class="mdocs-border-line mdocs-border-line--left" :class="{ 'is-active': block.edge === 'left' }"></span>
+          <span
+            class="mdocs-border-line mdocs-border-line--right"
+            :class="{ 'is-active': block.edge === 'right' }"
+          ></span>
+          <span
+            class="mdocs-border-line mdocs-border-line--bottom"
+            :class="{ 'is-active': block.edge === 'bottom' }"
+          ></span>
+          <span
+            class="mdocs-border-line mdocs-border-line--left"
+            :class="{ 'is-active': block.edge === 'left' }"
+          ></span>
 
           <span class="mdocs-border-center">
             <span>CELL</span>

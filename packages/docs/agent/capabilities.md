@@ -8,13 +8,13 @@ title: Agent 能力说明
 
 当前公开 API 只有两层门户：
 
-| 用户需求 | 首选入口 | 说明 |
-| --- | --- | --- |
-| 用户给出一段算式或竖式输入 | `shushi(expression, options?)` | 自动识别运算并完成计算、布局、宏编译和渲染 |
-| 程序已经有结构化请求 | `shushiCore(request)` | 明确指定 `operation`、短除法 `mode`、计算选项和布局 settings |
-| 只想取计算过程 | `compute*` | 不生成宏源码，不接触 DOM |
-| 需要编辑或复制宏源码 | `source`、`parseMacro`、`formatMacro`、`minifyMacroForCopy` | 宏仍由统一编译器生成和检查 |
-| 需要测量或分析网格 | `scene`、`resolveGridMetrics`、`extractVisibleTextRows` | 直接消费统一 `GridScene` |
+| 用户需求                   | 首选入口                                                    | 说明                                                         |
+| -------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| 用户给出一段算式或竖式输入 | `shushi(expression, options?)`                              | 自动识别运算并完成计算、布局、宏编译和渲染                   |
+| 程序已经有结构化请求       | `shushiCore(request)`                                       | 明确指定 `operation`、短除法 `mode`、计算选项和布局 settings |
+| 只想取计算过程             | `compute*`                                                  | 不生成宏源码，不接触 DOM                                     |
+| 需要编辑或复制宏源码       | `source`、`parseMacro`、`formatMacro`、`minifyMacroForCopy` | 宏仍由统一编译器生成和检查                                   |
+| 需要测量或分析网格         | `scene`、`resolveGridMetrics`、`extractVisibleTextRows`     | 直接消费统一 `GridScene`                                     |
 
 不要从页面、DOM、SVG 或答案字符串重新实现计算和布局。所有数值门户最终都经过同一条链路：
 
@@ -71,16 +71,16 @@ type AnyVerticalArithmeticResult = {
 
 ### 输入语法
 
-| 输入 | 含义 |
-| --- | --- |
-| `125 + 75 - 20 × 3` | 按书写顺序执行的连续表达式 |
-| `356 + 278` | 加法竖式 |
-| `502 - 137` | 减法竖式 |
-| `97 × 89`、`97 * 89`、`97 x 89` | 乘法竖式 |
-| `10230 ÷ 25`、`10230 / 25` | 长除法 |
-| `|48` | 分解质因数 |
-| `|12 18` | 自动试除并求公因数 |
-| `(13)2` | 十进制 13 转为二进制；目标进制支持 2–36 |
+| 输入                            | 含义                                    |
+| ------------------------------- | --------------------------------------- |
+| `125 + 75 - 20 × 3`             | 按书写顺序执行的连续表达式              |
+| `356 + 278`                     | 加法竖式                                |
+| `502 - 137`                     | 减法竖式                                |
+| `97 × 89`、`97 * 89`、`97 x 89` | 乘法竖式                                |
+| `10230 ÷ 25`、`10230 / 25`      | 长除法                                  |
+| `                               | 48`                                     | 分解质因数         |
+| `                               | 12 18`                                  | 自动试除并求公因数 |
+| `(13)2`                         | 十进制 13 转为二进制；目标进制支持 2–36 |
 
 连续表达式不使用乘法优先级，而是从左向右执行。长除法不能与加减乘混写；短除法语法中的空格用于分隔多个右侧数字。
 
@@ -158,11 +158,11 @@ const baseConversion = shushiCore({
 
 门户先生成 `source`，再编译为 `scene`，最后根据 `renderMode` 渲染：
 
-| `renderMode` | 结果 | 适用场景 |
-| --- | --- | --- |
-| `svg-string` | SVG 字符串 | SSR、Node.js、导出文件 |
-| `div` | DOM 元素 | 浏览器 CSS/DOM 交互 |
-| `svg` | SVG DOM 元素 | 浏览器 SVG 交互 |
+| `renderMode` | 结果         | 适用场景               |
+| ------------ | ------------ | ---------------------- |
+| `svg-string` | SVG 字符串   | SSR、Node.js、导出文件 |
+| `div`        | DOM 元素     | 浏览器 CSS/DOM 交互    |
+| `svg`        | SVG DOM 元素 | 浏览器 SVG 交互        |
 
 `div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
@@ -227,15 +227,15 @@ console.log(updated.source, updated.scene)
 
 ## 7. Agent 任务选择表
 
-| 任务 | 实现路径 |
-| --- | --- |
-| 根据用户算式直接显示竖式 | `shushi(expression, { renderMode, el })` |
-| 精确指定运算类型或短除法模式 | `shushiCore(request)` |
-| 只要计算结果和过程 | 对应的 `compute*` |
-| 需要保存、编辑或复制宏 | 门户返回的 `source`；复制时 `minifyMacroForCopy` |
-| 需要切换 DOM、SVG、SSR | 同一 `scene` 配合对应 `renderMode` 或 `render*` |
-| 用户已经提供宏源码 | `parseMacro` / `createMacroAstInspection` / `compileMacro` |
-| 需要文本提取或几何测量 | `extractVisibleTextRows` / `resolveGridMetrics` / `getGridElementRect` |
+| 任务                         | 实现路径                                                               |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| 根据用户算式直接显示竖式     | `shushi(expression, { renderMode, el })`                               |
+| 精确指定运算类型或短除法模式 | `shushiCore(request)`                                                  |
+| 只要计算结果和过程           | 对应的 `compute*`                                                      |
+| 需要保存、编辑或复制宏       | 门户返回的 `source`；复制时 `minifyMacroForCopy`                       |
+| 需要切换 DOM、SVG、SSR       | 同一 `scene` 配合对应 `renderMode` 或 `render*`                        |
+| 用户已经提供宏源码           | `parseMacro` / `createMacroAstInspection` / `compileMacro`             |
+| 需要文本提取或几何测量       | `extractVisibleTextRows` / `resolveGridMetrics` / `getGridElementRect` |
 
 ## 8. 边界规则
 

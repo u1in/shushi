@@ -114,7 +114,9 @@ onBeforeUnmount(() => {
           <div class="ocr-modal__header">
             <div>
               <p :id="dialogTitleId" class="panel-kicker">修改颜色</p>
-              <p class="auto-color-theme-modal__hint">确定后会通过 JavaScript 重新编译当前预览，DOM 与 SVG 使用同一份颜色主题。</p>
+              <p class="auto-color-theme-modal__hint">
+                确定后会通过 JavaScript 重新编译当前预览，DOM 与 SVG 使用同一份颜色主题。
+              </p>
             </div>
             <button class="ocr-modal__close" type="button" aria-label="关闭颜色编辑" @click="closeDialog">×</button>
           </div>
@@ -130,7 +132,9 @@ onBeforeUnmount(() => {
           </div>
           <div class="ocr-modal__actions">
             <button class="outline-button" type="button" @click="copyTheme">
-              {{ copyState === 'copied' ? '已复制 JS 对象' : copyState === 'error' ? '复制失败，请重试' : '复制 JS 对象' }}
+              {{
+                copyState === 'copied' ? '已复制 JS 对象' : copyState === 'error' ? '复制失败，请重试' : '复制 JS 对象'
+              }}
             </button>
             <button class="outline-button" type="button" @click="closeDialog">取消</button>
             <button class="primary-button" type="button" @click="applyTheme">确定应用</button>

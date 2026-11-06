@@ -36,10 +36,12 @@ describe('乘法进位布局', () => {
     }
     const source = createMultiplicationMacroSource(multiplication, settings)
     const scene = createMultiplicationGridScene(multiplication, settings)
-    const carries = scene.elements.filter((element): element is GridElement & { content: GridTextContent } => (
-      element.content.kind === 'text'
-      && (element.content.styleToken === 'multiplication.carry' || element.content.styleToken === 'multiplication.addition-carry')
-    ))
+    const carries = scene.elements.filter(
+      (element): element is GridElement & { content: GridTextContent } =>
+        element.content.kind === 'text' &&
+        (element.content.styleToken === 'multiplication.carry' ||
+          element.content.styleToken === 'multiplication.addition-carry'),
+    )
 
     expect(source).toContain('RT(')
     expect(source).toContain('RB(')

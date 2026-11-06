@@ -48,11 +48,13 @@ export const extractVisibleTextRows = (scene: GridScene): string[] => {
   const items: VisibleTextItem[] = scene.elements.flatMap((element, sourceIndex) => {
     if (element.content.kind !== 'text' || element.content.text.length === 0) return []
 
-    return [{
-      text: element.content.text,
-      sourceIndex,
-      ...getTextAnchor(element, element.content, scene, metrics),
-    }]
+    return [
+      {
+        text: element.content.text,
+        sourceIndex,
+        ...getTextAnchor(element, element.content, scene, metrics),
+      },
+    ]
   })
   const rows = new Map<number, VisibleTextItem[]>()
 
@@ -64,8 +66,12 @@ export const extractVisibleTextRows = (scene: GridScene): string[] => {
 
   return [...rows.entries()]
     .sort(([left], [right]) => left - right)
-    .map(([, row]) => row
-      .sort((left, right) => left.horizontalPosition - right.horizontalPosition || left.sourceIndex - right.sourceIndex)
-      .map(({ text }) => text)
-      .join(''))
+    .map(([, row]) =>
+      row
+        .sort(
+          (left, right) => left.horizontalPosition - right.horizontalPosition || left.sourceIndex - right.sourceIndex,
+        )
+        .map(({ text }) => text)
+        .join(''),
+    )
 }

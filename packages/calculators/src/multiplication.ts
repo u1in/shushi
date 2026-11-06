@@ -24,7 +24,7 @@ const parseIntegerDigits = (value: unknown, label: string): string => {
 const isTrailingZeroMultiple = (value: string): boolean => value !== '0' && value.endsWith('0')
 
 /** 拆出十进制末尾零，保留仍需逐位相乘的有效乘数。 */
-const splitTrailingZeros = (value: string): { trailingZeroCount: number, significantDigits: string } => {
+const splitTrailingZeros = (value: string): { trailingZeroCount: number; significantDigits: string } => {
   const significantDigits = value.replace(/0+$/, '')
 
   return {
@@ -116,39 +116,42 @@ export const computeMultiplication = (
   const operandsSwapped = false
   const multiplicandDigits = firstOperandDigits
   const multiplierDigits = secondOperandDigits
-  const multiplicandShortcut = useTrailingZeroShortcut && firstIsTrailingZeroMultiple
-    ? splitTrailingZeros(multiplicandDigits)
-    : null
-  const multiplierShortcut = useTrailingZeroShortcut && secondIsTrailingZeroMultiple
-    ? splitTrailingZeros(multiplierDigits)
-    : null
-  const trailingZeroShortcut = multiplicandShortcut || multiplierShortcut
-    ? {
-        significantMultiplicandDigits: multiplicandShortcut?.significantDigits ?? multiplicandDigits,
-        multiplicandTrailingZeroCount: multiplicandShortcut?.trailingZeroCount ?? 0,
-        significantMultiplierDigits: multiplierShortcut?.significantDigits ?? multiplierDigits,
-        multiplierTrailingZeroCount: multiplierShortcut?.trailingZeroCount ?? 0,
-        trailingZeroCount: (multiplicandShortcut?.trailingZeroCount ?? 0) + (multiplierShortcut?.trailingZeroCount ?? 0),
-      }
-    : null
+  const multiplicandShortcut =
+    useTrailingZeroShortcut && firstIsTrailingZeroMultiple ? splitTrailingZeros(multiplicandDigits) : null
+  const multiplierShortcut =
+    useTrailingZeroShortcut && secondIsTrailingZeroMultiple ? splitTrailingZeros(multiplierDigits) : null
+  const trailingZeroShortcut =
+    multiplicandShortcut || multiplierShortcut
+      ? {
+          significantMultiplicandDigits: multiplicandShortcut?.significantDigits ?? multiplicandDigits,
+          multiplicandTrailingZeroCount: multiplicandShortcut?.trailingZeroCount ?? 0,
+          significantMultiplierDigits: multiplierShortcut?.significantDigits ?? multiplierDigits,
+          multiplierTrailingZeroCount: multiplierShortcut?.trailingZeroCount ?? 0,
+          trailingZeroCount:
+            (multiplicandShortcut?.trailingZeroCount ?? 0) + (multiplierShortcut?.trailingZeroCount ?? 0),
+        }
+      : null
   // 快捷计算会移除上下两行各自末尾的零；中间零仍然是实际位值，不能跳过。
   const calculationMultiplicandDigits = trailingZeroShortcut?.significantMultiplicandDigits ?? multiplicandDigits
   const calculationMultiplierDigits = trailingZeroShortcut?.significantMultiplierDigits ?? multiplierDigits
   const partialProducts: MultiplicationPartialProduct[] = []
 
   for (let index = calculationMultiplierDigits.length - 1; index >= 0; index -= 1) {
-    partialProducts.push(calculatePartialProduct(
-      calculationMultiplicandDigits,
-      calculationMultiplierDigits[index],
-      index,
-      calculationMultiplierDigits.length - 1 - index,
-    ))
+    partialProducts.push(
+      calculatePartialProduct(
+        calculationMultiplicandDigits,
+        calculationMultiplierDigits[index],
+        index,
+        calculationMultiplierDigits.length - 1 - index,
+      ),
+    )
   }
 
   const { productDigits: baseProductDigits, additionSteps } = calculateAddition(partialProducts)
-  const productDigits = trailingZeroShortcut && baseProductDigits !== '0'
-    ? `${baseProductDigits}${'0'.repeat(trailingZeroShortcut.trailingZeroCount)}`
-    : baseProductDigits
+  const productDigits =
+    trailingZeroShortcut && baseProductDigits !== '0'
+      ? `${baseProductDigits}${'0'.repeat(trailingZeroShortcut.trailingZeroCount)}`
+      : baseProductDigits
 
   return {
     multiplicandDigits,

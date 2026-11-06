@@ -8,7 +8,8 @@ export const basicPagesPartThree: MacroDocPage[] = [
     navLabel: 'STYLE',
     kicker: 'BASE MACRO · 08',
     group: 'basic',
-    summary: 'STYLE 只声明线条颜色与线宽，并只由 LINE 和单元格边框宏读取。它是跨 DOM/SVG 的受限声明，不是任意浏览器 CSS。',
+    summary:
+      'STYLE 只声明线条颜色与线宽，并只由 LINE 和单元格边框宏读取。它是跨 DOM/SVG 的受限声明，不是任意浏览器 CSS。',
     sections: [
       {
         id: 'purpose',
@@ -101,7 +102,11 @@ export const basicPagesPartThree: MacroDocPage[] = [
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
               ['`STYLE 内只能使用 KV 配置。`', '把文字或图元放进了 STYLE。', '只保留 `KV`。'],
-              ['`STYLE 不支持 ...，当前仅支持 color 与 thickness。`', '写了其他键。', '删除未知键，或改用语义样式 token。'],
+              [
+                '`STYLE 不支持 ...，当前仅支持 color 与 thickness。`',
+                '写了其他键。',
+                '删除未知键，或改用语义样式 token。',
+              ],
               ['`线条 thickness 必须是正数。`', '写了 0、负数或非数字。', '改成 1、2、3 等正数。'],
               ['`LINE 的样式必须使用 STYLE(...)。`', '把其他宏当作 LINE 的第一个参数。', '改用 `STYLE(...)`。'],
             ],
@@ -117,7 +122,8 @@ export const basicPagesPartThree: MacroDocPage[] = [
             title: '让横线变成蓝色 3px',
             task: '给左侧横线加上 STYLE，并关闭自动配色，让颜色与线宽真正生效。',
             starter: 'GRID(\n  ROW(MM(5), MM(6)),\n  LINE\n)',
-            answer: 'GRID(\n  KV(autoColor, false),\n  ROW(MM(5), MM(6)),\n  LINE(STYLE(KV(color, "#2563eb"), KV(thickness, 3)))\n)',
+            answer:
+              'GRID(\n  KV(autoColor, false),\n  ROW(MM(5), MM(6)),\n  LINE(STYLE(KV(color, "#2563eb"), KV(thickness, 3)))\n)',
             hint: 'STYLE 是 LINE 的第一个参数；autoColor 必须写在 GRID 上。',
           },
         ],
@@ -192,7 +198,11 @@ export const basicPagesPartThree: MacroDocPage[] = [
             type: 'table',
             columns: ['宿主宏', '支持的键', '说明'],
             rows: [
-              ['`GRID`', '`columns`、`trackUnit`、`unitWidth`、`unitHeight`、`padding`、`paddingX`、`paddingY`、`fontSizeRatio`、`fontSize`、`showGrid`、`showGuideGrid`、`autoColor`、`style`、`ariaLabel`', '场景级配置；`showGuideGrid` 是旧别名。'],
+              [
+                '`GRID`',
+                '`columns`、`trackUnit`、`unitWidth`、`unitHeight`、`padding`、`paddingX`、`paddingY`、`fontSizeRatio`、`fontSize`、`showGrid`、`showGuideGrid`、`autoColor`、`style`、`ariaLabel`',
+                '场景级配置；`showGuideGrid` 是旧别名。',
+              ],
               ['`ROW`', '`align`', '`left` 或 `right`。'],
               ['`CELL`', '`columnSpan`、`style`', '跨度与单元格样式 token。'],
               ['`EMPTY`', '`columnSpan`、`style`', '跨度有效；样式因无图元而不产生视觉差异。'],
@@ -252,9 +262,17 @@ export const basicPagesPartThree: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`KV 必须包含键和值两个参数，例如 KV(span, previous)。`', '只写一个参数或写了三个。', '改成 `KV(key, value)`。'],
+              [
+                '`KV 必须包含键和值两个参数，例如 KV(span, previous)。`',
+                '只写一个参数或写了三个。',
+                '改成 `KV(key, value)`。',
+              ],
               ['`配置 ... 被重复设置。`', '同一宏里写了两次同名键。', '删除其中一个，保留期望的值。'],
-              ['`GRID 的 showGrid 只能是 true 或 false。`', '布尔值写成了 `yes` 或 `1`。', '改成小写 `true` / `false`。'],
+              [
+                '`GRID 的 showGrid 只能是 true 或 false。`',
+                '布尔值写成了 `yes` 或 `1`。',
+                '改成小写 `true` / `false`。',
+              ],
               ['`GRID 的 columns 必须是正整数。`', '写了小数或 0。', '改成 1、2、3 等正整数。'],
             ],
           },

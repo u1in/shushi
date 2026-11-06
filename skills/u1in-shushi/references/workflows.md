@@ -64,12 +64,7 @@ const result = shushiCore({
 ## 5. 只计算或逐层控制
 
 ```typescript
-import {
-  compileMacro,
-  computeAddition,
-  createAdditionMacroSource,
-  renderSvgString,
-} from '@u1in/shushi-core'
+import { compileMacro, computeAddition, createAdditionMacroSource, renderSvgString } from '@u1in/shushi-core'
 
 const computation = computeAddition('356', '278')
 const source = createAdditionMacroSource(computation)

@@ -19,7 +19,10 @@ const compareDigitStrings = (left: string, right: string): number => {
  * 计算大数减小数。`minuendDisplay` 保留中间计算时借位后的本位值，例如 502 − 137 导出 4、9、12，
  * 供计算步骤和数据流查看；竖式主行仍显示原始工作被减数。
  */
-const calculateNonNegativeDifference = (minuend: string, subtrahend: string): Pick<SubtractionComputation, 'differenceDigits' | 'steps'> => {
+const calculateNonNegativeDifference = (
+  minuend: string,
+  subtrahend: string,
+): Pick<SubtractionComputation, 'differenceDigits' | 'steps'> => {
   const resultDigits: string[] = []
   const steps: SubtractionColumnStep[] = []
   let borrow = 0

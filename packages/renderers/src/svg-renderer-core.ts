@@ -1,9 +1,5 @@
 /** Shared DOM-free SVG render tree used by the DOM and SSR renderers. */
-import {
-  getGridElementRect,
-  getGridTextAnchor,
-  resolveGridMetrics,
-} from '@u1in/shushi-grid'
+import { getGridElementRect, getGridTextAnchor, resolveGridMetrics } from '@u1in/shushi-grid'
 import type { GridElement, GridMetrics, GridScene } from '@u1in/shushi-grid'
 
 export interface SvgRenderNode {
@@ -24,9 +20,7 @@ const createNode = (
 
 /** 把有限的渲染样式写成 SVG inline style，DOM 与字符串输出共享同一份属性。 */
 const serializeStyle = (entries: Array<[string, string | number | undefined]>): string | undefined => {
-  const values = entries
-    .filter(([, value]) => value !== undefined)
-    .map(([name, value]) => `${name}:${String(value)}`)
+  const values = entries.filter(([, value]) => value !== undefined).map(([name, value]) => `${name}:${String(value)}`)
   return values.length > 0 ? values.join(';') : undefined
 }
 
@@ -38,11 +32,7 @@ const elementId = (element: GridElement): Record<string, string> => ({
   'data-grid-element-id': element.id,
 })
 
-const createElementNode = (
-  element: GridElement,
-  scene: GridScene,
-  metrics: GridMetrics,
-): SvgRenderNode => {
+const createElementNode = (element: GridElement, scene: GridScene, metrics: GridMetrics): SvgRenderNode => {
   const rect = getGridElementRect(element, metrics)
   if (element.content.kind === 'line') {
     if (element.position.kind !== 'edge') {
@@ -67,21 +57,34 @@ const createElementNode = (
     const horizontalAlign = element.content.horizontalAlign ?? scene.textHorizontalAlign
     const verticalAlign = element.content.verticalAlign ?? scene.textVerticalAlign
     const anchor = getGridTextAnchor(rect, horizontalAlign, verticalAlign)
-    return createNode('text', {
-      class: 'grid-text',
-      x: anchor.x,
-      y: anchor.y,
-      ...styleToken(element.content.styleToken ?? scene.defaultTextStyleToken),
-      ...elementId(element),
-      style: serializeStyle([
-        ['fill', element.content.color],
-        // 每个文字图元显式继承场景字体，确保脱离宿主 CSS 的 SVG 也能稳定切换字体。
-        ['font-family', element.content.fontFamily ?? scene.fontFamily],
-        ['font-size', element.content.fontSizeRatio === undefined ? undefined : `${scene.fontSize * element.content.fontSizeRatio}px`],
-        ['text-anchor', horizontalAlign === 'left' ? 'start' : horizontalAlign === 'right' ? 'end' : 'middle'],
-        ['dominant-baseline', verticalAlign === 'top' ? 'hanging' : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle'],
-      ]),
-    }, undefined, element.content.text)
+    return createNode(
+      'text',
+      {
+        class: 'grid-text',
+        x: anchor.x,
+        y: anchor.y,
+        ...styleToken(element.content.styleToken ?? scene.defaultTextStyleToken),
+        ...elementId(element),
+        style: serializeStyle([
+          ['fill', element.content.color],
+          // 每个文字图元显式继承场景字体，确保脱离宿主 CSS 的 SVG 也能稳定切换字体。
+          ['font-family', element.content.fontFamily ?? scene.fontFamily],
+          [
+            'font-size',
+            element.content.fontSizeRatio === undefined
+              ? undefined
+              : `${scene.fontSize * element.content.fontSizeRatio}px`,
+          ],
+          ['text-anchor', horizontalAlign === 'left' ? 'start' : horizontalAlign === 'right' ? 'end' : 'middle'],
+          [
+            'dominant-baseline',
+            verticalAlign === 'top' ? 'hanging' : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle',
+          ],
+        ]),
+      },
+      undefined,
+      element.content.text,
+    )
   }
 
   if (element.position.kind !== 'cell') {
@@ -111,12 +114,24 @@ const createGuideGridNodes = (scene: GridScene, metrics: GridMetrics): SvgRender
   const left = columnOffsets[0]
   const right = columnOffsets[columnOffsets.length - 1]
   return [
-    ...columnOffsets.map((x) => createNode('line', {
-      class: 'grid-guide-line grid-guide-line--vertical', x1: x, y1: top, x2: x, y2: bottom,
-    })),
-    ...rowOffsets.map((y) => createNode('line', {
-      class: 'grid-guide-line grid-guide-line--horizontal', x1: left, y1: y, x2: right, y2: y,
-    })),
+    ...columnOffsets.map((x) =>
+      createNode('line', {
+        class: 'grid-guide-line grid-guide-line--vertical',
+        x1: x,
+        y1: top,
+        x2: x,
+        y2: bottom,
+      }),
+    ),
+    ...rowOffsets.map((y) =>
+      createNode('line', {
+        class: 'grid-guide-line grid-guide-line--horizontal',
+        x1: left,
+        y1: y,
+        x2: right,
+        y2: y,
+      }),
+    ),
   ]
 }
 
@@ -130,28 +145,40 @@ export const createSvgRenderTree = (scene: GridScene): SvgRenderNode => {
     .filter(({ content }) => content.kind === 'text')
     .map((element) => createElementNode(element, scene, metrics))
 
-  return createNode('svg', {
-    class: 'grid-svg',
-    role: 'img',
-    xmlns: SVG_NAMESPACE,
-    style: serializeStyle([
-      ['display', 'block'],
-      ['--grid-font-size', `${scene.fontSize}px`],
-      ['--grid-font-family', scene.fontFamily],
-      // SVG 字符串可脱离公共 CSS 单独嵌入，直接写入属性以保留场景字体继承。
-      ['font-family', scene.fontFamily],
-    ]),
-    viewBox: `0 0 ${metrics.width} ${metrics.height}`,
-    width: metrics.width,
-    height: metrics.height,
-    'aria-label': scene.ariaLabel,
-  }, [
-    createNode('g', {
-      class: 'grid-line-layer',
-      'aria-hidden': 'true',
-    }, [...createGuideGridNodes(scene, metrics), ...lineNodes]),
-    createNode('g', {
-      class: 'grid-content-layer',
-    }, textNodes),
-  ])
+  return createNode(
+    'svg',
+    {
+      class: 'grid-svg',
+      role: 'img',
+      xmlns: SVG_NAMESPACE,
+      style: serializeStyle([
+        ['display', 'block'],
+        ['--grid-font-size', `${scene.fontSize}px`],
+        ['--grid-font-family', scene.fontFamily],
+        // SVG 字符串可脱离公共 CSS 单独嵌入，直接写入属性以保留场景字体继承。
+        ['font-family', scene.fontFamily],
+      ]),
+      viewBox: `0 0 ${metrics.width} ${metrics.height}`,
+      width: metrics.width,
+      height: metrics.height,
+      'aria-label': scene.ariaLabel,
+    },
+    [
+      createNode(
+        'g',
+        {
+          class: 'grid-line-layer',
+          'aria-hidden': 'true',
+        },
+        [...createGuideGridNodes(scene, metrics), ...lineNodes],
+      ),
+      createNode(
+        'g',
+        {
+          class: 'grid-content-layer',
+        },
+        textNodes,
+      ),
+    ],
+  )
 }

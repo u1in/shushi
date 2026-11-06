@@ -118,9 +118,17 @@ onBeforeUnmount(() => {
       <a href="#composite-arithmetic">表达式</a>
       <a href="#macro-ast-inspector">宏调试</a>
     </nav>
-    <a class="site-header__github" :href="githubUrl" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看竖式·Shushi">
+    <a
+      class="site-header__github"
+      :href="githubUrl"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="在 GitHub 查看竖式·Shushi"
+    >
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.49 0-.24-.01-1.04-.01-1.89-2.78.62-3.37-1.21-3.37-1.21-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.15-4.56-5.1 0-1.13.39-2.05 1.03-2.77-.1-.26-.45-1.32.1-2.75 0 0 .84-.28 2.75 1.06A9.28 9.28 0 0 1 12 6.1c.85 0 1.71.12 2.51.35 1.91-1.34 2.75-1.06 2.75-1.06.55 1.43.2 2.49.1 2.75.64.72 1.03 1.64 1.03 2.77 0 3.96-2.34 4.83-4.57 5.09.36.32.68.93.68 1.88 0 1.36-.01 2.45-.01 2.79 0 .27.18.59.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" />
+        <path
+          d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.49 0-.24-.01-1.04-.01-1.89-2.78.62-3.37-1.21-3.37-1.21-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.15-4.56-5.1 0-1.13.39-2.05 1.03-2.77-.1-.26-.45-1.32.1-2.75 0 0 .84-.28 2.75 1.06A9.28 9.28 0 0 1 12 6.1c.85 0 1.71.12 2.51.35 1.91-1.34 2.75-1.06 2.75-1.06.55 1.43.2 2.49.1 2.75.64.72 1.03 1.64 1.03 2.77 0 3.96-2.34 4.83-4.57 5.09.36.32.68.93.68 1.88 0 1.36-.01 2.45-.01 2.79 0 .27.18.59.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z"
+        />
       </svg>
       <span>GitHub</span>
     </a>
@@ -132,7 +140,9 @@ onBeforeUnmount(() => {
       <div class="hero__brand">
         <h1>竖式·Shushi</h1>
         <p class="eyebrow">VERTICAL ARITHMETIC · OPEN SOURCE</p>
-        <p class="intro">让竖式计算在你的页面上清晰呈现。输入算式，即可生成完整的计算步骤；也可以用宏命令自由编辑和展示。</p>
+        <p class="intro">
+          让竖式计算在你的页面上清晰呈现。输入算式，即可生成完整的计算步骤；也可以用宏命令自由编辑和展示。
+        </p>
         <nav class="hero-actions" aria-label="相关入口">
           <a class="hero-action-button" href="#composite-arithmetic">开始试用</a>
           <a class="hero-text-link" :href="docsUrl">阅读文档</a>
@@ -142,7 +152,7 @@ onBeforeUnmount(() => {
         <p class="install-guide__eyebrow">START HERE</p>
         <div class="install-guide__tabs" role="tablist" aria-label="接入方式">
           <button
-            v-for="method in (['npm', 'skill', 'agent'] as InstallMethod[])"
+            v-for="method in ['npm', 'skill', 'agent'] as InstallMethod[]"
             :key="method"
             class="install-guide__tab"
             :class="{ 'install-guide__tab--active': activeInstallMethod === method }"
@@ -162,8 +172,15 @@ onBeforeUnmount(() => {
             </div>
             <p>{{ activeInstallGuide.installHint }}</p>
             <div class="install-guide__code-row">
-              <div class="code-panel__source install-guide__code" aria-label="安装命令">{{ activeInstallGuide.install }}</div>
-              <button type="button" :aria-label="copiedGuide === 'install' ? '安装内容已复制' : '复制安装内容'" :title="copiedGuide === 'install' ? '已复制' : '复制'" @click="copyGuide('install')">
+              <div class="code-panel__source install-guide__code" aria-label="安装命令">
+                {{ activeInstallGuide.install }}
+              </div>
+              <button
+                type="button"
+                :aria-label="copiedGuide === 'install' ? '安装内容已复制' : '复制安装内容'"
+                :title="copiedGuide === 'install' ? '已复制' : '复制'"
+                @click="copyGuide('install')"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <rect x="8" y="8" width="11" height="11" rx="2" />
                   <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
@@ -178,8 +195,15 @@ onBeforeUnmount(() => {
             </div>
             <p>{{ activeInstallGuide.usageHint }}</p>
             <div class="install-guide__code-row">
-              <div class="code-panel__source install-guide__code" aria-label="使用示例">{{ activeInstallGuide.usage }}</div>
-              <button type="button" :aria-label="copiedGuide === 'usage' ? '使用内容已复制' : '复制使用内容'" :title="copiedGuide === 'usage' ? '已复制' : '复制'" @click="copyGuide('usage')">
+              <div class="code-panel__source install-guide__code" aria-label="使用示例">
+                {{ activeInstallGuide.usage }}
+              </div>
+              <button
+                type="button"
+                :aria-label="copiedGuide === 'usage' ? '使用内容已复制' : '复制使用内容'"
+                :title="copiedGuide === 'usage' ? '已复制' : '复制'"
+                @click="copyGuide('usage')"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <rect x="8" y="8" width="11" height="11" rx="2" />
                   <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
@@ -194,13 +218,7 @@ onBeforeUnmount(() => {
     <CompositeArithmeticCalculator id="composite-arithmetic" />
     <MacroAstInspector id="macro-ast-inspector" />
 
-    <button
-      v-if="showBackToTop"
-      class="back-to-top"
-      type="button"
-      aria-label="返回页面顶部"
-      @click="scrollToTop"
-    >
+    <button v-if="showBackToTop" class="back-to-top" type="button" aria-label="返回页面顶部" @click="scrollToTop">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M12 17V7M7 12l5-5 5 5" />
       </svg>

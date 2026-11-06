@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-const props = withDefaults(defineProps<{
-  title: string
-  description: string
-  code: string
-  language?: string
-}>(), {
-  language: 'typescript',
-})
+const props = withDefaults(
+  defineProps<{
+    title: string
+    description: string
+    code: string
+    language?: string
+  }>(),
+  {
+    language: 'typescript',
+  },
+)
 
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 let resetTimer: ReturnType<typeof setTimeout> | undefined
@@ -20,17 +23,33 @@ const isExpanded = ref(false)
 const isOverflowing = ref(false)
 let sourceResizeObserver: ResizeObserver | undefined
 
-const escapeHtml = (value: string): string => value
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;')
-  .replaceAll("'", '&#39;')
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
 
 /** 轻量高亮只处理展示所需的 TypeScript 常见 token，源码仍由原始字符串负责复制。 */
 const highlightCode = (code: string): string => {
-  const tokenPattern = /\/\/[^\n]*|\/\*[\s\S]*?\*\/|'(?:\\.|[^'])*'|"(?:\\.|[^"])*"|\b(?:import|from|const|let|return|try|catch|if|else|new|as|type|interface|true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\s*\()/g
-  const keywords = new Set(['import', 'from', 'const', 'let', 'return', 'try', 'catch', 'if', 'else', 'new', 'as', 'type', 'interface'])
+  const tokenPattern =
+    /\/\/[^\n]*|\/\*[\s\S]*?\*\/|'(?:\\.|[^'])*'|"(?:\\.|[^"])*"|\b(?:import|from|const|let|return|try|catch|if|else|new|as|type|interface|true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\s*\()/g
+  const keywords = new Set([
+    'import',
+    'from',
+    'const',
+    'let',
+    'return',
+    'try',
+    'catch',
+    'if',
+    'else',
+    'new',
+    'as',
+    'type',
+    'interface',
+  ])
   const literals = new Set(['true', 'false', 'null', 'undefined'])
   let result = ''
   let cursor = 0
@@ -39,17 +58,18 @@ const highlightCode = (code: string): string => {
     const token = match[0]
     const start = match.index ?? cursor
     result += escapeHtml(code.slice(cursor, start))
-    const tokenKind = token.startsWith('//') || token.startsWith('/*')
-      ? 'comment'
-      : token.startsWith('\'') || token.startsWith('"')
-        ? 'string'
-        : keywords.has(token)
-          ? 'keyword'
-          : literals.has(token)
-            ? 'literal'
-            : /^\d/.test(token)
-              ? 'number'
-              : 'function'
+    const tokenKind =
+      token.startsWith('//') || token.startsWith('/*')
+        ? 'comment'
+        : token.startsWith("'") || token.startsWith('"')
+          ? 'string'
+          : keywords.has(token)
+            ? 'keyword'
+            : literals.has(token)
+              ? 'literal'
+              : /^\d/.test(token)
+                ? 'number'
+                : 'function'
     result += '<span class="code-token code-token--' + tokenKind + '">' + escapeHtml(token) + '</span>'
     cursor = start + token.length
   }
@@ -59,8 +79,10 @@ const highlightCode = (code: string): string => {
 
 const highlightedCode = computed(() => highlightCode(props.code))
 const highlightedLines = computed(() => highlightedCode.value.split('\n'))
-const copyLabel = computed(() => copyState.value === 'copied' ? '已复制全部代码' : copyState.value === 'error' ? '复制失败，请重试' : '复制全部代码')
-const expandLabel = computed(() => isExpanded.value ? '收起核心实现代码' : '展开核心实现代码')
+const copyLabel = computed(() =>
+  copyState.value === 'copied' ? '已复制全部代码' : copyState.value === 'error' ? '复制失败，请重试' : '复制全部代码',
+)
+const expandLabel = computed(() => (isExpanded.value ? '收起核心实现代码' : '展开核心实现代码'))
 
 /** 代码面板默认服从当前网格行高度；只有源码确实超出可视区域时才显示展开入口。 */
 const measureSourceOverflow = (): void => {
@@ -76,27 +98,30 @@ const toggleExpanded = async (): Promise<void> => {
 }
 
 /** 对比前后源码行，只短暂标记发生变化的行，帮助用户定位配置带来的代码变化。 */
-watch(() => props.code, (nextCode, previousCode) => {
-  if (previousCode === undefined) return
+watch(
+  () => props.code,
+  (nextCode, previousCode) => {
+    if (previousCode === undefined) return
 
-  const nextLines = nextCode.split('\n')
-  const previousLines = previousCode.split('\n')
-  const changedLines = nextLines.reduce<number[]>((indices, line, index) => {
-    if (line !== previousLines[index]) indices.push(index)
-    return indices
-  }, [])
+    const nextLines = nextCode.split('\n')
+    const previousLines = previousCode.split('\n')
+    const changedLines = nextLines.reduce<number[]>((indices, line, index) => {
+      if (line !== previousLines[index]) indices.push(index)
+      return indices
+    }, [])
 
-  if (changedLines.length === 0) return
+    if (changedLines.length === 0) return
 
-  flashedLineIndices.value = changedLines
-  flashKey.value += 1
-  if (flashTimer) clearTimeout(flashTimer)
-  flashTimer = setTimeout(() => {
-    flashedLineIndices.value = []
-  }, 900)
+    flashedLineIndices.value = changedLines
+    flashKey.value += 1
+    if (flashTimer) clearTimeout(flashTimer)
+    flashTimer = setTimeout(() => {
+      flashedLineIndices.value = []
+    }, 900)
 
-  void nextTick(measureSourceOverflow)
-})
+    void nextTick(measureSourceOverflow)
+  },
+)
 
 onMounted(() => {
   const element = sourceElement.value
@@ -149,11 +174,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section
-    class="code-panel"
-    :class="{ 'code-panel--expanded': isExpanded }"
-    aria-label="核心实现代码"
-  >
+  <section class="code-panel" :class="{ 'code-panel--expanded': isExpanded }" aria-label="核心实现代码">
     <p class="panel-kicker">CORE IMPLEMENTATION</p>
     <h2>{{ title }}</h2>
     <p class="normalization">{{ description }}</p>
@@ -184,13 +205,7 @@ onBeforeUnmount(() => {
           {{ isExpanded ? '收起' : '展开' }}
         </button>
       </div>
-      <button
-        class="code-panel__copy"
-        type="button"
-        :aria-label="copyLabel"
-        :title="copyLabel"
-        @click="copyCode"
-      >
+      <button class="code-panel__copy" type="button" :aria-label="copyLabel" :title="copyLabel" @click="copyCode">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <rect x="8" y="8" width="11" height="11" rx="2" />
           <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />

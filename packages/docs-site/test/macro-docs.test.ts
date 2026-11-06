@@ -15,21 +15,83 @@ import {
  * 这组测试防止改宏语法后文档里留下过期源码。
  */
 const requiredSlugs = [
-  'intro', 'compileMacro', 'compileMacroAst', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroAst', 'minifyMacroForCopy', 'minifyMacroForCopyAst', 'createMacroAstInspection',
-  'renderSvgGrid', 'renderSvgString', 'renderDomGrid', 'GridScene', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect',
-  'getGridTextAnchor', 'extractVisibleTextRows',
-  'createAdditionMacroSource', 'createAdditionGridScene', 'createSubtractionMacroSource', 'createSubtractionGridScene',
-  'getDivisionPlaybackStepCount', 'createDivisionMacroSource', 'createDivisionGridScene',
-  'getMultiplicationStepCount', 'createMultiplicationMacroSource', 'createMultiplicationGridScene',
-  'createShortDivisionMacroSource', 'createShortDivisionGridScene', 'compileCalculatorMacro',
-  'createCompositeArithmeticMacroSource', 'getCompositeArithmeticStepCount',
-  'computeAddition', 'computeSubtraction', 'computeDivision', 'computeMultiplication', 'computeCompositeArithmetic', 'computeShortDivision',
+  'intro',
+  'compileMacro',
+  'compileMacroAst',
+  'parseMacro',
+  'formatMacro',
+  'completeMacro',
+  'unformatMacro',
+  'minifyMacro',
+  'minifyMacroAst',
+  'minifyMacroForCopy',
+  'minifyMacroForCopyAst',
+  'createMacroAstInspection',
+  'renderSvgGrid',
+  'renderSvgString',
+  'renderDomGrid',
+  'GridScene',
+  'resolveGridMetrics',
+  'getGridPositionRect',
+  'getGridElementRect',
+  'getGridTextAnchor',
+  'extractVisibleTextRows',
+  'createAdditionMacroSource',
+  'createAdditionGridScene',
+  'createSubtractionMacroSource',
+  'createSubtractionGridScene',
+  'getDivisionPlaybackStepCount',
+  'createDivisionMacroSource',
+  'createDivisionGridScene',
+  'getMultiplicationStepCount',
+  'createMultiplicationMacroSource',
+  'createMultiplicationGridScene',
+  'createShortDivisionMacroSource',
+  'createShortDivisionGridScene',
+  'compileCalculatorMacro',
+  'createCompositeArithmeticMacroSource',
+  'getCompositeArithmeticStepCount',
+  'computeAddition',
+  'computeSubtraction',
+  'computeDivision',
+  'computeMultiplication',
+  'computeCompositeArithmetic',
+  'computeShortDivision',
   'syntax',
-  'grid', 'row', 'cell', 'empty', 'line', 'div', 'value', 'style', 'kv',
-  'row-shorthand', 'cell-shorthand', 'zero-argument',
-  'lt', 'mt', 'mtd', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
-  'dot', 'bracket', 'square', 'triangle', 'round', 'tbd', 'rbd', 'bbd', 'lbd',
-  'examples', 'cautions',
+  'grid',
+  'row',
+  'cell',
+  'empty',
+  'line',
+  'div',
+  'value',
+  'style',
+  'kv',
+  'row-shorthand',
+  'cell-shorthand',
+  'zero-argument',
+  'lt',
+  'mt',
+  'mtd',
+  'rt',
+  'ml',
+  'mm',
+  'mr',
+  'lb',
+  'mb',
+  'rb',
+  'rbl',
+  'dot',
+  'bracket',
+  'square',
+  'triangle',
+  'round',
+  'tbd',
+  'rbd',
+  'bbd',
+  'lbd',
+  'examples',
+  'cautions',
 ]
 
 interface Snippet {
@@ -52,15 +114,14 @@ const collectSnippets = (block: DocBlock, page: string, section: string): Snippe
   return []
 }
 
-const snippets = macroDocPages.flatMap((page) => page.sections.flatMap((section) => (
-  section.blocks.flatMap((block) => collectSnippets(block, page.slug, section.id))
-)))
-
+const snippets = macroDocPages.flatMap((page) =>
+  page.sections.flatMap((section) => section.blocks.flatMap((block) => collectSnippets(block, page.slug, section.id))),
+)
 
 /** 只读取单元格正文，忽略 MT/RB/LT 等小号教学标注，按行还原数字。 */
 const readNumberRows = (source: string): string[] => {
   const scene = compileMacro(source)
-  const rows = new Map<number, Array<{ column: number, text: string }>>()
+  const rows = new Map<number, Array<{ column: number; text: string }>>()
   for (const element of scene.elements) {
     if (element.content.kind !== 'text') continue
     const position = element.position
@@ -74,23 +135,26 @@ const readNumberRows = (source: string): string[] => {
   }
   return [...rows.entries()]
     .sort(([left], [right]) => left - right)
-    .map(([, cells]) => cells.sort((left, right) => left.column - right.column).map(({ text }) => text).join(''))
+    .map(([, cells]) =>
+      cells
+        .sort((left, right) => left.column - right.column)
+        .map(({ text }) => text)
+        .join(''),
+    )
 }
 
 const findCompareCode = (slug: string, sectionTitle: string): string => {
   const section = macroDocPageBySlug.get(slug)?.sections.find(({ title }) => title === sectionTitle)
-  const block = section?.blocks.find(
-    (item): item is Extract<DocBlock, { type: 'compare' }> => item.type === 'compare',
-  )
+  const block = section?.blocks.find((item): item is Extract<DocBlock, { type: 'compare' }> => item.type === 'compare')
   if (!block) throw new Error(`未找到对照：${slug} / ${sectionTitle}`)
   return block.leftCode
 }
 
 const findExampleCode = (slug: string, title: string): string => {
   const page = macroDocPageBySlug.get(slug)
-  const block = page?.sections.flatMap(({ blocks }) => blocks).find(
-    (item): item is Extract<DocBlock, { type: 'example' }> => item.type === 'example' && item.title === title,
-  )
+  const block = page?.sections
+    .flatMap(({ blocks }) => blocks)
+    .find((item): item is Extract<DocBlock, { type: 'example' }> => item.type === 'example' && item.title === title)
   if (!block) throw new Error(`未找到示例：${slug} / ${title}`)
   return block.code
 }
@@ -102,45 +166,121 @@ describe('网格宏文档', () => {
   })
 
   test('方位宏、符号宏与纯语法糖分组正确', () => {
-    const pagesOf = (groupId: string): string[] => (
+    const pagesOf = (groupId: string): string[] =>
       macroDocNavGroups.find(({ id }) => id === groupId)?.pages.map(({ slug }) => slug) ?? []
-    )
 
     expect(pagesOf('technical')).toEqual([])
     expect(macroDocPageBySlug.has('install')).toBe(false)
     expect(macroDocPageBySlug.has('quickstart')).toBe(false)
     expect(pagesOf('api')).toEqual([
-      'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
-      'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
-      'shushiCore', 'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
-      'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
-      'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
-      'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
-      'compileCalculatorMacro', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
-      'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
+      'shushi',
+      'compileMacro',
+      'parseMacro',
+      'formatMacro',
+      'completeMacro',
+      'unformatMacro',
+      'minifyMacro',
+      'minifyMacroForCopy',
+      'createMacroAstInspection',
+      'renderDomGrid',
+      'renderSvgGrid',
+      'renderSvgString',
+      'GridScene',
+      'extractVisibleTextRows',
+      'shushiCore',
+      'compileMacroAst',
+      'minifyMacroAst',
+      'minifyMacroForCopyAst',
+      'computeAddition',
+      'computeSubtraction',
+      'computeMultiplication',
+      'computeDivision',
+      'computeShortDivision',
+      'computeCompositeArithmetic',
+      'createAdditionMacroSource',
+      'createSubtractionMacroSource',
+      'createMultiplicationMacroSource',
+      'createDivisionMacroSource',
+      'createShortDivisionMacroSource',
+      'createCompositeArithmeticMacroSource',
+      'createAdditionGridScene',
+      'createSubtractionGridScene',
+      'createMultiplicationGridScene',
+      'createDivisionGridScene',
+      'createShortDivisionGridScene',
+      'compileCalculatorMacro',
+      'resolveGridMetrics',
+      'getGridPositionRect',
+      'getGridElementRect',
+      'getGridTextAnchor',
+      'getMultiplicationStepCount',
+      'getDivisionPlaybackStepCount',
+      'getCompositeArithmeticStepCount',
     ])
     expect(macroDocApiNavGroups.map(({ title, pages }) => [title, pages.map(({ slug }) => slug)])).toEqual([
-      ['常用 API', [
-        'shushi', 'compileMacro', 'parseMacro', 'formatMacro', 'completeMacro', 'unformatMacro', 'minifyMacro', 'minifyMacroForCopy', 'createMacroAstInspection',
-        'renderDomGrid', 'renderSvgGrid', 'renderSvgString', 'GridScene', 'extractVisibleTextRows',
-      ]],
-      ['高级 API', [
-        'shushiCore', 'compileMacroAst', 'minifyMacroAst', 'minifyMacroForCopyAst',
-        'computeAddition', 'computeSubtraction', 'computeMultiplication', 'computeDivision', 'computeShortDivision', 'computeCompositeArithmetic',
-        'createAdditionMacroSource', 'createSubtractionMacroSource', 'createMultiplicationMacroSource', 'createDivisionMacroSource', 'createShortDivisionMacroSource', 'createCompositeArithmeticMacroSource',
-        'createAdditionGridScene', 'createSubtractionGridScene', 'createMultiplicationGridScene', 'createDivisionGridScene', 'createShortDivisionGridScene',
-        'compileCalculatorMacro', 'resolveGridMetrics', 'getGridPositionRect', 'getGridElementRect', 'getGridTextAnchor',
-        'getMultiplicationStepCount', 'getDivisionPlaybackStepCount', 'getCompositeArithmeticStepCount',
-      ]],
+      [
+        '常用 API',
+        [
+          'shushi',
+          'compileMacro',
+          'parseMacro',
+          'formatMacro',
+          'completeMacro',
+          'unformatMacro',
+          'minifyMacro',
+          'minifyMacroForCopy',
+          'createMacroAstInspection',
+          'renderDomGrid',
+          'renderSvgGrid',
+          'renderSvgString',
+          'GridScene',
+          'extractVisibleTextRows',
+        ],
+      ],
+      [
+        '高级 API',
+        [
+          'shushiCore',
+          'compileMacroAst',
+          'minifyMacroAst',
+          'minifyMacroForCopyAst',
+          'computeAddition',
+          'computeSubtraction',
+          'computeMultiplication',
+          'computeDivision',
+          'computeShortDivision',
+          'computeCompositeArithmetic',
+          'createAdditionMacroSource',
+          'createSubtractionMacroSource',
+          'createMultiplicationMacroSource',
+          'createDivisionMacroSource',
+          'createShortDivisionMacroSource',
+          'createCompositeArithmeticMacroSource',
+          'createAdditionGridScene',
+          'createSubtractionGridScene',
+          'createMultiplicationGridScene',
+          'createDivisionGridScene',
+          'createShortDivisionGridScene',
+          'compileCalculatorMacro',
+          'resolveGridMetrics',
+          'getGridPositionRect',
+          'getGridElementRect',
+          'getGridTextAnchor',
+          'getMultiplicationStepCount',
+          'getDivisionPlaybackStepCount',
+          'getCompositeArithmeticStepCount',
+        ],
+      ],
     ])
-    expect(pagesOf('orientation')).toEqual([
-      'lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl',
-    ])
+    expect(pagesOf('orientation')).toEqual(['lt', 'mt', 'rt', 'ml', 'mm', 'mr', 'lb', 'mb', 'rb', 'rbl'])
     expect(pagesOf('alias')).toEqual(['mtd', 'dot', 'square', 'triangle', 'round'])
     expect(pagesOf('symbol')).toEqual(['bracket', 'tbd', 'rbd', 'bbd', 'lbd'])
     expect(pagesOf('sugar')).toEqual(['row-shorthand', 'cell-shorthand', 'zero-argument'])
     for (const page of macroDocPages) {
-      expect(macroDocNavGroups.some(({ id }) => id === page.group), `${page.slug} 的分组不存在`).toBe(true)
+      expect(
+        macroDocNavGroups.some(({ id }) => id === page.group),
+        `${page.slug} 的分组不存在`,
+      ).toBe(true)
     }
   })
 
@@ -156,31 +296,36 @@ describe('网格宏文档', () => {
 
   test('每个 API 页面使用统一章节顺序并标注代码语言', () => {
     for (const page of macroDocApiNavGroups.flatMap(({ pages }) => pages)) {
-      expect(page.sections.map(({ id }) => id), page.slug).toEqual(['name', 'example', 'purpose', 'signature', 'cautions'])
-      const codeBlocks = page.sections.flatMap(({ blocks }) => blocks).filter(
-        (block): block is Extract<DocBlock, { type: 'code' }> => block.type === 'code',
-      )
+      expect(
+        page.sections.map(({ id }) => id),
+        page.slug,
+      ).toEqual(['name', 'example', 'purpose', 'signature', 'cautions'])
+      const codeBlocks = page.sections
+        .flatMap(({ blocks }) => blocks)
+        .filter((block): block is Extract<DocBlock, { type: 'code' }> => block.type === 'code')
       expect(codeBlocks.length, `${page.slug} 没有代码块`).toBeGreaterThan(0)
-      expect(codeBlocks.every(({ language }) => language === 'typescript' || language === 'css'), page.slug).toBe(true)
+      expect(
+        codeBlocks.every(({ language }) => language === 'typescript' || language === 'css'),
+        page.slug,
+      ).toBe(true)
     }
   })
 
   test('所有示例与对照源码都能编译', () => {
     expect(snippets.length).toBeGreaterThan(40)
     for (const snippet of snippets) {
-      expect(
-        () => compileMacro(snippet.code),
-        `${snippet.page} / ${snippet.section} / ${snippet.label}`,
-      ).not.toThrow()
+      expect(() => compileMacro(snippet.code), `${snippet.page} / ${snippet.section} / ${snippet.label}`).not.toThrow()
     }
   })
 
   test('标记为等价的完整版与语法糖版输出同一个 GridScene', () => {
-    const comparisons = macroDocPages.flatMap((page) => page.sections.flatMap((section) => (
-      section.blocks
-        .filter((block): block is Extract<DocBlock, { type: 'compare' }> => block.type === 'compare')
-        .map((block) => ({ page: page.slug, section: section.id, block }))
-    )))
+    const comparisons = macroDocPages.flatMap((page) =>
+      page.sections.flatMap((section) =>
+        section.blocks
+          .filter((block): block is Extract<DocBlock, { type: 'compare' }> => block.type === 'compare')
+          .map((block) => ({ page: page.slug, section: section.id, block })),
+      ),
+    )
 
     expect(comparisons.length).toBeGreaterThan(0)
     for (const { page, section, block } of comparisons) {
@@ -221,11 +366,13 @@ describe('网格宏文档', () => {
   })
 
   test('页面内“继续阅读”链接都能落到文档页', () => {
-    const links = macroDocPages.flatMap((page) => page.sections.flatMap((section) => (
-      section.blocks.flatMap((block) => (
-        block.type === 'cards' ? block.items.flatMap((item) => item.to ? [item.to] : []) : []
-      ))
-    )))
+    const links = macroDocPages.flatMap((page) =>
+      page.sections.flatMap((section) =>
+        section.blocks.flatMap((block) =>
+          block.type === 'cards' ? block.items.flatMap((item) => (item.to ? [item.to] : [])) : [],
+        ),
+      ),
+    )
 
     const validPaths = new Set(macroDocPages.map(({ slug }) => getMacroDocPath(slug)))
     for (const link of links) {
@@ -254,5 +401,4 @@ describe('网格宏文档', () => {
     expect(longDivision[1]).toBe('2510230.0')
     expect(Number(longDivision[1].slice(2)) / 25).toBeCloseTo(Number(longDivision[0]), 10)
   })
-
 })

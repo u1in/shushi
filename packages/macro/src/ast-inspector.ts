@@ -91,19 +91,23 @@ const inspectMacroAst = (
   const nodePaths = new Map<MacroNode, MacroNodePath>()
   indexNodePaths(ast, [], nodePaths)
   const references: Record<string, MacroElementAstReference> = {}
-  const scene = compileMacroAstForInspection(ast, (element, node) => {
-    const nodePath = nodePaths.get(node)
-    if (!nodePath) return
-    const literalPath = findFirstLiteralPath(node, nodePath)
-    const literal = literalPath ? getNodeAtPath(ast, literalPath) : undefined
-    references[element.id] = {
-      elementId: element.id,
-      node,
-      nodePath,
-      ...(literalPath ? { literalPath } : {}),
-      ...(literal?.kind === 'literal' ? { text: literal.value } : {}),
-    }
-  }, options)
+  const scene = compileMacroAstForInspection(
+    ast,
+    (element, node) => {
+      const nodePath = nodePaths.get(node)
+      if (!nodePath) return
+      const literalPath = findFirstLiteralPath(node, nodePath)
+      const literal = literalPath ? getNodeAtPath(ast, literalPath) : undefined
+      references[element.id] = {
+        elementId: element.id,
+        node,
+        nodePath,
+        ...(literalPath ? { literalPath } : {}),
+        ...(literal?.kind === 'literal' ? { text: literal.value } : {}),
+      }
+    },
+    options,
+  )
   return {
     ast,
     scene,
@@ -124,4 +128,3 @@ export const createMacroAstInspection = (source: string, options?: MacroCompileO
   const sourceStyle: MacroSourceStyle = source.trim() === minifyMacro(source) ? 'minified' : 'formatted'
   return inspectMacroAst(parseMacro(source), sourceStyle, source, options)
 }
-

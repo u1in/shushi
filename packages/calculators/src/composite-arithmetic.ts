@@ -2,24 +2,24 @@
 import { computeAddition } from './addition'
 import { computeMultiplication } from './multiplication'
 import { computeSubtraction } from './subtraction'
-import type {
-  CompositeArithmeticComputation,
-  CompositeArithmeticOperator,
-  CompositeArithmeticStep,
-} from './types'
+import type { CompositeArithmeticComputation, CompositeArithmeticOperator, CompositeArithmeticStep } from './types'
 
 const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
 
 /** 组合表达式有意不采用通常的乘法优先级；文本顺序就是教学步骤顺序。 */
-const parseExpression = (expression: unknown): { initialValueDigits: string, operations: { operator: CompositeArithmeticOperator, operandDigits: string }[] } => {
-  const source = String(expression ?? '').replace(/\s+/g, '').replace(/[xX*]/g, '×')
+const parseExpression = (
+  expression: unknown,
+): { initialValueDigits: string; operations: { operator: CompositeArithmeticOperator; operandDigits: string }[] } => {
+  const source = String(expression ?? '')
+    .replace(/\s+/g, '')
+    .replace(/[xX*]/g, '×')
   if (!/^\d+(?:[+\-×]\d+)+$/.test(source)) {
     throw new Error('组合表达式请使用至少两个非负整数，并以 +、- 或 × 连接，例如 125 + 75 - 20 × 3。')
   }
 
   const tokens = source.split(/([+\-×])/)
   const initialValueDigits = trimLeadingZeros(tokens[0])
-  const operations = [] as { operator: CompositeArithmeticOperator, operandDigits: string }[]
+  const operations = [] as { operator: CompositeArithmeticOperator; operandDigits: string }[]
   for (let index = 1; index < tokens.length; index += 2) {
     operations.push({
       operator: tokens[index] as CompositeArithmeticOperator,

@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest run --config vite.test.config.ts",
     "docs:dev": "vuepress dev ../docs --config vuepress.config.ts",
-    "docs:build": "vuepress build ../docs --config vuepress.config.ts"
+    "docs:build": "npm --prefix ../.. run quality:check && vuepress build ../docs --config vuepress.config.ts"
   },
   "dependencies": {
     "@u1in/shushi-core": "file:../core",

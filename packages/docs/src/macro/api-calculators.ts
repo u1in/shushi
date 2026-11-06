@@ -11,7 +11,15 @@ interface CalculatorApiSpec {
 }
 
 /** 计算 API 页面说明“输入 → 运算过程 → 结果契约”，不把布局和渲染职责混入计算层。 */
-const createCalculatorApiPage = ({ slug, summary, example, purpose, signature, parameters, caution }: CalculatorApiSpec): MacroDocPage => ({
+const createCalculatorApiPage = ({
+  slug,
+  summary,
+  example,
+  purpose,
+  signature,
+  parameters,
+  caution,
+}: CalculatorApiSpec): MacroDocPage => ({
   slug,
   title: slug,
   navLabel: slug,
@@ -21,15 +29,25 @@ const createCalculatorApiPage = ({ slug, summary, example, purpose, signature, p
   summary,
   sections: [
     { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: `\`${slug}\`：${summary}` }] },
-    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: example }] },
+    {
+      id: 'example',
+      title: '例子',
+      blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: example }],
+    },
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: purpose }] },
     {
-      id: 'signature', title: '函数签名和属性说明', blocks: [
+      id: 'signature',
+      title: '函数签名和属性说明',
+      blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: signature },
         { type: 'table', columns: ['参数 / 返回值', '类型', '说明'], rows: parameters },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '计算层边界', text: caution }] },
+    {
+      id: 'cautions',
+      title: '注意事项',
+      blocks: [{ type: 'callout', tone: 'warn', title: '计算层边界', text: caution }],
+    },
   ],
 })
 
@@ -96,7 +114,11 @@ console.log(computation.steps)`,
   parameters: [
     ['`divisorValue`', '`unknown`', '除数，不能为 0。'],
     ['`dividendValue`', '`unknown`', '被除数，要求为非负十进制整数。'],
-    ['`options.maxDecimalDigits`', '`number`', '可选的正整数。省略时返回整数商和余数；配置后最多展开该位数，未除尽时保留截断小数与当前余数。'],
+    [
+      '`options.maxDecimalDigits`',
+      '`number`',
+      '可选的正整数。省略时返回整数商和余数；配置后最多展开该位数，未除尽时保留截断小数与当前余数。',
+    ],
     ['返回值', '`DivisionComputation`', '包含 `quotientText`、`quotientTokens`、`steps` 和 `remainder`。'],
   ],
   caution: '除数为 0、非正整数的小数位上限都会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
@@ -140,7 +162,8 @@ const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
 
 console.log(computation.resultDigits) // '540'
 console.log(computation.steps)`,
-  purpose: '它为每个运算符委托现有加法、减法或乘法计算器，返回带 `operator` 判别字段的单项过程。组合乘法固定关闭十倍数快捷计算并保留输入顺序。',
+  purpose:
+    '它为每个运算符委托现有加法、减法或乘法计算器，返回带 `operator` 判别字段的单项过程。组合乘法固定关闭十倍数快捷计算并保留输入顺序。',
   signature: `type ComputeCompositeArithmetic = (
   expression: unknown,
 ) => CompositeArithmeticComputation`,

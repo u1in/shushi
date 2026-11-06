@@ -3,9 +3,7 @@ import type { CompositeArithmeticComputation, CompositeArithmeticStep } from '@u
 import type { GridScene } from '@u1in/shushi-grid'
 import { minifyMacroForCopyAst, parseMacro } from '@u1in/shushi-macro'
 import type { MacroCall, MacroNode } from '@u1in/shushi-macro'
-import {
-  createAdditionMacroSource,
-} from './addition-layout'
+import { createAdditionMacroSource } from './addition-layout'
 import { createMultiplicationMacroSource, getMultiplicationStepCount } from './multiplication-layout'
 import { createSubtractionMacroSource } from './subtraction-layout'
 import type { CompositeArithmeticRenderSettings } from './types'
@@ -34,9 +32,12 @@ const DEFAULT_SETTINGS: CompositeArithmeticRenderSettings = {
 /** 返回单项规则本身定义的教学事件数，组合播放器据此映射全局游标。 */
 const getOperationStepCount = (step: CompositeArithmeticStep): number => {
   switch (step.operator) {
-    case '+': return step.computation.steps.length
-    case '-': return step.computation.steps.length
-    case '×': return getMultiplicationStepCount(step.computation)
+    case '+':
+      return step.computation.steps.length
+    case '-':
+      return step.computation.steps.length
+    case '×':
+      return getMultiplicationStepCount(step.computation)
   }
 }
 
@@ -54,9 +55,8 @@ const getLocalVisibleStepCount = (
 
 const isCall = (node: MacroNode, name: string): node is MacroCall => node.kind === 'call' && node.name === name
 
-const getNodeValue = (node: MacroNode | undefined): string | undefined => (
+const getNodeValue = (node: MacroNode | undefined): string | undefined =>
   node?.kind === 'literal' ? node.value : node?.kind === 'symbol' ? node.name : undefined
-)
 
 const getGridColumnCount = (source: string): number => {
   // 单项布局统一通过 macroGrid 输出此稳定的场景配置；此处只读取列数，不重新解释其行内容。
@@ -70,13 +70,13 @@ const normalizeLineSpan = (node: MacroNode): MacroNode => {
   if (!isCall(node, 'LINE')) return node
   return {
     ...node,
-    arguments: node.arguments.map((argument) => (
-      isCall(argument, 'KV')
-      && getNodeValue(argument.arguments[0]) === 'span'
-      && getNodeValue(argument.arguments[1]) === 'full'
+    arguments: node.arguments.map((argument) =>
+      isCall(argument, 'KV') &&
+      getNodeValue(argument.arguments[0]) === 'span' &&
+      getNodeValue(argument.arguments[1]) === 'full'
         ? { ...argument, arguments: [argument.arguments[0], { kind: 'literal', value: 'previous' }] }
-        : argument
-    )),
+        : argument,
+    ),
   }
 }
 
@@ -92,7 +92,7 @@ const getBorrowMarkers = (node: MacroNode): MacroNode[] => {
 const appendBorrowMarkers = (target: MacroNode, markers: MacroNode[]): MacroNode => {
   if (markers.length === 0) return target
   if (isCall(target, 'CELL')) return { ...target, arguments: [...target.arguments, ...markers] }
-  if (isCall(target, 'EMPTY') || target.kind === 'symbol' && target.name === 'EMPTY') {
+  if (isCall(target, 'EMPTY') || (target.kind === 'symbol' && target.name === 'EMPTY')) {
     return { kind: 'call', name: 'CELL', arguments: markers }
   }
   return { kind: 'call', name: 'CELL', arguments: [target, ...markers] }
@@ -123,9 +123,8 @@ const mergeBorrowMarkersIntoPreviousResult = (children: MacroNode[], minuendRow:
   children[resultRowIndex] = { ...resultRow, arguments: resultCells }
 }
 
-export const getCompositeArithmeticStepCount = (computation: CompositeArithmeticComputation): number => (
+export const getCompositeArithmeticStepCount = (computation: CompositeArithmeticComputation): number =>
   computation.steps.reduce((count, step, index) => count + getOperationStepCount(step) + (index === 0 ? 0 : 1), 0)
-)
 
 /**
  * 组合宏不是一段伪造的超级 GRID：每一步都产生可独立复制回宏调试的宏源码框的源码。
@@ -155,15 +154,19 @@ const createCompositeArithmeticMacroStages = (
       showGuideGrid: resolvedSettings.showGuideGrid,
       visibleStepCount,
     }
-    const source = step.operator === '+'
-      ? createAdditionMacroSource(step.computation, { ...common, showCarrySteps: resolvedSettings.showCarrySteps })
-      : step.operator === '-'
-        ? createSubtractionMacroSource(step.computation, { ...common, showBorrowSteps: resolvedSettings.showBorrowSteps })
-        : createMultiplicationMacroSource(step.computation, {
-          ...common,
-          showCarrySteps: resolvedSettings.showCarrySteps,
-          uniformMultiplicationBars: resolvedSettings.uniformMultiplicationBars,
-        })
+    const source =
+      step.operator === '+'
+        ? createAdditionMacroSource(step.computation, { ...common, showCarrySteps: resolvedSettings.showCarrySteps })
+        : step.operator === '-'
+          ? createSubtractionMacroSource(step.computation, {
+              ...common,
+              showBorrowSteps: resolvedSettings.showBorrowSteps,
+            })
+          : createMultiplicationMacroSource(step.computation, {
+              ...common,
+              showCarrySteps: resolvedSettings.showCarrySteps,
+              uniformMultiplicationBars: resolvedSettings.uniformMultiplicationBars,
+            })
 
     return {
       index: step.index,
@@ -205,8 +208,8 @@ export const createCompositeArithmeticMacroSource = (
   const children: MacroNode[] = []
   includedStages.forEach((stage, stageIndex) => {
     let skippedFirstRow = false
-    parseMacro(stage.source).arguments
-      .filter((node) => !isCall(node, 'KV'))
+    parseMacro(stage.source)
+      .arguments.filter((node) => !isCall(node, 'KV'))
       .forEach((node) => {
         // 连续竖式的上一步结果就是下一步的第一操作数，不能再抄写一遍。
         if (stageIndex === 0 || skippedFirstRow || !isCall(node, 'ROW')) {

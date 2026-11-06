@@ -116,7 +116,7 @@ export interface GridElement {
 export interface GridScene {
   columns: GridTrack[]
   rows: GridTrack[]
-  padding: { top: number, right: number, bottom: number, left: number }
+  padding: { top: number; right: number; bottom: number; left: number }
   unitWidth: number
   unitHeight: number
   fontSize: number

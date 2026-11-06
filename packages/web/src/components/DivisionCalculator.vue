@@ -26,9 +26,9 @@ const error = ref('')
 const computation = ref<DivisionComputation>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
-const divisionCalculation = computed(() => (
-  maxDecimalDigits.value.trim() === '' ? {} : { maxDecimalDigits: Number(maxDecimalDigits.value) }
-))
+const divisionCalculation = computed(() =>
+  maxDecimalDigits.value.trim() === '' ? {} : { maxDecimalDigits: Number(maxDecimalDigits.value) },
+)
 
 const renderScene = (): void => {
   const result = shushi(`${dividend.value} ÷ ${divisor.value}`, {
@@ -66,29 +66,35 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
-const implementationCode = computed(() => createShushiImplementationSnippet({
-  operation: 'division',
-  fontFamily: rendererFont.value,
-  fields: [
-    ['divisor', divisor.value],
-    ['dividend', dividend.value],
-  ],
-  calculation: maxDecimalDigits.value.trim() === '' ? [] : [['maxDecimalDigits', Number(maxDecimalDigits.value)]],
-  settings: [
-    ['cellWidth', cellWidth.value],
-    ['rowHeight', rowHeight.value],
-    ['fontSizeRatio', fontSizeRatio.value],
-    ['bracketBend', 1],
-    ['showGuideGrid', showGuideGrid.value],
-    ['uniformSubtractionBars', uniformSubtractionBars.value],
-    ['showZeroQuotientSteps', showZeroQuotientSteps.value],
-    ['visibleStepCount', visibleStepCount.value],
-  ],
-}))
+const implementationCode = computed(() =>
+  createShushiImplementationSnippet({
+    operation: 'division',
+    fontFamily: rendererFont.value,
+    fields: [
+      ['divisor', divisor.value],
+      ['dividend', dividend.value],
+    ],
+    calculation: maxDecimalDigits.value.trim() === '' ? [] : [['maxDecimalDigits', Number(maxDecimalDigits.value)]],
+    settings: [
+      ['cellWidth', cellWidth.value],
+      ['rowHeight', rowHeight.value],
+      ['fontSizeRatio', fontSizeRatio.value],
+      ['bracketBend', 1],
+      ['showGuideGrid', showGuideGrid.value],
+      ['uniformSubtractionBars', uniformSubtractionBars.value],
+      ['showZeroQuotientSteps', showZeroQuotientSteps.value],
+      ['visibleStepCount', visibleStepCount.value],
+    ],
+  }),
+)
 
-const answer = computed(() => computation.value
-  ? computation.value.remainder === '0' ? computation.value.quotientText : `${computation.value.quotientText} …… ${computation.value.remainder}`
-  : '—')
+const answer = computed(() =>
+  computation.value
+    ? computation.value.remainder === '0'
+      ? computation.value.quotientText
+      : `${computation.value.quotientText} …… ${computation.value.remainder}`
+    : '—',
+)
 
 const calculate = (): void => {
   try {
@@ -111,26 +117,80 @@ calculate()
         <h2>除法竖式计算器</h2>
         <p class="normalization">输入被除数和除数，查看试商、减法与商的生成过程。</p>
         <div class="input-grid">
-          <label class="field"><span>被除数</span><input v-model="dividend" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"
+            ><span>被除数</span><input v-model="dividend" inputmode="numeric" autocomplete="off" @input="calculate"
+          /></label>
           <span class="division-operator" aria-hidden="true">÷</span>
-          <label class="field"><span>除数</span><input v-model="divisor" inputmode="numeric" autocomplete="off" @input="calculate" /></label>
+          <label class="field"
+            ><span>除数</span><input v-model="divisor" inputmode="numeric" autocomplete="off" @input="calculate"
+          /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
         <div class="form-actions">
-          <button class="ghost-button" type="button" @click="dividend = '10230'; divisor = '25'; calculate()">试试 10230 ÷ 25</button>
+          <button
+            class="ghost-button"
+            type="button"
+            @click="
+              dividend = '10230'
+              divisor = '25'
+              calculate()
+            "
+          >
+            试试 10230 ÷ 25
+          </button>
         </div>
         <div class="settings-panel">
           <div class="settings-controls">
             <div class="settings-range-group">
-              <label class="range-field"><span>方格宽度 <output>{{ cellWidth }}px</output></span><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate" /></label>
-              <label class="range-field"><span>行高 <output>{{ rowHeight }}px</output></span><input v-model.number="rowHeight" type="range" min="36" max="64" @input="calculate" /></label>
-              <label class="range-field"><span>字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate" /></label>
-              <label class="field"><span>最大小数位（留空取余）</span><input v-model="maxDecimalDigits" type="number" min="1" step="1" inputmode="numeric" placeholder="留空时返回余数" @input="calculate" /></label>
+              <label class="range-field"
+                ><span
+                  >方格宽度 <output>{{ cellWidth }}px</output></span
+                ><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >行高 <output>{{ rowHeight }}px</output></span
+                ><input v-model.number="rowHeight" type="range" min="36" max="64" @input="calculate"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span
+                ><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate"
+              /></label>
+              <label class="field"
+                ><span>最大小数位（留空取余）</span
+                ><input
+                  v-model="maxDecimalDigits"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="留空时返回余数"
+                  @input="calculate"
+              /></label>
             </div>
             <div class="settings-switch-group">
-              <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
-              <label class="switch-field"><input v-model="uniformSubtractionBars" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>减法横线等宽</span></label>
-              <label class="switch-field"><input v-model="showZeroQuotientSteps" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示试商为 0 的步骤</span></label>
+              <label class="switch-field"
+                ><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示辅助网格</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="uniformSubtractionBars" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>减法横线等宽</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showZeroQuotientSteps" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示试商为 0 的步骤</span></label
+              >
             </div>
           </div>
         </div>
@@ -138,10 +198,38 @@ calculate()
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">CALCULATION</p>
-          <div class="result-heading"><h2>{{ dividend }} ÷ {{ divisor }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
-          <p class="normalization">{{ computation?.decimalTruncated ? `小数计算到第 ${computation.fractionalDigitCount} 位后停止，保留当前余数` : computation?.hasFraction ? '小数逐位长除法结果' : '整数逐位长除法（返回余数）' }}</p>
-          <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
-          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
+          <div class="result-heading">
+            <h2>{{ dividend }} ÷ {{ divisor }} =</h2>
+            <output class="answer">{{ answer }}</output
+            ><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" />
+          </div>
+          <p class="normalization">
+            {{
+              computation?.decimalTruncated
+                ? `小数计算到第 ${computation.fractionalDigitCount} 位后停止，保留当前余数`
+                : computation?.hasFraction
+                  ? '小数逐位长除法结果'
+                  : '整数逐位长除法（返回余数）'
+            }}
+          </p>
+          <StepPlaybackControls
+            :current-step="currentStep"
+            :step-count="stepCount"
+            :can-start="canStart"
+            :can-previous="canPrevious"
+            :can-next="canNext"
+            @start="playback.start"
+            @previous="playback.previous"
+            @next="playback.next"
+            @reset="playback.reset"
+          />
+          <GridPreview
+            v-if="scene"
+            :scene="scene"
+            :font-family="rendererFont"
+            mode="both"
+            @font-change="handleFontChange"
+          />
         </div>
       </section>
       <CodeImplementationPanel

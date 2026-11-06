@@ -10,17 +10,20 @@ import DocText from './DocText.vue'
  * 默认要求两组输出完全一致；个别简写带有额外的配色语义时，
  * 可显式标记 equivalent=false，让页面如实说明“位置等价但输出不同”。
  */
-const props = withDefaults(defineProps<{
-  leftTitle: string
-  leftCode: string
-  rightTitle: string
-  rightCode: string
-  note?: string
-  equivalent?: boolean
-}>(), {
-  note: '',
-  equivalent: true,
-})
+const props = withDefaults(
+  defineProps<{
+    leftTitle: string
+    leftCode: string
+    rightTitle: string
+    rightCode: string
+    note?: string
+    equivalent?: boolean
+  }>(),
+  {
+    note: '',
+    equivalent: true,
+  },
+)
 
 const compile = (code: string) => {
   try {
@@ -34,12 +37,12 @@ const left = computed(() => compile(props.leftCode))
 const right = computed(() => compile(props.rightCode))
 /** 结果栏优先复用完整宏的场景；完整宏失败时退回简化宏，保证错误示例也有可见反馈。 */
 const result = computed(() => left.value.scene ?? right.value.scene)
-const resultError = computed(() => left.value.scene ? '' : right.value.error)
-const outputsMatch = computed(() => Boolean(
-  left.value.scene
-  && right.value.scene
-  && JSON.stringify(left.value.scene) === JSON.stringify(right.value.scene),
-))
+const resultError = computed(() => (left.value.scene ? '' : right.value.error))
+const outputsMatch = computed(() =>
+  Boolean(
+    left.value.scene && right.value.scene && JSON.stringify(left.value.scene) === JSON.stringify(right.value.scene),
+  ),
+)
 
 const badgeText = computed(() => {
   if (!props.equivalent) return '位置等价 · 输出不同'

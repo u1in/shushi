@@ -8,17 +8,55 @@ import { resolveLineStyle } from './basic-macros'
  * 它们不会引入新的 GridScene 契约，编译后全部还原为已有的通用位置与图元。
  */
 export const SUGAR_MACRO_NAMES = [
-  'LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL',
-  'MTD', 'DOT', 'BRACKET', 'SQUARE', 'TRIANGLE', 'ROUND', 'TBD', 'RBD', 'BBD', 'LBD',
+  'LT',
+  'MT',
+  'RT',
+  'ML',
+  'MM',
+  'MR',
+  'LB',
+  'MB',
+  'RB',
+  'RBL',
+  'MTD',
+  'DOT',
+  'BRACKET',
+  'SQUARE',
+  'TRIANGLE',
+  'ROUND',
+  'TBD',
+  'RBD',
+  'BBD',
+  'LBD',
 ] as const
 
 export const SUGAR_ZERO_ARGUMENT_MACROS = new Set([
-  'TBD', 'RBD', 'BBD', 'LBD', 'BRACKET', 'MTD', 'SQUARE', 'TRIANGLE', 'ROUND',
+  'TBD',
+  'RBD',
+  'BBD',
+  'LBD',
+  'BRACKET',
+  'MTD',
+  'SQUARE',
+  'TRIANGLE',
+  'ROUND',
 ])
 
 const POSITION_MACRO_NAMES = new Set([
-  'LT', 'MT', 'RT', 'ML', 'MM', 'MR', 'LB', 'MB', 'RB', 'RBL', 'MTD',
-  'SQUARE', 'TRIANGLE', 'ROUND',
+  'LT',
+  'MT',
+  'RT',
+  'ML',
+  'MM',
+  'MR',
+  'LB',
+  'MB',
+  'RB',
+  'RBL',
+  'MTD',
+  'SQUARE',
+  'TRIANGLE',
+  'ROUND',
 ])
 const BORDER_MACRO_NAMES = new Set(['TBD', 'RBD', 'BBD', 'LBD'])
 const ANNOTATION_FONT_SIZE_RATIO = 0.42
@@ -47,14 +85,13 @@ export type BorderMacroName = 'TBD' | 'RBD' | 'BBD' | 'LBD'
 
 export const getBorderMacro = (node: MacroNode): (MacroCall & { name: BorderMacroName }) | undefined => {
   const call = getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
-  return call && BORDER_MACRO_NAMES.has(call.name) ? call as MacroCall & { name: BorderMacroName } : undefined
+  return call && BORDER_MACRO_NAMES.has(call.name) ? (call as MacroCall & { name: BorderMacroName }) : undefined
 }
 
 export const isBorderMacro = (node: MacroNode): boolean => getBorderMacro(node) !== undefined
 
-export const getBracketMacro = (node: MacroNode): MacroCall | undefined => (
+export const getBracketMacro = (node: MacroNode): MacroCall | undefined =>
   getMacroCall(node, 'BRACKET', SUGAR_ZERO_ARGUMENT_MACROS)
-)
 
 export const isDotMacro = (node: MacroNode): boolean => node.kind === 'symbol' && node.name === 'DOT'
 
@@ -95,7 +132,12 @@ export const compileSugarCellElement = (
     return {
       id: `macro-bracket-${id}`,
       position: { kind: 'cell', column: cell.column, row, columnSpan: cell.columnSpan },
-      content: { kind: 'corner', corner: 'bottomRight', radiusRatio: BRACKET_RADIUS_RATIO, thickness: BRACKET_STROKE_THICKNESS },
+      content: {
+        kind: 'corner',
+        corner: 'bottomRight',
+        radiusRatio: BRACKET_RADIUS_RATIO,
+        thickness: BRACKET_STROKE_THICKNESS,
+      },
       styleToken: cell.styleToken,
     }
   }
@@ -108,7 +150,13 @@ export const compileSugarCellElement = (
     const style = resolveLineStyle(content[0], styleToken)
     return {
       id: `macro-border-${id}`,
-      position: { kind: 'edge', column: cell.column, row, columnSpan: cell.columnSpan, edge: edgeByName[borderCall.name] },
+      position: {
+        kind: 'edge',
+        column: cell.column,
+        row,
+        columnSpan: cell.columnSpan,
+        edge: edgeByName[borderCall.name],
+      },
       content: { kind: 'line', ...style },
       styleToken,
     }
@@ -116,18 +164,33 @@ export const compileSugarCellElement = (
   const name = dot ? 'RBL' : call?.name
   const isMiddleTopDot = name === 'MTD'
   const fixedSymbolText = name ? FIXED_SYMBOL_TEXT[name] : undefined
-  const { content, options } = call ? splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS) : { content: [], options: new Map<string, string>() }
+  const { content, options } = call
+    ? splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS)
+    : { content: [], options: new Map<string, string>() }
   if (isMiddleTopDot && content.length > 0) throw new Error('MTD 是 MT(·) 的零参数简写，不接受文字参数。')
   if (fixedSymbolText !== undefined && content.length > 0) throw new Error(`${name} 是零参数符号宏，不接受文字参数。`)
-  const text = dot ? '.' : isMiddleTopDot ? '·' : fixedSymbolText ?? getMacroValue(content[0] ?? { kind: 'literal', value: '' }, `${name} 的文本`)
-  if (!dot && !isMiddleTopDot && fixedSymbolText === undefined && content.length !== 1) throw new Error(`${name} 必须包含一个文本参数。`)
+  const text = dot
+    ? '.'
+    : isMiddleTopDot
+      ? '·'
+      : (fixedSymbolText ?? getMacroValue(content[0] ?? { kind: 'literal', value: '' }, `${name} 的文本`))
+  if (!dot && !isMiddleTopDot && fixedSymbolText === undefined && content.length !== 1)
+    throw new Error(`${name} 必须包含一个文本参数。`)
   // DOT 的默认颜色由 GRID(autoColor) 统一注入；关闭时不保留旧的蓝色 token，回退为黑色。
   const styleToken = options.get('style') ?? cell.styleToken
   const fontSizeRatio = options.has('fontSizeRatio')
     ? getPositiveNumber(options.get('fontSizeRatio'), `${name} 的 fontSizeRatio`, 1)
-    : dot || name === 'MM' || fixedSymbolText !== undefined ? undefined : ANNOTATION_FONT_SIZE_RATIO
+    : dot || name === 'MM' || fixedSymbolText !== undefined
+      ? undefined
+      : ANNOTATION_FONT_SIZE_RATIO
   if (name === 'RBL') {
-    const position: GridPosition = { kind: 'edgeMidpoint', column: cell.column, row, columnSpan: cell.columnSpan, edge: 'right' }
+    const position: GridPosition = {
+      kind: 'edgeMidpoint',
+      column: cell.column,
+      row,
+      columnSpan: cell.columnSpan,
+      edge: 'right',
+    }
     return {
       id: `macro-text-${id}`,
       position,

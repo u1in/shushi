@@ -19,7 +19,10 @@ interface CalculatorPlaybackOptions {
 }
 
 /** 为单个计算器提供可反复检查的步骤游标，不修改计算层的过程数据。 */
-export const useCalculatorStepPlayback = ({ getStepCount, render }: CalculatorPlaybackOptions): CalculatorStepPlayback => {
+export const useCalculatorStepPlayback = ({
+  getStepCount,
+  render,
+}: CalculatorPlaybackOptions): CalculatorStepPlayback => {
   const visibleStepCount = ref<number | undefined>(undefined)
   const stepCount = computed(() => Math.max(0, getStepCount()))
   const currentStep = computed(() => visibleStepCount.value ?? stepCount.value)
@@ -38,7 +41,10 @@ export const useCalculatorStepPlayback = ({ getStepCount, render }: CalculatorPl
   }
   const next = (): void => {
     // 完整结果视图从第一步开始前进，便于用户随时重新检查当前算式。
-    visibleStepCount.value = Math.min(stepCount.value, visibleStepCount.value === undefined ? 1 : visibleStepCount.value + 1)
+    visibleStepCount.value = Math.min(
+      stepCount.value,
+      visibleStepCount.value === undefined ? 1 : visibleStepCount.value + 1,
+    )
     render()
   }
   const reset = (): void => {

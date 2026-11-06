@@ -3,7 +3,11 @@ import { shushiCore } from '@u1in/shushi-core'
 import { compileMacro, createMacroAstInspection, minifyMacro, minifyMacroForCopy } from '@u1in/shushi-macro'
 import { arithmeticExamples } from '../src/components/macroPlaygroundExamples'
 import { formatAutoColorThemeObject } from '../src/components/autoColorTheme'
-import { createMacroAstInspectorSnippet, createShushiImplementationSnippet, implementationSnippets } from '../src/components/implementationSnippets'
+import {
+  createMacroAstInspectorSnippet,
+  createShushiImplementationSnippet,
+  implementationSnippets,
+} from '../src/components/implementationSnippets'
 
 const DEFAULT_GRID_SETTINGS = {
   cellWidth: 30,
@@ -17,19 +21,33 @@ const generateSource = (expression: string): string => {
   const normalized = expression.replace(/\s+/g, '').replace(/[xX*]/g, '×').replace(/÷/g, '/').replace(/−/g, '-')
   if (normalized.includes('/')) {
     const [dividend, divisor] = normalized.split('/')
-    return minifyMacroForCopy(shushiCore({
-      operation: 'division',
-      divisor,
-      dividend,
-      calculation: { maxDecimalDigits: 24 },
-      settings: { ...DEFAULT_GRID_SETTINGS, bracketBend: 1, uniformSubtractionBars: false, showZeroQuotientSteps: false },
-    }).source)
+    return minifyMacroForCopy(
+      shushiCore({
+        operation: 'division',
+        divisor,
+        dividend,
+        calculation: { maxDecimalDigits: 24 },
+        settings: {
+          ...DEFAULT_GRID_SETTINGS,
+          bracketBend: 1,
+          uniformSubtractionBars: false,
+          showZeroQuotientSteps: false,
+        },
+      }).source,
+    )
   }
-  return minifyMacroForCopy(shushiCore({
-    operation: 'composite',
-    expression: normalized,
-    settings: { ...DEFAULT_GRID_SETTINGS, showCarrySteps: true, showBorrowSteps: false, uniformMultiplicationBars: false },
-  }).source)
+  return minifyMacroForCopy(
+    shushiCore({
+      operation: 'composite',
+      expression: normalized,
+      settings: {
+        ...DEFAULT_GRID_SETTINGS,
+        showCarrySteps: true,
+        showBorrowSteps: false,
+        uniformMultiplicationBars: false,
+      },
+    }).source,
+  )
 }
 
 describe('首页宏调试示例', () => {
@@ -70,7 +88,7 @@ describe('首页宏调试示例', () => {
 
     expect(code).toContain('renderDomGrid(scene)')
     expect(code).toContain("import '@u1in/shushi-core/renderer.css'")
-    expect(code).not.toContain("fonts/stix-two-math.css")
+    expect(code).not.toContain('fonts/stix-two-math.css')
     expect(code).not.toContain('fontFamily')
     expect(code).toContain("document.querySelector('#result')?.append(rendered)")
     expect(code).toContain('render(source)')
@@ -95,7 +113,9 @@ describe('首页宏调试示例', () => {
     expect(code).toContain('let currentRendered: HTMLElement')
     expect(code).toContain('const handleMacroInput = (nextMacro: string) => {')
     expect(code).toContain('const { inspection, rendered } = render(nextMacro)')
-    expect(code).toContain("const handleElementTextInput = (\n  elementId: string = 'grid-element-id',\n  text: string = '9',\n) => {")
+    expect(code).toContain(
+      "const handleElementTextInput = (\n  elementId: string = 'grid-element-id',\n  text: string = '9',\n) => {",
+    )
     expect(code).toContain('const { inspection, rendered } = update(')
     expect(code).toContain('    currentInspection,')
     expect(code).toContain('    currentRendered,')
@@ -114,7 +134,9 @@ describe('首页宏调试示例', () => {
       text: '9',
       fontFamily: 'CMU Serif',
     })
-    expect(customFontCode).toContain("const inspection = createMacroAstInspection(macro, {\n    fontFamily: 'CMU Serif',\n  })")
+    expect(customFontCode).toContain(
+      "const inspection = createMacroAstInspection(macro, {\n    fontFamily: 'CMU Serif',\n  })",
+    )
   })
 
   test('门户源码示例包含当前渲染挂载配置和完整返回值', () => {
@@ -135,7 +157,9 @@ describe('首页宏调试示例', () => {
     expect(code).toContain('showGuideGrid: true')
     expect(code).toContain('visibleStepCount: 3')
     expect(code).not.toContain('fontFamily')
-    expect(code).toContain('const {\n  computation,\n  source,\n  scene,\n  rendered,\n  inspection,\n} = shushi(\'123 + 456\', {')
+    expect(code).toContain(
+      "const {\n  computation,\n  source,\n  scene,\n  rendered,\n  inspection,\n} = shushi('123 + 456', {",
+    )
   })
 
   test('代码示例会跟随竖式预览字体切换逐字体 CSS', () => {

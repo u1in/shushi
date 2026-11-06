@@ -12,7 +12,16 @@ interface LayoutApiSpec {
 }
 
 /** 布局 API 页面统一说明“计算结果 → 宏源码或 GridScene”的公开转换边界。 */
-const createLayoutApiPage = ({ slug, summary, example, purpose, signature, parameters, caution, apiTier = 'advanced' }: LayoutApiSpec): MacroDocPage => ({
+const createLayoutApiPage = ({
+  slug,
+  summary,
+  example,
+  purpose,
+  signature,
+  parameters,
+  caution,
+  apiTier = 'advanced',
+}: LayoutApiSpec): MacroDocPage => ({
   slug,
   title: slug,
   navLabel: slug,
@@ -22,15 +31,25 @@ const createLayoutApiPage = ({ slug, summary, example, purpose, signature, param
   summary,
   sections: [
     { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: `\`${slug}\`：${summary}` }] },
-    { id: 'example', title: '例子', blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: example }] },
+    {
+      id: 'example',
+      title: '例子',
+      blocks: [{ type: 'code', title: 'TypeScript 示例', language: 'typescript', code: example }],
+    },
     { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: purpose }] },
     {
-      id: 'signature', title: '函数签名和属性说明', blocks: [
+      id: 'signature',
+      title: '函数签名和属性说明',
+      blocks: [
         { type: 'code', title: '函数签名', language: 'typescript', code: signature },
         { type: 'table', columns: ['参数 / 返回值', '类型', '说明'], rows: parameters },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '布局层边界', text: caution }] },
+    {
+      id: 'cautions',
+      title: '注意事项',
+      blocks: [{ type: 'callout', tone: 'warn', title: '布局层边界', text: caution }],
+    },
   ],
 })
 
@@ -109,7 +128,8 @@ export const createAdditionMacroSourcePage = createLayoutApiPage({
   slug: 'createAdditionMacroSource',
   summary: '把 AdditionComputation 编排为可编辑的加法宏源码。',
   example: additionExample,
-  purpose: '它负责加数、运算符、进位提示、横线和结果行的网格排版，不重新计算加法。返回的字符串可以交给 `compileMacro`，也可以直接复制到宏编辑器。',
+  purpose:
+    '它负责加数、运算符、进位提示、横线和结果行的网格排版，不重新计算加法。返回的字符串可以交给 `compileMacro`，也可以直接复制到宏编辑器。',
   signature: `type CreateAdditionMacroSource = (
   computation: AdditionComputation,
   settings?: Partial<AdditionRenderSettings>,
@@ -119,7 +139,8 @@ export const createAdditionMacroSourcePage = createLayoutApiPage({
     ['`settings`', '`Partial<AdditionRenderSettings>`', '可选的列宽、行高、字号、辅助网格、可见步骤和进位显示配置。'],
     ['返回值', '`string`', '包含 GRID、ROW、CELL、RB 和 LINE 等公开宏命令的源码。'],
   ],
-  caution: '不要把它当作计算器使用；输入计算结果必须先由 `computeAddition` 生成。返回源码的语义依赖 `@u1in/shushi-macro` 的公开宏契约。',
+  caution:
+    '不要把它当作计算器使用；输入计算结果必须先由 `computeAddition` 生成。返回源码的语义依赖 `@u1in/shushi-macro` 的公开宏契约。',
 })
 
 export const createAdditionGridScenePage = createLayoutApiPage({
@@ -138,7 +159,8 @@ const scene = createAdditionGridScene(computation, {
 })
 
 console.log(scene.ariaLabel)`,
-  purpose: '它是旧调用方使用的便捷入口，内部等价于 `compileCalculatorMacro(createAdditionMacroSource(...))`。新代码如果需要保存或编辑源码，应优先调用 `createAdditionMacroSource`。',
+  purpose:
+    '它是旧调用方使用的便捷入口，内部等价于 `compileCalculatorMacro(createAdditionMacroSource(...))`。新代码如果需要保存或编辑源码，应优先调用 `createAdditionMacroSource`。',
   signature: `type CreateAdditionGridScene = (
   computation: AdditionComputation,
   settings?: Partial<AdditionRenderSettings>,
@@ -148,7 +170,8 @@ console.log(scene.ariaLabel)`,
     ['`settings`', '`Partial<AdditionRenderSettings>`', '与加法宏源码布局入口相同的可选设置。'],
     ['返回值', '`GridScene`', '可交给 DOM/CSS 或 SVG 渲染器的场景。'],
   ],
-  caution: '该 API 已标记为兼容入口；不要在它外部直接拼装 GridScene。需要追踪或编辑中间源码时使用 `createAdditionMacroSource`。',
+  caution:
+    '该 API 已标记为兼容入口；不要在它外部直接拼装 GridScene。需要追踪或编辑中间源码时使用 `createAdditionMacroSource`。',
 })
 
 export const createSubtractionMacroSourcePage = createLayoutApiPage({
@@ -183,7 +206,8 @@ const scene = createSubtractionGridScene(computation, {
 })
 
 console.log(scene.elements.length)`,
-  purpose: '它先调用 `createSubtractionMacroSource`，再通过统一宏编译入口生成 `GridScene`，用于兼容直接需要场景的旧调用方。',
+  purpose:
+    '它先调用 `createSubtractionMacroSource`，再通过统一宏编译入口生成 `GridScene`，用于兼容直接需要场景的旧调用方。',
   signature: `type CreateSubtractionGridScene = (
   computation: SubtractionComputation,
   settings: SubtractionRenderSettings,
@@ -206,7 +230,8 @@ const computation = computeDivision('25', '10230')
 const count = getDivisionPlaybackStepCount(computation, false)
 
 console.log(count)`,
-  purpose: '它把整数步骤、小数分隔符和可选零商步骤折算成布局播放帧数，保证进度控件与 `createDivisionMacroSource` 使用相同的事件序列。',
+  purpose:
+    '它把整数步骤、小数分隔符和可选零商步骤折算成布局播放帧数，保证进度控件与 `createDivisionMacroSource` 使用相同的事件序列。',
   signature: `type GetDivisionPlaybackStepCount = (
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
@@ -408,7 +433,8 @@ export const createCompositeArithmeticMacroSourcePage = createLayoutApiPage({
 const computation = computeCompositeArithmetic('125 + 75 - 20 × 3')
 const source = createCompositeArithmeticMacroSource(computation, { visibleStepCount: 4 })
 const scene = compileCalculatorMacro(source)`,
-  purpose: '它把全局播放游标映射为各单项规则的局部帧，再将已到达步骤的行连续写入同一个完整 `GRID(...)` 源码。第二步及后续步骤先有一个独立事件引入运算符和第二操作数，下一帧才开始逐位过程；它们会复用紧邻上方的前一步结果，不重复写出首行操作数。组合宏不写入网页专属 ariaLabel 或页面 style KV，默认设置下可压缩为不含 KV 的顶层分号行；渲染器只接收一个普通 `GridScene`。',
+  purpose:
+    '它把全局播放游标映射为各单项规则的局部帧，再将已到达步骤的行连续写入同一个完整 `GRID(...)` 源码。第二步及后续步骤先有一个独立事件引入运算符和第二操作数，下一帧才开始逐位过程；它们会复用紧邻上方的前一步结果，不重复写出首行操作数。组合宏不写入网页专属 ariaLabel 或页面 style KV，默认设置下可压缩为不含 KV 的顶层分号行；渲染器只接收一个普通 `GridScene`。',
   signature: `type CreateCompositeArithmeticMacroSource = (
   computation: CompositeArithmeticComputation,
   settings?: Partial<CompositeArithmeticRenderSettings>,
@@ -431,7 +457,8 @@ const computation = computeCompositeArithmetic('12 + 8 - 5 × 4')
 const stepCount = getCompositeArithmeticStepCount(computation)
 
 console.log(stepCount)`,
-  purpose: '它将加法/减法列步骤与乘法逐位、列加法步骤相加，并为第二步及后续步骤各加入一个“引入第二操作数”事件，使播放器的全局游标和组合宏源码的局部游标使用同一规则。',
+  purpose:
+    '它将加法/减法列步骤与乘法逐位、列加法步骤相加，并为第二步及后续步骤各加入一个“引入第二操作数”事件，使播放器的全局游标和组合宏源码的局部游标使用同一规则。',
   signature: `type GetCompositeArithmeticStepCount = (
   computation: CompositeArithmeticComputation,
 ) => number`,
@@ -439,7 +466,8 @@ console.log(stepCount)`,
     ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出。'],
     ['返回值', '`number`', '组合播放事件总数。'],
   ],
-  caution: '该数不是表达式运算符个数；多位单项竖式会贡献多个教学步骤，且除第一步外的每一段还会额外贡献一次第二操作数引入事件。',
+  caution:
+    '该数不是表达式运算符个数；多位单项竖式会贡献多个教学步骤，且除第一步外的每一段还会额外贡献一次第二操作数引入事件。',
 })
 
 export const shushiPage = createLayoutApiPage({
@@ -460,7 +488,8 @@ console.log(computation.quotientText) // '409.2'
 console.log(rendered) // HTMLElement；已自动挂载到 host
 const updated = inspection.updateElementText('grid-element-id', '9')
 console.log(updated.source) // AST 不可变更新后的宏源码`,
-  purpose: '这是 `@u1in/shushi-core` 面向大多数应用的表达式入口。它先把字符串解析为结构化 `shushiCore` 请求，再由后者委托既有计算器、布局器和统一宏编译链路。返回值保留 computation、source、scene、按模式生成的 rendered 和可注入的 inspection。renderMode 默认为 `svg-string`，可选 `div`、`svg` 或 `svg-string`；客户端模式传入 el 时会自动挂载。',
+  purpose:
+    '这是 `@u1in/shushi-core` 面向大多数应用的表达式入口。它先把字符串解析为结构化 `shushiCore` 请求，再由后者委托既有计算器、布局器和统一宏编译链路。返回值保留 computation、source、scene、按模式生成的 rendered 和可注入的 inspection。renderMode 默认为 `svg-string`，可选 `div`、`svg` 或 `svg-string`；客户端模式传入 el 时会自动挂载。',
   signature: `type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
 type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
@@ -487,18 +516,35 @@ type VerticalArithmeticResult<T, TRendered> = {
   parameters: [
     ['`expression`', '`string`', '加、减、乘支持 `+`、`-`、`×`、`*` 与 `x` 的任意组合；按书写顺序执行。'],
     ['`expression` 的除法形式', '`被除数 ÷ 除数` / `被除数 / 除数`', '长除法必须单独出现，不能和加减乘组合。'],
-    ['`expression` 的短除法形式', '`|待分解数` / `|数1 数2`', '单个右值时分解质因数；多个右值时自动试除并求公因数。一次指定除法仅通过 `computeShortDivision` 或 `shushiCore` 的结构化 mode 使用。'],
+    [
+      '`expression` 的短除法形式',
+      '`|待分解数` / `|数1 数2`',
+      '单个右值时分解质因数；多个右值时自动试除并求公因数。一次指定除法仅通过 `computeShortDivision` 或 `shushiCore` 的结构化 mode 使用。',
+    ],
     ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
-    ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数位上限或乘法快捷计算等计算层选项。'],
+    [
+      '`options.calculation`',
+      '`DivisionOptions & MultiplicationOptions`',
+      '长除法小数位上限或乘法快捷计算等计算层选项。',
+    ],
     ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
-    ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；主题在编译阶段写入 GridScene，不依赖 CSS 继承或覆盖。'],
-    ['`options.fontFamily`', '`string`', '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。'],
+    [
+      '`options.colorTheme`',
+      '`AutoColorTheme`',
+      '覆盖 autoColor 的固定语义颜色；主题在编译阶段写入 GridScene，不依赖 CSS 继承或覆盖。',
+    ],
+    [
+      '`options.fontFamily`',
+      '`string`',
+      '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。',
+    ],
     ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
     ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
     ['`rendered`', '`HTMLElement | SVGSVGElement | string`', '按渲染模式返回 DOM 舞台、SVG 根节点或 SVG 字符串。'],
     ['`inspection`', '`MacroAstInspection`', '返回 AST、图元引用和 `updateElementText`，用于注入编辑或继续分析。'],
   ],
-  caution: '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。',
+  caution:
+    '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。',
 })
 
 export const shushiCorePage = createLayoutApiPage({
@@ -516,19 +562,33 @@ const { computation, scene } = shushiCore({
 
 console.log(computation.quotientText) // '409.2'
 console.log(scene.ariaLabel)`,
-  purpose: '它是 shushi 的结构化下层入口，也是需要质因数分解、完整短除法 mode、精确请求类型或运行时动态构造请求时的高级 API。它直接执行“计算 → 宏源码 → GridScene → 渲染”，但不解析表达式。',
+  purpose:
+    '它是 shushi 的结构化下层入口，也是需要质因数分解、完整短除法 mode、精确请求类型或运行时动态构造请求时的高级 API。它直接执行“计算 → 宏源码 → GridScene → 渲染”，但不解析表达式。',
   signature: `type ShushiCore = {
   <TMode extends ShushiRenderMode = 'svg-string'>(
     request: ShushiRequest<VerticalArithmeticRequest, TMode>,
   ): AnyVerticalArithmeticResult<TMode>
 }`,
   parameters: [
-    ['`request.operation`', "`'addition' | 'subtraction' | 'multiplication' | 'division' | 'shortDivision' | 'composite'`", '判别运算类型，并决定输入字段和 computation 返回类型。'],
-    ['`request` 计算字段', '`values`、`operands`、`divisor`、`dividend`、`expression`', '按 operation 提供；长除法仍保持除数在前、被除数在后的字段顺序。'],
-    ['`request.settings` / `calculation`', '`Partial<…RenderSettings>` / 专项计算选项', '精确控制教学标记、尺寸、播放与算法选项。'],
+    [
+      '`request.operation`',
+      "`'addition' | 'subtraction' | 'multiplication' | 'division' | 'shortDivision' | 'composite'`",
+      '判别运算类型，并决定输入字段和 computation 返回类型。',
+    ],
+    [
+      '`request` 计算字段',
+      '`values`、`operands`、`divisor`、`dividend`、`expression`',
+      '按 operation 提供；长除法仍保持除数在前、被除数在后的字段顺序。',
+    ],
+    [
+      '`request.settings` / `calculation`',
+      '`Partial<…RenderSettings>` / 专项计算选项',
+      '精确控制教学标记、尺寸、播放与算法选项。',
+    ],
     ['返回值', '`VerticalArithmeticResult`', '含计算过程、可编辑源码、场景、渲染结果与 AST 检查器。'],
   ],
-  caution: '普通数值算式优先使用 shushi；shushiCore 不会解析 `244 + 133 × 24` 这类文本。短除法 mode 仍支持 factorization、commonFactor、baseConversion 与 division。',
+  caution:
+    '普通数值算式优先使用 shushi；shushiCore 不会解析 `244 + 133 × 24` 这类文本。短除法 mode 仍支持 factorization、commonFactor、baseConversion 与 division。',
 })
 
 /** 布局公共 API 的页面顺序也用于 API 目录和页尾翻页。 */

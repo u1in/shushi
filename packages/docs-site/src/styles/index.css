@@ -45,7 +45,8 @@
   --mdocs-example-note-bg: #fbfcff;
   --mdocs-example-border: #e8eef7;
   --site-font-family: var(--vp-font-family);
-  --vp-font-family: "Computer Modern", "CMU Serif", "Latin Modern Roman", "STIX Two Math", "Cambria Math", "Noto Serif SC", serif;
+  --vp-font-family:
+    'Computer Modern', 'CMU Serif', 'Latin Modern Roman', 'STIX Two Math', 'Cambria Math', 'Noto Serif SC', serif;
   /* VuePress 默认侧边栏为 20rem，这里缩窄 80px，正文会相应获得更多宽度。 */
   --sidebar-width: 15rem;
   /* VuePress 默认把 --homepage-width 同时用于首页外壳和内容宽度。
@@ -56,9 +57,7 @@
 
 html,
 body {
-  background:
-    radial-gradient(circle at 10% 0%, rgb(198 222 255 / 72%), transparent 30rem),
-    var(--vp-c-bg);
+  background: radial-gradient(circle at 10% 0%, rgb(198 222 255 / 72%), transparent 30rem), var(--vp-c-bg);
 }
 
 /* VuePress 的暗色开关通过 html[data-theme='dark'] 生效；首页和宏文档共用这组深色语义变量。 */
@@ -106,9 +105,7 @@ html[data-theme='dark'] {
 }
 
 html[data-theme='dark'] body {
-  background:
-    radial-gradient(circle at 10% 0%, rgb(45 77 135 / 28%), transparent 30rem),
-    #0f172a;
+  background: radial-gradient(circle at 10% 0%, rgb(45 77 135 / 28%), transparent 30rem), #0f172a;
   color: var(--vp-c-text);
 }
 
@@ -130,8 +127,9 @@ html[data-theme='dark'] body {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Cpath d='M50 22H18V38Q18 48 10 48' fill='none' stroke='%230f172a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='26' y='30' width='10' height='10' rx='3' fill='%230f172a'/%3E%3Crect x='40' y='30' width='10' height='10' rx='3' fill='%234166b6'/%3E%3C/svg%3E") center / contain no-repeat;
-  content: "";
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Cpath d='M50 22H18V38Q18 48 10 48' fill='none' stroke='%230f172a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='26' y='30' width='10' height='10' rx='3' fill='%230f172a'/%3E%3Crect x='40' y='30' width='10' height='10' rx='3' fill='%234166b6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  content: '';
 }
 
 html[data-theme='dark'] .vp-site-name::before {
@@ -156,7 +154,7 @@ html[data-theme='dark'] .vp-navbar {
 
 .vp-hero {
   max-width: 850px;
-  padding: 5.6rem 0 .5rem;
+  padding: 5.6rem 0 0.5rem;
   text-align: left;
 }
 
@@ -426,7 +424,7 @@ html[data-theme='dark'] .mdocs-example-stats {
   border: 1px solid var(--vp-c-border);
   border-radius: 10px;
   background: var(--vp-c-bg-elv);
-  font-size: .84rem;
+  font-size: 0.84rem;
   line-height: 1.65;
 }
 
@@ -441,15 +439,15 @@ html[data-theme='dark'] .mdocs-example-stats {
 #content > table th {
   color: var(--vp-c-text);
   background: var(--vp-c-bg-alt);
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .vp-home [vp-content] {
   width: min(100%, var(--homepage-content-width));
   max-width: var(--homepage-content-width);
-  margin: .8rem auto 0;
+  margin: 0.8rem auto 0;
   color: var(--vp-c-text-mute);
 }
 

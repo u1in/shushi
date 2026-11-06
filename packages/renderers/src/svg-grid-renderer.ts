@@ -16,6 +16,5 @@ const createSvgNode = (definition: SvgRenderNode): SVGElement => {
 }
 
 /** 创建 SVG、绘制 GridScene 并返回该 SVG 元素。 */
-export const renderSvgGrid = (scene: GridScene): SVGSVGElement => (
+export const renderSvgGrid = (scene: GridScene): SVGSVGElement =>
   createSvgNode(createSvgRenderTree(scene)) as SVGSVGElement
-)

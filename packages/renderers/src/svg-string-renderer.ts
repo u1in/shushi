@@ -4,18 +4,24 @@ import type { SvgRenderNode } from './svg-renderer-core'
 import type { GridScene } from '@u1in/shushi-grid'
 
 /** XML 转义同时覆盖属性值和文本节点，避免用户输入破坏 SVG 结构。 */
-const escapeXml = (value: string | number): string => String(value).replace(/[&<>"']/g, (character) => ({
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&apos;',
-}[character] ?? character))
+const escapeXml = (value: string | number): string =>
+  String(value).replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&apos;',
+      })[character] ?? character,
+  )
 
-const serializeAttributes = (attributes: SvgRenderNode['attributes']): string => Object.entries(attributes)
-  .filter(([, value]) => value !== undefined)
-  .map(([name, value]) => ` ${name}="${escapeXml(value as string | number)}"`)
-  .join('')
+const serializeAttributes = (attributes: SvgRenderNode['attributes']): string =>
+  Object.entries(attributes)
+    .filter(([, value]) => value !== undefined)
+    .map(([name, value]) => ` ${name}="${escapeXml(value as string | number)}"`)
+    .join('')
 
 const serializeNode = (node: SvgRenderNode): string => {
   const text = node.text === undefined ? '' : escapeXml(node.text)

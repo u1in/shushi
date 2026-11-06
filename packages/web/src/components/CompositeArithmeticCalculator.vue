@@ -53,9 +53,9 @@ const standaloneMultiplicationOperands = computed(() => {
   if (!match) return undefined
   return [match[1].replace(/^0+(?=\d)/, ''), match[2].replace(/^0+(?=\d)/, '')] as const
 })
-const canUseTrailingZeroShortcut = computed(() => (
-  standaloneMultiplicationOperands.value?.some(value => value !== '0' && value.endsWith('0')) ?? false
-))
+const canUseTrailingZeroShortcut = computed(
+  () => standaloneMultiplicationOperands.value?.some((value) => value !== '0' && value.endsWith('0')) ?? false,
+)
 const trailingZeroShortcutEnabled = computed(() => canUseTrailingZeroShortcut.value && useTrailingZeroShortcut.value)
 const isLongDivisionExpression = computed(() => /^\d+\s*[÷/]\s*\d+$/.test(expression.value))
 const isCommonFactorResult = computed(() => {
@@ -73,9 +73,13 @@ const answer = computed(() => {
   if (!computation) return '—'
   if ('resultDigits' in computation) return computation.resultDigits
   if ('sumDigits' in computation) return computation.sumDigits
-  if ('differenceDigits' in computation) return computation.isNegative ? `-${computation.differenceDigits}` : computation.differenceDigits
+  if ('differenceDigits' in computation)
+    return computation.isNegative ? `-${computation.differenceDigits}` : computation.differenceDigits
   if ('productDigits' in computation) return computation.productDigits
-  if ('quotientText' in computation) return computation.remainder === '0' ? computation.quotientText : `${computation.quotientText} …… ${computation.remainder}`
+  if ('quotientText' in computation)
+    return computation.remainder === '0'
+      ? computation.quotientText
+      : `${computation.quotientText} …… ${computation.remainder}`
   if (computation.mode === 'division') return `${computation.quotient} … ${computation.remainder}`
   if (computation.mode === 'factorization') return computation.factorizationText
   if (computation.mode === 'commonFactor') return `最大公约数是${computation.gcd}，最小公倍数是${computation.lcm}`
@@ -140,29 +144,31 @@ const stepCount = playback.stepCount
 const canStart = playback.canStart
 const canPrevious = playback.canPrevious
 const canNext = playback.canNext
-const implementationCode = computed(() => createShushiImplementationSnippet({
-  operation: 'expression',
-  fontFamily: rendererFont.value,
-  colorTheme: previewTheme.value,
-  fields: [['expression', expression.value]],
-  calculation: [
-    ['maxDecimalDigits', maxDecimalDigits.value],
-    ['useTrailingZeroShortcut', trailingZeroShortcutEnabled.value],
-    ['preserveOperandOrder', !trailingZeroShortcutEnabled.value],
-  ],
-  settings: [
-    ['cellWidth', cellWidth.value],
-    ['rowHeight', rowHeight.value],
-    ['fontSizeRatio', fontSizeRatio.value],
-    ['showGuideGrid', showGuideGrid.value],
-    ['showCarrySteps', showCarrySteps.value],
-    ['showBorrowSteps', showBorrowSteps.value],
-    ['showRemainders', showRemainders.value],
-    ['showZeroQuotientSteps', showZeroQuotientSteps.value],
-    ['uniformMultiplicationBars', false],
-    ['visibleStepCount', visibleStepCount.value],
-  ],
-}))
+const implementationCode = computed(() =>
+  createShushiImplementationSnippet({
+    operation: 'expression',
+    fontFamily: rendererFont.value,
+    colorTheme: previewTheme.value,
+    fields: [['expression', expression.value]],
+    calculation: [
+      ['maxDecimalDigits', maxDecimalDigits.value],
+      ['useTrailingZeroShortcut', trailingZeroShortcutEnabled.value],
+      ['preserveOperandOrder', !trailingZeroShortcutEnabled.value],
+    ],
+    settings: [
+      ['cellWidth', cellWidth.value],
+      ['rowHeight', rowHeight.value],
+      ['fontSizeRatio', fontSizeRatio.value],
+      ['showGuideGrid', showGuideGrid.value],
+      ['showCarrySteps', showCarrySteps.value],
+      ['showBorrowSteps', showBorrowSteps.value],
+      ['showRemainders', showRemainders.value],
+      ['showZeroQuotientSteps', showZeroQuotientSteps.value],
+      ['uniformMultiplicationBars', false],
+      ['visibleStepCount', visibleStepCount.value],
+    ],
+  }),
+)
 
 const calculate = (): void => {
   if (!expression.value.trim()) {
@@ -185,6 +191,11 @@ const calculate = (): void => {
   }
 }
 
+const useExampleExpression = (): void => {
+  expression.value = '125 + 75 - 20 × 3'
+  calculate()
+}
+
 calculate()
 </script>
 
@@ -198,47 +209,138 @@ calculate()
         <div class="input-grid input-grid--single expression-input-grid">
           <label class="field">
             <span>表达式</span>
-            <input v-model="expression" autocomplete="off" spellcheck="false" aria-describedby="composite-expression-help" @input="calculate" />
+            <input
+              v-model="expression"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="composite-expression-help"
+              @input="calculate"
+            />
           </label>
         </div>
         <div v-if="isLongDivisionExpression" class="input-grid input-grid--single decimal-limit-input-grid">
           <label class="field">
             <span>最大小数位</span>
-            <input v-model.number="maxDecimalDigits" type="number" min="1" step="1" inputmode="numeric" @input="calculate" />
+            <input
+              v-model.number="maxDecimalDigits"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              @input="calculate"
+            />
           </label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
         <p id="composite-expression-help" class="field-help expression-rules">
-          <span>支持连续 <code>+</code>、<code>-</code>、<code>×</code>（也可输入 <code>*</code> 或 <code>x</code>）。</span>
+          <span
+            >支持连续 <code>+</code>、<code>-</code>、<code>×</code>（也可输入 <code>*</code> 或
+            <code>x</code>）。</span
+          >
           <span>长除法用 <code>10230 ÷ 25</code> 或 <code>10230 / 25</code>。</span>
           <span>分解质因数：<code>|48</code>。</span>
           <span>求最大公约数和最小公倍数：<code>|12 18</code>（自动试除）。</span>
           <span>进制转换：<code>(13)2</code>，表示把十进制 13 转为二进制。</span>
         </p>
         <div class="form-actions">
-          <button class="ghost-button" type="button" @click="expression = '125 + 75 - 20 × 3'; calculate()">试试 125 + 75 - 20 × 3</button>
+          <button class="ghost-button" type="button" @click="useExampleExpression">试试 125 + 75 - 20 × 3</button>
         </div>
-        <div class="settings-panel"><div class="settings-controls">
-          <div class="settings-range-group">
-            <label class="range-field"><span>方格宽度 <output>{{ cellWidth }}px</output></span><input v-model.number="cellWidth" type="range" min="28" max="56" @input="renderScene()" /></label>
-            <label class="range-field"><span>行高 <output>{{ rowHeight }}px</output></span><input v-model.number="rowHeight" type="range" min="36" max="64" @input="renderScene()" /></label>
-            <label class="range-field"><span>字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="renderScene()" /></label>
+        <div class="settings-panel">
+          <div class="settings-controls">
+            <div class="settings-range-group">
+              <label class="range-field"
+                ><span
+                  >方格宽度 <output>{{ cellWidth }}px</output></span
+                ><input v-model.number="cellWidth" type="range" min="28" max="56" @input="renderScene()"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >行高 <output>{{ rowHeight }}px</output></span
+                ><input v-model.number="rowHeight" type="range" min="36" max="64" @input="renderScene()"
+              /></label>
+              <label class="range-field"
+                ><span
+                  >字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span
+                ><input
+                  v-model.number="fontSizeRatio"
+                  type="range"
+                  min="0.5"
+                  max="1.5"
+                  step="0.01"
+                  @input="renderScene()"
+              /></label>
+            </div>
+            <div class="settings-switch-group">
+              <label class="switch-field"
+                ><input v-model="showGuideGrid" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示辅助网格</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showCarrySteps" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示加法/乘法进位</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showBorrowSteps" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示减法借位</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showRemainders" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示短除法余数</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="showZeroQuotientSteps" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>显示除法零商步骤</span></label
+              >
+              <label v-if="canUseTrailingZeroShortcut" class="switch-field"
+                ><input v-model="useTrailingZeroShortcut" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>启用 10 倍数快捷计算</span></label
+              >
+            </div>
           </div>
-          <div class="settings-switch-group">
-            <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
-            <label class="switch-field"><input v-model="showCarrySteps" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示加法/乘法进位</span></label>
-            <label class="switch-field"><input v-model="showBorrowSteps" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示减法借位</span></label>
-            <label class="switch-field"><input v-model="showRemainders" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示短除法余数</span></label>
-            <label class="switch-field"><input v-model="showZeroQuotientSteps" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>显示除法零商步骤</span></label>
-            <label v-if="canUseTrailingZeroShortcut" class="switch-field"><input v-model="useTrailingZeroShortcut" type="checkbox" @change="renderScene()" /><span class="switch-ui" aria-hidden="true"></span><span>启用 10 倍数快捷计算</span></label>
-          </div>
-        </div></div>
+        </div>
       </form>
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">VERTICAL PREVIEW</p>
-          <div class="result-heading"><div class="result-heading__title"><h2 v-if="!isCommonFactorResult && !isBaseConversionResult">{{ expression.trim() ? `${expression} = ` : '等待输入表达式' }}<output v-if="scene"> {{ answer }}</output></h2><h2 v-else-if="scene"><output>{{ answer }}</output></h2></div><template v-if="scene"><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
-          <p class="normalization">{{ scene ? '每一步都会清楚展示；加减乘可以连续计算，除法和短除法也会自动排成对应的竖式。' : '在左侧输入算式，这里会显示对应的竖式。' }}</p>
+          <div class="result-heading">
+            <div class="result-heading__title">
+              <h2 v-if="!isCommonFactorResult && !isBaseConversionResult">
+                {{ expression.trim() ? `${expression} = ` : '等待输入表达式'
+                }}<output v-if="scene"> {{ answer }}</output>
+              </h2>
+              <h2 v-else-if="scene">
+                <output>{{ answer }}</output>
+              </h2>
+            </div>
+            <template v-if="scene"
+              ><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene"
+            /></template>
+          </div>
+          <p class="normalization">
+            {{
+              scene
+                ? '每一步都会清楚展示；加减乘可以连续计算，除法和短除法也会自动排成对应的竖式。'
+                : '在左侧输入算式，这里会显示对应的竖式。'
+            }}
+          </p>
           <StepPlaybackControls
             v-if="scene"
             :current-step="currentStep"
@@ -251,12 +353,23 @@ calculate()
             @next="playback.next"
             @reset="playback.reset"
           />
-          <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange">
+          <GridPreview
+            v-if="scene"
+            :scene="scene"
+            :font-family="rendererFont"
+            mode="both"
+            @font-change="handleFontChange"
+          >
             <template #theme-control>
               <AutoColorThemeEditor :model-value="previewTheme" @update:model-value="handleThemeChange" />
             </template>
           </GridPreview>
-          <div v-else class="renderer-comparison renderer-comparison--both renderer-comparison--empty" role="status" aria-live="polite">
+          <div
+            v-else
+            class="renderer-comparison renderer-comparison--both renderer-comparison--empty"
+            role="status"
+            aria-live="polite"
+          >
             <p><strong>暂无表达式</strong><span>请在左侧输入算式开始计算</span></p>
           </div>
         </div>

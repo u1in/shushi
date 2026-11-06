@@ -26,5 +26,9 @@ watch(() => props.scene, render)
 </script>
 
 <template>
-  <div ref="host" class="mdocs-preview-stage" :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }"></div>
+  <div
+    ref="host"
+    class="mdocs-preview-stage"
+    :style="{ width: `${metrics.width}px`, height: `${metrics.height}px` }"
+  ></div>
 </template>

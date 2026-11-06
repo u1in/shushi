@@ -1,14 +1,13 @@
 import { defineConfig, type Plugin } from 'vite'
 import { readdirSync, readFileSync } from 'node:fs'
+import { qualityCheckPlugin } from '../../scripts/quality-check-plugin.js'
 
 const rendererStyle = readFileSync(new URL('../renderers/src/style.css', import.meta.url), 'utf8')
 const stixTwoMathStyle = readFileSync(new URL('../fonts/src/fonts/stix-two-math.css', import.meta.url), 'utf8')
   // 字体 CSS 原本位于 fonts/ 目录；拼入 dist/renderer.css 后需保留正确的发布相对路径。
   .replaceAll("url('./", "url('./fonts/")
 const fontStyleNames = ['cmu-serif', 'stix-two-math', 'noto-sans-math'] as const
-const sharedFontImports = fontStyleNames
-  .map(name => `@import './fonts/${name}.css';`)
-  .join('\n')
+const sharedFontImports = fontStyleNames.map((name) => `@import './fonts/${name}.css';`).join('\n')
 const sharedFontDirectory = new URL('../fonts/src/fonts/', import.meta.url)
 const logoSvg = readFileSync(new URL('./assets/shushi-logo.svg', import.meta.url), 'utf8')
 const logoDarkSvg = readFileSync(new URL('./assets/shushi-logo-dark.svg', import.meta.url), 'utf8')
@@ -49,7 +48,7 @@ const rendererStyleAsset: Plugin = {
     })
 
     readdirSync(sharedFontDirectory, { withFileTypes: true })
-      .filter(entry => entry.isFile())
+      .filter((entry) => entry.isFile())
       .forEach((entry) => {
         this.emitFile({
           type: 'asset',
@@ -61,7 +60,7 @@ const rendererStyleAsset: Plugin = {
 }
 
 export default defineConfig({
-  plugins: [rendererStyleAsset],
+  plugins: [qualityCheckPlugin(), rendererStyleAsset],
   build: {
     lib: {
       entry: 'src/index.ts',

@@ -1,9 +1,5 @@
 /** Division calculator: validates inputs and produces the renderer-independent long-division process. */
-import type {
-  DivisionComputation,
-  DivisionOptions,
-  LongDivisionStep,
-} from './types'
+import type { DivisionComputation, DivisionOptions, LongDivisionStep } from './types'
 
 interface PositionedQuotientDigit {
   column: number
@@ -75,7 +71,7 @@ const multiplyBySingleDigit = (value: string, digit: number): string => {
 }
 
 /** Finds the largest single digit whose product with divisor does not exceed partialDividend. */
-const findQuotientDigit = (partialDividend: string, divisorDigits: string): { digit: number, product: string } => {
+const findQuotientDigit = (partialDividend: string, divisorDigits: string): { digit: number; product: string } => {
   for (let digit = 9; digit >= 1; digit -= 1) {
     const product = multiplyBySingleDigit(divisorDigits, digit)
 
@@ -145,10 +141,18 @@ const calculateDecimalExpansion = ({
     workingRemainder = subtractDigitStrings(partialDividend, product)
     fractionalDigits.push(String(digit))
     decimalQuotientDigits.push({ column: dividendColumn, digit: String(digit) })
-    decimalSteps.push(createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder))
+    decimalSteps.push(
+      createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder),
+    )
 
     if (workingRemainder === '0') {
-      return { fractionalDigits, quotientDigits: decimalQuotientDigits, steps: decimalSteps, remainder: workingRemainder, truncated: false }
+      return {
+        fractionalDigits,
+        quotientDigits: decimalQuotientDigits,
+        steps: decimalSteps,
+        remainder: workingRemainder,
+        truncated: false,
+      }
     }
   }
 
@@ -223,16 +227,17 @@ export const computeDivision = (
   }
 
   const integerText = quotientStarted ? integerQuotientDigits.join('') : '0'
-  const decimalExpansion = maxDecimalDigits !== undefined && remainder !== '0'
-    ? calculateDecimalExpansion({
-      divisorDigits,
-      dividendDigits,
-      quotientDigits,
-      steps,
-      remainder,
-      maxDecimalDigits,
-    })
-    : undefined
+  const decimalExpansion =
+    maxDecimalDigits !== undefined && remainder !== '0'
+      ? calculateDecimalExpansion({
+          divisorDigits,
+          dividendDigits,
+          quotientDigits,
+          steps,
+          remainder,
+          maxDecimalDigits,
+        })
+      : undefined
   const hasFraction = decimalExpansion !== undefined
   const fractionalDigitCount = decimalExpansion?.fractionalDigits.length ?? 0
 

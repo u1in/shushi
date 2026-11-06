@@ -3,19 +3,36 @@ import { getCanonicalMacroName } from './macro-aliases'
 
 /** CELL 中允许裸写的零参数图元；其他裸名称会被视为漏写了参数的文字定位宏。 */
 const CELL_ZERO_ARGUMENT_SYMBOLS = new Set([
-  'DOT', 'MTD', 'EMPTY', 'STYLE', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD',
-  'SQUARE', 'TRIANGLE', 'ROUND',
+  'DOT',
+  'MTD',
+  'EMPTY',
+  'STYLE',
+  'BRACKET',
+  'TBD',
+  'RBD',
+  'BBD',
+  'LBD',
+  'SQUARE',
+  'TRIANGLE',
+  'ROUND',
 ])
 /** 方括号首项可以直接承载的零参数图元；EMPTY/STYLE 只能作为单元格结构或配置，不能充当图元。 */
 const CELL_SHORTHAND_FIRST_SYMBOLS = new Set([
-  'DOT', 'MTD', 'BRACKET', 'TBD', 'RBD', 'BBD', 'LBD',
-  'SQUARE', 'TRIANGLE', 'ROUND',
+  'DOT',
+  'MTD',
+  'BRACKET',
+  'TBD',
+  'RBD',
+  'BBD',
+  'LBD',
+  'SQUARE',
+  'TRIANGLE',
+  'ROUND',
 ])
 
 /** 带位置的错误信息让主页输入框能直接指出宏源码的问题。 */
-const createSyntaxError = (source: string, index: number, message: string): Error => (
+const createSyntaxError = (source: string, index: number, message: string): Error =>
   new Error(`${message}（第 ${index + 1} 个字符附近：${source.slice(index, index + 18)}）`)
-)
 
 const isNameStart = (character: string): boolean => /[A-Za-z_]/.test(character)
 const isNamePart = (character: string): boolean => /[A-Za-z0-9_-]/.test(character)
@@ -82,17 +99,22 @@ export const parseMacro = (source: string): MacroCall => {
 
     const [firstArgument, ...remainingArguments] = argumentsList
     // 首项为裸文本时才补成 MM；已经是定位或边框图元时直接保留，以支持 [RB(1)] 等纯标记单元格。
-    const normalizedFirstArgument = firstArgument.kind === 'literal'
-      ? { kind: 'call' as const, name: 'MM', arguments: [firstArgument] }
-      : firstArgument
-    const isFirstCellGraphic = normalizedFirstArgument.kind === 'call'
-      || normalizedFirstArgument.kind === 'symbol' && CELL_SHORTHAND_FIRST_SYMBOLS.has(normalizedFirstArgument.name)
+    const normalizedFirstArgument =
+      firstArgument.kind === 'literal'
+        ? { kind: 'call' as const, name: 'MM', arguments: [firstArgument] }
+        : firstArgument
+    const isFirstCellGraphic =
+      normalizedFirstArgument.kind === 'call' ||
+      (normalizedFirstArgument.kind === 'symbol' && CELL_SHORTHAND_FIRST_SYMBOLS.has(normalizedFirstArgument.name))
     if (!isFirstCellGraphic) {
       throw createSyntaxError(source, start, 'CELL 简写首项必须是文字、完整图元宏或允许的零参数图元')
     }
 
     for (const argument of remainingArguments) {
-      if (argument.kind === 'literal' || (argument.kind === 'symbol' && !CELL_ZERO_ARGUMENT_SYMBOLS.has(argument.name))) {
+      if (
+        argument.kind === 'literal' ||
+        (argument.kind === 'symbol' && !CELL_ZERO_ARGUMENT_SYMBOLS.has(argument.name))
+      ) {
         throw createSyntaxError(source, start, 'CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用')
       }
     }
@@ -170,19 +192,19 @@ export const parseMacro = (source: string): MacroCall => {
 
   const rootExpressions = usesRowShorthand
     ? rootStatements.flatMap((nodes) => {
-      const [node] = nodes
-      // 保留显式结构命令，便于在简写中表达横线或继续兼容已有 ROW / GRID 源码。
-      if (nodes.length === 1 && node.kind === 'call' && ['GRID', 'ROW', 'LINE'].includes(node.name)) return node
-      if (nodes.length === 1 && node.kind === 'symbol' && node.name === 'LINE') return node
-      // 分号行中的裸文本固定落在单元格正中，与 MM(text) 完全等价；显式宏则保持原样。
-      return {
-        kind: 'call' as const,
-        name: 'ROW',
-        arguments: nodes.map((item) => (
-          item.kind === 'literal' ? { kind: 'call' as const, name: 'MM', arguments: [item] } : item
-        )),
-      }
-    })
+        const [node] = nodes
+        // 保留显式结构命令，便于在简写中表达横线或继续兼容已有 ROW / GRID 源码。
+        if (nodes.length === 1 && node.kind === 'call' && ['GRID', 'ROW', 'LINE'].includes(node.name)) return node
+        if (nodes.length === 1 && node.kind === 'symbol' && node.name === 'LINE') return node
+        // 分号行中的裸文本固定落在单元格正中，与 MM(text) 完全等价；显式宏则保持原样。
+        return {
+          kind: 'call' as const,
+          name: 'ROW',
+          arguments: nodes.map((item) =>
+            item.kind === 'literal' ? { kind: 'call' as const, name: 'MM', arguments: [item] } : item,
+          ),
+        }
+      })
     : rootStatements.flat()
 
   const [root] = rootExpressions

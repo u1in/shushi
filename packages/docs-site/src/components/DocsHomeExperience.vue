@@ -234,9 +234,10 @@ const resizeHeroDemo = (): void => {
   const widthScale = Math.min(1.3, availableWidth / naturalWidth)
   const widthScaledHeight = naturalHeight * widthScale
   /* 默认竖式只会轻微超高时收进可视区；明显过长的竖式保留纵向滚动查看。 */
-  const scale = availableHeight > 0 && widthScaledHeight <= availableHeight * 1.25
-    ? Math.min(widthScale, availableHeight / naturalHeight)
-    : widthScale
+  const scale =
+    availableHeight > 0 && widthScaledHeight <= availableHeight * 1.25
+      ? Math.min(widthScale, availableHeight / naturalHeight)
+      : widthScale
   stage.style.transform = `scale(${scale})`
   stage.style.transformOrigin = 'top left'
   frame.style.width = `${naturalWidth * scale}px`
@@ -298,12 +299,26 @@ onBeforeUnmount(() => {
             <small>{{ activeInstallGuide.installHint }}</small>
           </div>
           <div class="docs-home-install-command-row docs-home-agent-install-row">
-            <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ activeInstallGuide.install }}</code></pre>
+            <pre
+              class="docs-home-install-command docs-home-agent-install-prompt"
+            ><code>{{ activeInstallGuide.install }}</code></pre>
             <button
               class="docs-home-copy-button docs-home-icon-button"
               type="button"
-              :aria-label="copiedInstallSection === 'install' ? '安装内容已复制' : copiedInstallSection === 'failed' ? '复制安装内容失败' : '复制安装内容'"
-              :title="copiedInstallSection === 'install' ? '已复制' : copiedInstallSection === 'failed' ? '复制失败，请重试' : '复制'"
+              :aria-label="
+                copiedInstallSection === 'install'
+                  ? '安装内容已复制'
+                  : copiedInstallSection === 'failed'
+                    ? '复制安装内容失败'
+                    : '复制安装内容'
+              "
+              :title="
+                copiedInstallSection === 'install'
+                  ? '已复制'
+                  : copiedInstallSection === 'failed'
+                    ? '复制失败，请重试'
+                    : '复制'
+              "
               @click="copyInstallGuide('install')"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -319,12 +334,26 @@ onBeforeUnmount(() => {
             <small>{{ activeInstallGuide.usageHint }}</small>
           </div>
           <div class="docs-home-install-command-row docs-home-agent-install-row">
-            <pre class="docs-home-install-command docs-home-agent-install-prompt"><code>{{ activeInstallGuide.usage }}</code></pre>
+            <pre
+              class="docs-home-install-command docs-home-agent-install-prompt"
+            ><code>{{ activeInstallGuide.usage }}</code></pre>
             <button
               class="docs-home-copy-button docs-home-icon-button"
               type="button"
-              :aria-label="copiedInstallSection === 'usage' ? '使用示例已复制' : copiedInstallSection === 'failed' ? '复制使用示例失败' : '复制使用示例'"
-              :title="copiedInstallSection === 'usage' ? '已复制' : copiedInstallSection === 'failed' ? '复制失败，请重试' : '复制'"
+              :aria-label="
+                copiedInstallSection === 'usage'
+                  ? '使用示例已复制'
+                  : copiedInstallSection === 'failed'
+                    ? '复制使用示例失败'
+                    : '复制使用示例'
+              "
+              :title="
+                copiedInstallSection === 'usage'
+                  ? '已复制'
+                  : copiedInstallSection === 'failed'
+                    ? '复制失败，请重试'
+                    : '复制'
+              "
               @click="copyInstallGuide('usage')"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -356,48 +385,69 @@ onBeforeUnmount(() => {
     <section class="docs-home-overview" aria-labelledby="docs-home-overview-title">
       <p class="docs-home-eyebrow">PROJECT OVERVIEW</p>
       <h2 id="docs-home-overview-title">不只算出答案，也把每一步变成可编辑、可回溯的界面</h2>
-      <p class="docs-home-lead">竖式·Shushi 把“怎么算、怎么排、怎么画”拆成可以单独验证的层：计算器产出过程数据，排版引擎生成可读宏源码，宏编译器建立 AST 和 GridScene，DOM/CSS、SVG 与字符串输出再消费同一份场景。</p>
+      <p class="docs-home-lead">
+        竖式·Shushi
+        把“怎么算、怎么排、怎么画”拆成可以单独验证的层：计算器产出过程数据，排版引擎生成可读宏源码，宏编译器建立 AST 和
+        GridScene，DOM/CSS、SVG 与字符串输出再消费同一份场景。
+      </p>
     </section>
 
-    <section id="docs-home-feature-input" class="docs-home-feature-section" aria-labelledby="docs-home-feature-input-title">
+    <section
+      id="docs-home-feature-input"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-input-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">INPUT &amp; API</p>
           <h2 id="docs-home-feature-input-title">从一句算式，到可控的完整竖式过程</h2>
-          <p class="docs-home-section-lead">入口层把“快速使用”和“精细控制”分开，同时让表达式和结构化请求进入同一条计算、布局、编译和渲染链路。</p>
+          <p class="docs-home-section-lead">
+            入口层把“快速使用”和“精细控制”分开，同时让表达式和结构化请求进入同一条计算、布局、编译和渲染链路。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>什么时候用哪个入口？</h4>
-              <ul class="docs-home-feature-list">
-                <li><code>shushi(expression)</code> 适合输入连续四则表达式、长除法或短除法语法。</li>
-                <li><code>shushiCore(request)</code> 适合指定运算类型、短除法模式、步骤显示和渲染方式。</li>
-                <li>两者都返回 <code>computation</code>、<code>source</code>、<code>scene</code>、<code>rendered</code> 和 <code>inspection</code>。</li>
-              </ul>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>什么时候用哪个入口？</h4>
+            <ul class="docs-home-feature-list">
+              <li><code>shushi(expression)</code> 适合输入连续四则表达式、长除法或短除法语法。</li>
+              <li><code>shushiCore(request)</code> 适合指定运算类型、短除法模式、步骤显示和渲染方式。</li>
+              <li>
+                两者都返回 <code>computation</code>、<code>source</code>、<code>scene</code>、<code>rendered</code> 和
+                <code>inspection</code>。
+              </li>
+            </ul>
           </div>
+        </div>
       </div>
     </section>
 
-    <section id="docs-home-feature-calculator" class="docs-home-feature-section" aria-labelledby="docs-home-feature-calculator-title">
+    <section
+      id="docs-home-feature-calculator"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-calculator-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">CALCULATION ENGINE</p>
           <h2 id="docs-home-feature-calculator-title">不只算出答案，把每一列的过程留下来</h2>
-          <p class="docs-home-section-lead">计算器输出的是可以被布局器、教学界面和调试工具继续消费的过程对象，而不是一个孤立的最终数字。</p>
+          <p class="docs-home-section-lead">
+            计算器输出的是可以被布局器、教学界面和调试工具继续消费的过程对象，而不是一个孤立的最终数字。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>过程数据保留什么？</h4>
-              <p>加法记录每列的进位和结果位；减法记录借位；乘法记录每一行部分积；长除法记录部分被除数、商位、乘积和余数；短除法记录每轮试除。</p>
-              <p>因此同一份计算结果既能生成完整竖式，也能生成“只显示到第几步”的教学画面。</p>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>过程数据保留什么？</h4>
+            <p>
+              加法记录每列的进位和结果位；减法记录借位；乘法记录每一行部分积；长除法记录部分被除数、商位、乘积和余数；短除法记录每轮试除。
+            </p>
+            <p>因此同一份计算结果既能生成完整竖式，也能生成“只显示到第几步”的教学画面。</p>
           </div>
         </div>
+      </div>
     </section>
 
     <section id="docs-home-feature-dsl" class="docs-home-feature-section" aria-labelledby="docs-home-feature-dsl-title">
@@ -405,18 +455,23 @@ onBeforeUnmount(() => {
         <div>
           <p class="docs-home-eyebrow">CUSTOM DSL</p>
           <h2 id="docs-home-feature-dsl-title">用几行宏源码，排出你想要的竖式</h2>
-          <p class="docs-home-section-lead">网格宏语言是面向人的排版输入层：用接近竖式草稿的文本表达行、列、同格图元、定位、边框和样式。</p>
+          <p class="docs-home-section-lead">
+            网格宏语言是面向人的排版输入层：用接近竖式草稿的文本表达行、列、同格图元、定位、边框和样式。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>从显式写法到语法糖</h4>
-              <p>完整宏适合调试，顶层分号行、方括号 CELL 简写和零参数别名适合复制与生成。解析后都会归一化为同一种 AST，不会让渲染器承担语法差异。</p>
-              <p>你可以直接编辑宏源码，也可以让自己的程序生成宏源码。</p>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>从显式写法到语法糖</h4>
+            <p>
+              完整宏适合调试，顶层分号行、方括号 CELL 简写和零参数别名适合复制与生成。解析后都会归一化为同一种
+              AST，不会让渲染器承担语法差异。
+            </p>
+            <p>你可以直接编辑宏源码，也可以让自己的程序生成宏源码。</p>
           </div>
         </div>
+      </div>
     </section>
 
     <section id="docs-home-feature-ast" class="docs-home-feature-section" aria-labelledby="docs-home-feature-ast-title">
@@ -424,100 +479,134 @@ onBeforeUnmount(() => {
         <div>
           <p class="docs-home-eyebrow">AST INSPECTION</p>
           <h2 id="docs-home-feature-ast-title">从一个图元，回到它的宏源码位置</h2>
-          <p class="docs-home-section-lead">宏源码不是一次性字符串：解析器把它变成可检查的树，检查器再把场景元素和 AST 路径连接起来。</p>
+          <p class="docs-home-section-lead">
+            宏源码不是一次性字符串：解析器把它变成可检查的树，检查器再把场景元素和 AST 路径连接起来。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>适合做什么？</h4>
-              <ul class="docs-home-feature-list">
-                <li>点击一个场景图元，定位到它来自哪一个宏调用和参数路径。</li>
-                <li>编辑图元文字后，生成新的 AST 和新的 GridScene。</li>
-                <li>在宏编辑器中做格式化、补全、压缩，并保持语义一致。</li>
-              </ul>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>适合做什么？</h4>
+            <ul class="docs-home-feature-list">
+              <li>点击一个场景图元，定位到它来自哪一个宏调用和参数路径。</li>
+              <li>编辑图元文字后，生成新的 AST 和新的 GridScene。</li>
+              <li>在宏编辑器中做格式化、补全、压缩，并保持语义一致。</li>
+            </ul>
           </div>
         </div>
+      </div>
     </section>
 
-    <section id="docs-home-feature-layout" class="docs-home-feature-section" aria-labelledby="docs-home-feature-layout-title">
+    <section
+      id="docs-home-feature-layout"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-layout-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">LAYOUT ENGINE</p>
           <h2 id="docs-home-feature-layout-title">把计算过程，排成可编辑的教学竖式</h2>
-          <p class="docs-home-section-lead">排版引擎负责把计算过程翻译成竖式的视觉结构：行列、对齐、横线、符号、补零和语义样式都在这里决定。</p>
+          <p class="docs-home-section-lead">
+            排版引擎负责把计算过程翻译成竖式的视觉结构：行列、对齐、横线、符号、补零和语义样式都在这里决定。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>运算规则和视觉规则分离</h4>
-              <p>计算器只回答“每一步算出了什么”，布局器回答“这一步应该出现在哪一格”。它先生成可复制、可编辑的宏源码，再经过统一宏编译链路得到场景。</p>
-              <p>因此新增 DOM 或 SVG 渲染方式，不需要复制一套加减乘除坐标逻辑。</p>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>运算规则和视觉规则分离</h4>
+            <p>
+              计算器只回答“每一步算出了什么”，布局器回答“这一步应该出现在哪一格”。它先生成可复制、可编辑的宏源码，再经过统一宏编译链路得到场景。
+            </p>
+            <p>因此新增 DOM 或 SVG 渲染方式，不需要复制一套加减乘除坐标逻辑。</p>
           </div>
         </div>
+      </div>
     </section>
 
-    <section id="docs-home-feature-playback" class="docs-home-feature-section" aria-labelledby="docs-home-feature-playback-title">
+    <section
+      id="docs-home-feature-playback"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-playback-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">STEP PLAYBACK</p>
           <h2 id="docs-home-feature-playback-title">让每一步计算，都可以暂停、播放和回到现场</h2>
-          <p class="docs-home-section-lead">步骤不是只存在于 JSON 里；布局器可以根据可见步数重建当前场景，让每一帧都来自真实的计算过程。</p>
+          <p class="docs-home-section-lead">
+            步骤不是只存在于 JSON 里；布局器可以根据可见步数重建当前场景，让每一帧都来自真实的计算过程。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>教学和调试的共同基础</h4>
-              <p>用 <code>visibleStepCount</code> 显示从开头到当前步骤的内容；用播放步数查询 API 计算总帧数，再接入滑块、逐步按钮或自动播放。</p>
-              <p>除法还可以选择是否显示商为 0 的中间步骤，组合运算则按子运算阶段推进。</p>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>教学和调试的共同基础</h4>
+            <p>
+              用 <code>visibleStepCount</code> 显示从开头到当前步骤的内容；用播放步数查询 API
+              计算总帧数，再接入滑块、逐步按钮或自动播放。
+            </p>
+            <p>除法还可以选择是否显示商为 0 的中间步骤，组合运算则按子运算阶段推进。</p>
           </div>
         </div>
+      </div>
     </section>
 
-    <section id="docs-home-feature-scene" class="docs-home-feature-section" aria-labelledby="docs-home-feature-scene-title">
+    <section
+      id="docs-home-feature-scene"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-scene-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">UNIFIED SCENE</p>
           <h2 id="docs-home-feature-scene-title">一份 GridScene，承接所有排版与渲染</h2>
-          <p class="docs-home-section-lead">GridScene 是计算、宏、布局和渲染之间的公共边界：它描述轨道、单元格、图元、几何和语义 token，但不绑定某个框架。</p>
+          <p class="docs-home-section-lead">
+            GridScene 是计算、宏、布局和渲染之间的公共边界：它描述轨道、单元格、图元、几何和语义
+            token，但不绑定某个框架。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>渲染器只消费场景</h4>
-              <p>文本单元格可以覆盖场景级对齐，未覆盖时继承默认值；图元通过样式 token 表达“加数、进位、商、余数”等语义。</p>
-              <p>这让 DOM/CSS、SVG 和后续的其他渲染器共享同一份结构化数据。</p>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>渲染器只消费场景</h4>
+            <p>
+              文本单元格可以覆盖场景级对齐，未覆盖时继承默认值；图元通过样式 token 表达“加数、进位、商、余数”等语义。
+            </p>
+            <p>这让 DOM/CSS、SVG 和后续的其他渲染器共享同一份结构化数据。</p>
           </div>
         </div>
+      </div>
     </section>
 
-    <section id="docs-home-feature-output" class="docs-home-feature-section" aria-labelledby="docs-home-feature-output-title">
+    <section
+      id="docs-home-feature-output"
+      class="docs-home-feature-section"
+      aria-labelledby="docs-home-feature-output-title"
+    >
       <div class="docs-home-section-heading">
         <div>
           <p class="docs-home-eyebrow">MULTI-FORMAT OUTPUT</p>
           <h2 id="docs-home-feature-output-title">同一份场景，交付网页、SVG 和服务端输出</h2>
-          <p class="docs-home-section-lead">同一份 GridScene 可以按宿主场景选择不同输出：需要交互时用 DOM，需要导出或服务端生成时用 SVG。</p>
+          <p class="docs-home-section-lead">
+            同一份 GridScene 可以按宿主场景选择不同输出：需要交互时用 DOM，需要导出或服务端生成时用 SVG。
+          </p>
         </div>
       </div>
       <div class="docs-home-deep-feature">
-          <div class="docs-home-feature-body">
-            <div>
-              <h4>一份场景，多种交付形态</h4>
-              <ul class="docs-home-feature-list">
-                <li><code>renderDomGrid</code>：适合网页交互、选中和播放。</li>
-                <li><code>renderSvgGrid</code>：返回可插入页面的 SVG DOM。</li>
-                <li><code>renderSvgString</code>：适合 SSR、导出、截图和缓存。</li>
-              </ul>
-            </div>
+        <div class="docs-home-feature-body">
+          <div>
+            <h4>一份场景，多种交付形态</h4>
+            <ul class="docs-home-feature-list">
+              <li><code>renderDomGrid</code>：适合网页交互、选中和播放。</li>
+              <li><code>renderSvgGrid</code>：返回可插入页面的 SVG DOM。</li>
+              <li><code>renderSvgString</code>：适合 SSR、导出、截图和缓存。</li>
+            </ul>
           </div>
         </div>
+      </div>
     </section>
 
     <section class="docs-home-flow" aria-labelledby="docs-home-flow-title">
@@ -548,15 +637,15 @@ onBeforeUnmount(() => {
 .docs-home-install {
   display: grid;
   justify-items: start;
-  gap: .65rem;
+  gap: 0.65rem;
   text-align: left;
 }
 
 .docs-home-install-method {
   display: grid;
-  gap: .45rem;
+  gap: 0.45rem;
   width: min(100%, 72rem);
-  margin-top: .35rem;
+  margin-top: 0.35rem;
 }
 
 .docs-home-install-tabs {
@@ -564,7 +653,7 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   width: min(100%, 72rem);
-  margin-top: .55rem;
+  margin-top: 0.55rem;
   padding: 4px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 13px;
@@ -574,14 +663,17 @@ onBeforeUnmount(() => {
 .docs-home-install-tab {
   border: 0;
   border-radius: 9px;
-  padding: .65rem .8rem;
+  padding: 0.65rem 0.8rem;
   color: var(--vp-c-text-mute);
   background: transparent;
   cursor: pointer;
   font: inherit;
-  font-size: .78rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  transition: background-color .2s, color .2s, box-shadow .2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
 }
 
 .docs-home-install-tab:hover {
@@ -603,40 +695,40 @@ onBeforeUnmount(() => {
 
 .docs-home-install-panel {
   display: grid;
-  gap: .55rem;
+  gap: 0.55rem;
   width: min(100%, 72rem);
-  padding: .85rem 1rem 1rem;
+  padding: 0.85rem 1rem 1rem;
   border: 1px solid var(--vp-c-divider);
   border-radius: 14px;
   background: var(--vp-c-bg-elv);
 }
 
 .docs-home-install-method--usage {
-  margin-top: .6rem;
+  margin-top: 0.6rem;
 }
 
 .docs-home-install-heading {
   display: flex;
   align-items: baseline;
-  gap: .65rem;
+  gap: 0.65rem;
   color: var(--vp-c-text);
-  font-size: .86rem;
+  font-size: 0.86rem;
   font-weight: 800;
 }
 
 .docs-home-install-heading small {
   color: var(--vp-c-text-mute);
-  font-size: .76rem;
+  font-size: 0.76rem;
   font-weight: 500;
 }
 
 .docs-home-eyebrow {
   margin: 0;
   color: var(--vp-c-accent);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: .72rem;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
 }
 
 .docs-home-install h2,
@@ -647,7 +739,7 @@ onBeforeUnmount(() => {
   padding-top: 0 !important;
   color: var(--vp-c-text);
   font-size: clamp(1.55rem, 3vw, 2.25rem);
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
   line-height: 1.2;
 }
 
@@ -657,7 +749,7 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   color: var(--vp-c-text);
   background: var(--vp-c-bg-alt);
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
   line-height: 1.7;
   overflow-x: auto;
 }
@@ -673,7 +765,7 @@ onBeforeUnmount(() => {
 .docs-home-install-command-row {
   display: flex;
   align-items: stretch;
-  gap: .65rem;
+  gap: 0.65rem;
   width: fit-content;
   max-width: 100%;
 }
@@ -683,8 +775,8 @@ onBeforeUnmount(() => {
   flex: 0 1 auto;
   width: max-content;
   max-width: 100%;
-  padding: .7rem 1rem;
-  font-size: .82rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.82rem;
   white-space: pre;
 }
 
@@ -702,8 +794,8 @@ onBeforeUnmount(() => {
 
 .docs-home-agent-install-row .docs-home-icon-button {
   position: absolute;
-  top: .75rem;
-  right: .75rem;
+  top: 0.75rem;
+  right: 0.75rem;
   z-index: 1;
 }
 
@@ -723,9 +815,12 @@ onBeforeUnmount(() => {
   background: var(--vp-c-accent);
   cursor: pointer;
   font: inherit;
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  transition: background-color .2s, border-color .2s, transform .2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
 }
 
 .docs-home-icon-button {
@@ -776,7 +871,7 @@ onBeforeUnmount(() => {
   --docs-home-expression-input-height: 42px;
   display: grid;
   min-width: 0;
-  gap: .55rem;
+  gap: 0.55rem;
   align-content: start;
 }
 
@@ -798,8 +893,7 @@ onBeforeUnmount(() => {
   padding: 1rem;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--vp-c-accent) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(color-mix(in srgb, var(--vp-c-accent) 8%, transparent) 1px, transparent 1px),
-    var(--vp-c-bg-elv);
+    linear-gradient(color-mix(in srgb, var(--vp-c-accent) 8%, transparent) 1px, transparent 1px), var(--vp-c-bg-elv);
   background-size: 28px 28px;
 }
 
@@ -839,7 +933,7 @@ onBeforeUnmount(() => {
 .docs-home-grid-stage-frame {
   flex: 0 0 auto;
   margin-inline: auto;
-  margin-top: .45rem;
+  margin-top: 0.45rem;
 }
 
 .docs-home-expression-input {
@@ -855,10 +949,14 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   border: 1px solid var(--vp-c-divider);
   border-radius: 10px;
-  padding: .55rem .75rem;
+  padding: 0.55rem 0.75rem;
   color: var(--vp-c-text);
   background: var(--vp-c-bg-alt);
-  font: 700 .76rem/1.2 ui-monospace, "Cascadia Code", Consolas, monospace;
+  font:
+    700 0.76rem/1.2 ui-monospace,
+    'Cascadia Code',
+    Consolas,
+    monospace;
 }
 
 .docs-home-expression-input input:focus {
@@ -869,12 +967,12 @@ onBeforeUnmount(() => {
 
 .docs-home-expression-input small {
   position: absolute;
-  top: calc(100% + .3rem);
+  top: calc(100% + 0.3rem);
   left: 0;
   width: 100%;
   box-sizing: border-box;
   color: #d13c4b;
-  font-size: .7rem;
+  font-size: 0.7rem;
   line-height: 1.35;
 }
 
@@ -915,18 +1013,18 @@ onBeforeUnmount(() => {
 }
 
 .vp-home .vp-hero .vp-hero-actions {
-  gap: .55rem;
+  gap: 0.55rem;
   justify-content: flex-start;
   margin-left: 0;
   margin-right: 0;
-  margin-top: .85rem;
+  margin-top: 0.85rem;
   margin-bottom: 1rem;
 }
 
 .vp-home .vp-hero .vp-hero-action-button {
   border-radius: 10px;
-  padding: .55rem .9rem;
-  font-size: .84rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.84rem;
 }
 
 /* “查看演示”是唯一的外部入口，使用暖色实心按钮与文档按钮区分。 */
@@ -968,18 +1066,32 @@ onBeforeUnmount(() => {
 
 .docs-home-result .grid-edge,
 .docs-home-result .grid-corner,
-.docs-home-result .grid-guide-line { position: absolute; }
-.docs-home-result .grid-edge { background: var(--vp-c-text); }
+.docs-home-result .grid-guide-line {
+  position: absolute;
+}
+.docs-home-result .grid-edge {
+  background: var(--vp-c-text);
+}
 .docs-home-result .grid-corner {
   border-right: 3px solid var(--vp-c-text);
   border-bottom: 3px solid var(--vp-c-text);
   border-bottom-right-radius: var(--grid-corner-radius);
 }
-.docs-home-result .grid-text[data-style-token="addition.addend"] { color: #c43e49; }
-.docs-home-result .grid-text[data-style-token="addition.operator"] { color: #7b3fa0; }
-.docs-home-result .grid-text[data-style-token="addition.carry"] { color: #00a079; }
-.docs-home-result .grid-text[data-style-token="addition.sum"] { color: #be4c00; }
-.docs-home-result .grid-edge[data-style-token="addition.sum-bar"] { background: #4a5f78; }
+.docs-home-result .grid-text[data-style-token='addition.addend'] {
+  color: #c43e49;
+}
+.docs-home-result .grid-text[data-style-token='addition.operator'] {
+  color: #7b3fa0;
+}
+.docs-home-result .grid-text[data-style-token='addition.carry'] {
+  color: #00a079;
+}
+.docs-home-result .grid-text[data-style-token='addition.sum'] {
+  color: #be4c00;
+}
+.docs-home-result .grid-edge[data-style-token='addition.sum-bar'] {
+  background: #4a5f78;
+}
 
 .docs-home-mermaid {
   display: grid;
@@ -1010,7 +1122,7 @@ onBeforeUnmount(() => {
 .docs-home-feature-section {
   scroll-margin-top: calc(var(--navbar-height) + 2rem);
   display: grid;
-  gap: .75rem;
+  gap: 0.75rem;
   padding-top: 1.7rem;
 }
 
@@ -1026,14 +1138,14 @@ onBeforeUnmount(() => {
 .docs-home-feature-section .docs-home-section-heading h2 {
   width: 100%;
   border-bottom: 1px solid var(--vp-c-divider);
-  padding-bottom: .85rem !important;
+  padding-bottom: 0.85rem !important;
 }
 
 .vp-home [vp-content] .docs-home-section-lead {
   max-width: 58rem;
-  margin: .65rem 0 0 !important;
+  margin: 0.65rem 0 0 !important;
   color: var(--vp-c-text-mute);
-  font-size: .94rem;
+  font-size: 0.94rem;
   line-height: 1.7;
 }
 
@@ -1053,16 +1165,16 @@ onBeforeUnmount(() => {
 }
 
 .vp-home [vp-content] .docs-home-feature-body h4 {
-  margin: 0 0 .3rem !important;
+  margin: 0 0 0.3rem !important;
   padding-top: 0 !important;
   color: var(--vp-c-text);
-  font-size: .9rem;
+  font-size: 0.9rem;
 }
 
 .vp-home [vp-content] .docs-home-feature-body p {
-  margin: 0 0 .7rem !important;
+  margin: 0 0 0.7rem !important;
   color: var(--vp-c-text-mute);
-  font-size: .84rem;
+  font-size: 0.84rem;
   line-height: 1.8;
 }
 
@@ -1072,24 +1184,41 @@ onBeforeUnmount(() => {
 
 .docs-home-feature-list {
   display: grid;
-  gap: .5rem;
+  gap: 0.5rem;
   margin: 0;
   padding-left: 1.15rem;
   color: var(--vp-c-text-mute);
-  font-size: .84rem;
+  font-size: 0.84rem;
   line-height: 1.75;
 }
 
 @media (max-width: 800px) {
-  .docs-home-section-heading { align-items: start; flex-direction: column; gap: .75rem; }
+  .docs-home-section-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 }
 
 @media (max-width: 520px) {
-  .docs-home-experience { gap: 3.5rem; }
-  .docs-home-install-command-row { align-items: stretch; }
-  .docs-home-install-heading { align-items: start; flex-direction: column; gap: .2rem; }
-  .docs-home-copy-button { padding: 0; }
-  .docs-home-mermaid svg { width: 920px; max-width: none; }
+  .docs-home-experience {
+    gap: 3.5rem;
+  }
+  .docs-home-install-command-row {
+    align-items: stretch;
+  }
+  .docs-home-install-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .docs-home-copy-button {
+    padding: 0;
+  }
+  .docs-home-mermaid svg {
+    width: 920px;
+    max-width: none;
+  }
 }
 
 @media (max-width: 720px) {

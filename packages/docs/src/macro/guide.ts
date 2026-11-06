@@ -11,7 +11,8 @@ export const guidePages: MacroDocPage[] = [
     navLabel: '前言',
     kicker: 'GETTING STARTED',
     group: 'guide',
-    summary: '网格宏是一套面向竖式排版的受限声明式语言。它把行列结构、文字位置、线条与少量配置写成可读的源码，再编译成渲染器共用的 GridScene。',
+    summary:
+      '网格宏是一套面向竖式排版的受限声明式语言。它把行列结构、文字位置、线条与少量配置写成可读的源码，再编译成渲染器共用的 GridScene。',
     sections: [
       {
         id: 'why',
@@ -46,8 +47,14 @@ export const guidePages: MacroDocPage[] = [
             type: 'steps',
             items: [
               { title: '宏源码', text: '用户输入 `GRID(...)`、`5,6;` 或 `[6,RB(1)]` 这样的文本。' },
-              { title: '解析', text: '`parseMacro` 把源码解析为宏 AST，同时还原 `EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等输入别名。' },
-              { title: '编译与归一化', text: '`compileMacro` 推导列数、对齐每一行、展开短除法阶梯，并输出 `GridScene`。' },
+              {
+                title: '解析',
+                text: '`parseMacro` 把源码解析为宏 AST，同时还原 `EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等输入别名。',
+              },
+              {
+                title: '编译与归一化',
+                text: '`compileMacro` 推导列数、对齐每一行、展开短除法阶梯，并输出 `GridScene`。',
+              },
               { title: '渲染', text: 'DOM/CSS 与 SVG 渲染器各自消费同一个 `GridScene`，页面只负责选择渲染模式。' },
             ],
           },
@@ -103,14 +110,46 @@ export const guidePages: MacroDocPage[] = [
           {
             type: 'cards',
             items: [
-              { title: 'API 文档', text: '查阅门户调用、宏编译、SVG/DOM 渲染与可见文本行提取等公共 API。', to: '/macro-api/shushi' },
-              { title: '基础语法规则', text: '调用形式、分隔符、引号、隐式 GRID、配置优先级与语法速查。', to: '/macro-rules/syntax' },
-              { title: '基础宏命令', text: '从 GRID 到 KV 共九个结构宏；每页都列出参数、规则、错误与可运行示例。', to: '/macro-rules/grid' },
-              { title: '方位宏命令', text: 'LT 到 RBL 共十个文本定位宏；每页说明锚点、字号与配色约定。', to: '/macro-rules/lt' },
-              { title: '符号与边框宏命令', text: 'DOT、BRACKET 与 TBD/RBD/BBD/LBD；按固定图元与单元格边界分组。', to: '/macro-rules/dot' },
-              { title: '语法糖', text: '分号行、方括号与零参数省略；只改变源码写法，不改变输出契约。', to: '/macro-rules/row-shorthand' },
-              { title: '录入示例', text: '加法、乘法与短除法的完整版和语法糖版并排对照，输出结果逐项验证。', to: '/macro-rules/examples' },
-              { title: '注意事项', text: '最容易踩的坑、错误信息对照表和提交前的检查清单。', to: '/macro-rules/cautions' },
+              {
+                title: 'API 文档',
+                text: '查阅门户调用、宏编译、SVG/DOM 渲染与可见文本行提取等公共 API。',
+                to: '/macro-api/shushi',
+              },
+              {
+                title: '基础语法规则',
+                text: '调用形式、分隔符、引号、隐式 GRID、配置优先级与语法速查。',
+                to: '/macro-rules/syntax',
+              },
+              {
+                title: '基础宏命令',
+                text: '从 GRID 到 KV 共九个结构宏；每页都列出参数、规则、错误与可运行示例。',
+                to: '/macro-rules/grid',
+              },
+              {
+                title: '方位宏命令',
+                text: 'LT 到 RBL 共十个文本定位宏；每页说明锚点、字号与配色约定。',
+                to: '/macro-rules/lt',
+              },
+              {
+                title: '符号与边框宏命令',
+                text: 'DOT、BRACKET 与 TBD/RBD/BBD/LBD；按固定图元与单元格边界分组。',
+                to: '/macro-rules/dot',
+              },
+              {
+                title: '语法糖',
+                text: '分号行、方括号与零参数省略；只改变源码写法，不改变输出契约。',
+                to: '/macro-rules/row-shorthand',
+              },
+              {
+                title: '录入示例',
+                text: '加法、乘法与短除法的完整版和语法糖版并排对照，输出结果逐项验证。',
+                to: '/macro-rules/examples',
+              },
+              {
+                title: '注意事项',
+                text: '最容易踩的坑、错误信息对照表和提交前的检查清单。',
+                to: '/macro-rules/cautions',
+              },
             ],
           },
           {
@@ -128,7 +167,10 @@ export const guidePages: MacroDocPage[] = [
             columns: ['写法', '含义'],
             rows: [
               ['`完整命令`', '使用 `GRID`、`ROW`、`CELL` 等显式宏，结构最清楚，便于排查。'],
-              ['`语法糖`', '分号行、`[]`、`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等更短的写法；解析后仍还原为完整宏。'],
+              [
+                '`语法糖`',
+                '分号行、`[]`、`EMP`、`LN`、`BRKT`、`SQ`、`TRI`、`RND` 等更短的写法；解析后仍还原为完整宏。',
+              ],
               ['`必填 / 可选`', '参数表中标注为必填的项缺失时会直接报错；可选参数省略时使用默认值。'],
               ['`KV(key, value)`', '宏的配置项；键的可用范围由宿主宏决定，重复设置同一个键会报错。'],
             ],
@@ -295,7 +337,12 @@ export const guidePages: MacroDocPage[] = [
             rows: [
               ['顶层分号行', '`5, 6; LN;`', '`GRID(ROW(MM(5), MM(6)), LINE)`', '`/macro-rules/row-shorthand`'],
               ['方括号单元格', '`[6, RB(1)]`', '`CELL(MM(6), RB(1))`', '`/macro-rules/cell-shorthand`'],
-              ['零参数省略', '`LN`、`EMP`、`BRKT`、`SQ`、`TRI`、`RND`', '`LINE`、`EMPTY`、`BRACKET`、`SQUARE`、`TRIANGLE`、`ROUND`', '`/macro-rules/zero-argument`'],
+              [
+                '零参数省略',
+                '`LN`、`EMP`、`BRKT`、`SQ`、`TRI`、`RND`',
+                '`LINE`、`EMPTY`、`BRACKET`、`SQUARE`、`TRIANGLE`、`ROUND`',
+                '`/macro-rules/zero-argument`',
+              ],
             ],
           },
           {
@@ -308,7 +355,11 @@ export const guidePages: MacroDocPage[] = [
             type: 'table',
             columns: ['宏命令分组', '包含', '详见'],
             rows: [
-              ['方位宏命令', '`LT`、`MT`、`MTD`、`RT`、`ML`、`MM`、`MR`、`LB`、`MB`、`RB`、`RBL`', '九宫格定位、减法借位点和右边界文字，详见 `/macro-rules/lt` 与 `/macro-rules/mtd`'],
+              [
+                '方位宏命令',
+                '`LT`、`MT`、`MTD`、`RT`、`ML`、`MM`、`MR`、`LB`、`MB`、`RB`、`RBL`',
+                '九宫格定位、减法借位点和右边界文字，详见 `/macro-rules/lt` 与 `/macro-rules/mtd`',
+              ],
               ['符号与边框宏命令', '`DOT`、`BRACKET`、`TBD`、`RBD`、`BBD`、`LBD`', '`/macro-rules/dot`'],
             ],
           },
@@ -345,8 +396,16 @@ export const guidePages: MacroDocPage[] = [
               ['`GRID(ROW(MM(5)); ROW(MM(6)))`', '括号内使用了分号。', '改成逗号：`GRID(ROW(MM(5)), ROW(MM(6)))`。'],
               ['`MM`', '需要参数的宏省略了括号。', '写成 `MM(5)`。'],
               ['`[5, 1]`', '方括号只有首项能省略 `MM`。', '写成 `[5, MM(1)]` 或 `[5, RB(1)]`。'],
-              ['`GRID(ROW(MM(5)), LINE, ROW(MM(6)))`', '`LINE` 出现在第二个 `ROW` 之前。', '把 `LINE` 移到需要画线的 `ROW` 之后。'],
-              ['`GRID(KV(columns, 1), ROW(MM(5), MM(6)))`', '显式列数小于最长行。', '把 `columns` 改为至少 2，或删除该配置。'],
+              [
+                '`GRID(ROW(MM(5)), LINE, ROW(MM(6)))`',
+                '`LINE` 出现在第二个 `ROW` 之前。',
+                '把 `LINE` 移到需要画线的 `ROW` 之后。',
+              ],
+              [
+                '`GRID(KV(columns, 1), ROW(MM(5), MM(6)))`',
+                '显式列数小于最长行。',
+                '把 `columns` 改为至少 2，或删除该配置。',
+              ],
             ],
           },
         ],

@@ -21,7 +21,7 @@ interface PositionPageConfig {
   practiceTask: string
   practiceHint: string
   extraTips?: string[]
-  related?: Array<{ title: string, text: string, to: string }>
+  related?: Array<{ title: string; text: string; to: string }>
 }
 
 const commonErrors = (name: string): DocBlock => ({
@@ -30,7 +30,11 @@ const commonErrors = (name: string): DocBlock => ({
   rows: [
     [`\`${name} 必须包含一个文本参数。\``, '传了零个或多个参数。', `只保留一个文字，例如 \`${name}(5)\`。`],
     [`\`${name} 的 fontSizeRatio 必须是正数。\``, '比例写成 0、负数或非数字。', '改成 1、0.42 等正数。'],
-    ['`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`', `把 \`${name}\` 放进了 GRID 或其他结构宏。`, '先放进 `ROW(...)` 或 `CELL(...)`。'],
+    [
+      '`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`',
+      `把 \`${name}\` 放进了 GRID 或其他结构宏。`,
+      '先放进 `ROW(...)` 或 `CELL(...)`。',
+    ],
   ],
 })
 
@@ -51,7 +55,10 @@ const createPositionPage = (config: PositionPageConfig): MacroDocPage => {
         blocks: [
           { type: 'paragraph', text: config.purpose },
           isEdgeText
-            ? { type: 'edge-text-board', note: 'RBL 不在九宫格内：它把文字放在单元格右侧边框中点，并与数字的行框基线对齐。' }
+            ? {
+                type: 'edge-text-board',
+                note: 'RBL 不在九宫格内：它把文字放在单元格右侧边框中点，并与数字的行框基线对齐。',
+              }
             : { type: 'position-board', active: safeName, note: '高亮格就是该宏在当前单元格内的锚点。' },
           { type: 'paragraph', text: config.anchor },
         ],
@@ -67,7 +74,12 @@ const createPositionPage = (config: PositionPageConfig): MacroDocPage => {
             rows: [
               ['`text`', '文本、数字或保留常量', '是', '恰好一个文字参数；包含分隔符时用双引号包裹。'],
               ['`KV(style, token)`', '语义样式 token', '否', '文字样式 token；autoColor 仍可能覆盖颜色。'],
-              ['`KV(fontSizeRatio, n)`', '正数', '否', `字号比例；${safeName === 'MM' ? 'MM 默认 1' : '该宏默认 0.42'}。`],
+              [
+                '`KV(fontSizeRatio, n)`',
+                '正数',
+                '否',
+                `字号比例；${safeName === 'MM' ? 'MM 默认 1' : '该宏默认 0.42'}。`,
+              ],
             ],
           },
         ],
@@ -159,12 +171,14 @@ export const orientationPages: MacroDocPage[] = [
     slug: 'mt',
     name: 'MT',
     title: 'MT · 中上文字',
-    purpose: 'MT 把文字放在当前单元格的上边缘中央。竖式减法中，它约定用来表示借位点，因此自动配色会使用独立的借位色板。`MTD` 是它的零参数借位点简写，等价于 `MT(·)`。',
+    purpose:
+      'MT 把文字放在当前单元格的上边缘中央。竖式减法中，它约定用来表示借位点，因此自动配色会使用独立的借位色板。`MTD` 是它的零参数借位点简写，等价于 `MT(·)`。',
     anchor: '锚点是单元格的中上位置：水平居中、垂直上对齐。它与中心数字错开，因此不会遮住数字本身。',
     defaultRatio: '未显式设置 `fontSizeRatio` 时使用 0.42 的教学字号',
     colorRole: '自动配色把它当作借位标记，按行取借位色；即使文本不是点，也按 MT 的约定着色',
     exampleTitle: '减法借位标记',
-    exampleCode: 'GRID(\n  ROW(CELL(MM(3), MTD), CELL(MM(5), MTD), MM(6)),\n  ROW(MM(−), MM(2), MM(7), MM(8)),\n  LINE,\n  ROW(MM(7), MM(8))\n)',
+    exampleCode:
+      'GRID(\n  ROW(CELL(MM(3), MTD), CELL(MM(5), MTD), MM(6)),\n  ROW(MM(−), MM(2), MM(7), MM(8)),\n  LINE,\n  ROW(MM(7), MM(8))\n)',
     exampleNote: '两个 MTD 借位点分别落在 3 与 5 的上方中央，表示向高位借位；356 − 278 = 78。',
     practiceTask: '在 6 的上方中央补一个 MTD 借位点。',
     starter: 'GRID(\n  ROW(MM(5), CELL(MM(6)), MM(7))\n)',
@@ -185,7 +199,8 @@ export const orientationPages: MacroDocPage[] = [
     navLabel: 'MTD',
     kicker: 'ORIENTATION MACRO · BORROW DOT',
     group: 'alias',
-    summary: 'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格的中上位置。它用于竖式减法的借位提示，不接受自定义文字参数。',
+    summary:
+      'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格的中上位置。它用于竖式减法的借位提示，不接受自定义文字参数。',
     sections: [
       {
         id: 'position',
@@ -195,8 +210,15 @@ export const orientationPages: MacroDocPage[] = [
             type: 'paragraph',
             text: 'MTD 在当前单元格的顶部中央显示一个教学用圆点（`·`）。它与同格数字叠放，不新增列，也不改变行高；在减法竖式中表示该位发生了借位。',
           },
-          { type: 'position-board', active: 'MT', note: 'MTD 与 MT 使用同一个中上锚点；图中的 MT 位置就是 MTD 的实际落点。' },
-          { type: 'paragraph', text: 'MTD 的锚点是单元格的中上位置：水平居中、垂直上对齐。默认字号比例为 0.42，并沿用 MT 的借位色。' },
+          {
+            type: 'position-board',
+            active: 'MT',
+            note: 'MTD 与 MT 使用同一个中上锚点；图中的 MT 位置就是 MTD 的实际落点。',
+          },
+          {
+            type: 'paragraph',
+            text: 'MTD 的锚点是单元格的中上位置：水平居中、垂直上对齐。默认字号比例为 0.42，并沿用 MT 的借位色。',
+          },
         ],
       },
       {
@@ -259,7 +281,11 @@ export const orientationPages: MacroDocPage[] = [
             columns: ['错误写法', '原因', '修正'],
             rows: [
               ['`MTD(·)`', 'MTD 是零参数宏，不接受文字参数。', '使用 `MTD` / `MTD()`，或改用 `MT(·)`。'],
-              ['`ROW(MM(5), MTD)`', 'MTD 被当成了独立单元格，点不会与 5 同格。', '写成 `ROW([5, MTD])` 或 `ROW(CELL(MM(5), MTD))`。'],
+              [
+                '`ROW(MM(5), MTD)`',
+                'MTD 被当成了独立单元格，点不会与 5 同格。',
+                '写成 `ROW([5, MTD])` 或 `ROW(CELL(MM(5), MTD))`。',
+              ],
               ['`GRID(MTD)`', 'MTD 只能作为 ROW 的单元格内容或 CELL 内图元。', '把它放进 `ROW(...)` 或 `CELL(...)`。'],
             ],
           },
@@ -395,15 +421,14 @@ export const orientationPages: MacroDocPage[] = [
     defaultRatio: '未显式设置 `fontSizeRatio` 时使用 0.42 的教学字号',
     colorRole: '自动配色把它当作进位标记，按行取进位色；即使文本不是数字，也按 RB 的约定着色',
     exampleTitle: '完整加法中的进位点',
-    exampleCode: 'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
+    exampleCode:
+      'GRID(\n  ROW(MM(3), MM(5), MM(6)),\n  ROW(MM(+), CELL(MM(2), RB(1)), CELL(MM(7), RB(1)), MM(8)),\n  LINE,\n  ROW(MM(6), MM(3), MM(4))\n)',
     exampleNote: '2 与 7 的右下角各有一个 1，表示从个位、十位进上来的进位。',
     practiceTask: '给第二格的 6 右下角补一个进位点 1。',
     starter: 'GRID(\n  ROW(MM(5), MM(6))\n)',
     answer: 'GRID(\n  ROW(MM(5), CELL(MM(6), RB(1)))\n)',
     practiceHint: '进位点必须与数字同格；方括号写法是 `[6, RB(1)]`。',
-    extraTips: [
-      'RB 只负责位置与配色约定，不会自动计算进位数值。',
-    ],
+    extraTips: ['RB 只负责位置与配色约定，不会自动计算进位数值。'],
     related: [
       { title: 'CELL · 单元格', text: '进位点与数字同格的组合边界。', to: '/macro-rules/cell' },
       { title: '方括号 []', text: '`[6, RB(1)]` 的短写形式。', to: '/macro-rules/cell-shorthand' },
@@ -414,8 +439,10 @@ export const orientationPages: MacroDocPage[] = [
     slug: 'rbl',
     name: 'RBL',
     title: 'RBL · 右边界文字',
-    purpose: 'RBL 把文字放在当前单元格右侧边框中点的位置，用于附属小数点等贴着数字右边缘的标记。DOT 就是 RBL(.) 的简写。',
-    anchor: '锚点不是九宫格，而是 `edgeMidpoint` 的右边界：列索引、行索引与跨度取自当前 CELL，文字在右侧边框中垂直居中。',
+    purpose:
+      'RBL 把文字放在当前单元格右侧边框中点的位置，用于附属小数点等贴着数字右边缘的标记。DOT 就是 RBL(.) 的简写。',
+    anchor:
+      '锚点不是九宫格，而是 `edgeMidpoint` 的右边界：列索引、行索引与跨度取自当前 CELL，文字在右侧边框中垂直居中。',
     defaultRatio: '未显式设置 `fontSizeRatio` 时使用 0.42 的教学字号',
     colorRole: '默认取所在行的普通文字色；DOT 简写例外，它始终使用小数点独占色',
     exampleTitle: '数字旁的小数点',

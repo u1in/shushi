@@ -4,15 +4,27 @@ import type { MacroDocPage } from './types'
 const renderPage = (page: MacroDocPage): MacroDocPage => ({ ...page, apiTier: 'common' })
 
 export const renderSvgGridPage = renderPage({
-  slug: 'renderSvgGrid', title: 'renderSvgGrid', navLabel: 'renderSvgGrid',
-  kicker: 'API · RENDERERS', group: 'api',
+  slug: 'renderSvgGrid',
+  title: 'renderSvgGrid',
+  navLabel: 'renderSvgGrid',
+  kicker: 'API · RENDERERS',
+  group: 'api',
   summary: '根据 GridScene 创建带尺寸、viewBox 和可访问性标签的 SVGSVGElement。',
   sections: [
-    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`renderSvgGrid`：GridScene 到 SVG 节点的渲染入口。' }] },
     {
-      id: 'example', title: '例子', blocks: [{
-        type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
+      id: 'name',
+      title: '名称',
+      blocks: [{ type: 'paragraph', text: '`renderSvgGrid`：GridScene 到 SVG 节点的渲染入口。' }],
+    },
+    {
+      id: 'example',
+      title: '例子',
+      blocks: [
+        {
+          type: 'code',
+          title: 'TypeScript 示例',
+          language: 'typescript',
+          code: `import { compileMacro, renderSvgGrid } from '@u1in/shushi-core'
 import '@u1in/shushi-core/renderer.css'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
@@ -20,35 +32,83 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const svg: SVGSVGElement = renderSvgGrid(scene)
 
 document.querySelector('#app')?.append(svg)`,
-      }],
-    },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它创建 SVG 根节点、线条层和内容层，并将 `GridScene` 中的文本、线条和圆角图元绘制到 SVG。它不识别加法、减法或除法语义，也不接收颜色或字体选项；它与 `renderSvgString` 共享无 DOM SVG 渲染树，因此相同场景的几何、颜色和字体规则不会分叉。' }] },
-    {
-      id: 'signature', title: '函数签名和属性说明', blocks: [
-        { type: 'code', title: '函数签名', language: 'typescript', code: `type RenderSvgGrid = (scene: GridScene) => SVGSVGElement` },
-        { type: 'table', columns: ['返回节点属性', '值 / 类型', '说明'], rows: [
-          ['`class`', '`grid-svg`', 'SVG 根节点类名；可用于主题样式。'],
-          ['`width` / `height`', '`number`', '由 `resolveGridMetrics(scene)` 计算的总尺寸。'],
-          ['`viewBox`', '`string`', '从 `0 0` 延伸到场景总宽高，便于缩放和导出。'],
-          ['`role` / `aria-label`', '`img` / `string`', '使用场景的可访问性标签。'],
-          ['线条层 / 内容层', '`g.grid-line-layer` / `g.grid-content-layer`', '线条与文本分层，保持与 DOM 渲染器一致。'],
-        ] },
+        },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '只在浏览器环境调用', text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充字体 CSS，颜色和线宽由渲染器 CSS 与场景样式 token 提供。' }] },
+    {
+      id: 'purpose',
+      title: '作用',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: '它创建 SVG 根节点、线条层和内容层，并将 `GridScene` 中的文本、线条和圆角图元绘制到 SVG。它不识别加法、减法或除法语义，也不接收颜色或字体选项；它与 `renderSvgString` 共享无 DOM SVG 渲染树，因此相同场景的几何、颜色和字体规则不会分叉。',
+        },
+      ],
+    },
+    {
+      id: 'signature',
+      title: '函数签名和属性说明',
+      blocks: [
+        {
+          type: 'code',
+          title: '函数签名',
+          language: 'typescript',
+          code: `type RenderSvgGrid = (scene: GridScene) => SVGSVGElement`,
+        },
+        {
+          type: 'table',
+          columns: ['返回节点属性', '值 / 类型', '说明'],
+          rows: [
+            ['`class`', '`grid-svg`', 'SVG 根节点类名；可用于主题样式。'],
+            ['`width` / `height`', '`number`', '由 `resolveGridMetrics(scene)` 计算的总尺寸。'],
+            ['`viewBox`', '`string`', '从 `0 0` 延伸到场景总宽高，便于缩放和导出。'],
+            ['`role` / `aria-label`', '`img` / `string`', '使用场景的可访问性标签。'],
+            [
+              '线条层 / 内容层',
+              '`g.grid-line-layer` / `g.grid-content-layer`',
+              '线条与文本分层，保持与 DOM 渲染器一致。',
+            ],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'cautions',
+      title: '注意事项',
+      blocks: [
+        {
+          type: 'callout',
+          tone: 'warn',
+          title: '只在浏览器环境调用',
+          text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充字体 CSS，颜色和线宽由渲染器 CSS 与场景样式 token 提供。',
+        },
+      ],
+    },
   ],
 })
 
 export const renderSvgStringPage = renderPage({
-  slug: 'renderSvgString', title: 'renderSvgString', navLabel: 'renderSvgString',
-  kicker: 'API · RENDERERS', group: 'api',
+  slug: 'renderSvgString',
+  title: 'renderSvgString',
+  navLabel: 'renderSvgString',
+  kicker: 'API · RENDERERS',
+  group: 'api',
   summary: '在无 DOM 的 Node.js、SSR 或脚本环境中，根据 GridScene 生成 SVG 字符串。',
   sections: [
-    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`renderSvgString`：GridScene 到 SVG 字符串的 SSR 渲染入口。' }] },
     {
-      id: 'example', title: '例子', blocks: [{
-        type: 'code', title: 'TypeScript 示例', language: 'typescript',
-        code: `import { compileMacro, renderSvgString } from '@u1in/shushi-core'
+      id: 'name',
+      title: '名称',
+      blocks: [{ type: 'paragraph', text: '`renderSvgString`：GridScene 到 SVG 字符串的 SSR 渲染入口。' }],
+    },
+    {
+      id: 'example',
+      title: '例子',
+      blocks: [
+        {
+          type: 'code',
+          title: 'TypeScript 示例',
+          language: 'typescript',
+          code: `import { compileMacro, renderSvgString } from '@u1in/shushi-core'
 
 // 编译只生成与渲染器无关的 GridScene，不需要浏览器环境。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
@@ -56,32 +116,75 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 // 返回完整的 SVG 字符串，可直接写入 HTTP 响应、模板或 .svg 文件。
 const svg = renderSvgString(scene)
 console.log(svg)`,
-      }],
+        },
+      ],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它使用与 `renderSvgGrid` 相同的无 DOM SVG 渲染树、轨道尺寸、文本锚点和图元结构，通过字符串序列化生成 `<svg>`，不创建 DOM，也不读取全局 `document`。同一份 `GridScene` 会得到相同的几何、图层、属性和图元顺序；文本、属性和样式值会进行 XML 转义。' }] },
     {
-      id: 'signature', title: '函数签名和属性说明', blocks: [{
-        type: 'table', columns: ['项目', '值 / 类型', '说明'], rows: [
-          ['函数签名', '`(scene: GridScene) => string`', '输入已编译的 GridScene，返回完整 SVG 字符串。'],
-          ['根节点', '`<svg class="grid-svg">`', '包含 `width`、`height`、`viewBox`、`role="img"` 和 `aria-label`。'],
-          ['图层', '`g.grid-line-layer` / `g.grid-content-layer`', '线条、圆角、辅助网格与文本分层，结构与 `renderSvgGrid` 一致。'],
-          ['安全处理', 'XML 转义', '文本、属性和 inline style 值不会直接注入 SVG 标记。'],
-        ],
-      }],
+      id: 'purpose',
+      title: '作用',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: '它使用与 `renderSvgGrid` 相同的无 DOM SVG 渲染树、轨道尺寸、文本锚点和图元结构，通过字符串序列化生成 `<svg>`，不创建 DOM，也不读取全局 `document`。同一份 `GridScene` 会得到相同的几何、图层、属性和图元顺序；文本、属性和样式值会进行 XML 转义。',
+        },
+      ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'tip', title: '不需要浏览器环境', text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，但不承诺浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；若 SVG 需要项目公共颜色和默认 STIX 字体，最终 HTML 或 SVG 宿主加载 `@u1in/shushi-core/renderer.css` 即可。' }] },
+    {
+      id: 'signature',
+      title: '函数签名和属性说明',
+      blocks: [
+        {
+          type: 'table',
+          columns: ['项目', '值 / 类型', '说明'],
+          rows: [
+            ['函数签名', '`(scene: GridScene) => string`', '输入已编译的 GridScene，返回完整 SVG 字符串。'],
+            ['根节点', '`<svg class="grid-svg">`', '包含 `width`、`height`、`viewBox`、`role="img"` 和 `aria-label`。'],
+            [
+              '图层',
+              '`g.grid-line-layer` / `g.grid-content-layer`',
+              '线条、圆角、辅助网格与文本分层，结构与 `renderSvgGrid` 一致。',
+            ],
+            ['安全处理', 'XML 转义', '文本、属性和 inline style 值不会直接注入 SVG 标记。'],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'cautions',
+      title: '注意事项',
+      blocks: [
+        {
+          type: 'callout',
+          tone: 'tip',
+          title: '不需要浏览器环境',
+          text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，但不承诺浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；若 SVG 需要项目公共颜色和默认 STIX 字体，最终 HTML 或 SVG 宿主加载 `@u1in/shushi-core/renderer.css` 即可。',
+        },
+      ],
+    },
   ],
 })
 
 export const renderDomGridPage = renderPage({
-  slug: 'renderDomGrid', title: 'renderDomGrid', navLabel: 'renderDomGrid',
-  kicker: 'API · RENDERERS', group: 'api',
+  slug: 'renderDomGrid',
+  title: 'renderDomGrid',
+  navLabel: 'renderDomGrid',
+  kicker: 'API · RENDERERS',
+  group: 'api',
   summary: '根据 GridScene 创建可直接挂载的 DOM/CSS 舞台 HTMLElement。',
   sections: [
-    { id: 'name', title: '名称', blocks: [{ type: 'paragraph', text: '`renderDomGrid`：GridScene 到 DOM/CSS 舞台的渲染入口。' }] },
     {
-      id: 'example', title: '例子', blocks: [{
-        type: 'code', title: 'TypeScript 示例', language: 'typescript',
+      id: 'name',
+      title: '名称',
+      blocks: [{ type: 'paragraph', text: '`renderDomGrid`：GridScene 到 DOM/CSS 舞台的渲染入口。' }],
+    },
+    {
+      id: 'example',
+      title: '例子',
+      blocks: [
+        {
+          type: 'code',
+          title: 'TypeScript 示例',
+          language: 'typescript',
           code: `import { compileMacro, renderDomGrid } from '@u1in/shushi-core'
 import '@u1in/shushi-core/renderer.css'
 
@@ -90,20 +193,48 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const stage: HTMLElement = renderDomGrid(scene)
 
 document.querySelector('#app')?.append(stage)`,
-      }],
+        },
+      ],
     },
-    { id: 'purpose', title: '作用', blocks: [{ type: 'paragraph', text: '它创建相对定位的舞台、线条层和内容层，用绝对定位放置所有图元。DOM 渲染器适合需要 CSS 主题、事件包装或直接操作 HTML 节点的页面。' }] },
     {
-      id: 'signature', title: '函数签名和属性说明', blocks: [
-        { type: 'code', title: '函数签名', language: 'typescript', code: `type RenderDomGrid = (scene: GridScene) => HTMLElement` },
-        { type: 'table', columns: ['节点 / 属性', '值 / 类型', '说明'], rows: [
-          ['舞台类名', '`grid-dom-stage`', '相对定位，内联写入场景总宽高、`--grid-font-size` 和可选的 `--grid-font-family`。'],
-          ['线条层', '`div.grid-line-layer`', '承载 LINE、边框和厂字弯；`pointer-events: none`。'],
-          ['内容层', '`div.grid-content-layer`', '承载文本图元，层级高于线条层。'],
-          ['可访问性', '`role="img"` + `aria-label`', '复用场景的可访问性描述。'],
-        ] },
+      id: 'purpose',
+      title: '作用',
+      blocks: [
         {
-          type: 'code', title: '自定义覆盖（可选）', language: 'css', code: `.grid-dom-stage .grid-text {
+          type: 'paragraph',
+          text: '它创建相对定位的舞台、线条层和内容层，用绝对定位放置所有图元。DOM 渲染器适合需要 CSS 主题、事件包装或直接操作 HTML 节点的页面。',
+        },
+      ],
+    },
+    {
+      id: 'signature',
+      title: '函数签名和属性说明',
+      blocks: [
+        {
+          type: 'code',
+          title: '函数签名',
+          language: 'typescript',
+          code: `type RenderDomGrid = (scene: GridScene) => HTMLElement`,
+        },
+        {
+          type: 'table',
+          columns: ['节点 / 属性', '值 / 类型', '说明'],
+          rows: [
+            [
+              '舞台类名',
+              '`grid-dom-stage`',
+              '相对定位，内联写入场景总宽高、`--grid-font-size` 和可选的 `--grid-font-family`。',
+            ],
+            ['线条层', '`div.grid-line-layer`', '承载 LINE、边框和厂字弯；`pointer-events: none`。'],
+            ['内容层', '`div.grid-content-layer`', '承载文本图元，层级高于线条层。'],
+            ['可访问性', '`role="img"` + `aria-label`', '复用场景的可访问性描述。'],
+          ],
+        },
+        {
+          type: 'code',
+          title: '自定义覆盖（可选）',
+          language: 'css',
+          code: `.grid-dom-stage .grid-text {
   font-family: "Noto Serif SC", "Times New Roman", serif;
 }
 
@@ -116,7 +247,18 @@ document.querySelector('#app')?.append(stage)`,
         },
       ],
     },
-    { id: 'cautions', title: '注意事项', blocks: [{ type: 'callout', tone: 'warn', title: '先导入渲染器 CSS', text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。导入 `@u1in/shushi-core/renderer.css` 获得基础定位、视觉样式和默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加字体 CSS，且不要在自定义 CSS 中重新计算图元坐标。' }] },
+    {
+      id: 'cautions',
+      title: '注意事项',
+      blocks: [
+        {
+          type: 'callout',
+          tone: 'warn',
+          title: '先导入渲染器 CSS',
+          text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。导入 `@u1in/shushi-core/renderer.css` 获得基础定位、视觉样式和默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加字体 CSS，且不要在自定义 CSS 中重新计算图元坐标。',
+        },
+      ],
+    },
   ],
 })
 

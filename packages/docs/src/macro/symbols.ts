@@ -7,7 +7,11 @@ const borderCommonErrors = (name: string): DocBlock => ({
   rows: [
     [`\`${name} 最多接受一个 STYLE 参数。\``, '传了多个图元。', '只保留一个 `STYLE(...)`。'],
     ['`LINE 的样式必须使用 STYLE(...)。`', '把文字或数字传给了边框宏。', '边框宏不接收文字；需要文字请另放定位宏。'],
-    ['`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`', '把边框宏直接放在 ROW 或 GRID 下。', `把 \`${name}\` 放进 \`CELL(...)\`。`],
+    [
+      '`CELL 内只能包含定位宏、边框宏、BRACKET、DOT 或 KV 配置。`',
+      '把边框宏直接放在 ROW 或 GRID 下。',
+      `把 \`${name}\` 放进 \`CELL(...)\`。`,
+    ],
   ],
 })
 
@@ -41,14 +45,20 @@ const createBorderPage = (config: BorderPageConfig): MacroDocPage => ({
       title: '位置与作用',
       blocks: [
         { type: 'paragraph', text: config.purpose },
-        { type: 'border-board', macro: config.name, edge: config.edge, note: `高亮的就是当前单元格的${config.edgeLabel}边线；${config.name} 只画这一条边，不新增单元格。` },
+        {
+          type: 'border-board',
+          macro: config.name,
+          edge: config.edge,
+          note: `高亮的就是当前单元格的${config.edgeLabel}边线；${config.name} 只画这一条边，不新增单元格。`,
+        },
         {
           type: 'callout',
           tone: 'info',
           title: '边框不是单元格',
-          text: config.edge === 'right'
-            ? 'RBD 的竖线与当前单元格的右边界基线（baseline）重合，线宽以该基线为中心向两侧展开；它不会向右新增一列，也不是相邻单元格。'
-            : `边框是当前单元格的边界线，不是新的单元格；${config.name} 只画${config.edgeLabel}边，不增加行或列。`,
+          text:
+            config.edge === 'right'
+              ? 'RBD 的竖线与当前单元格的右边界基线（baseline）重合，线宽以该基线为中心向两侧展开；它不会向右新增一列，也不是相邻单元格。'
+              : `边框是当前单元格的边界线，不是新的单元格；${config.name} 只画${config.edgeLabel}边，不增加行或列。`,
         },
         { type: 'paragraph', text: config.useCase },
       ],
@@ -157,8 +167,14 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
       id: 'purpose',
       title: '作用与位置',
       blocks: [
-        { type: 'paragraph', text: `${config.name} 用于快速输入固定符号 ${config.glyph}。它使用普通单元格的中心位置，不新增列，也不改变行高。` },
-        { type: 'paragraph', text: `宏可以直接作为 ROW 中的一个单元格，也可以与数字放在同一个 CELL 内；需要同格叠放时使用 CELL(MM(5), ${config.shortName}) 或 [5, ${config.shortName}]。` },
+        {
+          type: 'paragraph',
+          text: `${config.name} 用于快速输入固定符号 ${config.glyph}。它使用普通单元格的中心位置，不新增列，也不改变行高。`,
+        },
+        {
+          type: 'paragraph',
+          text: `宏可以直接作为 ROW 中的一个单元格，也可以与数字放在同一个 CELL 内；需要同格叠放时使用 CELL(MM(5), ${config.shortName}) 或 [5, ${config.shortName}]。`,
+        },
       ],
     },
     {
@@ -218,8 +234,16 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
           type: 'table',
           columns: ['错误写法', '原因', '修正'],
           rows: [
-            [`\`${config.name}(文字)\``, '固定符号宏不接受文字参数。', `使用 ${config.name}，或改用 MM(文字) 输入自定义文字。`],
-            [`\`ROW(MM(5), ${config.shortName}(1))\``, '简写仍然是零参数宏。', `使用 ROW(MM(5), ${config.shortName})。`],
+            [
+              `\`${config.name}(文字)\``,
+              '固定符号宏不接受文字参数。',
+              `使用 ${config.name}，或改用 MM(文字) 输入自定义文字。`,
+            ],
+            [
+              `\`ROW(MM(5), ${config.shortName}(1))\``,
+              '简写仍然是零参数宏。',
+              `使用 ROW(MM(5), ${config.shortName})。`,
+            ],
           ],
         },
       ],
@@ -243,7 +267,13 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
 
 const fixedSymbolPages: MacroDocPage[] = [
   createFixedSymbolPage({ slug: 'square', name: 'SQUARE', shortName: 'SQ', glyph: '☐', title: 'SQUARE · 方框符号' }),
-  createFixedSymbolPage({ slug: 'triangle', name: 'TRIANGLE', shortName: 'TRI', glyph: '△', title: 'TRIANGLE · 三角符号' }),
+  createFixedSymbolPage({
+    slug: 'triangle',
+    name: 'TRIANGLE',
+    shortName: 'TRI',
+    glyph: '△',
+    title: 'TRIANGLE · 三角符号',
+  }),
   createFixedSymbolPage({ slug: 'round', name: 'ROUND', shortName: 'RND', glyph: '◯', title: 'ROUND · 圆形符号' }),
 ]
 
@@ -275,9 +305,7 @@ export const symbolPages: MacroDocPage[] = [
           {
             type: 'table',
             columns: ['项', '类型', '必填', '说明'],
-            rows: [
-              ['`DOT`', '零参数宏', '是', '不接收文字或 KV；样式 token 从所在 CELL 继承。'],
-            ],
+            rows: [['`DOT`', '零参数宏', '是', '不接收文字或 KV；样式 token 从所在 CELL 继承。']],
           },
           {
             type: 'paragraph',
@@ -336,9 +364,17 @@ export const symbolPages: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`', '把 DOT 放进了 GRID 或其他结构宏。', '把 DOT 放进 `CELL` 或 `ROW`。'],
+              [
+                '`ROW 只能包含 CELL、EMPTY、定位宏或 DOT。`',
+                '把 DOT 放进了 GRID 或其他结构宏。',
+                '把 DOT 放进 `CELL` 或 `ROW`。',
+              ],
               ['`DOT(5)` 无法编译', 'DOT 不接受参数。', '写成 `DOT`，把数字另放在 `MM(5)`。'],
-              ['小数点颜色不是预期值', 'autoColor 使用了专用色。', '需要自定义颜色时关闭 autoColor 并使用 `RBL(.)` + STYLE。'],
+              [
+                '小数点颜色不是预期值',
+                'autoColor 使用了专用色。',
+                '需要自定义颜色时关闭 autoColor 并使用 `RBL(.)` + STYLE。',
+              ],
             ],
           },
         ],
@@ -467,8 +503,16 @@ export const symbolPages: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`BRACKET 是零参数宏；请在 CELL 上设置样式配置。`', '给 BRACKET 传了参数。', '改成 `BRACKET`，样式写在 CELL 上。'],
-              ['`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`', '与数字同格，或设置了跨度。', '拆成单独单元格，保持 `columnSpan=1`。'],
+              [
+                '`BRACKET 是零参数宏；请在 CELL 上设置样式配置。`',
+                '给 BRACKET 传了参数。',
+                '改成 `BRACKET`，样式写在 CELL 上。',
+              ],
+              [
+                '`BRACKET 必须独占一个 columnSpan 为 1 的 CELL。`',
+                '与数字同格，或设置了跨度。',
+                '拆成单独单元格，保持 `columnSpan=1`。',
+              ],
               ['`CELL 内只能包含...`', '把 BRACKET 与边框等不允许的图元混用。', 'BRACKET 只与 KV 配置同格。'],
             ],
           },
@@ -527,8 +571,10 @@ export const symbolPages: MacroDocPage[] = [
     title: 'RBD · 单元格右边框',
     edge: 'right',
     edgeLabel: '右',
-    purpose: 'RBD 在单元格的右边界画线，竖线与右边界基线（baseline）重合。它用于强调某一格的右侧分隔，或补充竖式右侧的短竖线。',
-    useCase: '右边框跟随单元格的右边界；线宽以边界基线为中心向两侧展开，不占新列。跨两格时把 `columnSpan` 设在 CELL 上，线会落在整个跨度的右端。',
+    purpose:
+      'RBD 在单元格的右边界画线，竖线与右边界基线（baseline）重合。它用于强调某一格的右侧分隔，或补充竖式右侧的短竖线。',
+    useCase:
+      '右边框跟随单元格的右边界；线宽以边界基线为中心向两侧展开，不占新列。跨两格时把 `columnSpan` 设在 CELL 上，线会落在整个跨度的右端。',
     exampleTitle: '数字右侧的竖线',
     exampleCode: 'GRID(\n  ROW(MM(5), CELL(MM(8), RBD()))\n)',
     exampleNote: '竖线画在 8 的右边，不影响 5 的格子。',

@@ -7,17 +7,73 @@ interface CodeToken {
   className?: string
 }
 
-const props = withDefaults(defineProps<{
-  code: string
-  language?: DocCodeLanguage
-}>(), {
-  language: 'macro',
-})
+const props = withDefaults(
+  defineProps<{
+    code: string
+    language?: DocCodeLanguage
+  }>(),
+  {
+    language: 'macro',
+  },
+)
 
 const keywordSets: Record<DocCodeLanguage, Set<string>> = {
-  macro: new Set(['GRID', 'ROW', 'CELL', 'EMPTY', 'EMP', 'LINE', 'LN', 'DIV', 'VALUE', 'STYLE', 'KV', 'MM', 'RB', 'MT', 'MTD', 'DOT', 'BRACKET', 'BRKT', 'SQUARE', 'SQ', 'TRIANGLE', 'TRI', 'ROUND', 'RND']),
-  typescript: new Set(['as', 'const', 'document', 'export', 'from', 'function', 'import', 'interface', 'new', 'return', 'type', 'const', 'string', 'number', 'boolean', 'void']),
-  css: new Set(['position', 'absolute', 'background', 'color', 'display', 'font-family', 'font-size', 'font-weight', 'line-height', 'white-space']),
+  macro: new Set([
+    'GRID',
+    'ROW',
+    'CELL',
+    'EMPTY',
+    'EMP',
+    'LINE',
+    'LN',
+    'DIV',
+    'VALUE',
+    'STYLE',
+    'KV',
+    'MM',
+    'RB',
+    'MT',
+    'MTD',
+    'DOT',
+    'BRACKET',
+    'BRKT',
+    'SQUARE',
+    'SQ',
+    'TRIANGLE',
+    'TRI',
+    'ROUND',
+    'RND',
+  ]),
+  typescript: new Set([
+    'as',
+    'const',
+    'document',
+    'export',
+    'from',
+    'function',
+    'import',
+    'interface',
+    'new',
+    'return',
+    'type',
+    'const',
+    'string',
+    'number',
+    'boolean',
+    'void',
+  ]),
+  css: new Set([
+    'position',
+    'absolute',
+    'background',
+    'color',
+    'display',
+    'font-family',
+    'font-size',
+    'font-weight',
+    'line-height',
+    'white-space',
+  ]),
   text: new Set(),
 }
 
@@ -54,9 +110,7 @@ const tokenize = (code: string, language: DocCodeLanguage): CodeToken[] => {
     if (identifier) {
       const word = identifier[0]
       const followedByCall = /^\s*\(/.test(rest.slice(word.length))
-      const className = followedByCall
-        ? 'code-token-function'
-        : keywords.has(word) ? 'code-token-keyword' : undefined
+      const className = followedByCall ? 'code-token-function' : keywords.has(word) ? 'code-token-keyword' : undefined
       tokens.push({ text: word, className })
       index += word.length
       continue

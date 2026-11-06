@@ -53,6 +53,5 @@ export const getAutoTextColor = (theme: AutoColorTheme): string => theme.text
 export const getAutoCarryColor = (theme: AutoColorTheme): string => theme.carry
 export const getAutoBorrowColor = (theme: AutoColorTheme): string => theme.borrow
 
-export const getAutoOperatorColor = (theme: AutoColorTheme, text: string): string | undefined => (
+export const getAutoOperatorColor = (theme: AutoColorTheme, text: string): string | undefined =>
   OPERATOR_TEXTS.has(text) ? theme.operator : undefined
-)

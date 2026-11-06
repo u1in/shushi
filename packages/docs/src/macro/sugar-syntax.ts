@@ -11,7 +11,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '顶层分号行',
     kicker: 'SYNTAX SUGAR · 01',
     group: 'sugar',
-    summary: '在顶层用分号分隔行、用逗号分隔同一行的单元格，解析器会自动补出 ROW 与隐式 GRID。裸文字会补成 MM，横线单独保留。',
+    summary:
+      '在顶层用分号分隔行、用逗号分隔同一行的单元格，解析器会自动补出 ROW 与隐式 GRID。裸文字会补成 MM，横线单独保留。',
     sections: [
       {
         id: 'purpose',
@@ -64,7 +65,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
           {
             type: 'compare',
             leftTitle: '完整命令版',
-            leftCode: 'GRID(\n  ROW(MM(1), MM(2)),\n  ROW(MM(×), MM(1), MM(2)),\n  LINE,\n  ROW(MM(1), MM(4), MM(4))\n)',
+            leftCode:
+              'GRID(\n  ROW(MM(1), MM(2)),\n  ROW(MM(×), MM(1), MM(2)),\n  LINE,\n  ROW(MM(1), MM(4), MM(4))\n)',
             rightTitle: '顶层分号版',
             rightCode: '1,2;\n×,1,2;\nLN;\n1,4,4;',
             note: '两段源码输出完全相同的 GridScene。对照时注意：分号版没有显式 GRID，因此不能同时写场景配置。',
@@ -101,8 +103,16 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             columns: ['错误写法', '原因', '修正'],
             rows: [
               ['`GRID(ROW(MM(5)); ROW(MM(6)))`', '分号写进了括号内部。', '括号内改用逗号。'],
-              ['`5,6`（没有分号）', '没有触发分行，裸文字不是合法 GRID 子项。', '在行末补分号，或写完整 `ROW(MM(5), MM(6))`。'],
-              ['`5,6;LN;` 后继续写 `KV(columns, 3)`', '分号简写没有 GRID 配置入口。', '改写为显式 `GRID(KV(columns, 3), ROW(...), LINE)`。'],
+              [
+                '`5,6`（没有分号）',
+                '没有触发分行，裸文字不是合法 GRID 子项。',
+                '在行末补分号，或写完整 `ROW(MM(5), MM(6))`。',
+              ],
+              [
+                '`5,6;LN;` 后继续写 `KV(columns, 3)`',
+                '分号简写没有 GRID 配置入口。',
+                '改写为显式 `GRID(KV(columns, 3), ROW(...), LINE)`。',
+              ],
             ],
           },
         ],
@@ -143,7 +153,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '方括号 []',
     kicker: 'SYNTAX SUGAR · 02',
     group: 'sugar',
-    summary: '方括号是 CELL 的短写形式：[5, RB(1)] 等价于 CELL(MM(5), RB(1))，纯标记也可写为 [RB(1)]。裸文字只在首项自动补 MM，后续项必须是完整宏或零参数宏。',
+    summary:
+      '方括号是 CELL 的短写形式：[5, RB(1)] 等价于 CELL(MM(5), RB(1))，纯标记也可写为 [RB(1)]。裸文字只在首项自动补 MM，后续项必须是完整宏或零参数宏。',
     sections: [
       {
         id: 'purpose',
@@ -171,9 +182,17 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'table',
             columns: ['位置', '允许的写法', '说明'],
             rows: [
-              ['第一项', '`MM(text)`、裸文字或完整图元宏', '裸文字会自动补成 `MM(text)`；`[RB(1)]` 等纯图元写法会直接保留。'],
+              [
+                '第一项',
+                '`MM(text)`、裸文字或完整图元宏',
+                '裸文字会自动补成 `MM(text)`；`[RB(1)]` 等纯图元写法会直接保留。',
+              ],
               ['后续项', '完整宏调用', '例如 `RB(1)`、`TBD()`、`KV(columnSpan, 2)`。'],
-              ['后续项', '零参数图元', '`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；它们也可作为没有正文的方括号首项；`EMP` 是 ROW 的单元格，不能放进 CELL。'],
+              [
+                '后续项',
+                '零参数图元',
+                '`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND`、`TBD`、`RBD`、`BBD`、`LBD` 可以不带括号；它们也可作为没有正文的方括号首项；`EMP` 是 ROW 的单元格，不能放进 CELL。',
+              ],
             ],
           },
           {
@@ -246,8 +265,16 @@ export const sugarSyntaxPages: MacroDocPage[] = [
             type: 'table',
             columns: ['错误信息', '触发原因', '修正'],
             rows: [
-              ['`CELL 简写首项必须是文字、完整图元宏或允许的零参数图元`', '首项写了裸 `RB`、`EMP` 或其他不能作为 CELL 图元的符号。', '写成带参数的 `RB(1)`，或使用文字、`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND` 等允许的首项。'],
-              ['`CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用`', '后续项写了裸文字或裸的 `RB`。', '写成 `RB(1)`，或把文字移到首项。'],
+              [
+                '`CELL 简写首项必须是文字、完整图元宏或允许的零参数图元`',
+                '首项写了裸 `RB`、`EMP` 或其他不能作为 CELL 图元的符号。',
+                '写成带参数的 `RB(1)`，或使用文字、`DOT`、`MTD`、`BRKT`、`SQ`、`TRI`、`RND` 等允许的首项。',
+              ],
+              [
+                '`CELL 简写只有首项可以省略 MM；后续项必须写成完整宏调用`',
+                '后续项写了裸文字或裸的 `RB`。',
+                '写成 `RB(1)`，或把文字移到首项。',
+              ],
               ['`CELL 简写至少需要一个图元`', '写了 `[]`。', '至少补一个文字或图元，例如 `[5]`、`[RB(1)]`。'],
               ['`CELL 简写参数之间必须使用逗号分隔`', '用了空格或分号。', '改成逗号。'],
             ],
@@ -290,7 +317,8 @@ export const sugarSyntaxPages: MacroDocPage[] = [
     navLabel: '零参数省略与别名',
     kicker: 'SYNTAX SUGAR · 03',
     group: 'sugar',
-    summary: 'LN、EMP、BRKT 分别是 LINE、EMPTY、BRACKET 的输入别名；SQ、TRI、RND 分别代表三个固定符号宏。零参数宏还可以省略空括号。`MTD` 则是 `MT(·)` 的零参数专用简写。',
+    summary:
+      'LN、EMP、BRKT 分别是 LINE、EMPTY、BRACKET 的输入别名；SQ、TRI、RND 分别代表三个固定符号宏。零参数宏还可以省略空括号。`MTD` 则是 `MT(·)` 的零参数专用简写。',
     sections: [
       {
         id: 'aliases',

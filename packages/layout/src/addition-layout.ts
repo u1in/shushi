@@ -13,12 +13,7 @@ import {
   macroTextCell,
 } from './macro-source'
 
-const placeNumber = (
-  cells: string[],
-  value: string,
-  styleToken: string,
-  firstColumn: number,
-): void => {
+const placeNumber = (cells: string[], value: string, styleToken: string, firstColumn: number): void => {
   ;[...value].forEach((digit, index) => {
     cells[firstColumn + index] = macroTextCell(digit, styleToken)
   })
@@ -42,9 +37,15 @@ export const createAdditionMacroSource = (
   settings: Partial<AdditionRenderSettings> = {},
 ): string => {
   const resolvedSettings: AdditionRenderSettings = { ...DEFAULT_ADDITION_SETTINGS, ...settings }
-  const visibleStepCount = Math.min(Math.max(resolvedSettings.visibleStepCount ?? computation.steps.length, 0), computation.steps.length)
+  const visibleStepCount = Math.min(
+    Math.max(resolvedSettings.visibleStepCount ?? computation.steps.length, 0),
+    computation.steps.length,
+  )
   const visibleSteps = computation.steps.slice(0, visibleStepCount)
-  const numberColumnCount = Math.max(computation.sumDigits.length, ...computation.addendDigits.map(({ length }) => length))
+  const numberColumnCount = Math.max(
+    computation.sumDigits.length,
+    ...computation.addendDigits.map(({ length }) => length),
+  )
   const columns = numberColumnCount + 1
   const children: string[] = []
 
@@ -60,9 +61,10 @@ export const createAdditionMacroSource = (
           const cellIndex = targetColumn
           const annotation = macroRightBottom(String(step.carryOut), 'addition.carry')
           const digitIndex = cellIndex - (columns - addend.length)
-          cells[cellIndex] = digitIndex < 0 || digitIndex >= addend.length
-            ? macroAnnotationCell(annotation)
-            : macroTextCell(addend[digitIndex], 'addition.addend', [annotation])
+          cells[cellIndex] =
+            digitIndex < 0 || digitIndex >= addend.length
+              ? macroAnnotationCell(annotation)
+              : macroTextCell(addend[digitIndex], 'addition.addend', [annotation])
         })
       }
     }
@@ -72,7 +74,10 @@ export const createAdditionMacroSource = (
   children.push(macroLine('addition.sum-bar', 'full'))
   const resultCells = Array.from({ length: columns }, macroEmptyCell)
   const isComplete = resolvedSettings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
-  const visibleSum = visibleSteps.map(({ resultDigit }) => resultDigit).reverse().join('')
+  const visibleSum = visibleSteps
+    .map(({ resultDigit }) => resultDigit)
+    .reverse()
+    .join('')
   const sumToDisplay = isComplete ? computation.sumDigits : visibleSum
   placeNumber(resultCells, sumToDisplay, 'addition.sum', columns - sumToDisplay.length)
   children.push(macroRow(resultCells))

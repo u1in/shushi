@@ -33,9 +33,11 @@ describe('组合竖式', () => {
     expect(copiedSource).not.toContain('ariaLabel')
     expect(copiedSource).not.toContain('KV(')
     expect(compileMacro(copiedSource)).toEqual(scene)
-    expect(scene.elements.filter(({ content }) => content.kind === 'text').every(({ content }) => (
-      content.kind === 'text' && content.color !== undefined
-    ))).toBe(true)
+    expect(
+      scene.elements
+        .filter(({ content }) => content.kind === 'text')
+        .every(({ content }) => content.kind === 'text' && content.color !== undefined),
+    ).toBe(true)
     expect(operators).toEqual(['+', '−', '×'])
     const visibleRows = extractVisibleTextRows(scene)
     // 200 与 180 分别只作为前一步结果出现，直接复用于紧跟的 −20、×3。

@@ -7,7 +7,7 @@ const storageKey = 'shushi-theme-mode'
 const themeMode = ref<ThemeMode>('light')
 let mediaQuery: MediaQueryList | undefined
 
-const resolveSystemTheme = (): ThemeMode => mediaQuery?.matches ? 'dark' : 'light'
+const resolveSystemTheme = (): ThemeMode => (mediaQuery?.matches ? 'dark' : 'light')
 
 /** 让浏览器标签页图标与当前页面主题保持一致。 */
 const updateFavicon = (mode: ThemeMode): void => {
@@ -45,7 +45,6 @@ const themeOptions: Array<{ value: ThemeMode; label: string; icon: string }> = [
   { value: 'light', label: '浅色', icon: '☼' },
   { value: 'dark', label: '深色', icon: '☾' },
 ]
-
 </script>
 
 <template>
