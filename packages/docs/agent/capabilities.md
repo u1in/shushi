@@ -124,6 +124,8 @@ shushiCore(request: ShushiRequest<VerticalArithmeticRequest>): AnyVerticalArithm
 
 长除法的结构化参数顺序固定为 `divisor` 在前、`dividend` 在后；表达式入口则遵循用户书写方向，例如 `10230 / 25` 表示被除数 10230、除数 25。
 
+`calculation.maxDecimalDigits` 是长除法唯一的小数控制项：省略时返回整数商和余数；传入正整数时最多计算到该小数位，若仍未除尽则保留截断小数、过程和当前余数。
+
 ### 结构化示例
 
 ```typescript
@@ -133,7 +135,7 @@ const division = shushiCore({
   operation: 'division',
   divisor: '25',
   dividend: '10230',
-  calculation: { resultMode: 'decimal', maxDecimalDigits: 24 },
+  calculation: { maxDecimalDigits: 24 },
 })
 
 const factorization = shushiCore({

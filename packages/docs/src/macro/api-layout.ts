@@ -59,7 +59,7 @@ console.log(source)`
 
 const divisionExample = `import { computeDivision, createDivisionMacroSource } from '@u1in/shushi-core'
 
-const computation = computeDivision('25', '10230', { resultMode: 'decimal' })
+const computation = computeDivision('25', '10230', { maxDecimalDigits: 4 })
 const settings = {
   cellWidth: 30,
   rowHeight: 46,
@@ -451,7 +451,7 @@ import '@u1in/shushi-core/renderer.css'
 
 const host = document.querySelector('#result')
 const { computation, source, rendered, inspection } = shushi('10230 ÷ 25', {
-  calculation: { resultMode: 'decimal' },
+  calculation: { maxDecimalDigits: 4 },
   renderMode: 'div',
   el: host ?? undefined,
 })
@@ -489,7 +489,7 @@ type VerticalArithmeticResult<T, TRendered> = {
     ['`expression` 的除法形式', '`被除数 ÷ 除数` / `被除数 / 除数`', '长除法必须单独出现，不能和加减乘组合。'],
     ['`expression` 的短除法形式', '`|待分解数` / `|数1 数2`', '单个右值时分解质因数；多个右值时自动试除并求公因数。一次指定除法仅通过 `computeShortDivision` 或 `shushiCore` 的结构化 mode 使用。'],
     ['`expression` 的进制转换形式', '`(十进制数)目标进制`', '例如 `(124)2` 得到二进制短除过程；目标进制范围为 2–36。'],
-    ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数模式或乘法快捷计算等计算层选项。'],
+    ['`options.calculation`', '`DivisionOptions & MultiplicationOptions`', '长除法小数位上限或乘法快捷计算等计算层选项。'],
     ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
     ['`options.colorTheme`', '`AutoColorTheme`', '覆盖 autoColor 的固定语义颜色；主题在编译阶段写入 GridScene，不依赖 CSS 继承或覆盖。'],
     ['`options.fontFamily`', '`string`', '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。'],
@@ -511,7 +511,7 @@ const { computation, scene } = shushiCore({
   operation: 'division',
   divisor: '25',
   dividend: '10230',
-  calculation: { resultMode: 'decimal' },
+  calculation: { maxDecimalDigits: 4 },
 })
 
 console.log(computation.quotientText) // '409.2'

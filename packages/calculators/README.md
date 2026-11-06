@@ -10,7 +10,7 @@
 - `computeMultiplication(multiplicand, multiplier)`：计算长乘法过程。
 - `computeShortDivision({ mode, values, targetBase? })`：计算质因数分解、公因数或进制转换短除法过程。
 - `AdditionComputation`、`SubtractionComputation`、`DivisionComputation`、`MultiplicationComputation` 及各步骤类型。
-- `DivisionOptions`：支持 `remainder` 和 `decimal` 两种结果模式，并可限制小数位数。
+- `DivisionOptions`：通过可选 `maxDecimalDigits` 配置小数位终止；省略时返回整数商和余数，配置后保留到目标位的过程与余数。
 
 输入会被规范化为非负十进制整数字符串，非法输入和除数为零会抛出中文错误。计算层只输出语义过程，不输出 DOM、CSS、行列坐标或像素信息。
 

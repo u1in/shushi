@@ -153,7 +153,7 @@ describe('计算器宏源码布局', () => {
   })
 
   it('长除与短除连同播放快照都由公开宏命令复刻', () => {
-    const division = computeDivision('25', '10230', { resultMode: 'decimal' })
+    const division = computeDivision('25', '10230', { maxDecimalDigits: 4 })
     const divisionSettings = {
       cellWidth: 30, rowHeight: 46, fontSizeRatio: 1, showGuideGrid: false,
       bracketBend: 1, uniformSubtractionBars: false, showZeroQuotientSteps: false, visibleStepCount: 3,

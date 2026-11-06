@@ -109,14 +109,15 @@ interface DecimalExpansion {
   fractionalDigits: string[]
   quotientDigits: PositionedQuotientDigit[]
   steps: LongDivisionStep[]
+  remainder: string
+  truncated: boolean
 }
 
 /**
- * Extends a completed integer process with appended-zero columns. Returning
- * null deliberately discards the tentative work, which implements the rule
- * that recurring or capped decimals fall back to the integer-remainder result.
+ * 从整数余数继续补零试商。小数位数由调用方明确限定，因此循环小数也会
+ * 保留已经完成的步骤，而不是丢弃过程再退回整数余数。
  */
-const calculateFiniteDecimalExpansion = ({
+const calculateDecimalExpansion = ({
   divisorDigits,
   dividendDigits,
   quotientDigits,
@@ -130,17 +131,13 @@ const calculateFiniteDecimalExpansion = ({
   steps: LongDivisionStep[]
   remainder: string
   maxDecimalDigits: number
-}): DecimalExpansion | null => {
+}): DecimalExpansion => {
   const decimalQuotientDigits = [...quotientDigits]
   const decimalSteps = [...steps]
   const fractionalDigits: string[] = []
-  const seenRemainders = new Set<string>()
   let workingRemainder = remainder
 
   for (let fractionIndex = 0; fractionIndex < maxDecimalDigits; fractionIndex += 1) {
-    if (seenRemainders.has(workingRemainder)) return null
-
-    seenRemainders.add(workingRemainder)
     const dividendColumn = dividendDigits.length + fractionIndex
     const partialDividend = appendDigit(workingRemainder, '0')
     const { digit, product } = findQuotientDigit(partialDividend, divisorDigits)
@@ -151,19 +148,25 @@ const calculateFiniteDecimalExpansion = ({
     decimalSteps.push(createStep(dividendColumn, divisorDigits, String(digit), partialDividend, product, workingRemainder))
 
     if (workingRemainder === '0') {
-      return { fractionalDigits, quotientDigits: decimalQuotientDigits, steps: decimalSteps }
+      return { fractionalDigits, quotientDigits: decimalQuotientDigits, steps: decimalSteps, remainder: workingRemainder, truncated: false }
     }
   }
 
-  return null
+  return {
+    fractionalDigits,
+    quotientDigits: decimalQuotientDigits,
+    steps: decimalSteps,
+    remainder: workingRemainder,
+    truncated: true,
+  }
 }
 
-const normalizeOptions = ({ resultMode = 'remainder', maxDecimalDigits = 24 }: DivisionOptions): Required<DivisionOptions> => {
-  if (!Number.isInteger(maxDecimalDigits) || maxDecimalDigits < 1) {
+const normalizeOptions = ({ maxDecimalDigits }: DivisionOptions): DivisionOptions => {
+  if (maxDecimalDigits !== undefined && (!Number.isInteger(maxDecimalDigits) || maxDecimalDigits < 1)) {
     throw new Error('小数最大位数必须是正整数。')
   }
 
-  return { resultMode, maxDecimalDigits }
+  return { maxDecimalDigits }
 }
 
 /**
@@ -171,15 +174,15 @@ const normalizeOptions = ({ resultMode = 'remainder', maxDecimalDigits = 24 }: D
  *
  * 具体规则见 `packages/calculators/docs/除法计算规则.md`：开头被跳过的商零不记录为步骤；
  * 商开始后，每次试除（包括商位为 `0`）都会记录。商全为零时保留最后一次
- * `partialDividend - 0` 步骤；只有余数归零才提交有限小数扩展。返回结果不含布局信息，
- * 因而任意渲染器都可将其编排为竖式。
+ * `partialDividend - 0` 步骤。未配置小数位上限时直接返回整数商和余数；配置后
+ * 会保留到达上限前的所有小数过程。返回结果不含布局信息，因而任意渲染器都可将其编排为竖式。
  */
 export const computeDivision = (
   divisorValue: unknown,
   dividendValue: unknown,
   options: DivisionOptions = {},
 ): DivisionComputation => {
-  const { resultMode, maxDecimalDigits } = normalizeOptions(options)
+  const { maxDecimalDigits } = normalizeOptions(options)
   const divisorDigits = parseIntegerDigits(divisorValue, '除数')
   const dividendDigits = parseIntegerDigits(dividendValue, '被除数')
 
@@ -220,8 +223,8 @@ export const computeDivision = (
   }
 
   const integerText = quotientStarted ? integerQuotientDigits.join('') : '0'
-  const decimalExpansion = resultMode === 'decimal' && remainder !== '0'
-    ? calculateFiniteDecimalExpansion({
+  const decimalExpansion = maxDecimalDigits !== undefined && remainder !== '0'
+    ? calculateDecimalExpansion({
       divisorDigits,
       dividendDigits,
       quotientDigits,
@@ -229,8 +232,8 @@ export const computeDivision = (
       remainder,
       maxDecimalDigits,
     })
-    : null
-  const hasFraction = decimalExpansion !== null
+    : undefined
+  const hasFraction = decimalExpansion !== undefined
   const fractionalDigitCount = decimalExpansion?.fractionalDigits.length ?? 0
 
   const finalQuotientDigits = decimalExpansion?.quotientDigits ?? quotientDigits
@@ -248,10 +251,10 @@ export const computeDivision = (
     quotientText: hasFraction ? `${integerText}.${decimalExpansion.fractionalDigits.join('')}` : integerText,
     quotientTokens,
     steps: decimalExpansion?.steps ?? steps,
-    remainder: hasFraction ? '0' : remainder,
+    remainder: decimalExpansion?.remainder ?? remainder,
     hasFraction,
     fractionalDigitCount,
-    decimalFallback: resultMode === 'decimal' && remainder !== '0' && !hasFraction,
+    decimalTruncated: decimalExpansion?.truncated ?? false,
     integerStartColumn,
     digitColumnCount: dividendDigits.length + fractionalDigitCount,
   }

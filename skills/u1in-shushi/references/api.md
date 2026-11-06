@@ -145,13 +145,14 @@ shushiCore({
   divisor: '25',
   dividend: '10230',
   calculation: {
-    resultMode: 'decimal',
     maxDecimalDigits: 24,
   },
 })
 ```
 
 注意：底层函数和 `shushiCore` 的长除法参数顺序是除数在前、被除数在后；字符串表达式仍按用户看到的 `被除数 ÷ 除数` 书写。
+
+`maxDecimalDigits` 省略时，长除法返回整数商和余数；传入正整数时最多展开该位数，未除尽时保留已计算的小数和当前余数。
 
 ### 5.5 短除法
 

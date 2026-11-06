@@ -123,7 +123,7 @@ addition | subtraction | multiplication | division | shortDivision | composite
 - `addition`：`values`；
 - `subtraction`：`operands: [被减数, 减数]`；
 - `multiplication`：`operands`，可选 `calculation`；
-- `division`：`divisor` 在前、`dividend` 在后，可选 `calculation`；
+- `division`：`divisor` 在前、`dividend` 在后；`calculation.maxDecimalDigits` 可选，省略时返回整数商和余数，传入正整数时最多计算到该小数位并保留当前余数；
 - `shortDivision`：`mode`、`values`，指定除数时增加 `divisor`，进制转换时增加 `targetBase`；
 - `composite`：`expression`。
 

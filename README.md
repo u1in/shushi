@@ -287,7 +287,7 @@ console.log(rows)
 const computation = computeAddition('12345678901234567890', '10')
 ```
 
-长除法的参数顺序是 `computeDivision(divisor, dividend)`，除数不能为 `0`。短除法进制转换的目标进制范围是 `2` 到 `36`。
+长除法的参数顺序是 `computeDivision(divisor, dividend)`，除数不能为 `0`。省略 `maxDecimalDigits` 时返回整数商和余数；传入正整数后最多计算到该小数位，未除尽时保留截断小数与当前余数。短除法进制转换的目标进制范围是 `2` 到 `36`。
 
 ## 反馈与贡献
 

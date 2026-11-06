@@ -24,6 +24,8 @@ const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
 const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
+// 首页长除法默认保留 8 位，老师可在输入为长除法时直接调整。
+const maxDecimalDigits = ref(8)
 const useTrailingZeroShortcut = ref(true)
 const showGuideGrid = ref(false)
 const showCarrySteps = ref(true)
@@ -55,6 +57,7 @@ const canUseTrailingZeroShortcut = computed(() => (
   standaloneMultiplicationOperands.value?.some(value => value !== '0' && value.endsWith('0')) ?? false
 ))
 const trailingZeroShortcutEnabled = computed(() => canUseTrailingZeroShortcut.value && useTrailingZeroShortcut.value)
+const isLongDivisionExpression = computed(() => /^\d+\s*[÷/]\s*\d+$/.test(expression.value))
 const isCommonFactorResult = computed(() => {
   const computation = result.value?.computation
   return Boolean(computation && 'gcd' in computation && 'lcm' in computation)
@@ -95,7 +98,7 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
     fontFamily: rendererFont.value,
     colorTheme: toAutoColorTheme(previewTheme.value),
     calculation: {
-      resultMode: 'decimal',
+      maxDecimalDigits: maxDecimalDigits.value,
       useTrailingZeroShortcut: trailingZeroShortcutEnabled.value,
       preserveOperandOrder: !trailingZeroShortcutEnabled.value,
     },
@@ -143,7 +146,7 @@ const implementationCode = computed(() => createShushiImplementationSnippet({
   colorTheme: previewTheme.value,
   fields: [['expression', expression.value]],
   calculation: [
-    ['resultMode', 'decimal'],
+    ['maxDecimalDigits', maxDecimalDigits.value],
     ['useTrailingZeroShortcut', trailingZeroShortcutEnabled.value],
     ['preserveOperandOrder', !trailingZeroShortcutEnabled.value],
   ],
@@ -198,6 +201,12 @@ calculate()
             <input v-model="expression" autocomplete="off" spellcheck="false" aria-describedby="composite-expression-help" @input="calculate" />
           </label>
         </div>
+        <div v-if="isLongDivisionExpression" class="input-grid input-grid--single decimal-limit-input-grid">
+          <label class="field">
+            <span>最大小数位</span>
+            <input v-model.number="maxDecimalDigits" type="number" min="1" step="1" inputmode="numeric" @input="calculate" />
+          </label>
+        </div>
         <p class="error-message" role="alert">{{ error }}</p>
         <p id="composite-expression-help" class="field-help expression-rules">
           <span>支持连续 <code>+</code>、<code>-</code>、<code>×</code>（也可输入 <code>*</code> 或 <code>x</code>）。</span>
@@ -228,7 +237,7 @@ calculate()
       <section class="result-card" aria-live="polite">
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">VERTICAL PREVIEW</p>
-          <div class="result-heading"><div v-if="!isCommonFactorResult && !isBaseConversionResult" class="result-heading__title"><h2>{{ expression.trim() ? `${expression} =` : '等待输入表达式' }}</h2></div><template v-if="scene"><output class="answer" :class="{ 'answer--common-factor': isCommonFactorResult, 'answer--base-conversion': isBaseConversionResult }">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
+          <div class="result-heading"><div class="result-heading__title"><h2 v-if="!isCommonFactorResult && !isBaseConversionResult">{{ expression.trim() ? `${expression} = ` : '等待输入表达式' }}<output v-if="scene"> {{ answer }}</output></h2><h2 v-else-if="scene"><output>{{ answer }}</output></h2></div><template v-if="scene"><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene" /></template></div>
           <p class="normalization">{{ scene ? '每一步都会清楚展示；加减乘可以连续计算，除法和短除法也会自动排成对应的竖式。' : '在左侧输入算式，这里会显示对应的竖式。' }}</p>
           <StepPlaybackControls
             v-if="scene"

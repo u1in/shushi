@@ -21,7 +21,7 @@ const generateSource = (expression: string): string => {
       operation: 'division',
       divisor,
       dividend,
-      calculation: { resultMode: 'decimal' },
+      calculation: { maxDecimalDigits: 24 },
       settings: { ...DEFAULT_GRID_SETTINGS, bracketBend: 1, uniformSubtractionBars: false, showZeroQuotientSteps: false },
     }).source)
   }

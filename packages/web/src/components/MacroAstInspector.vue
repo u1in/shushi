@@ -48,7 +48,7 @@ const createInspectionFromExpression = (inputExpression: string): MacroAstInspec
       colorTheme: toAutoColorTheme(previewTheme.value),
       divisor,
       dividend,
-      calculation: { resultMode: 'decimal' },
+      calculation: { maxDecimalDigits: 24 },
       settings: {
         ...DEFAULT_GRID_SETTINGS,
         bracketBend: 1,

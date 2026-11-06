@@ -82,13 +82,12 @@ export const computeDivisionPage = createCalculatorApiPage({
 
 // 参数顺序是除数在前、被除数在后。
 const computation = computeDivision('25', '10230', {
-  resultMode: 'decimal',
   maxDecimalDigits: 4,
 })
 
 console.log(computation.quotientText) // '409.2'
 console.log(computation.steps)`,
-  purpose: '它以十进制字符串计算长除法，输出商 token、每轮部分被除数、乘积、余数和有限小数扩展信息。',
+  purpose: '它以十进制字符串计算长除法，输出商 token、每轮部分被除数、乘积、余数和按需展开的小数过程。',
   signature: `type ComputeDivision = (
   divisorValue: unknown,
   dividendValue: unknown,
@@ -97,11 +96,10 @@ console.log(computation.steps)`,
   parameters: [
     ['`divisorValue`', '`unknown`', '除数，不能为 0。'],
     ['`dividendValue`', '`unknown`', '被除数，要求为非负十进制整数。'],
-    ['`options.resultMode`', '`"decimal" | "remainder"`', '选择有限小数结果或余数结果。'],
-    ['`options.maxDecimalDigits`', '`number`', '小数模式下允许展开的最大位数。'],
+    ['`options.maxDecimalDigits`', '`number`', '可选的正整数。省略时返回整数商和余数；配置后最多展开该位数，未除尽时保留截断小数与当前余数。'],
     ['返回值', '`DivisionComputation`', '包含 `quotientText`、`quotientTokens`、`steps` 和 `remainder`。'],
   ],
-  caution: '除数为 0 会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
+  caution: '除数为 0、非正整数的小数位上限都会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
 })
 
 export const computeMultiplicationPage = createCalculatorApiPage({

@@ -33,10 +33,48 @@ describe('统一竖式门户 API', () => {
       operation: 'division',
       divisor: '25',
       dividend: '10230',
-      calculation: { resultMode: 'decimal' },
+      calculation: { maxDecimalDigits: 4 },
     })
     expect(division.computation.quotientText).toBe('409.2')
     expectPortalResult(division)
+  })
+
+  it('未配置小数位时返回整数余数，配置后保留到目标位的截断小数过程', () => {
+    const remainder = shushiCore({ operation: 'division', divisor: '3', dividend: '1' })
+    expect(remainder.computation).toMatchObject({
+      quotientText: '0',
+      remainder: '1',
+      hasFraction: false,
+      decimalTruncated: false,
+    })
+
+    const cappedDecimal = shushiCore({
+      operation: 'division',
+      divisor: '3',
+      dividend: '1',
+      calculation: { maxDecimalDigits: 2 },
+    })
+    expect(cappedDecimal.computation).toMatchObject({
+      quotientText: '0.33',
+      remainder: '1',
+      hasFraction: true,
+      fractionalDigitCount: 2,
+      decimalTruncated: true,
+    })
+    expect(cappedDecimal.computation.steps).toHaveLength(3)
+    expectPortalResult(cappedDecimal)
+
+    const finiteDecimal = shushiCore({
+      operation: 'division',
+      divisor: '8',
+      dividend: '1',
+      calculation: { maxDecimalDigits: 4 },
+    })
+    expect(finiteDecimal.computation).toMatchObject({
+      quotientText: '0.125',
+      remainder: '0',
+      decimalTruncated: false,
+    })
   })
 
   it('覆盖短除、组合表达式及专项设置覆盖', () => {

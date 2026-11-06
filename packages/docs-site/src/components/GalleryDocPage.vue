@@ -13,7 +13,7 @@ const scenario = computed<GridScene>(() => {
     case 'addition': return shushiCore({ operation: 'addition', values: ['356', '278'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showCarrySteps: true } }).scene
     case 'subtraction': return shushiCore({ operation: 'subtraction', operands: ['502', '137'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, showBorrowSteps: true } }).scene
     case 'multiplication': return shushiCore({ operation: 'multiplication', operands: ['97', '89'], settings: { cellWidth: 60, rowHeight: 64, fontSizeRatio: 0.8, showGuideGrid: true, uniformMultiplicationBars: false, showCarrySteps: true } }).scene
-    case 'division': return shushiCore({ operation: 'division', divisor: '25', dividend: '10230', calculation: { resultMode: 'decimal' }, settings: { cellWidth: 44, rowHeight: 42, fontSizeRatio: 0.82, bracketBend: 1, showGuideGrid: true, uniformSubtractionBars: false, showZeroQuotientSteps: false } }).scene
+    case 'division': return shushiCore({ operation: 'division', divisor: '25', dividend: '10230', calculation: { maxDecimalDigits: 24 }, settings: { cellWidth: 44, rowHeight: 42, fontSizeRatio: 0.82, bracketBend: 1, showGuideGrid: true, uniformSubtractionBars: false, showZeroQuotientSteps: false } }).scene
     case 'short-division': return shushiCore({ operation: 'shortDivision', mode: 'baseConversion', values: ['13'], targetBase: 2, settings: { cellWidth: 44, rowHeight: 48, fontSizeRatio: 0.82, showGuideGrid: true, showRemainders: true } }).scene
   }
 })

@@ -13,8 +13,8 @@ import StepPlaybackControls from './StepPlaybackControls.vue'
 
 const dividend = ref('10230')
 const divisor = ref('25')
-const showRemainderMode = ref(false)
-const resultMode = computed<'decimal' | 'remainder'>(() => showRemainderMode.value ? 'remainder' : 'decimal')
+// 留空时沿用整数除法的余数结果；老师填写后才展开对应位数的小数过程。
+const maxDecimalDigits = ref('')
 const cellWidth = ref(30)
 const rowHeight = ref(46)
 const fontSizeRatio = ref(1)
@@ -26,11 +26,14 @@ const error = ref('')
 const computation = ref<DivisionComputation>()
 const scene = ref<GridScene>()
 const macroSource = ref('')
+const divisionCalculation = computed(() => (
+  maxDecimalDigits.value.trim() === '' ? {} : { maxDecimalDigits: Number(maxDecimalDigits.value) }
+))
 
 const renderScene = (): void => {
   const result = shushi(`${dividend.value} ÷ ${divisor.value}`, {
     fontFamily: rendererFont.value,
-    calculation: { resultMode: resultMode.value },
+    calculation: divisionCalculation.value,
     settings: {
       cellWidth: cellWidth.value,
       rowHeight: rowHeight.value,
@@ -70,7 +73,7 @@ const implementationCode = computed(() => createShushiImplementationSnippet({
     ['divisor', divisor.value],
     ['dividend', dividend.value],
   ],
-  calculation: [['resultMode', resultMode.value]],
+  calculation: maxDecimalDigits.value.trim() === '' ? [] : [['maxDecimalDigits', Number(maxDecimalDigits.value)]],
   settings: [
     ['cellWidth', cellWidth.value],
     ['rowHeight', rowHeight.value],
@@ -122,9 +125,9 @@ calculate()
               <label class="range-field"><span>方格宽度 <output>{{ cellWidth }}px</output></span><input v-model.number="cellWidth" type="range" min="28" max="56" @input="calculate" /></label>
               <label class="range-field"><span>行高 <output>{{ rowHeight }}px</output></span><input v-model.number="rowHeight" type="range" min="36" max="64" @input="calculate" /></label>
               <label class="range-field"><span>字号比例 <output>{{ fontSizeRatio.toFixed(2) }}</output></span><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate" /></label>
+              <label class="field"><span>最大小数位（留空取余）</span><input v-model="maxDecimalDigits" type="number" min="1" step="1" inputmode="numeric" placeholder="留空时返回余数" @input="calculate" /></label>
             </div>
             <div class="settings-switch-group">
-              <label class="switch-field"><input v-model="showRemainderMode" type="checkbox" @change="calculate" aria-label="余数模式，关闭时为小数模式" /><span class="switch-ui" aria-hidden="true"></span><span>余数模式</span></label>
               <label class="switch-field"><input v-model="showGuideGrid" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示辅助网格</span></label>
               <label class="switch-field"><input v-model="uniformSubtractionBars" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>减法横线等宽</span></label>
               <label class="switch-field"><input v-model="showZeroQuotientSteps" type="checkbox" @change="calculate" /><span class="switch-ui" aria-hidden="true"></span><span>显示试商为 0 的步骤</span></label>
@@ -136,7 +139,7 @@ calculate()
         <div class="calculation-result">
           <p class="panel-kicker result-heading__kicker">CALCULATION</p>
           <div class="result-heading"><h2>{{ dividend }} ÷ {{ divisor }} =</h2><output class="answer">{{ answer }}</output><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" /></div>
-          <p class="normalization">{{ computation?.hasFraction ? '小数模式：逐位长除法结果' : '整数逐位长除法' }}</p>
+          <p class="normalization">{{ computation?.decimalTruncated ? `小数计算到第 ${computation.fractionalDigitCount} 位后停止，保留当前余数` : computation?.hasFraction ? '小数逐位长除法结果' : '整数逐位长除法（返回余数）' }}</p>
           <StepPlaybackControls :current-step="currentStep" :step-count="stepCount" :can-start="canStart" :can-previous="canPrevious" :can-next="canNext" @start="playback.start" @previous="playback.previous" @next="playback.next" @reset="playback.reset" />
           <GridPreview v-if="scene" :scene="scene" :font-family="rendererFont" mode="both" @font-change="handleFontChange" />
         </div>

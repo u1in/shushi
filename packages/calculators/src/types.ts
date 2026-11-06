@@ -1,6 +1,4 @@
 /** Semantic process contracts emitted by operation calculators. */
-export type DivisionResultMode = 'decimal' | 'remainder'
-
 export type QuotientToken =
   | { kind: 'digit', digit: string, column: number }
   | { kind: 'decimalSeparator', digit: '.', column: number }
@@ -23,13 +21,17 @@ export interface DivisionComputation {
   remainder: string
   hasFraction: boolean
   fractionalDigitCount: number
-  decimalFallback: boolean
+  /** 配置小数位上限后仍有余数，表示商已在该位截断。 */
+  decimalTruncated: boolean
   integerStartColumn: number
   digitColumnCount: number
 }
 
 export interface DivisionOptions {
-  resultMode?: DivisionResultMode
+  /**
+   * 最多继续计算的小数位数。省略时在整数部分结束后直接返回余数；
+   * 指定后即使余数未归零也保留已经计算出的各位小数。
+   */
   maxDecimalDigits?: number
 }
 
