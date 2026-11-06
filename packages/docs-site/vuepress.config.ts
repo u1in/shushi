@@ -153,6 +153,7 @@ export default defineUserConfig({
           text: '符号与边框',
           collapsible: false,
           children: [
+            { text: 'STRIKE / STRIKEDOT · 删除线', link: '/macro/symbol/STRIKE' },
             { text: 'BRACKET · 厂字弯', link: '/macro/symbol/BRACKET' },
             { text: 'TBD · 上边框', link: '/macro/symbol/TBD' },
             { text: 'RBD · 右边框', link: '/macro/symbol/RBD' },

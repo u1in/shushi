@@ -88,7 +88,7 @@
 
 每次新增功能、扩展既有能力或改变可观察行为时，先根据下列清单逐项判断并记录；即使本次没有改动某一项，也要确认它不受影响。不能只在提交说明、测试名或页面提示中留下规则。
 
-- **技术规则**：在 `packages/docs/technical/` 对应的 calculator、layout、grid、macro、API 或 workspace 文档中说明输入边界、算法/排版规则、过程与结果字段、默认值、异常条件和渲染契约；新增规则要补充索引与示例。**新增或修改宏命令时，必须同步更新 VuePress 技术文档：维护 `packages/docs/src/macro/` 的文档内容，并按需要更新 `packages/docs-site/` 的导航、展示组件和测试，不能只改实现或留下未发布的内部说明。**
+- **技术规则**：在 `packages/docs/technical/` 对应的 calculator、layout、grid、macro、API 或 workspace 文档中说明输入边界、算法/排版规则、过程与结果字段、默认值、异常条件和渲染契约；新增规则要补充索引与示例。**新增或修改宏命令时，必须同步更新 VuePress 技术文档：维护 `packages/docs/src/macro/` 的文档内容，并按需要更新 `packages/docs-site/` 的导航、展示组件和测试，不能只改实现或留下未发布的内部说明。新增独立宏页面时，必须同时确认页面路由存在，且能从相关 VuePress 侧栏、目录或索引页面进入；仅有 Markdown 或页面数据、但没有可发现入口，不视为文档完成。**
 - **面向 Agent 的文档**：只要 Agent 通过门户、结构化请求、宏源码或主题配置能观察或使用该功能，就更新 `packages/docs/agent/capabilities.md`；安装、入口、包名或使用流程变化时，同时更新 `packages/docs/agent/installation.md`。
 - **对外 Skill**：只要 npm 使用者或第三方 Agent 能使用、编辑或排错该功能，就更新 `skills/u1in-shushi/SKILL.md`，并按内容分别同步 `references/api.md`（签名、输入和结果）、`references/workflows.md`（推荐流程）和 `references/troubleshooting.md`（边界与排错）。Skill 是对外使用说明，不是本仓库的开发指引。
 - **公开说明与发布材料**：修改门户、表达式语法、公开类型、宏词表或 npm 使用方式时，同步 `README.md`、`packages/core/README.md`、`packages/docs/technical/api/`、`packages/docs/macro/`、`packages/docs/src/macro/` 以及必要的 VuePress 适配；面向 npm 使用者的行为变化必须补 Changeset。
@@ -134,7 +134,7 @@
 
 - 更新 `packages/docs/macro/` 中对应的宏说明；
 - 更新 `packages/docs/technical/macro/网格宏文档包.md`，说明文档源、运行组件和测试关系；
-- **同步更新 VuePress 技术文档**：维护 `packages/docs/src/macro/` 中的页面数据、示例、类型或 API 内容，并按新增/变更范围更新 `packages/docs-site/` 的导航、路由映射、展示组件、图例、样式和测试；
+- **同步更新 VuePress 技术文档**：维护 `packages/docs/src/macro/` 中的页面数据、示例、类型或 API 内容，并按新增/变更范围更新 `packages/docs-site/` 的导航、路由映射、展示组件、图例、样式和测试；新增独立页面还必须为用户提供侧栏、目录或索引入口，并在文档构建后确认该入口可到达页面；
 - 更新宏解析、编译、格式化或文档测试。
 
 ### 网格、样式与渲染器

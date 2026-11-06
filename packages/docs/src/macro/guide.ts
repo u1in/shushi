@@ -132,7 +132,7 @@ export const guidePages: MacroDocPage[] = [
               },
               {
                 title: '符号与边框宏命令',
-                text: 'DOT、BRACKET 与 TBD/RBD/BBD/LBD；按固定图元与单元格边界分组。',
+                text: 'DOT、STRIKE / STRIKEDOT、BRACKET 与 TBD/RBD/BBD/LBD；按固定图元与单元格边界分组。',
                 to: '/macro-rules/dot',
               },
               {
@@ -349,7 +349,7 @@ export const guidePages: MacroDocPage[] = [
             type: 'callout',
             tone: 'info',
             title: '这些是宏命令，不是语法糖',
-            text: '九宫格定位（`LT` … `RBL`）、`DOT`、`BRACKET` 与四个边框宏都有固定的参数、锚点或图元，不是纯粹的源码改写。它们分别归入「方位宏命令」与「符号与边框宏命令」。',
+            text: '九宫格定位（`LT` … `RBL`）、`DOT`、`STRIKE` / `STRIKEDOT`、`BRACKET` 与四个边框宏都有固定的参数、锚点或图元，不是纯粹的源码改写。它们分别归入「方位宏命令」与「符号与边框宏命令」。',
           },
           {
             type: 'table',
@@ -360,7 +360,11 @@ export const guidePages: MacroDocPage[] = [
                 '`LT`、`MT`、`MTD`、`RT`、`ML`、`MM`、`MR`、`LB`、`MB`、`RB`、`RBL`',
                 '九宫格定位、减法借位点和右边界文字，详见 `/macro-rules/lt` 与 `/macro-rules/mtd`',
               ],
-              ['符号与边框宏命令', '`DOT`、`BRACKET`、`TBD`、`RBD`、`BBD`、`LBD`', '`/macro-rules/dot`'],
+              [
+                '符号与边框宏命令',
+                '`DOT`、`STRIKE`、`STRIKEDOT`、`BRACKET`、`TBD`、`RBD`、`BBD`、`LBD`',
+                '`/macro-rules/strike`',
+              ],
             ],
           },
         ],
