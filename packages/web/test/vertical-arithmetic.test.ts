@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { compileMacro, getAdditionStepCount, getMultiplicationStepCount, shushi, shushiCore } from '@u1in/shushi-core'
+import {
+  compileMacro,
+  getAdditionStepCount,
+  getDivisionPlaybackStepCount,
+  getMultiplicationStepCount,
+  getSubtractionStepCount,
+  shushi,
+  shushiCore,
+} from '@u1in/shushi-core'
 
 /** 门户返回的源码仍须由统一宏编译器复刻，避免便利入口绕过可编辑源码。 */
 const expectPortalResult = (result: {
@@ -79,7 +87,7 @@ describe('统一竖式门户 API', () => {
     })
   })
 
-  it('加法和乘法按小数位转换为整数过程，并在输入、结果行恢复小数点', () => {
+  it('加法、减法和乘法按小数位转换为整数过程，并在输入、结果行恢复小数点', () => {
     const addition = shushi('1.2 + 3.04')
     if (!('sumText' in addition.computation)) throw new Error('应解析为加法。')
     expect(addition.computation).toMatchObject({
@@ -90,6 +98,18 @@ describe('统一竖式门户 API', () => {
     })
     expect(addition.source).toContain('addition.decimal-separator')
     expectPortalResult(addition)
+
+    const subtraction = shushi('8.7 - 0.89')
+    if (!('differenceDigits' in subtraction.computation)) throw new Error('应解析为减法。')
+    expect(subtraction.computation).toMatchObject({
+      workingMinuendText: '8.70',
+      workingSubtrahendText: '0.89',
+      decimalPlaces: 2,
+      differenceDigits: '781',
+      resultText: '7.81',
+    })
+    expect(subtraction.source).toContain('subtraction.decimal-separator')
+    expectPortalResult(subtraction)
 
     const multiplication = shushi('1.2 × 3.4')
     if (!('productText' in multiplication.computation)) throw new Error('应解析为乘法。')
@@ -121,7 +141,7 @@ describe('统一竖式门户 API', () => {
     expectPortalResult(leadingFractionalZeros)
   })
 
-  it('长除法保留原小数输入，并以独立删除线标记等值变换', () => {
+  it('长除法将小数等值放大和补零逐帧展示，再进入试商', () => {
     const division = shushi('35.5 / 0.5')
     if (!('sourceDivisorText' in division.computation)) throw new Error('应解析为长除法。')
     expect(division.computation).toMatchObject({
@@ -132,49 +152,144 @@ describe('统一竖式门户 API', () => {
       normalizationShift: 1,
       quotientText: '71',
     })
-    expect(division.source).toContain('STRIKE(')
-    expect(division.source).toContain('STRIKEDOT')
     expect(division.source).not.toContain('KV(target')
-    const strikes = division.scene.elements.filter(({ content }) => content.kind === 'strike')
-    expect(strikes).toHaveLength(3)
-    expect(strikes.filter(({ styleToken }) => styleToken === 'division.normalization-strike')).toHaveLength(1)
-    expect(strikes.filter(({ styleToken }) => styleToken?.endsWith('decimal-separator'))).toHaveLength(2)
+    expectPortalResult(division)
+
+    const paddedDividend = shushi('0.250 / 0.0005')
+    if (!('sourceDivisorText' in paddedDividend.computation)) throw new Error('应解析为长除法。')
+    expect(paddedDividend.computation).toMatchObject({
+      sourceDividendText: '0.250',
+      sourceDivisorText: '0.0005',
+      dividendText: '2500',
+      dividendDigits: '02500',
+      divisorText: '5',
+      integerDividendDigitCount: 5,
+      quotientText: '500',
+    })
+    expect(getDivisionPlaybackStepCount(paddedDividend.computation, false)).toBeGreaterThan(
+      paddedDividend.computation.normalizationShift,
+    )
+    const originalFrame = shushiCore({
+      operation: 'division',
+      divisor: '0.0005',
+      dividend: '0.250',
+      settings: { visibleStepCount: 0 },
+    })
+    expect(originalFrame.scene.elements.some(({ content }) => content.kind === 'strike')).toBe(false)
+    const firstNormalizationFrame = shushiCore({
+      operation: 'division',
+      divisor: '0.0005',
+      dividend: '0.250',
+      settings: { visibleStepCount: 1 },
+    })
+    // 第二帧仍保留原始零与小数点，并用删除线说明它们已被右移越过。
+    expect(firstNormalizationFrame.source).toContain('STRIKE(')
+    expect(firstNormalizationFrame.source).toContain('STRIKEDOT')
+    expect(firstNormalizationFrame.scene.elements.filter(({ content }) => content.kind === 'strike')).toHaveLength(4)
     expect(
-      strikes.every(
-        ({ content }) =>
-          content.kind === 'strike' && content.x1Ratio < content.x2Ratio && content.y1Ratio < content.y2Ratio,
+      firstNormalizationFrame.scene.elements.some(
+        ({ content }) => content.kind === 'text' && content.text === '0' && content.styleToken === 'division.dividend',
       ),
     ).toBe(true)
-    const strikeRatios = strikes.map(({ content }) => {
-      if (content.kind !== 'strike') throw new Error('删除线图元应保留端点比例。')
-      return {
-        x1: content.x1Ratio,
-        y1: content.y1Ratio,
-        x2: content.x2Ratio,
-        y2: content.y2Ratio,
-      }
+
+    const rightAlignedOriginalFrame = shushiCore({
+      operation: 'division',
+      divisor: '0.0005',
+      dividend: '0.25',
+      settings: { visibleStepCount: 0 },
     })
-    // 数字删除线相对默认 0.68 的跨度缩短 10%，小数点删除线则缩短为原来的 50%。
-    expect(strikeRatios).toContainEqual({ x1: 0.194, y1: 0.194, x2: 0.806, y2: 0.806 })
+    const originalDividendColumns = rightAlignedOriginalFrame.scene.elements
+      .filter((element) => element.content.kind === 'text' && element.content.styleToken === 'division.dividend')
+      .flatMap((element) => (element.position.kind === 'cell' ? [element.position.column] : []))
+    const originalDivisorColumns = rightAlignedOriginalFrame.scene.elements
+      .filter((element) => element.content.kind === 'text' && element.content.styleToken === 'division.divisor')
+      .flatMap((element) => (element.position.kind === 'cell' ? [element.position.column] : []))
+    // 0.25 独立构成当前帧：除数、厂字弯、被除数连续排列，不能预占后续补零列。
+    expect(originalDividendColumns).toEqual([6, 7, 8])
+    expect(originalDivisorColumns).toEqual([0, 1, 2, 3, 4])
+    const bracket = rightAlignedOriginalFrame.scene.elements.find(({ content }) => content.kind === 'corner')
+    expect(bracket?.position).toMatchObject({ kind: 'cell', column: 5 })
+
+    const nonTerminatingOriginalFrame = shushiCore({
+      operation: 'division',
+      divisor: '0.011',
+      dividend: '0.25',
+      calculation: { maxDecimalDigits: 8 },
+      settings: { visibleStepCount: 0 },
+    })
+    const nonTerminatingDividendColumns = nonTerminatingOriginalFrame.scene.elements
+      .filter((element) => element.content.kind === 'text' && element.content.styleToken === 'division.dividend')
+      .flatMap((element) => (element.position.kind === 'cell' ? [element.position.column] : []))
+    const nonTerminatingBracketHead = nonTerminatingOriginalFrame.scene.elements.find(({ id }) =>
+      id.startsWith('macro-bracket-head-'),
+    )
+    if (
+      nonTerminatingBracketHead?.position.kind !== 'edge' ||
+      nonTerminatingBracketHead.position.columnSpan === undefined
+    )
+      throw new Error('厂字横应是具有跨度的顶边线。')
+    // 循环小数的未来商位会让网格变宽，但首帧厂字横只能覆盖当前可见的 0.25。
+    expect(nonTerminatingBracketHead.position.columnSpan).toBe(nonTerminatingDividendColumns.length)
+    expect(nonTerminatingBracketHead.position.column + nonTerminatingBracketHead.position.columnSpan).toBe(
+      Math.max(...nonTerminatingDividendColumns) + 1,
+    )
+    expect(nonTerminatingOriginalFrame.scene.columns.length).toBe(
+      nonTerminatingBracketHead.position.column + nonTerminatingBracketHead.position.columnSpan,
+    )
+    const truncatedNonTerminatingFrame = shushiCore({
+      operation: 'division',
+      divisor: '0.011',
+      dividend: '0.25',
+      calculation: { maxDecimalDigits: 1 },
+      settings: { visibleStepCount: 0 },
+    })
+    // 同一首帧不因未来允许展开的商位数不同而改变。
+    expect(truncatedNonTerminatingFrame.scene).toEqual(nonTerminatingOriginalFrame.scene)
+    const beforeCalculation = shushiCore({
+      operation: 'division',
+      divisor: '0.0005',
+      dividend: '0.250',
+      settings: { visibleStepCount: 4 },
+    })
     expect(
-      strikeRatios.filter(({ x1, y1, x2, y2 }) => x1 === 0.92 && y1 === 0.46 && x2 === 1.08 && y2 === 0.66),
-    ).toHaveLength(2)
-    expect(division.rendered).toContain('class="grid-strike"')
-    expectPortalResult(division)
+      beforeCalculation.scene.elements.some(
+        ({ content }) => content.kind === 'text' && content.styleToken === 'division.quotient',
+      ),
+    ).toBe(false)
+    const firstCalculation = shushiCore({
+      operation: 'division',
+      divisor: '0.0005',
+      dividend: '0.250',
+      settings: { visibleStepCount: 5 },
+    })
+    expect(
+      firstCalculation.scene.elements.some(
+        ({ content }) => content.kind === 'text' && content.styleToken === 'division.quotient',
+      ),
+    ).toBe(true)
   })
 
-  it('把加法和乘法结果的小数点作为独立播放步骤补回', () => {
+  it('把加法、减法和乘法结果的小数点作为独立播放步骤补回', () => {
     const addition = shushiCore({ operation: 'addition', values: ['1.2', '3.04'] })
-    expect(getAdditionStepCount(addition.computation)).toBe(addition.computation.steps.length + 1)
+    expect(getAdditionStepCount(addition.computation)).toBe(addition.computation.steps.length + 2)
     const additionBeforeDecimal = shushiCore({
       operation: 'addition',
       values: ['1.2', '3.04'],
-      settings: { visibleStepCount: addition.computation.steps.length },
+      settings: { visibleStepCount: 1 },
     })
     const additionDecimalTokens = additionBeforeDecimal.scene.elements.filter(
       ({ content }) => content.kind === 'text' && content.styleToken === 'addition.decimal-separator',
     )
     expect(additionDecimalTokens).toHaveLength(2)
+
+    const subtraction = shushiCore({ operation: 'subtraction', operands: ['0.8', '0.29'] })
+    expect(getSubtractionStepCount(subtraction.computation)).toBe(5)
+    const subtractionBeforeDecimal = shushiCore({
+      operation: 'subtraction',
+      operands: ['0.8', '0.29'],
+      settings: { visibleStepCount: 1 },
+    })
+    expect(subtractionBeforeDecimal.source).toContain('subtraction.decimal-separator')
 
     const multiplication = shushiCore({ operation: 'multiplication', operands: ['1.2', '3.4'] })
     expect(getMultiplicationStepCount(multiplication.computation)).toBeGreaterThan(

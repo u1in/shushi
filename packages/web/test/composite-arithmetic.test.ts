@@ -76,6 +76,15 @@ describe('组合竖式', () => {
     expect(scene.elements.some(({ content }) => content.kind === 'text' && content.text === '·')).toBe(true)
   })
 
+  it('复用小数减法的对齐、借位和结果小数点播放规则', () => {
+    const computation = computeCompositeArithmetic('8.7 - 0.89 + 0.19')
+
+    expect(computation.resultDigits).toBe('8.00')
+    expect(computation.steps[0]).toMatchObject({ operator: '-', resultDigits: '7.81' })
+    expect(getCompositeArithmeticStepCount(computation)).toBeGreaterThan(computation.steps.length)
+    expect(extractVisibleTextRows(compileMacro(createCompositeArithmeticMacroSource(computation)))).toContain('7.81')
+  })
+
   it('拒绝中间负数继续参与下一项非负整数竖式', () => {
     expect(() => computeCompositeArithmetic('3 - 5 + 1')).toThrow('中间结果为负数')
   })

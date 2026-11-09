@@ -76,8 +76,8 @@ export const galleryPages: GalleryPage[] = [
     operation: 'subtraction',
     title: '减法竖式元素命名图谱',
     eyebrow: 'VERTICAL SUBTRACTION · NAMING MAP',
-    intro: '连续借位后的 4、9、12 保留在减法过程数据中；竖式主行显示原始工作被减数。',
-    sample: '502 − 137',
+    intro: '连续借位后的 4、9、12 保留在减法过程数据中；小数输入先对齐并由同一份 GridScene 标记小数点。',
+    sample: '8.7 − 0.89',
     items: [
       {
         key: '01',
@@ -130,6 +130,14 @@ export const galleryPages: GalleryPage[] = [
       },
       {
         key: '07',
+        name: '小数点',
+        description: '输入行对齐小数位，结果在全部数字过程完成后单独标记小数点。',
+        token: 'subtraction.decimal-separator',
+        tone: 'tone-decimal',
+        source: 'rendered-text',
+      },
+      {
+        key: '08',
         name: '辅助网格',
         description: '观察同位对齐与连续借位的参考网格。',
         token: 'guide-grid',
@@ -339,7 +347,7 @@ export const galleryPages: GalleryPage[] = [
       {
         key: '12',
         name: '等值变换删除线',
-        description: '除数小数化整数时，标记被右移的小数点和被消去的除数前导零；它独立于数字文字。',
+        description: '小数除法逐帧右移时，标记旧小数点和被略去的前导零；它独立于数字文字。',
         token: 'division.normalization-strike',
         tone: 'tone-subtraction',
         source: 'cell',

@@ -163,7 +163,7 @@ describe('网格宏编译器', () => {
     })
   })
 
-  test('BRACKET 独占半列宽轨道，并从右上角自动延伸厂字横', () => {
+  test('BRACKET 独占半列宽轨道，并从右上角延伸到当前行最后一个可见单元格', () => {
     const scene = compileMacro('GRID(ROW(MM(3), BRACKET, MM(1), MM(4)))')
     const bracket = scene.elements.find(({ content }) => content.kind === 'corner')
     const bracketHead = scene.elements.find(({ id }) => id.startsWith('macro-bracket-head-'))
@@ -176,6 +176,15 @@ describe('网格宏编译器', () => {
     expect(bracketHead).toMatchObject({
       position: { kind: 'edge', column: 2, row: 0, columnSpan: 2, edge: 'top' },
       content: { kind: 'line', thickness: 2, color: AUTO_COLOR_THEME.bracketRule.color },
+    })
+  })
+
+  test('BRACKET 不会把同一行尾部的 EMPTY 或 GRID 预留列画进厂字横', () => {
+    const scene = compileMacro('GRID(KV(columns, 7), ROW(MM(3), BRACKET, MM(1), MM(4), EMPTY, EMPTY, EMPTY))')
+    const bracketHead = scene.elements.find(({ id }) => id.startsWith('macro-bracket-head-'))
+
+    expect(bracketHead).toMatchObject({
+      position: { kind: 'edge', column: 2, row: 0, columnSpan: 2, edge: 'top' },
     })
   })
 

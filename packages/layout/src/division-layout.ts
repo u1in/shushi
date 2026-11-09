@@ -14,6 +14,7 @@ import {
 } from './macro-source'
 
 type DivisionPlaybackEvent =
+  | { kind: 'normalization'; shift: number }
   | { kind: 'calculation'; step: LongDivisionStep }
   | { kind: 'decimal-separator' }
   | { kind: 'zero-quotient'; step: LongDivisionStep }
@@ -32,7 +33,12 @@ const createDivisionPlaybackEvents = (
     showZeroQuotientSteps || step.quotientDigit !== '0'
       ? [{ kind: 'calculation', step }]
       : [{ kind: 'zero-quotient', step }]
-  const events = integerSteps.flatMap(eventForStep)
+  // 除数与被除数的每一位同步右移都是独立教学帧，完成等值变换后才开始试商。
+  const events: DivisionPlaybackEvent[] = Array.from(
+    { length: computation.normalizationShift },
+    (_, index): DivisionPlaybackEvent => ({ kind: 'normalization', shift: index + 1 }),
+  )
+  events.push(...integerSteps.flatMap(eventForStep))
   if (computation.hasFraction) events.push({ kind: 'decimal-separator' }, ...fractionalSteps.flatMap(eventForStep))
   return events
 }
@@ -46,21 +52,21 @@ export const getDivisionPlaybackStepCount = (
 const createDotCell = (digit: string, digitToken: string, dotToken: string): string =>
   `CELL(MM(${macroLiteral(digit)}, ${macroOption('style', digitToken)}), DOT, ${macroOption('style', dotToken)})`
 
-/** 只组合删除线宏；STRIKE 划当前数字，STRIKEDOT 同时输出小数点与短删除线。 */
-const createStrike = (): string => `STRIKE(${macroOption('style', 'division.normalization-strike')})`
-
-const createDisplayCell = (
+/** 等值变换中被移过的数字与小数点保留在原单元格，以删除线说明它们不再属于当前数值。 */
+const createShiftedDisplayCell = (
   digit: string,
   digitToken: string,
   dotToken: string,
-  hasDot: boolean,
   strikeDigit: boolean,
-  strikeDot: boolean,
+  strikeSourceDot: boolean,
+  showCurrentDot: boolean,
 ): string =>
   `CELL(${[
     `MM(${macroLiteral(digit)}, ${macroOption('style', digitToken)})`,
-    ...(strikeDigit ? [createStrike()] : []),
-    ...(hasDot ? [strikeDot ? 'STRIKEDOT' : 'DOT', macroOption('style', dotToken)] : []),
+    ...(strikeDigit ? [`STRIKE(${macroOption('style', 'division.normalization-strike')})`] : []),
+    ...(strikeSourceDot ? ['STRIKEDOT'] : []),
+    ...(showCurrentDot ? ['DOT'] : []),
+    macroOption('style', dotToken),
   ].join(', ')})`
 
 const putNumber = (cells: string[], value: string, endColumn: number, token: string): void => {
@@ -69,37 +75,71 @@ const putNumber = (cells: string[], value: string, endColumn: number, token: str
   })
 }
 
+/** 取得当前等值变换帧的原始数字列；右移越过末位时才追加教学补零。 */
+const getShiftedInputDigits = (sourceValue: string, shift: number): string => {
+  const sourceDigits = sourceValue.replace('.', '')
+  const sourceDecimalIndex = sourceValue.includes('.') ? sourceValue.indexOf('.') : sourceValue.length
+  const currentDecimalIndex = sourceDecimalIndex + shift
+  return `${sourceDigits}${'0'.repeat(Math.max(currentDecimalIndex - sourceDigits.length, 0))}`
+}
+
 /**
- * 小数除法仍按等值整数过程计算，但输入行保留原始写法。
- * 被右移的小数点和除数中被消去的前导零以独立 STRIKE 图元标出，
- * 所以渲染器不需要知道任何除法规则。
+ * 每个播放帧都独立决定输入组和网格的右边界，绝不读取最终商位或未来补零。
+ * 输入组从当前除数开始连续排到当前被除数；已显示的计算列才允许把该帧向右扩展。
  */
-const putNormalizedInput = (
+const getDivisionFrameColumns = (
+  sourceDivisor: string,
+  sourceDividend: string,
+  normalizationShift: number,
+  latestVisibleLogicalColumn: number,
+): {
+  divisorStart: number
+  bracketColumn: number
+  dividendStart: number
+  totalColumns: number
+} => {
+  const divisorDigitCount = getShiftedInputDigits(sourceDivisor, normalizationShift).length
+  const dividendDigitCount = getShiftedInputDigits(sourceDividend, normalizationShift).length
+  const divisorStart = 0
+  const bracketColumn = divisorStart + divisorDigitCount
+  const dividendStart = bracketColumn + 1
+  const inputRightEdge = dividendStart + dividendDigitCount
+  const calculationRightEdge = latestVisibleLogicalColumn < 0 ? 0 : dividendStart + latestVisibleLogicalColumn + 1
+
+  return {
+    divisorStart,
+    bracketColumn,
+    dividendStart,
+    totalColumns: Math.max(inputRightEdge, calculationRightEdge),
+  }
+}
+
+/** 每帧在原数字列上移动小数点，并划掉不再属于当前整数部分的前导零。 */
+const putShiftedInput = (
   cells: string[],
   sourceValue: string,
-  normalizedValue: string,
+  shift: number,
   startColumn: number,
   digitToken: string,
   dotToken: string,
-  normalizationShift: number,
-  strikeLeadingZeroCount = 0,
 ): void => {
-  const sourceDigits = sourceValue.replace('.', '')
-  const normalizedDigits = normalizedValue.replace('.', '')
-  const displayDigits = `${sourceDigits}${normalizedDigits.slice(sourceDigits.length)}`
-  const sourceDotIndex = sourceValue.includes('.') ? sourceValue.indexOf('.') - 1 : -1
-  const normalizedDotIndex = normalizedValue.includes('.') ? normalizedValue.indexOf('.') - 1 : -1
+  const sourceDecimalIndex = sourceValue.includes('.') ? sourceValue.indexOf('.') : sourceValue.length
+  const currentDecimalIndex = sourceDecimalIndex + shift
+  const displayDigits = getShiftedInputDigits(sourceValue, shift)
+  const currentIntegerDigits = displayDigits.slice(0, currentDecimalIndex)
+  const normalizedInteger = currentIntegerDigits.replace(/^0+(?=\d)/, '') || '0'
+  const struckLeadingZeroCount = currentIntegerDigits.length - normalizedInteger.length
+  const sourceDecimalDigitIndex = sourceDecimalIndex - 1
+  const currentDecimalDigitIndex = currentDecimalIndex < displayDigits.length ? currentDecimalIndex - 1 : -1
 
   ;[...displayDigits].forEach((digit, index) => {
-    const hasSourceDot = index === sourceDotIndex
-    const hasNormalizedDot = index === normalizedDotIndex
-    cells[startColumn + index] = createDisplayCell(
+    cells[startColumn + index] = createShiftedDisplayCell(
       digit,
       digitToken,
       dotToken,
-      hasSourceDot || hasNormalizedDot,
-      index < strikeLeadingZeroCount,
-      normalizationShift > 0 && hasSourceDot,
+      index < struckLeadingZeroCount,
+      shift > 0 && index === sourceDecimalDigitIndex,
+      index === currentDecimalDigitIndex,
     )
   })
 }
@@ -113,20 +153,25 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? events.length, 0), events.length)
   const visibleEvents = events.slice(0, visibleStepCount)
   const visibleSteps = visibleEvents.flatMap((event) => (event.kind === 'calculation' ? [event.step] : []))
+  const visibleNormalizationShift =
+    visibleEvents
+      .filter(
+        (event): event is Extract<DivisionPlaybackEvent, { kind: 'normalization' }> => event.kind === 'normalization',
+      )
+      .at(-1)?.shift ?? 0
   const latestVisibleQuotientStep = visibleEvents
     .filter(
       (event): event is Extract<DivisionPlaybackEvent, { kind: 'calculation' | 'zero-quotient' }> =>
-        event.kind !== 'decimal-separator',
+        event.kind === 'calculation' || event.kind === 'zero-quotient',
     )
     .at(-1)?.step
-  const sourceDivisorDigitCount = computation.sourceDivisorText.replace('.', '').length
-  const sourceDividendDigitCount = computation.sourceDividendText.replace('.', '').length
-  const transformedDividendDigitCount = computation.dividendText.replace('.', '').length
-  const divisorColumnCount = Math.max(computation.divisorDigits.length, sourceDivisorDigitCount)
-  const bracketColumn = divisorColumnCount
-  const dividendStart = bracketColumn + 1
-  const totalColumns =
-    dividendStart + Math.max(computation.digitColumnCount, sourceDividendDigitCount, transformedDividendDigitCount)
+  const latestVisibleLogicalColumn = latestVisibleQuotientStep?.dividendColumn ?? -1
+  const { divisorStart, bracketColumn, dividendStart, totalColumns } = getDivisionFrameColumns(
+    computation.sourceDivisorText,
+    computation.sourceDividendText,
+    visibleNormalizationShift,
+    latestVisibleLogicalColumn,
+  )
   const hasVisibleDecimalSeparator = visibleEvents.some(({ kind }) => kind === 'decimal-separator')
   const children: string[] = []
 
@@ -153,26 +198,23 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
   children.push(macroRow(quotientCells))
 
   const dividendCells = Array.from({ length: totalColumns }, macroEmptyCell)
-  const divisorLeadingZeroCount = Math.max(sourceDivisorDigitCount - computation.divisorDigits.length, 0)
-  putNormalizedInput(
+  putShiftedInput(
     dividendCells,
     computation.sourceDivisorText,
-    computation.divisorText,
-    divisorColumnCount - sourceDivisorDigitCount,
+    visibleNormalizationShift,
+    divisorStart,
     'division.divisor',
     'division.divisor-decimal-separator',
-    computation.normalizationShift,
-    divisorLeadingZeroCount,
   )
   dividendCells[bracketColumn] = `CELL(BRACKET, ${macroOption('style', 'division.bracket')})`
-  putNormalizedInput(
+  putShiftedInput(
     dividendCells,
     computation.sourceDividendText,
-    computation.dividendText,
+    visibleNormalizationShift,
+    // 被除数直接紧贴厂字弯；当前帧只按自己可见的数位生成列。
     dividendStart,
     'division.dividend',
     'division.dividend-decimal-separator',
-    computation.normalizationShift,
   )
   if (computation.hasFraction && hasVisibleDecimalSeparator && !computation.dividendText.includes('.')) {
     const lastDividendColumn = dividendStart + computation.integerDividendDigitCount - 1
@@ -182,16 +224,12 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
       'division.dividend-decimal-separator',
     )
   }
-  const appendedZeroColumns = new Set(
-    visibleSteps
-      .filter(({ dividendColumn }) => dividendColumn >= computation.dividendDigits.length)
-      .map(({ dividendColumn }) => dividendColumn),
-  )
-  for (let index = 0; index < computation.fractionalDigitCount; index += 1) {
-    const sourceColumn = computation.dividendDigits.length + index
-    if (appendedZeroColumns.has(sourceColumn))
-      dividendCells[dividendStart + sourceColumn] = macroTextCell('0', 'division.appended-zero')
-  }
+  // 只从已经发生的试商步骤取得补零列，不遍历未来小数位。
+  visibleSteps
+    .filter(({ dividendColumn }) => dividendColumn >= computation.dividendDigits.length)
+    .forEach(({ dividendColumn }) => {
+      dividendCells[dividendStart + dividendColumn] = macroTextCell('0', 'division.appended-zero')
+    })
   children.push(macroRow(dividendCells))
 
   visibleSteps.forEach((step, stepIndex) => {

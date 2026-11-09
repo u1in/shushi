@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import {
-  AUTO_COLOR_THEME_FALLBACK,
-  getCompositeArithmeticStepCount,
-  getDivisionPlaybackStepCount,
-  getMultiplicationStepCount,
-  shushi,
-} from '@u1in/shushi-core'
+import { AUTO_COLOR_THEME_FALLBACK, shushi } from '@u1in/shushi-core'
 import type { AnyVerticalArithmeticResult, GridScene } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import AutoColorThemeEditor from './AutoColorThemeEditor.vue'
@@ -18,6 +12,7 @@ import CodeImplementationPanel from './CodeImplementationPanel.vue'
 import { createShushiImplementationSnippet } from './implementationSnippets'
 import { DEFAULT_RENDERER_FONT, type RendererFontFamily } from './rendererFonts'
 import { useCalculatorStepPlayback } from '../composables/stepPlayback'
+import { getOperationPlaybackStepCount } from '../composables/operationPlayback'
 
 const expression = ref('125 + 75 - 20 × 3')
 const cellWidth = ref(30)
@@ -74,8 +69,7 @@ const answer = computed(() => {
   if (!computation) return '—'
   if ('resultDigits' in computation) return computation.resultDigits
   if ('sumText' in computation) return computation.sumText
-  if ('differenceDigits' in computation)
-    return computation.isNegative ? `-${computation.differenceDigits}` : computation.differenceDigits
+  if ('differenceDigits' in computation) return computation.resultText
   if ('productText' in computation) return computation.productText
   if ('quotientText' in computation)
     return computation.remainder === '0'
@@ -86,16 +80,6 @@ const answer = computed(() => {
   if (computation.mode === 'commonFactor') return `最大公约数是${computation.gcd}，最小公倍数是${computation.lcm}`
   return `${computation.inputValues[0]}的${computation.targetBase}进制是${computation.convertedText}`
 })
-
-/** 各专项布局器的播放事件数量不同，这里按门户返回的 computation 自动选择对应计数器。 */
-const getPlaybackStepCount = (currentResult: AnyVerticalArithmeticResult | undefined): number => {
-  const computation = currentResult?.computation
-  if (!computation) return 0
-  if ('initialValueDigits' in computation) return getCompositeArithmeticStepCount(computation)
-  if ('quotientText' in computation) return getDivisionPlaybackStepCount(computation, showZeroQuotientSteps.value)
-  if ('partialProducts' in computation) return getMultiplicationStepCount(computation)
-  return computation.steps.length
-}
 
 const renderScene = (shouldRenderWithoutComputation = false): void => {
   if (!shouldRenderWithoutComputation && !result.value) return
@@ -136,7 +120,7 @@ const handleThemeChange = (theme: AutoColorThemeColorValues): void => {
 }
 
 const playback = useCalculatorStepPlayback({
-  getStepCount: () => getPlaybackStepCount(result.value),
+  getStepCount: () => getOperationPlaybackStepCount(result.value, showZeroQuotientSteps.value),
   render: renderScene,
 })
 const visibleStepCount = playback.visibleStepCount

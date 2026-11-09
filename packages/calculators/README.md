@@ -1,12 +1,12 @@
 # `@u1in/shushi-calculators`
 
-@u1in/shushi 的计算层。它校验非负整数输入，执行各类运算，并输出与渲染器无关的过程数据，供 `@u1in/shushi-layout` 编排为网格场景。
+@u1in/shushi 的计算层。它按运算规则校验非负整数或十进制小数输入，执行各类运算，并输出与渲染器无关的过程数据，供 `@u1in/shushi-layout` 编排为网格场景。
 
 ## 导出内容
 
 - `computeAddition(...addends)`：计算两个或多个加数的逐列加法过程。
 - `computeSubtraction(minuend, subtrahend)`：计算含连续借位和负结果标记的减法过程。
-- `computeDivision(divisor, dividend, options?)`：计算长除法过程。
+- `computeDivision(divisor, dividend, options?)`：计算长除法过程；小数除数右移为整数时，同步右移的被除数位数不足会在右侧补 `0`。
 - `computeMultiplication(multiplicand, multiplier)`：计算长乘法过程。
 - `computeShortDivision({ mode, values, targetBase? })`：计算质因数分解、公因数或进制转换短除法过程。
 - `AdditionComputation`、`SubtractionComputation`、`DivisionComputation`、`MultiplicationComputation` 及各步骤类型。

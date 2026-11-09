@@ -74,6 +74,7 @@ const apiTierOrder: Record<ApiTierId, string[]> = {
     'createCompositeArithmeticMacroSource',
     'createAdditionGridScene',
     'createSubtractionGridScene',
+    'getSubtractionStepCount',
     'createMultiplicationGridScene',
     'createDivisionGridScene',
     'createShortDivisionGridScene',

@@ -1,13 +1,6 @@
 /** Subtraction calculator: emits borrowing data without leaking rows, columns, or rendering details. */
 import type { SubtractionColumnStep, SubtractionComputation } from './types'
-
-const trimLeadingZeros = (value: string): string => value.replace(/^0+(?=\d)/, '') || '0'
-
-const parseIntegerDigits = (value: unknown, label: string): string => {
-  const raw = String(value ?? '')
-  if (!/^\d+$/.test(raw)) throw new Error(`${label}请输入非负整数，例如 12 或 3456。`)
-  return trimLeadingZeros(raw)
-}
+import { formatDecimal, parseDecimal, scaleDecimalDigits, trimLeadingZeros } from './decimal'
 
 const compareDigitStrings = (left: string, right: string): number => {
   if (left.length !== right.length) return left.length > right.length ? 1 : -1
@@ -55,10 +48,16 @@ const calculateNonNegativeDifference = (
   return { differenceDigits: trimLeadingZeros(resultDigits.join('')), steps }
 }
 
-/** 计算减法；被减数小于减数时仍给出负结果及其绝对值的借位过程。 */
+/**
+ * 计算减法。小数先右补零为同倍率整数，再沿用同一套逐列借位过程；
+ * 被减数小于减数时仍给出负结果及其绝对值的借位过程。
+ */
 export const computeSubtraction = (minuendValue: unknown, subtrahendValue: unknown): SubtractionComputation => {
-  const minuendDigits = parseIntegerDigits(minuendValue, '被减数')
-  const subtrahendDigits = parseIntegerDigits(subtrahendValue, '减数')
+  const minuend = parseDecimal(minuendValue, '被减数')
+  const subtrahend = parseDecimal(subtrahendValue, '减数')
+  const decimalPlaces = Math.max(minuend.decimalPlaces, subtrahend.decimalPlaces)
+  const minuendDigits = scaleDecimalDigits(minuend, decimalPlaces)
+  const subtrahendDigits = scaleDecimalDigits(subtrahend, decimalPlaces)
   const isNegative = compareDigitStrings(minuendDigits, subtrahendDigits) < 0
   const workingMinuendDigits = isNegative ? subtrahendDigits : minuendDigits
   const workingSubtrahendDigits = isNegative ? minuendDigits : subtrahendDigits
@@ -67,10 +66,17 @@ export const computeSubtraction = (minuendValue: unknown, subtrahendValue: unkno
   return {
     minuendDigits,
     subtrahendDigits,
+    minuendText: minuend.text,
+    subtrahendText: subtrahend.text,
+    minuendDecimalPlaces: minuend.decimalPlaces,
+    subtrahendDecimalPlaces: subtrahend.decimalPlaces,
+    decimalPlaces,
     workingMinuendDigits,
     workingSubtrahendDigits,
+    workingMinuendText: formatDecimal(workingMinuendDigits, decimalPlaces),
+    workingSubtrahendText: formatDecimal(workingSubtrahendDigits, decimalPlaces),
     differenceDigits,
-    resultText: isNegative && differenceDigits !== '0' ? `-${differenceDigits}` : differenceDigits,
+    resultText: `${isNegative && differenceDigits !== '0' ? '-' : ''}${formatDecimal(differenceDigits, decimalPlaces)}`,
     isNegative,
     steps,
   }

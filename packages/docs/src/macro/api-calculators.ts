@@ -73,25 +73,26 @@ console.log(computation.steps)`,
 
 export const computeSubtractionPage = createCalculatorApiPage({
   slug: 'computeSubtraction',
-  summary: '计算两个非负整数的逐列减法和借位过程。',
+  summary: '计算两个非负十进制数按小数位对齐后的逐列减法和借位过程。',
   example: `import { computeSubtraction } from '@u1in/shushi-core'
 
-// 计算层保留借位后的工作数字，供布局层显示教学标记。
-const computation = computeSubtraction('356', '278')
+// 计算层先将 8.7 右补零为 8.70，再保留借位后的工作数字。
+const computation = computeSubtraction('8.7', '0.89')
 
-console.log(computation.differenceDigits) // '78'
+console.log(computation.resultText) // '7.81'
 console.log(computation.steps)`,
-  purpose: '它校验被减数和减数，记录每列的借位输入、工作被减数、结果位和借位输出，并返回最终差。',
+  purpose:
+    '它取最长小数位并向较短输入右补零，随后记录每列的借位输入、工作被减数、结果位和借位输出，并返回去点过程数字与带小数点的最终差。',
   signature: `type ComputeSubtraction = (
   minuendValue: unknown,
   subtrahendValue: unknown,
 ) => SubtractionComputation`,
   parameters: [
-    ['`minuendValue`', '`unknown`', '被减数，要求为非负十进制整数。'],
-    ['`subtrahendValue`', '`unknown`', '减数，要求为非负十进制整数。'],
-    ['返回值', '`SubtractionComputation`', '包含工作被减数、借位步骤和最终差。'],
+    ['`minuendValue`', '`unknown`', '被减数，要求为非负十进制数。'],
+    ['`subtrahendValue`', '`unknown`', '减数，要求为非负十进制数。'],
+    ['返回值', '`SubtractionComputation`', '包含公共 `decimalPlaces`、补零后的工作数、借位步骤、去点差和最终差。'],
   ],
-  caution: '布局层不能自行判断借位；需要显示借位点时必须使用返回的 `steps`。',
+  caution: '布局层不能自行判断借位或补零；需要显示借位点和结果小数点时必须使用返回的 `steps` 与 `decimalPlaces`。',
 })
 
 export const computeDivisionPage = createCalculatorApiPage({
@@ -107,7 +108,7 @@ const computation = computeDivision('0.5', '3.45', {
 console.log(computation.quotientText) // '6.9'
 console.log(computation.steps)`,
   purpose:
-    '它先把除数右移为整数、同步变换被除数，再以十进制字符串计算长除法，输出原输入文本、等值变换位数、商 token、每轮部分被除数、乘积、余数和按需补零展开的小数过程。',
+    '它先把除数右移为整数、同步变换被除数（小数位不足时在右侧补零），再以十进制字符串计算长除法；布局会把每一步等值变换独立播放。返回原输入文本、等值变换位数、商 token、每轮部分被除数、乘积、余数和按需补零展开的小数过程。',
   signature: `type ComputeDivision = (
   divisorValue: unknown,
   dividendValue: unknown,
@@ -175,10 +176,10 @@ console.log(computation.steps)`,
   expression: unknown,
 ) => CompositeArithmeticComputation`,
   parameters: [
-    ['`expression`', '`unknown`', '由非负整数和 `+`、`-`、`×` 连接的表达式；也接受 `*` 与 `x`。'],
+    ['`expression`', '`unknown`', '由非负十进制数和 `+`、`-`、`×` 连接的表达式；也接受 `*` 与 `x`。'],
     ['返回值', '`CompositeArithmeticComputation`', '包含原表达式、每一步的判别联合过程和最终结果。'],
   ],
-  caution: '表达式至少包含一个运算符且按左到右执行；中间负数不能继续接下一步，避免违背现有非负整数单项竖式规则。',
+  caution: '表达式至少包含一个运算符且按左到右执行；中间负数不能继续接下一步，避免违背现有非负数单项竖式规则。',
 })
 
 export const computeShortDivisionPage = createCalculatorApiPage({

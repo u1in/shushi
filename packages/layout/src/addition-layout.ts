@@ -2,6 +2,7 @@
 import type { GridScene } from '@u1in/shushi-grid'
 import type { AdditionComputation } from '@u1in/shushi-calculators'
 import type { AdditionRenderSettings } from './types'
+import { appendDecimalZeros, createDecimalPaddingEvents, getVisibleDecimalPaddingCounts } from './decimal-padding'
 import {
   compileCalculatorMacro,
   macroAnnotationCell,
@@ -57,9 +58,11 @@ const DEFAULT_ADDITION_SETTINGS: AdditionRenderSettings = {
   showCarrySteps: true,
 }
 
-/** 小数点作为结果展示的独立教学事件，输入行的小数点则从首帧保留以说明位值。 */
+/** 小数先逐格补零对齐；随后计算，最后再单独标注结果小数点。 */
 export const getAdditionStepCount = (computation: AdditionComputation): number =>
-  computation.steps.length + (computation.decimalPlaces > 0 ? 1 : 0)
+  createDecimalPaddingEvents(computation.addendDecimalPlaces, computation.decimalPlaces).length +
+  computation.steps.length +
+  (computation.decimalPlaces > 0 ? 1 : 0)
 
 /**
  * 将加法过程翻译为人工也能直接编辑的宏源码。
@@ -70,20 +73,41 @@ export const createAdditionMacroSource = (
   settings: Partial<AdditionRenderSettings> = {},
 ): string => {
   const resolvedSettings: AdditionRenderSettings = { ...DEFAULT_ADDITION_SETTINGS, ...settings }
+  const paddingEvents = createDecimalPaddingEvents(computation.addendDecimalPlaces, computation.decimalPlaces)
   const totalStepCount = getAdditionStepCount(computation)
   const visibleStepCount = Math.min(Math.max(resolvedSettings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
-  const visibleCalculationStepCount = Math.min(visibleStepCount, computation.steps.length)
+  const visiblePaddingCounts = getVisibleDecimalPaddingCounts(
+    computation.addendTexts.length,
+    paddingEvents,
+    visibleStepCount,
+  )
+  const visibleCalculationStepCount = Math.min(
+    Math.max(0, visibleStepCount - paddingEvents.length),
+    computation.steps.length,
+  )
   const visibleSteps = computation.steps.slice(0, visibleCalculationStepCount)
+  const displayedAddends = computation.addendTexts.map((addend, index) =>
+    appendDecimalZeros(addend, visiblePaddingCounts[index]),
+  )
+  const isComplete = resolvedSettings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
+  const visibleSum = visibleSteps
+    .map(({ resultDigit }) => resultDigit)
+    .reverse()
+    .join('')
+  // 当前帧只拥有已写出的结果位；完成帧才拥有完整和。
+  const sumToDisplay = isComplete ? computation.sumText : visibleSum
   const numberColumnCount = Math.max(
-    computation.sumDigits.length,
-    ...computation.addendDigits.map(({ length }) => length),
+    sumToDisplay.replace('.', '').length,
+    ...displayedAddends.map((addend) => addend.replace('.', '').length),
   )
   const columns = numberColumnCount + 1
   const children: string[] = []
 
-  computation.addendTexts.forEach((addend, addendIndex) => {
+  displayedAddends.forEach((displayedAddend, addendIndex) => {
     const cells = Array.from({ length: columns }, macroEmptyCell)
-    const digitCount = computation.addendDigits[addendIndex].length
+    const digitCount = displayedAddend.replace('.', '').length
+    // 补零尚未完成时按当前已显示数位右对齐，不能预先占用最终小数位的位置。
+    const firstColumn = columns - digitCount
     const annotationsByDigitIndex = new Map<number, string[]>()
     if (addendIndex === computation.addendDigits.length - 1) {
       cells[0] = macroTextCell('+', 'addition.operator')
@@ -92,7 +116,7 @@ export const createAdditionMacroSource = (
           const targetColumn = numberColumnCount - step.columnFromRight - 1
           if (step.carryOut === 0 || targetColumn <= 0) return
           const annotation = macroRightBottom(String(step.carryOut), 'addition.carry')
-          const digitIndex = targetColumn - (columns - digitCount)
+          const digitIndex = targetColumn - firstColumn
           if (digitIndex < 0 || digitIndex >= digitCount) {
             cells[targetColumn] = macroAnnotationCell(annotation)
             return
@@ -101,19 +125,13 @@ export const createAdditionMacroSource = (
         })
       }
     }
-    placeNumber(cells, addend, 'addition.addend', columns - digitCount, annotationsByDigitIndex)
+    placeNumber(cells, displayedAddend, 'addition.addend', firstColumn, annotationsByDigitIndex)
     children.push(macroRow(cells))
   })
 
   children.push(macroLine('addition.sum-bar', 'full'))
   const resultCells = Array.from({ length: columns }, macroEmptyCell)
-  const isComplete = resolvedSettings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
-  const visibleSum = visibleSteps
-    .map(({ resultDigit }) => resultDigit)
-    .reverse()
-    .join('')
-  // 所有逐列计算结束后先显示去点结果，下一步才补上最终和的小数点。
-  const sumToDisplay = isComplete ? computation.sumText : visibleSum
+  // 所有补零和逐列计算完成后先显示去点结果，下一步才补上最终和的小数点。
   placeNumber(resultCells, sumToDisplay, 'addition.sum', columns - sumToDisplay.replace('.', '').length)
   children.push(macroRow(resultCells))
 

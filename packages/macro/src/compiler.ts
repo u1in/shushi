@@ -281,15 +281,18 @@ const applyAutoColor = (element: GridElement, node: MacroNode, theme: AutoColorT
   return { ...element, content: { ...element.content, color } }
 }
 
-/** BRACKET 的右上角自动延伸至当前网格右边界，形成完整厂字横。 */
+/** BRACKET 的右上角延伸到同一行当前最后一个可见单元格，避免空白轨道变成厂字横。 */
 const compileBracketHead = (
   cell: PositionedCell,
   row: number,
-  columns: number,
+  rowCells: PositionedCell[],
   id: number,
 ): GridElement | undefined => {
   const startColumn = cell.column + cell.columnSpan
-  const columnSpan = columns - startColumn
+  const endColumn = rowCells
+    .filter(({ column, elements }) => column >= startColumn && elements.length > 0)
+    .reduce((currentEnd, { column, columnSpan }) => Math.max(currentEnd, column + columnSpan), startColumn)
+  const columnSpan = endColumn - startColumn
   if (columnSpan <= 0) return undefined
   return {
     id: `macro-bracket-head-${id}`,
@@ -307,7 +310,7 @@ const compileCellElements = (
   autoColor: boolean,
   colorTheme: AutoColorTheme,
   nextId: { value: number },
-  columns?: number,
+  rowCells?: PositionedCell[],
   onElement?: MacroElementObserver,
 ): void => {
   cell.elements.forEach((node) => {
@@ -318,8 +321,8 @@ const compileCellElements = (
     elements.push(...compiledElements)
     compiledElements.forEach((element) => onElement?.(element, node))
     nextId.value += 1
-    if (columns !== undefined && getBracketMacro(node)) {
-      const bracketHead = compileBracketHead(cell, row, columns, nextId.value)
+    if (rowCells !== undefined && getBracketMacro(node)) {
+      const bracketHead = compileBracketHead(cell, row, rowCells, nextId.value)
       if (bracketHead) {
         const compiledBracketHead = autoColor ? applyAutoColor(bracketHead, node, colorTheme) : bracketHead
         elements.push(compiledBracketHead)
@@ -575,9 +578,7 @@ const compileMacroAstWithObserver = (
   const elements: GridElement[] = []
   const nextId = { value: 0 }
   positionedRows.forEach((cells, row) =>
-    cells.forEach((cell) =>
-      compileCellElements(elements, cell, row, autoColor, colorTheme, nextId, columns, onElement),
-    ),
+    cells.forEach((cell) => compileCellElements(elements, cell, row, autoColor, colorTheme, nextId, cells, onElement)),
   )
   lines.forEach((line, index) => {
     const range = getLineRange(line.span, positionedRows[line.afterRow], positionedRows, columns)

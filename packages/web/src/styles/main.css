@@ -2542,6 +2542,13 @@ h2 {
 .division-svg .grid-text[data-style-token='subtraction.difference'] {
   fill: #be4c00;
 }
+.grid-text[data-style-token='subtraction.decimal-separator'] {
+  color: #c2185b;
+  font-weight: 800;
+}
+.division-svg .grid-text[data-style-token='subtraction.decimal-separator'] {
+  fill: #c2185b;
+}
 .grid-text[data-style-token='subtraction.subtrahend'] {
   color: #0096c9;
   font-weight: 700;

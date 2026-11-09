@@ -2,6 +2,7 @@
 import type { GridScene } from '@u1in/shushi-grid'
 import type { SubtractionComputation } from '@u1in/shushi-calculators'
 import type { SubtractionRenderSettings } from './types'
+import { appendDecimalZeros, createDecimalPaddingEvents, getVisibleDecimalPaddingCounts } from './decimal-padding'
 import {
   compileCalculatorMacro,
   macroAnnotationCell,
@@ -9,36 +10,110 @@ import {
   macroEmptyCell,
   macroGrid,
   macroLine,
+  macroLiteral,
+  macroOption,
   macroRow,
   macroTextCell,
 } from './macro-source'
 
-const placeNumber = (cells: string[], value: string, token: string): void => {
-  const start = cells.length - value.length
+/** 小数点附着在整数末位；绝对值小于 1 的中间帧则用独立点格呈现 `.51`。 */
+const decimalCell = (digit: string, token: string): string =>
+  `CELL(MM(${macroLiteral(digit)}, ${macroOption('style', token)}), DOT, ${macroOption(
+    'style',
+    'subtraction.decimal-separator',
+  )})`
+
+const decimalMarkerCell = (): string => `CELL(DOT, ${macroOption('style', 'subtraction.decimal-separator')})`
+
+const placeNumber = (
+  cells: string[],
+  value: string,
+  token: string,
+  decimalPlaces: number,
+  showDecimalPoint = true,
+  firstColumn?: number,
+): void => {
+  const start = firstColumn ?? cells.length - value.length
   ;[...value].forEach((digit, index) => {
-    cells[start + index] = macroTextCell(digit, token)
+    const isDecimalAnchor = showDecimalPoint && decimalPlaces > 0 && index === value.length - decimalPlaces - 1
+    cells[start + index] = isDecimalAnchor ? decimalCell(digit, token) : macroTextCell(digit, token)
   })
 }
+
+/** 小数结果在所有数位完成后先单独标点；不足 1 时最后才补齐整数位的 0。 */
+const getResultDigitStepCount = (computation: SubtractionComputation): number =>
+  computation.decimalPlaces === 0
+    ? computation.steps.length
+    : Math.max(computation.differenceDigits.length, computation.decimalPlaces)
+
+export const getSubtractionStepCount = (computation: SubtractionComputation): number =>
+  createDecimalPaddingEvents(
+    computation.isNegative
+      ? [computation.subtrahendDecimalPlaces, computation.minuendDecimalPlaces]
+      : [computation.minuendDecimalPlaces, computation.subtrahendDecimalPlaces],
+    computation.decimalPlaces,
+  ).length +
+  getResultDigitStepCount(computation) +
+  (computation.decimalPlaces > 0 ? 1 : 0) +
+  (computation.decimalPlaces > 0 && computation.differenceDigits.length <= computation.decimalPlaces ? 1 : 0)
 
 /** 所有借位提示都降级为人类可输入的 MTD，而不是直接写边中点坐标。 */
 export const createSubtractionMacroSource = (
   computation: SubtractionComputation,
   settings: SubtractionRenderSettings,
 ): string => {
-  const visibleStepCount = Math.min(
-    Math.max(settings.visibleStepCount ?? computation.steps.length, 0),
-    computation.steps.length,
+  const workingOperandDecimalPlaces = computation.isNegative
+    ? [computation.subtrahendDecimalPlaces, computation.minuendDecimalPlaces]
+    : [computation.minuendDecimalPlaces, computation.subtrahendDecimalPlaces]
+  const workingOperandTexts = computation.isNegative
+    ? [computation.subtrahendText, computation.minuendText]
+    : [computation.minuendText, computation.subtrahendText]
+  const paddingEvents = createDecimalPaddingEvents(workingOperandDecimalPlaces, computation.decimalPlaces)
+  const totalStepCount = getSubtractionStepCount(computation)
+  const resultDigitStepCount = getResultDigitStepCount(computation)
+  const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
+  const visiblePaddingCounts = getVisibleDecimalPaddingCounts(
+    workingOperandTexts.length,
+    paddingEvents,
+    visibleStepCount,
   )
-  const visibleSteps = computation.steps.slice(0, visibleStepCount)
+  const visibleCalculationStepCount = Math.min(
+    Math.max(0, visibleStepCount - paddingEvents.length),
+    resultDigitStepCount,
+  )
+  const visibleSteps = computation.steps.slice(0, visibleCalculationStepCount)
+  const differenceDigits = computation.resultText.replace(/[-.]/g, '')
+  const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
+  const visibleDifference = visibleSteps
+    .map(({ resultDigit }) => resultDigit)
+    .reverse()
+    .join('')
+  const displayedDifference = isComplete ? differenceDigits : visibleDifference
+  const hasVisibleDecimalPoint =
+    computation.decimalPlaces > 0 && visibleStepCount > paddingEvents.length + resultDigitStepCount
+  const decimalAnchorIndex = displayedDifference.length - computation.decimalPlaces - 1
+  const displayedMinuend = appendDecimalZeros(workingOperandTexts[0], visiblePaddingCounts[0])
+  const displayedSubtrahend = appendDecimalZeros(workingOperandTexts[1], visiblePaddingCounts[1])
+  // 当前快照只以可见的操作数、结果位和当前已出现的小数点决定列数。
   const numberColumnCount = Math.max(
-    computation.workingMinuendDigits.length,
-    computation.workingSubtrahendDigits.length,
-    computation.differenceDigits.length,
+    displayedMinuend.replace('.', '').length,
+    displayedSubtrahend.replace('.', '').length,
+    displayedDifference.length + (hasVisibleDecimalPoint && decimalAnchorIndex < 0 ? 1 : 0),
   )
   const columns = numberColumnCount + 1
   const minuendCells = Array.from({ length: columns }, macroEmptyCell)
-  const firstNumberColumn = columns - computation.workingMinuendDigits.length
-  placeNumber(minuendCells, computation.workingMinuendDigits, 'subtraction.minuend')
+  const displayedMinuendDigits = displayedMinuend.replace('.', '')
+  const displayedMinuendDecimalPlaces = workingOperandDecimalPlaces[0] + visiblePaddingCounts[0]
+  // 补零阶段先遵循普通竖式的右对齐；数位实际补齐后才自然落在共同小数位边界。
+  const firstNumberColumn = columns - displayedMinuendDigits.length
+  placeNumber(
+    minuendCells,
+    displayedMinuendDigits,
+    'subtraction.minuend',
+    displayedMinuendDecimalPlaces,
+    true,
+    firstNumberColumn,
+  )
 
   if (settings.showBorrowSteps) {
     const visibleColumns = new Set(visibleSteps.map(({ columnFromRight }) => columnFromRight))
@@ -58,18 +133,33 @@ export const createSubtractionMacroSource = (
 
   const subtrahendCells = Array.from({ length: columns }, macroEmptyCell)
   subtrahendCells[0] = macroTextCell('−', 'subtraction.operator')
-  placeNumber(subtrahendCells, computation.workingSubtrahendDigits, 'subtraction.subtrahend')
+  const displayedSubtrahendDigits = displayedSubtrahend.replace('.', '')
+  const displayedSubtrahendDecimalPlaces = workingOperandDecimalPlaces[1] + visiblePaddingCounts[1]
+  const subtrahendFirstNumberColumn = columns - displayedSubtrahendDigits.length
+  placeNumber(
+    subtrahendCells,
+    displayedSubtrahendDigits,
+    'subtraction.subtrahend',
+    displayedSubtrahendDecimalPlaces,
+    true,
+    subtrahendFirstNumberColumn,
+  )
 
-  const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
-  const visibleDifference = visibleSteps
-    .map(({ resultDigit }) => resultDigit)
-    .reverse()
-    .join('')
   const differenceCells = Array.from({ length: columns }, macroEmptyCell)
   if (computation.isNegative && isComplete) differenceCells[0] = macroTextCell('−', 'subtraction.negative-sign')
-  placeNumber(differenceCells, isComplete ? computation.differenceDigits : visibleDifference, 'subtraction.difference')
+  placeNumber(
+    differenceCells,
+    displayedDifference,
+    'subtraction.difference',
+    computation.decimalPlaces,
+    hasVisibleDecimalPoint && decimalAnchorIndex >= 0,
+  )
+  // 例如 0.51 的倒数第二帧为 `.51`：点独占预留的整数位，最终帧才写入 0。
+  if (hasVisibleDecimalPoint && decimalAnchorIndex < 0) {
+    differenceCells[columns - displayedDifference.length - 1] = decimalMarkerCell()
+  }
 
-  return macroGrid(columns, settings, `${computation.minuendDigits} 减 ${computation.subtrahendDigits} 的竖式`, [
+  return macroGrid(columns, settings, `${computation.minuendText} 减 ${computation.subtrahendText} 的竖式`, [
     macroRow(minuendCells),
     macroRow(subtrahendCells),
     macroLine('subtraction.difference-bar', 'full'),

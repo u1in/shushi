@@ -5,7 +5,7 @@ import { minifyMacroForCopyAst, parseMacro } from '@u1in/shushi-macro'
 import type { MacroCall, MacroNode } from '@u1in/shushi-macro'
 import { createAdditionMacroSource } from './addition-layout'
 import { createMultiplicationMacroSource, getMultiplicationStepCount } from './multiplication-layout'
-import { createSubtractionMacroSource } from './subtraction-layout'
+import { createSubtractionMacroSource, getSubtractionStepCount } from './subtraction-layout'
 import type { CompositeArithmeticRenderSettings } from './types'
 import { compileCalculatorMacro, macroGrid } from './macro-source'
 
@@ -35,7 +35,7 @@ const getOperationStepCount = (step: CompositeArithmeticStep): number => {
     case '+':
       return step.computation.steps.length
     case '-':
-      return step.computation.steps.length
+      return getSubtractionStepCount(step.computation)
     case '×':
       return getMultiplicationStepCount(step.computation)
   }

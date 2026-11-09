@@ -38,7 +38,7 @@ export const computeCompositeArithmetic = (expression: unknown): CompositeArithm
 
   operations.forEach(({ operator, operandDigits }, index) => {
     if (accumulator.startsWith('-')) {
-      throw new Error('中间结果为负数后不能继续组合；请调整表达式，使每个中间结果保持非负整数。')
+      throw new Error('中间结果为负数后不能继续组合；请调整表达式，使每个中间结果保持非负数。')
     }
     const base = { index, leftOperandDigits: accumulator, rightOperandDigits: operandDigits }
     if (operator === '+') {
@@ -48,9 +48,6 @@ export const computeCompositeArithmetic = (expression: unknown): CompositeArithm
       return
     }
     if (operator === '-') {
-      if (accumulator.includes('.') || operandDigits.includes('.')) {
-        throw new Error('组合表达式中的减法暂不支持小数；请改为单独的整数减法。')
-      }
       const computation = computeSubtraction(accumulator, operandDigits)
       steps.push({ ...base, operator, resultDigits: computation.resultText, computation })
       accumulator = computation.resultText

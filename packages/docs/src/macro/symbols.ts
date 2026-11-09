@@ -548,7 +548,8 @@ export const symbolPages: MacroDocPage[] = [
     navLabel: 'BRACKET / BRKT',
     kicker: 'SYMBOL MACRO · BRACKET',
     group: 'symbol',
-    summary: 'BRACKET 生成除法竖式左侧的厂字弯，并自动向右延伸厂字横。它必须独占一个单元格，所在轨道会缩窄为 0.5u。',
+    summary:
+      'BRACKET 生成除法竖式左侧的厂字弯，并延伸至当前行最后一个可见单元格。它必须独占一个单元格，所在轨道会缩窄为 0.5u。',
     sections: [
       {
         id: 'purpose',
@@ -556,11 +557,11 @@ export const symbolPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '`BRACKET` 是完整的厂字宏，编译为通用 `corner(bottomRight)` 图元。它不只是一个弯角：还会从自身右上角沿当前行的上边界延伸到网格最右边界，形成厂字横。',
+            text: '`BRACKET` 是完整的厂字宏，编译为通用 `corner(bottomRight)` 图元。它不只是一个弯角：还会从自身右上角沿当前行的上边界延伸到右侧最后一个可见单元格，形成厂字横。',
           },
           {
             type: 'bracket-board',
-            note: '弯角独占一个 0.5u 轨道；厂字横从弯角右上角延伸到网格最右边界，被除数各格不需要重复写 `TBD`。',
+            note: '弯角独占一个 0.5u 轨道；厂字横从弯角右上角延伸到当前行最后一个可见单元格，被除数各格不需要重复写 `TBD`。',
           },
           {
             type: 'callout',
@@ -602,7 +603,7 @@ export const symbolPages: MacroDocPage[] = [
             type: 'list',
             items: [
               '图元内容为 `corner(bottomRight)`，圆角比例 1，线宽 2。',
-              '厂字横从弯角右上角出发，覆盖当前行从下一列到网格右边界。',
+              '厂字横从弯角右上角出发，覆盖当前行从下一列到右侧最后一个可见单元格；尾部 EMPTY 不会延长它。',
               'autoColor 开启时，弯角与厂字横共同使用 `bracketRule` 的独立线条色，不与普通 LINE 混用。',
               '`BRACKET` 不能与数字、边框或其他定位图元同格，也不能设置 `columnSpan`。',
               '它只负责版式，不计算除法，也不选择被除数或商。',

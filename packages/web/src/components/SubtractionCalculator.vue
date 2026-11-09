@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { shushi } from '@u1in/shushi-core'
+import { getSubtractionStepCount, shushi } from '@u1in/shushi-core'
 import GridPreview from './GridPreview.vue'
 import VisibleTextRowsPanel from './VisibleTextRowsPanel.vue'
 import CopyMacroButton from './CopyMacroButton.vue'
@@ -46,7 +46,7 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
   renderScene()
 }
 const playback = useCalculatorStepPlayback({
-  getStepCount: () => computation.value?.steps.length ?? 0,
+  getStepCount: () => (computation.value ? getSubtractionStepCount(computation.value) : 0),
   render: renderScene,
 })
 const visibleStepCount = playback.visibleStepCount
@@ -90,14 +90,14 @@ calculate()
       <form class="control-panel" @submit.prevent="calculate">
         <p class="panel-kicker">SUBTRACTION CALCULATOR</p>
         <h2>减法竖式计算器</h2>
-        <p class="normalization">输入被减数和减数，逐位查看相减与借位过程。</p>
+        <p class="normalization">输入被减数和减数；小数会先按小数点对齐，再逐位查看相减与借位过程。</p>
         <div class="input-grid">
           <label class="field"
-            ><span>被减数</span><input v-model="minuend" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><span>被减数</span><input v-model="minuend" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
           <span class="division-operator" aria-hidden="true">−</span>
           <label class="field"
-            ><span>减数</span><input v-model="subtrahend" inputmode="numeric" autocomplete="off" @input="calculate"
+            ><span>减数</span><input v-model="subtrahend" inputmode="decimal" autocomplete="off" @input="calculate"
           /></label>
         </div>
         <p class="error-message" role="alert">{{ error }}</p>
@@ -160,7 +160,7 @@ calculate()
             <output class="answer">{{ answer }}</output
             ><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel v-if="scene" :scene="scene" />
           </div>
-          <p class="normalization">从个位开始相减；不够减时向高位借 1，当作 10 再减。</p>
+          <p class="normalization">先按最长小数位补零并对齐；再从个位开始相减，不够减时向高位借 1，当作 10 再减。</p>
           <p v-if="computation?.isNegative" class="normalization">
             原式结果为负数，竖式展示其绝对值的“大数减小数”借位过程。
           </p>

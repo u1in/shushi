@@ -26,6 +26,7 @@ computeMultiplication
 computeDivision
 computeShortDivision
 computeCompositeArithmetic
+getSubtractionStepCount
 getMultiplicationStepCount
 getDivisionPlaybackStepCount
 getCompositeArithmeticStepCount

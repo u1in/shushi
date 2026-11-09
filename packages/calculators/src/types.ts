@@ -218,14 +218,25 @@ export interface SubtractionColumnStep {
 }
 
 /**
- * 非负整数减法过程。负数结果时，`working*` 是用于求绝对值的“大数减小数”过程，
- * 原始输入仍保留在 `minuendDigits` 与 `subtrahendDigits` 中。
+ * 非负十进制减法过程。两个输入会先右补零到 `decimalPlaces`，负数结果时，
+ * `working*` 是用于求绝对值的“大数减小数”过程，原始输入文本由 `*Text` 保留。
  */
 export interface SubtractionComputation {
+  /** 去点并右补到公共小数位后的被减数过程数字。 */
   minuendDigits: string
+  /** 去点并右补到公共小数位后的减数过程数字。 */
   subtrahendDigits: string
+  minuendText: string
+  subtrahendText: string
+  minuendDecimalPlaces: number
+  subtrahendDecimalPlaces: number
+  /** 两个输入对齐后共用的小数位数。 */
+  decimalPlaces: number
   workingMinuendDigits: string
   workingSubtrahendDigits: string
+  /** 参与实际借位过程的两个数，已按公共小数位补零并恢复小数点。 */
+  workingMinuendText: string
+  workingSubtrahendText: string
   differenceDigits: string
   resultText: string
   isNegative: boolean

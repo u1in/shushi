@@ -63,7 +63,7 @@ console.log(source)`
 
 const subtractionExample = `import { computeSubtraction, createSubtractionMacroSource } from '@u1in/shushi-core'
 
-const computation = computeSubtraction('356', '278')
+const computation = computeSubtraction('8.7', '0.89')
 const settings = {
   cellWidth: 30,
   rowHeight: 46,
@@ -178,7 +178,8 @@ export const createSubtractionMacroSourcePage = createLayoutApiPage({
   slug: 'createSubtractionMacroSource',
   summary: '把 SubtractionComputation 编排为可编辑的减法宏源码。',
   example: subtractionExample,
-  purpose: '它把被减数、减数、借位点、负号、差和横线写成宏源码，不在布局层重新执行借位算法。',
+  purpose:
+    '它把被减数、减数、借位点、结果小数点、负号、差和横线写成宏源码；补零播放阶段按当前可见数位右对齐，补齐后小数点对齐，不在布局层重新执行借位或补零算法。',
   signature: `type CreateSubtractionMacroSource = (
   computation: SubtractionComputation,
   settings: SubtractionRenderSettings,
@@ -186,9 +187,10 @@ export const createSubtractionMacroSourcePage = createLayoutApiPage({
   parameters: [
     ['`computation`', '`SubtractionComputation`', '减法计算器输出的借位过程和差。'],
     ['`settings`', '`SubtractionRenderSettings`', '必填的网格尺寸、可见步骤和借位显示配置。'],
-    ['返回值', '`string`', '包含 MTD 借位点、LINE 横线和数字单元格的宏源码。'],
+    ['返回值', '`string`', '包含 MTD 借位点、DOT 小数点、LINE 横线和数字单元格的宏源码。'],
   ],
-  caution: '减法设置对象不是可选参数；缺少 `showBorrowSteps` 等必填字段会破坏布局契约。借位语义必须来自计算器结果。',
+  caution:
+    '减法设置对象不是可选参数；缺少 `showBorrowSteps` 等必填字段会破坏布局契约。借位和小数位语义必须来自计算器结果。',
 })
 
 export const createSubtractionGridScenePage = createLayoutApiPage({
@@ -220,9 +222,30 @@ console.log(scene.elements.length)`,
   caution: '该入口已标记为兼容 API；需要查看人类可编辑的中间结果时使用 `createSubtractionMacroSource`。',
 })
 
+export const getSubtractionStepCountPage = createLayoutApiPage({
+  slug: 'getSubtractionStepCount',
+  summary: '计算减法小数补零、借位、结果小数点和前导零合计的教学播放步数。',
+  example: `import { computeSubtraction, getSubtractionStepCount } from '@u1in/shushi-core'
+
+const computation = computeSubtraction('0.8', '0.29')
+// 0.8 → 0.80 → 1 → 51 → .51 → 0.51，共五次播放推进。
+const count = getSubtractionStepCount(computation)
+
+console.log(count) // 5`,
+  purpose:
+    '它以计算器的逐列步骤为基础；先为每个需要对齐的小数零加入一个事件，再加入结果标点，绝对值小于 1 时最后加入前导零事件，保证播放控件与减法宏源码使用同一序列。',
+  signature: `type GetSubtractionStepCount = (computation: SubtractionComputation) => number`,
+  parameters: [
+    ['`computation`', '`SubtractionComputation`', '减法计算器输出的借位过程与公共小数位。'],
+    ['返回值', '`number`', '减法布局播放所需的总步骤数。'],
+  ],
+  caution:
+    '返回值不总是等于 `computation.steps.length`：每个为小数位对齐补入的零、结果小数点和可能的前导零都会额外增加事件。',
+})
+
 export const getDivisionPlaybackStepCountPage = createLayoutApiPage({
   slug: 'getDivisionPlaybackStepCount',
-  summary: '计算长除法在当前零商显示策略下的播放事件数量。',
+  summary: '计算长除法等值右移、零商显示策略下的播放事件数量。',
   example: `import { computeDivision, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
 
 const computation = computeDivision('25', '10230')
@@ -231,7 +254,7 @@ const count = getDivisionPlaybackStepCount(computation, false)
 
 console.log(count)`,
   purpose:
-    '它把整数步骤、小数分隔符和可选零商步骤折算成布局播放帧数，保证进度控件与 `createDivisionMacroSource` 使用相同的事件序列。',
+    '它把除数与被除数的每一步同步右移、整数步骤、小数分隔符和可选零商步骤折算成布局播放帧数，保证进度控件与 `createDivisionMacroSource` 使用相同的事件序列。',
   signature: `type GetDivisionPlaybackStepCount = (
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
@@ -241,14 +264,15 @@ console.log(count)`,
     ['`showZeroQuotientSteps`', '`boolean`', '是否把商位为 0 的过程也作为可见播放事件。'],
     ['返回值', '`number`', '当前显示策略下的播放事件总数。'],
   ],
-  caution: '该值是播放事件数量，不等于 `computation.steps.length`；小数分隔符和零商策略可能改变最终数量。',
+  caution: '该值是播放事件数量，不等于 `computation.steps.length`；等值右移、小数分隔符和零商策略都可能增加最终数量。',
 })
 
 export const createDivisionMacroSourcePage = createLayoutApiPage({
   slug: 'createDivisionMacroSource',
   summary: '把 DivisionComputation 编排为可编辑的长除法宏源码。',
   example: divisionExample,
-  purpose: '它把商、除数、被除数、厂字弯、部分积、减法线和余数按播放快照写成宏源码，不在布局层重新试商。',
+  purpose:
+    '它把商、除数、被除数、厂字弯、部分积、减法线和余数按播放快照写成宏源码；小数等值右移时，每一步同步放大除数和被除数，位数不足时显示右侧补零，完成后才试商，不在布局层重新试商。',
   signature: `type CreateDivisionMacroSource = (
   computation: DivisionComputation,
   settings: RenderSettings,
@@ -599,6 +623,7 @@ export const layoutApiPages = [
   createAdditionGridScenePage,
   createSubtractionMacroSourcePage,
   createSubtractionGridScenePage,
+  getSubtractionStepCountPage,
   getDivisionPlaybackStepCountPage,
   createDivisionMacroSourcePage,
   createDivisionGridScenePage,

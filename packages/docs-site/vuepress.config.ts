@@ -235,6 +235,7 @@ export default defineUserConfig({
                 },
                 { text: 'createAdditionGridScene', link: '/technical/api/createAdditionGridScene' },
                 { text: 'createSubtractionGridScene', link: '/technical/api/createSubtractionGridScene' },
+                { text: 'getSubtractionStepCount', link: '/technical/api/getSubtractionStepCount' },
                 { text: 'createMultiplicationGridScene', link: '/technical/api/createMultiplicationGridScene' },
                 { text: 'createDivisionGridScene', link: '/technical/api/createDivisionGridScene' },
                 { text: 'createShortDivisionGridScene', link: '/technical/api/createShortDivisionGridScene' },
