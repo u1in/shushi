@@ -9,7 +9,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
     kicker: 'BASE MACRO · 05',
     group: 'basic',
     summary:
-      'LINE 在上一行数字的下边缘画横线。它不创建新行，不改变行高，是竖式中的运算线和分隔线。别名 LN，可省略空括号。',
+      'LINE 在上一行数字的下边缘画横线，并默认延伸到横线上下相邻行的可见图元边界。它不创建新行，不改变行高，是竖式中的运算线和分隔线。别名 LN，可省略空括号。',
     sections: [
       {
         id: 'purpose',
@@ -48,7 +48,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
                 '`KV(span, ...)`',
                 '`previous`、`adjacent`、`longest` 或 `full`',
                 '继承 `GRID(lineSpan)`',
-                '仅在当前横线需要覆盖根节点共同跨度时设置；横线跨度可取上一行、所有行最小包围范围或整个已解析列宽。',
+                '默认使用 `adjacent`；只有需要覆盖上一行、所有行最小包围范围或整个已解析列宽时，才显式设置跨度。',
               ],
               [
                 '`KV(style, token)`',
@@ -101,15 +101,15 @@ export const basicPagesPartTwo: MacroDocPage[] = [
         blocks: [
           {
             type: 'example',
-            title: '单条横线的默认全宽跨度',
-            code: 'GRID(\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2)),\n  LINE\n)',
-            note: '只有一条横线时无需写属性，会自动覆盖推导出的完整列宽。',
+            title: '上下相邻图元的默认跨度',
+            code: 'GRID(\n  KV(columns, 5),\n  ROW(MM(5), MM(6)),\n  LINE,\n  ROW(MM(1), MM(2), MM(3))\n)',
+            note: '省略 `span` 时，横线会从上下相邻行的最左可见图元延伸到两行的最右边界。',
           },
           {
             type: 'example',
-            title: '贯穿整个场景',
-            code: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5)),\n  LINE\n)',
-            note: '虽然内容只占一列，单条横线仍从第 0 列延伸到第 4 列。',
+            title: '显式贯穿整个场景',
+            code: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5)),\n  LINE(KV(span, full))\n)',
+            note: '需要覆盖内容之外的空列时，显式使用 `span=full`，横线会从第 0 列延伸到第 4 列。',
           },
           {
             type: 'example',
@@ -149,11 +149,11 @@ export const basicPagesPartTwo: MacroDocPage[] = [
         blocks: [
           {
             type: 'sandbox',
-            title: '补一条贯穿横线',
-            task: '在第二行下方补一条横线，并让它覆盖整个四列场景。',
+            title: '补一条相邻范围横线',
+            task: '在两行之间补一条横线，让它按上下相邻行的可见图元范围自动确定跨度。',
             starter: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2))\n)',
             answer: 'GRID(\n  KV(columns, 4),\n  ROW(MM(5), MM(6)),\n  ROW(MM(1), MM(2)),\n  LINE\n)',
-            hint: '`LINE` 必须放在第二行之后；单条横线会自动覆盖四列。',
+            hint: '`LINE` 必须放在第二行之后；省略 `span` 时默认使用上下相邻图元边界，需要全宽时再写 `KV(span, full)`。',
           },
         ],
       },

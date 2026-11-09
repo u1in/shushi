@@ -161,6 +161,15 @@ const findExampleCode = (slug: string, title: string): string => {
 }
 
 describe('网格宏文档', () => {
+  test('LINE 页面说明默认使用上下相邻图元跨度', () => {
+    const page = macroDocPageBySlug.get('line')
+    expect(page?.summary).toContain('上下相邻行')
+    const pageText = JSON.stringify(page)
+    expect(pageText).toContain('`adjacent`')
+    expect(pageText).toContain('`KV(span, full)`')
+    expect(pageText).not.toContain('单条横线会自动覆盖四列')
+  })
+
   test('覆盖所有要求的宏、方位宏、符号宏与语法糖页面', () => {
     const missing = requiredSlugs.filter((slug) => !macroDocPageBySlug.has(slug))
     expect(missing).toEqual([])
