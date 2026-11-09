@@ -88,10 +88,8 @@ const renderNumberCells = (row: NumberRowContent, count: number, token: string):
 /** 逐位乘法与列加法总步数；播放控制和宏快照共用该定义。 */
 export const getMultiplicationStepCount = (computation: MultiplicationComputation): number => {
   const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
-  const significantMultiplierDigits =
-    computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   const arithmeticStepCount =
-    multiplicationStepCount + (significantMultiplierDigits.length > 1 ? computation.additionSteps.length : 0)
+    multiplicationStepCount + (computation.partialProducts.length > 1 ? computation.additionSteps.length : 0)
   // 所有数字过程完成后，额外用一帧把最终积的小数点补回。
   return arithmeticStepCount + (computation.decimalPlaces > 0 ? 1 : 0)
 }
@@ -111,7 +109,7 @@ export const createMultiplicationMacroSource = (
     computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
   const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
   const arithmeticStepCount =
-    multiplicationStepCount + (significantMultiplierDigits.length > 1 ? computation.additionSteps.length : 0)
+    multiplicationStepCount + (computation.partialProducts.length > 1 ? computation.additionSteps.length : 0)
   const totalStepCount = getMultiplicationStepCount(computation)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
   const visibleMultiplicationStepCount = Math.min(visibleStepCount, multiplicationStepCount)
@@ -119,7 +117,7 @@ export const createMultiplicationMacroSource = (
     Math.max(0, visibleStepCount - multiplicationStepCount),
     arithmeticStepCount - multiplicationStepCount,
   )
-  const partialWidth = Math.max(...computation.partialProducts.map(({ value, shift }) => value.length + shift))
+  const partialWidth = Math.max(0, ...computation.partialProducts.map(({ value, shift }) => value.length + shift))
   const trailingZeroCount = computation.trailingZeroShortcut?.trailingZeroCount ?? 0
   const baseProductDigits =
     isTrailingZeroShortcut && computation.productDigits !== '0'
@@ -138,7 +136,7 @@ export const createMultiplicationMacroSource = (
   const rightmostNumberIndex = numberColumnCount - 1
   const baseRightmostNumberIndex = baseNumberColumnCount - 1
   const arithmeticRightmostNumberIndex = isTrailingZeroShortcut ? baseRightmostNumberIndex : rightmostNumberIndex
-  const isMultiDigitMultiplier = significantMultiplierDigits.length > 1
+  const hasMultiplePartialProducts = computation.partialProducts.length > 1
   const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
   const children: string[] = []
 
@@ -166,7 +164,7 @@ export const createMultiplicationMacroSource = (
     putNumber(multiplier, computation.multiplierText, rightmostNumberIndex)
   }
 
-  if (isTrailingZeroShortcut && !isMultiDigitMultiplier) {
+  if (isTrailingZeroShortcut && !hasMultiplePartialProducts) {
     const product = createNumberRow()
     if (isComplete)
       putNumber(
@@ -216,13 +214,15 @@ export const createMultiplicationMacroSource = (
     const leadingStep = partialProduct.digitSteps[0]
     if (visibleDigitStepCount === partialProduct.digitSteps.length && leadingStep.carryOut > 0) {
       row.digits.set(
-        arithmeticRightmostNumberIndex - partialProduct.shift - significantMultiplicandDigits.length,
+        arithmeticRightmostNumberIndex -
+          partialProduct.shift -
+          (significantMultiplicandDigits.length - leadingStep.multiplicandDigitIndex),
         String(leadingStep.carryOut),
       )
     }
     if (settings.showCarrySteps && visibleDigitStepCount > 0) {
       completedDigitSteps.forEach(({ carryOut, multiplicandDigitIndex }) => {
-        if (carryOut === 0 || multiplicandDigitIndex === 0) return
+        if (carryOut === 0 || multiplicandDigitIndex === leadingStep.multiplicandDigitIndex) return
         const targetColumnFromRight = significantMultiplicandDigits.length - multiplicandDigitIndex
         const targetIndex = arithmeticRightmostNumberIndex - partialProduct.shift - targetColumnFromRight
         // 第一条部分积紧跟乘法横线；进位改放在横线上方的乘数数字右下角。
@@ -250,7 +250,7 @@ export const createMultiplicationMacroSource = (
   )
   children.push(macroLine('multiplication.input-bar'))
 
-  if (isMultiDigitMultiplier) {
+  if (hasMultiplePartialProducts) {
     const product = createNumberRow()
     if (settings.showCarrySteps && visibleAdditionStepCount > 0) {
       computation.additionSteps.slice(0, visibleAdditionStepCount).forEach((step) => {
@@ -285,7 +285,11 @@ export const createMultiplicationMacroSource = (
       children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
     children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
   } else {
-    children.push(macroRow(renderNumberCells(partialRows[0], numberColumnCount, 'multiplication.product')))
+    // 只有一条有效部分积时，在小数点步骤用最终文本替换过程数字；全零小数没有部分积。
+    const product = createNumberRow()
+    if (isComplete) putNumber(product, computation.productText, arithmeticRightmostNumberIndex)
+    const row = isComplete ? product : (partialRows[0] ?? product)
+    children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.product')))
   }
 
   return macroGrid(

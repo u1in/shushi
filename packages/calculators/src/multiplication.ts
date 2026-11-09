@@ -23,6 +23,7 @@ const splitTrailingZeros = (value: string): { trailingZeroCount: number; signifi
 
 const calculatePartialProduct = (
   multiplicandDigits: string,
+  multiplicandDigitOffset: number,
   multiplierDigit: string,
   multiplierDigitIndex: number,
   shift: number,
@@ -38,7 +39,8 @@ const calculatePartialProduct = (
     carry = Math.floor(total / 10)
     value = `${resultDigit}${value}`
     digitSteps.unshift({
-      multiplicandDigitIndex: index,
+      // 小数计算会略过被乘数左侧仅作小数占位的零，索引仍指向原数字串。
+      multiplicandDigitIndex: multiplicandDigitOffset + index,
       multiplicandDigit: multiplicandDigits[index],
       multiplierDigit,
       carryIn,
@@ -62,6 +64,8 @@ const calculatePartialProduct = (
 const calculateAddition = (
   partialProducts: MultiplicationPartialProduct[],
 ): Pick<MultiplicationComputation, 'productDigits' | 'additionSteps'> => {
+  // 两个小数操作数中任一个为零时，没有需要展示的有效逐位计算。
+  if (partialProducts.length === 0) return { productDigits: '0', additionSteps: [] }
   const maximumColumnCount = Math.max(...partialProducts.map(({ value, shift }) => value.length + shift))
   const resultDigits: string[] = []
   const additionSteps: MultiplicationAdditionStep[] = []
@@ -124,18 +128,36 @@ export const computeMultiplication = (
             (multiplicandShortcut?.trailingZeroCount ?? 0) + (multiplierShortcut?.trailingZeroCount ?? 0),
         }
       : null
-  // 快捷计算会移除上下两行各自末尾的零；中间零仍然是实际位值，不能跳过。
-  const calculationMultiplicandDigits = trailingZeroShortcut?.significantMultiplicandDigits ?? multiplicandDigits
-  const calculationMultiplierDigits = trailingZeroShortcut?.significantMultiplierDigits ?? multiplierDigits
+  const hasDecimalOperand = multiplicand.decimalPlaces > 0 || multiplier.decimalPlaces > 0
+  // 小数竖式的前导零只用于定位小数点：不参与逐位乘法，也不形成空白过程行。
+  const decimalMultiplicandDigits = trimLeadingZeros(multiplicandDigits)
+  const decimalMultiplierDigits = trimLeadingZeros(multiplierDigits)
+  const calculationMultiplicandDigits = hasDecimalOperand
+    ? decimalMultiplicandDigits
+    : (trailingZeroShortcut?.significantMultiplicandDigits ?? multiplicandDigits)
+  const calculationMultiplierDigits = hasDecimalOperand
+    ? decimalMultiplierDigits
+    : (trailingZeroShortcut?.significantMultiplierDigits ?? multiplierDigits)
+  const multiplicandDigitOffset = hasDecimalOperand
+    ? multiplicandDigits.length - calculationMultiplicandDigits.length
+    : 0
+  const multiplierDigitOffset = hasDecimalOperand ? multiplierDigits.length - calculationMultiplierDigits.length : 0
   const partialProducts: MultiplicationPartialProduct[] = []
 
-  for (let index = calculationMultiplierDigits.length - 1; index >= 0; index -= 1) {
+  // 乘数或被乘数去点后全为零时，只保留最终积和小数点定位，不展示零乘法。
+  const hasEffectiveDecimalCalculation =
+    !hasDecimalOperand || (calculationMultiplicandDigits !== '0' && calculationMultiplierDigits !== '0')
+  for (let index = calculationMultiplierDigits.length - 1; hasEffectiveDecimalCalculation && index >= 0; index -= 1) {
+    const multiplierDigitIndex = multiplierDigitOffset + index
     partialProducts.push(
       calculatePartialProduct(
         calculationMultiplicandDigits,
+        multiplicandDigitOffset,
         calculationMultiplierDigits[index],
-        index,
-        calculationMultiplierDigits.length - 1 - index,
+        multiplierDigitIndex,
+        hasDecimalOperand
+          ? multiplierDigits.length - 1 - multiplierDigitIndex
+          : calculationMultiplierDigits.length - 1 - multiplierDigitIndex,
       ),
     )
   }

@@ -17,6 +17,7 @@ import {
   createShortDivisionMacroSource,
   createSubtractionGridScene,
   createSubtractionMacroSource,
+  getMultiplicationStepCount,
 } from '@u1in/shushi-layout'
 import type { GridScene, GridTextContent } from '@u1in/shushi-grid'
 import { compileMacro, formatMacro, minifyMacroForCopy, parseMacro } from '@u1in/shushi-macro'
@@ -126,6 +127,49 @@ describe('计算器宏源码布局', () => {
       ['168', 0],
       ['216', 1],
     ])
+  })
+
+  it('小数乘法省略双方前导零的逐位过程，并在最后恢复积的小数点', () => {
+    const settings = {
+      cellWidth: 30,
+      rowHeight: 46,
+      fontSizeRatio: 1,
+      showGuideGrid: false,
+      uniformMultiplicationBars: false,
+      showCarrySteps: true,
+    }
+    const leadingMultiplierZero = computeMultiplication('2.3', '0.87')
+    const leadingOperandZeros = computeMultiplication('0.05', '0.02')
+    const zeroDecimalOperand = computeMultiplication('0.5', '0.00')
+
+    expect(leadingMultiplierZero.productText).toBe('2.001')
+    expect(
+      leadingMultiplierZero.partialProducts.map(({ multiplierDigit, multiplierDigitIndex, shift, value }) => [
+        multiplierDigit,
+        multiplierDigitIndex,
+        shift,
+        value,
+      ]),
+    ).toEqual([
+      ['7', 2, 0, '161'],
+      ['8', 1, 1, '184'],
+    ])
+    expect(getMultiplicationStepCount(leadingMultiplierZero)).toBe(9)
+
+    expect(leadingOperandZeros.productText).toBe('0.0010')
+    expect(leadingOperandZeros.partialProducts).toMatchObject([
+      { multiplierDigit: '2', multiplierDigitIndex: 2, shift: 0, value: '10' },
+    ])
+    expect(leadingOperandZeros.partialProducts[0].digitSteps).toHaveLength(1)
+    expect(getMultiplicationStepCount(leadingOperandZeros)).toBe(2)
+
+    expect(zeroDecimalOperand).toMatchObject({ productText: '0.000', partialProducts: [], additionSteps: [] })
+    expect(getMultiplicationStepCount(zeroDecimalOperand)).toBe(1)
+
+    ;[leadingMultiplierZero, leadingOperandZeros, zeroDecimalOperand].forEach((multiplication) => {
+      const source = createMultiplicationMacroSource(multiplication, settings)
+      expectHumanReproducible(source, createMultiplicationGridScene(multiplication, settings))
+    })
   })
 
   it('加法、减法和乘法不直接构造 GridScene', () => {
