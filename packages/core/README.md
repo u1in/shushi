@@ -23,6 +23,10 @@
 npm install @u1in/shushi-core
 ```
 
+### 运行环境与构建兼容性
+
+发布的 JavaScript 产物使用 ES2019 语法级别，兼容仍使用旧版 Webpack 解析器的宿主；包声明的 Node.js 运行时最低版本为 `16.6`。浏览器 DOM/SVG 渲染仍需要现代浏览器提供对应的标准 DOM API，Node.js 或 SSR 请使用默认的 `svg-string` 模式。
+
 ### 品牌图标
 
 包内同时发布了固定品牌色的 `@u1in/shushi-core/logo.svg` 和 `@u1in/shushi-core/logo-dark.svg`，分别对应浅色和深色背景，可以直接作为 `<img src="..." alt="Shushi" />` 使用。两个导出都不提供颜色覆盖，确保项目 logo 在不同宿主中保持一致。

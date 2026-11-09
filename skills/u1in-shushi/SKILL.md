@@ -18,6 +18,8 @@ description: Use when an agent needs to install or use @u1in/shushi-core for ari
 
 不要根据旧 API 名称、旧示例或页面 DOM 猜测调用方式；以本 Skill 的参考资料和 `@u1in/shushi-core` 当前类型为准。
 
+发布包的 Node.js 运行时最低版本为 `16.6`，JavaScript 产物使用 ES2019 语法级别，兼容仍使用旧版 Webpack 解析器的宿主。该语法目标不包含旧浏览器运行时 API 的 polyfill；浏览器 DOM/SVG 按现代浏览器支持，Node.js/SSR 使用默认的 `svg-string`。
+
 ## 1. 执行前的判断
 
 ### 1.1 用户已经给出算式

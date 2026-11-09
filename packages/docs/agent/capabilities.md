@@ -4,6 +4,10 @@ title: Agent 能力说明
 
 # `@u1in/shushi-core` Agent 能力说明
 
+## 0. 运行环境与构建兼容性
+
+`@u1in/shushi-core` 的 Node.js 运行时最低版本为 `16.6`。npm 发布的 JavaScript 产物使用 ES2019 语法级别，可被仍使用旧版 Webpack 解析器的宿主直接解析；这只降低语法目标，不会为旧浏览器补充 `ResizeObserver`、DOM 或其他运行时 API。浏览器 DOM/SVG 渲染按现代浏览器支持，Node.js 或 SSR 应使用无 DOM 的 `svg-string` 模式。
+
 ## 1. 先选对入口
 
 当前公开 API 只有两层门户：

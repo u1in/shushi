@@ -4,6 +4,8 @@
 
 ## 1. 安装与导入
 
+如果旧版 Webpack 报 `Unexpected token` 并定位到宿主依赖中的现代语法，先确认使用的是包含 ES2019 产物的 `@u1in/shushi-core` 版本并重新安装依赖。当前发布包已经将语法降到 ES2019；若宿主仍无法解析，应检查宿主自己的 loader 配置和锁定的包版本。该处理只覆盖 JavaScript 语法，不会补齐旧浏览器运行时 API。
+
 ### `npm view` 返回 404
 
 检查包名和 registry：

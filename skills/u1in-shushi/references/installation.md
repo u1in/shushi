@@ -2,6 +2,8 @@
 
 ## 安装前
 
+`@u1in/shushi-core` 要求 Node.js `>=16.6`。发布 JavaScript 使用 ES2019 语法级别，旧版 Webpack 宿主通常可以直接解析；这不包含针对旧浏览器 DOM 或其他运行时 API 的 polyfill。
+
 在宿主项目根目录确认：
 
 ```bash

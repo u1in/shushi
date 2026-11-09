@@ -62,6 +62,8 @@ const rendererStyleAsset: Plugin = {
 export default defineConfig({
   plugins: [qualityCheckPlugin(), rendererStyleAsset],
   build: {
+    // 发布包面向仍使用旧版 Webpack 的宿主，语法降到 ES2019；运行时 API 兼容范围由包的 engines 与宿主环境共同决定。
+    target: 'es2019',
     lib: {
       entry: 'src/index.ts',
       formats: ['es'],
