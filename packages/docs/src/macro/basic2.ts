@@ -17,7 +17,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: '`LINE` 是边缘图元，不是数字行。它始终附着到**上一条 ROW 的下边缘**，因此必须先有至少一个 ROW。横线的跨度由 `span` 决定，样式由 `STYLE`、`KV(style)` 或自动配色决定。',
+            text: '`LINE` 是边缘图元，不是数字行。它始终附着到**上一条 ROW 的下边缘**，因此必须先有至少一个 ROW。未显式设置 `span` 时，默认取横线上下相邻两条 ROW 的最左、最右可见图元边界（`span=adjacent`）；显式设置 `span` 后才改用 `previous`、`longest` 或 `full` 等跨度规则。样式由 `STYLE`、`KV(style)` 或自动配色决定。',
           },
           {
             type: 'list',

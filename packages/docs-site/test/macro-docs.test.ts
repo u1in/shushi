@@ -164,6 +164,8 @@ describe('网格宏文档', () => {
   test('LINE 页面说明默认使用上下相邻图元跨度', () => {
     const page = macroDocPageBySlug.get('line')
     expect(page?.summary).toContain('上下相邻行')
+    const purpose = page?.sections.find(({ id }) => id === 'purpose')
+    expect(JSON.stringify(purpose)).toContain('span=adjacent')
     const pageText = JSON.stringify(page)
     expect(pageText).toContain('`adjacent`')
     expect(pageText).toContain('`KV(span, full)`')
