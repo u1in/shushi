@@ -42,7 +42,7 @@ const result = shushi('125 + 75 - 20 × 3', {
 })
 ```
 
-`fontFamily` 与 `colorTheme` 都会在宏编译阶段进入 `GridScene`；渲染器只读取场景。默认 STIX Two Math 已包含在 `renderer.css`；改用其他字体时使用 `renderer-without-font.css` 并导入对应字体 CSS，避免把默认字体一并打进产物。
+`fontFamily` 与 `colorTheme` 都会在宏编译阶段进入 `GridScene`；渲染器只读取场景。默认 STIX Two Math 已包含在 `renderer.css`；改用其他字体时使用 `renderer-without-font.css` 并导入对应字体 CSS，避免把默认字体一并打进产物。文本单元格按 3×3 九区解析：`MM` 是中心主数字区，`MTD`/`MT(·)` 是上中借位区，`RB` 是下右进位区；不要用 DOM 或 SVG 专属像素偏移重排这些标记。
 
 保留 `result.source` 可供复制或编辑，使用 `result.scene` 做文本、几何或二次渲染分析。
 

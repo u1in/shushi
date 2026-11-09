@@ -175,7 +175,7 @@ const baseConversion = shushiCore({
 | `div`        | DOM 元素     | 浏览器 CSS/DOM 交互    |
 | `svg`        | SVG DOM 元素 | 浏览器 SVG 交互        |
 
-`div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
+`div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。文本单元格分为 3×3 九区：减法宏的 `MTD`（及等价的 `MT(·)`）默认使用与 `DOT` 相同的完整字号并进入上中区，核心数字留在中心区，进位 `RB` 位于下右区。DOM 与 SVG 从同一个 `GridScene` 读取该区域锚点。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
 ### 品牌图标
 

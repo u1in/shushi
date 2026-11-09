@@ -129,7 +129,9 @@ const readNumberRows = (source: string): string[] => {
     // 小数点定位在右边框中点，不是普通 cell；其余边中点文字不参与数字行还原。
     if (position.kind !== 'cell' && position.kind !== 'edgeMidpoint') continue
     if (position.kind === 'edgeMidpoint' && element.content.text !== '.') continue
-    if ((element.content.fontSizeRatio ?? 1) < 0.6) continue
+    if (element.content.text === '·') continue
+    // 其余紧凑教学注记同样不能还原为算式数字。
+    if ((element.content.fontSizeRatio ?? 1) <= 0.6) continue
     const cells = rows.get(position.row) ?? []
     cells.push({ column: position.column, text: element.content.text })
     rows.set(position.row, cells)

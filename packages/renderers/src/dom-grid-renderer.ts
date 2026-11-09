@@ -43,8 +43,8 @@ const renderDomElement = (parent: HTMLElement, element: GridElement, scene: Grid
     setStyleToken(node, element.content.styleToken ?? scene.defaultTextStyleToken)
     node.style.left = `${anchor.x}px`
     node.style.top = `${anchor.y}px`
-    const translateX = horizontalAlign === 'center' ? '-50%' : horizontalAlign === 'right' ? '-100%' : '0'
-    const translateY = verticalAlign === 'center' ? '-50%' : verticalAlign === 'bottom' ? '-100%' : '0'
+    const translateX = anchor.horizontalAlign === 'center' ? '-50%' : anchor.horizontalAlign === 'right' ? '-100%' : '0'
+    const translateY = anchor.verticalAlign === 'center' ? '-50%' : anchor.verticalAlign === 'bottom' ? '-100%' : '0'
     node.style.transform = `translate(${translateX}, ${translateY})`
     if (element.content.color) node.style.color = element.content.color
     if (element.content.fontSizeRatio !== undefined) {

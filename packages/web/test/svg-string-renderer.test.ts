@@ -15,6 +15,19 @@ describe('renderSvgString', () => {
     expect(svg).toContain('>3</text>')
   })
 
+  it('将 DOT 大小的借位点按场景上区锚点序列化', () => {
+    const scene = compileMacro('GRID(ROW(CELL(MM(5), MTD)))')
+    const svg = renderSvgString(scene)
+    const borrow = scene.elements.find(({ content }) => content.kind === 'text' && content.text === '·')
+
+    // SVG 与 DIV 渲染器都只读取此图元的完整字号和上区对齐方式。
+    expect(borrow?.content).toMatchObject({ kind: 'text', horizontalAlign: 'center', verticalAlign: 'top' })
+    expect(borrow?.content.kind === 'text' ? borrow.content.fontSizeRatio : undefined).toBeUndefined()
+    expect(svg).toContain(`y="${scene.padding.top + (scene.unitHeight * 0.25) / 2}"`)
+    expect(svg).toContain('text-anchor:middle')
+    expect(svg).toContain('dominant-baseline:middle')
+  })
+
   it('转义 XML 文本、属性和样式值', () => {
     const scene: GridScene = {
       columns: [{ id: 'column', size: 1 }],

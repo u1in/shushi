@@ -75,10 +75,17 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
               ? undefined
               : `${scene.fontSize * element.content.fontSizeRatio}px`,
           ],
-          ['text-anchor', horizontalAlign === 'left' ? 'start' : horizontalAlign === 'right' ? 'end' : 'middle'],
+          [
+            'text-anchor',
+            anchor.horizontalAlign === 'left' ? 'start' : anchor.horizontalAlign === 'right' ? 'end' : 'middle',
+          ],
           [
             'dominant-baseline',
-            verticalAlign === 'top' ? 'hanging' : verticalAlign === 'bottom' ? 'text-after-edge' : 'middle',
+            anchor.verticalAlign === 'top'
+              ? 'hanging'
+              : anchor.verticalAlign === 'bottom'
+                ? 'text-after-edge'
+                : 'middle',
           ],
         ]),
       },

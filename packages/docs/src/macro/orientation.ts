@@ -172,9 +172,10 @@ export const orientationPages: MacroDocPage[] = [
     name: 'MT',
     title: 'MT · 中上文字',
     purpose:
-      'MT 把文字放在当前单元格的上边缘中央。竖式减法中，它约定用来表示借位点，因此自动配色会使用独立的借位色板。`MTD` 是它的零参数借位点简写，等价于 `MT(·)`。',
-    anchor: '锚点是单元格的中上位置：水平居中、垂直上对齐。它与中心数字错开，因此不会遮住数字本身。',
-    defaultRatio: '未显式设置 `fontSizeRatio` 时使用 0.42 的教学字号',
+      'MT 把文字放在当前单元格上中区的中央。竖式减法中，它约定用来表示借位点，因此自动配色会使用独立的借位色板。`MTD` 是它的零参数借位点简写，等价于 `MT(·)`。',
+    anchor: '锚点是单元格上中区的中点：水平居中、垂直居中。它与中心区数字分开，因此不会遮住数字本身。',
+    defaultRatio:
+      '普通 MT 未显式设置 `fontSizeRatio` 时使用 0.42；借位点 `MT(·)` / `MTD` 使用与 DOT 相同的完整字号，并进入单元格上中区',
     colorRole: '自动配色把它当作借位标记，按行取借位色；即使文本不是点，也按 MT 的约定着色',
     exampleTitle: '减法借位标记',
     exampleCode:
@@ -200,7 +201,7 @@ export const orientationPages: MacroDocPage[] = [
     kicker: 'ORIENTATION MACRO · BORROW DOT',
     group: 'alias',
     summary:
-      'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格的中上位置。它用于竖式减法的借位提示，不接受自定义文字参数。',
+      'MTD 是 `MT(·)` 的零参数专用简写：把借位点放在当前单元格上中区的中点。它用于竖式减法的借位提示，不接受自定义文字参数。',
     sections: [
       {
         id: 'position',
@@ -208,16 +209,16 @@ export const orientationPages: MacroDocPage[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: 'MTD 在当前单元格的顶部中央显示一个教学用圆点（`·`）。它与同格数字叠放，不新增列，也不改变行高；在减法竖式中表示该位发生了借位。',
+            text: 'MTD 在当前单元格上中区的中央显示一个教学用圆点（`·`）。它与同格数字共享单元格但处于不同区域，不新增列，也不改变行高；在减法竖式中表示该位发生了借位。',
           },
           {
             type: 'position-board',
             active: 'MT',
-            note: 'MTD 与 MT 使用同一个中上锚点；图中的 MT 位置就是 MTD 的实际落点。',
+            note: 'MTD 与 MT 使用同一个上中区中点锚点；图中的 MT 位置就是 MTD 的实际落点。',
           },
           {
             type: 'paragraph',
-            text: 'MTD 的锚点是单元格的中上位置：水平居中、垂直上对齐。默认字号比例为 0.42，并沿用 MT 的借位色。',
+            text: 'MTD 的锚点是单元格上中区的中点：水平居中、垂直居中。默认使用与 DOT 相同的完整字号；同格数字固定在中心区，因此放大后的点不会遮挡数字。',
           },
         ],
       },

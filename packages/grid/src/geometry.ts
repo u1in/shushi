@@ -23,7 +23,7 @@ export interface GridRect {
   height: number
 }
 
-/** Where a text box attaches to a cell rect and which edge faces the anchor. */
+/** Where a text box attaches to a resolved grid region. */
 export interface GridTextAnchor {
   x: number
   y: number
@@ -136,27 +136,56 @@ export const getGridElementRect = (element: GridElement, metrics: GridMetrics): 
   getGridPositionRect(element.position, metrics)
 
 /**
- * Converts an area, edge, midpoint or intersection rect and its resolved
- * alignment into an anchor point plus the edge that must touch it. Both
- * renderers share this calculation so all first-class positions agree.
+ * 单元格内的九区边轨比例。3×3 的中心区放置主数字，外围八区承载教学
+ * 注记，因而借位点、进位等放大后不再与主数字争夺同一块排版区域。
+ */
+export const GRID_TEXT_NINE_REGION_SIDE_RATIO = { horizontal: 0.18, vertical: 0.25 } as const
+
+/**
+ * Converts an area, edge, midpoint or intersection rect into a shared text
+ * anchor. A non-zero cell rect is split into nine semantic regions; boundary
+ * and intersection points preserve their original alignment semantics.
  */
 export const getGridTextAnchor = (
   rect: GridRect,
   horizontalAlign: GridTextHorizontalAlign,
   verticalAlign: GridTextVerticalAlign,
-): GridTextAnchor => ({
-  x:
+): GridTextAnchor => {
+  // 边和交点没有可划分的内部区域，仍按它们自身的零面积锚点布局。
+  if (rect.width === 0 || rect.height === 0) {
+    return {
+      x:
+        horizontalAlign === 'left'
+          ? rect.left
+          : horizontalAlign === 'right'
+            ? rect.left + rect.width
+            : rect.left + rect.width / 2,
+      y:
+        verticalAlign === 'top'
+          ? rect.top
+          : verticalAlign === 'bottom'
+            ? rect.top + rect.height
+            : rect.top + rect.height / 2,
+      horizontalAlign,
+      verticalAlign,
+    }
+  }
+
+  const horizontalInset = rect.width * GRID_TEXT_NINE_REGION_SIDE_RATIO.horizontal
+  const verticalInset = rect.height * GRID_TEXT_NINE_REGION_SIDE_RATIO.vertical
+  const x =
     horizontalAlign === 'left'
-      ? rect.left
+      ? rect.left + horizontalInset / 2
       : horizontalAlign === 'right'
-        ? rect.left + rect.width
-        : rect.left + rect.width / 2,
-  y:
+        ? rect.left + rect.width - horizontalInset / 2
+        : rect.left + rect.width / 2
+  const y =
     verticalAlign === 'top'
-      ? rect.top
+      ? rect.top + verticalInset / 2
       : verticalAlign === 'bottom'
-        ? rect.top + rect.height
-        : rect.top + rect.height / 2,
-  horizontalAlign,
-  verticalAlign,
-})
+        ? rect.top + rect.height - verticalInset / 2
+        : rect.top + rect.height / 2
+
+  // 区域中的文字始终围绕区域中心绘制，避免 DOM 的行盒与 SVG 基线向外扩张。
+  return { x, y, horizontalAlign: 'center', verticalAlign: 'center' }
+}

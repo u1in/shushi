@@ -266,9 +266,10 @@ export const compileSugarCellElement = (
     throw new Error(`${name} 必须包含一个文本参数。`)
   // DOT 的默认颜色由 GRID(autoColor) 统一注入；关闭时不保留旧的蓝色 token，回退为黑色。
   const styleToken = options.get('style') ?? cell.styleToken
+  const usesDefaultBorrowDot = !options.has('fontSizeRatio') && (isMiddleTopDot || (name === 'MT' && text === '·'))
   const fontSizeRatio = options.has('fontSizeRatio')
     ? getPositiveNumber(options.get('fontSizeRatio'), `${name} 的 fontSizeRatio`, 1)
-    : dot || name === 'MM' || fixedSymbolText !== undefined
+    : dot || name === 'MM' || fixedSymbolText !== undefined || usesDefaultBorrowDot
       ? undefined
       : ANNOTATION_FONT_SIZE_RATIO
   if (name === 'RBL') {
@@ -288,6 +289,12 @@ export const compileSugarCellElement = (
   return {
     id: `macro-text-${id}`,
     position: { kind: 'cell', column: cell.column, row, columnSpan: cell.columnSpan },
-    content: { kind: 'text', text, styleToken, fontSizeRatio, ...getTextAlignment(name ?? '') },
+    content: {
+      kind: 'text',
+      text,
+      styleToken,
+      fontSizeRatio,
+      ...getTextAlignment(name ?? ''),
+    },
   }
 }

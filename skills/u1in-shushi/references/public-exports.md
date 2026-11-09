@@ -90,7 +90,7 @@ getGridElementRect
 extractVisibleTextRows
 ```
 
-这些 API 读取 `GridScene`，不重新解释加法、减法、乘法或除法语义。
+这些 API 读取 `GridScene`，不重新解释加法、减法、乘法或除法语义。有面积单元格的文字会按 3×3 九区解析：`LT`…`RB` 分别落在对应区域，`MM` 是主数字中心区，`MTD` 是上中借位区，`RB` 是下右进位区；DOM 和 SVG 共用同一几何结果。
 
 ## 6. 渲染器
 

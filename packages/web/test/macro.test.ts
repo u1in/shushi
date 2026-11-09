@@ -264,13 +264,19 @@ describe('网格宏编译器', () => {
     ).toEqual(['1', '2', '2', '8', '3', '3'])
   })
 
-  test('非单元格中心的文本默认使用进位教学字号，但不改写颜色 token', () => {
+  test('中上借位点采用 DOT 字号并进入单元格上区', () => {
     const scene = compileMacro('GRID(ROW(MM(9), MT(·)))')
     const [middle, annotation] = scene.elements
 
     expect(middle.content).toMatchObject({ kind: 'text', text: '9' })
     expect(middle.content.kind === 'text' ? middle.content.fontSizeRatio : undefined).toBeUndefined()
-    expect(annotation.content).toMatchObject({ kind: 'text', text: '·', fontSizeRatio: 0.42 })
+    expect(annotation.content).toMatchObject({
+      kind: 'text',
+      text: '·',
+      horizontalAlign: 'center',
+      verticalAlign: 'top',
+    })
+    expect(annotation.content.kind === 'text' ? annotation.content.fontSizeRatio : undefined).toBeUndefined()
     expect(annotation.content.kind === 'text' && annotation.content.styleToken).toBeUndefined()
   })
 
@@ -285,7 +291,6 @@ describe('网格宏编译器', () => {
       content: {
         horizontalAlign: 'center',
         verticalAlign: 'top',
-        fontSizeRatio: 0.42,
         color: AUTO_COLOR_THEME.borrow,
       },
     })
