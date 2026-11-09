@@ -158,11 +158,11 @@ calculate()
                 ><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate"
               /></label>
               <label class="field"
-                ><span>最大小数位（留空默认 10 位）</span
+                ><span>最大小数位（0 表示到个位取余，留空默认 10 位）</span
                 ><input
                   v-model="maxDecimalDigits"
                   type="number"
-                  min="1"
+                  min="0"
                   step="1"
                   inputmode="numeric"
                   placeholder="留空时默认 10 位"

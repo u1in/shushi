@@ -53,6 +53,8 @@ npm ls @u1in/shushi-core --depth=0
 
 不要写成含有加减乘的混合表达式。表达式入口按“被除数 ÷ 除数”解析；`shushiCore` 和 `computeDivision` 则固定传 `divisor` 在前、`dividend` 在后。小数除数会先右移为整数；被除数的小数位不足时会在右侧补 `0` 后再计算。
 
+若只需要整数商和余数，可传入 `calculation.maxDecimalDigits: 0`；例如 `15 ÷ 4` 会得到商 `3` 和余数 `3`，不会生成小数点。传入正整数时才会继续追加对应上限的小数位。
+
 ### 短除法
 
 ```text

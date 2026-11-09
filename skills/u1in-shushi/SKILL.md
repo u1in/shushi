@@ -129,7 +129,7 @@ addition | subtraction | multiplication | division | shortDivision | composite
 - `addition`：`values`；
 - `subtraction`：`operands: [被减数, 减数]`，两者可为非负十进制数；
 - `multiplication`：`operands`，可选 `calculation`；
-- `division`：`divisor` 在前、`dividend` 在后；两者可为小数，其中 `dividend` 非负、`divisor` 必须大于 `0`。`calculation.maxDecimalDigits` 可选，已有输入小数会先计算完，省略时后续默认最多补零十位，传入正整数时覆盖该上限；
+- `division`：`divisor` 在前、`dividend` 在后；两者可为小数，其中 `dividend` 非负、`divisor` 必须大于 `0`。`calculation.maxDecimalDigits` 可选，已有输入小数会先计算完，省略时后续默认最多补零十位，传入非负整数时覆盖该上限，传入 `0` 时不追加小数位，整数输入直接返回余数；
 - `shortDivision`：`mode`、`values`，指定除数时增加 `divisor`，进制转换时增加 `targetBase`；
 - `composite`：`expression`。
 

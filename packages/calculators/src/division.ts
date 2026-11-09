@@ -93,8 +93,8 @@ const createStep = (
 })
 
 const normalizeOptions = ({ maxDecimalDigits = DEFAULT_MAX_DECIMAL_DIGITS }: DivisionOptions): DivisionOptions => {
-  if (maxDecimalDigits !== undefined && (!Number.isInteger(maxDecimalDigits) || maxDecimalDigits < 1)) {
-    throw new Error('小数最大位数必须是正整数。')
+  if (maxDecimalDigits !== undefined && (!Number.isInteger(maxDecimalDigits) || maxDecimalDigits < 0)) {
+    throw new Error('小数最大位数必须是非负整数。')
   }
 
   return { maxDecimalDigits }
@@ -177,8 +177,8 @@ export const computeDivision = (
   }
 
   // 原被除数带小数时，点后每一位都属于商的小数过程；否则只在有余数时补零展开。
-  const hasFraction = decimalPlaces > 0 || remainder !== '0'
-  if (hasFraction) {
+  const needsFractionalCalculation = decimalPlaces > 0 || remainder !== '0'
+  if (needsFractionalCalculation) {
     for (let dividendColumn = integerDividendDigitCount; dividendColumn < dividendDigits.length; dividendColumn += 1) {
       calculateFractionalDigit(dividendColumn, dividendDigits[dividendColumn])
     }
@@ -188,6 +188,8 @@ export const computeDivision = (
     }
   }
 
+  // 只有输入本身带小数，或确实追加了小数位时才输出小数点；上限为 0 时，整数输入直接保留余数。
+  const hasFraction = decimalPlaces > 0 || fractionalDigitCount > 0
   const decimalTruncated = hasFraction && remainder !== '0' && fractionalDigitCount === decimalLimit
   const quotientTokens = quotientDigits.flatMap(({ column, digit }) => {
     const token = { kind: 'digit' as const, digit, column }

@@ -120,7 +120,7 @@ console.log(computation.steps)`,
     [
       '`options.maxDecimalDigits`',
       '`number`',
-      '可选的正整数。省略时默认最多补零展开十位；配置后最多补零该位数，未除尽时保留截断小数与当前余数。',
+      '可选的非负整数。省略时默认最多补零展开十位；传入 0 时不追加小数位，整数输入直接返回余数，传入正整数时最多补零该位数，未除尽时保留截断小数与当前余数。',
     ],
     [
       '返回值',
@@ -128,7 +128,7 @@ console.log(computation.steps)`,
       '包含 `sourceDivisorText`、`sourceDividendText`、`normalizationShift`、`quotientText`、`quotientTokens`、`steps` 和 `remainder`。',
     ],
   ],
-  caution: '除数为 0、非正整数的小数位上限都会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
+  caution: '除数为 0、负数或非整数的小数位上限都会抛错；函数只返回计算过程，不负责厂字弯、商位和横线的布局。',
 })
 
 export const computeMultiplicationPage = createCalculatorApiPage({

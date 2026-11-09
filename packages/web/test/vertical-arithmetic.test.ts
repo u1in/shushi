@@ -85,6 +85,24 @@ describe('统一竖式门户 API', () => {
       remainder: '0',
       decimalTruncated: false,
     })
+
+    const integerOnly = shushiCore({
+      operation: 'division',
+      divisor: '4',
+      dividend: '15',
+      calculation: { maxDecimalDigits: 0 },
+    })
+    expect(integerOnly.computation).toMatchObject({
+      quotientText: '3',
+      remainder: '3',
+      hasFraction: false,
+      fractionalDigitCount: 0,
+      decimalTruncated: false,
+    })
+    expect(integerOnly.computation.quotientTokens).not.toContainEqual(
+      expect.objectContaining({ kind: 'decimalSeparator' }),
+    )
+    expectPortalResult(integerOnly)
   })
 
   it('加法、减法和乘法按小数位转换为整数过程，并在输入、结果行恢复小数点', () => {

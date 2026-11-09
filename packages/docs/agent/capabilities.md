@@ -135,7 +135,7 @@ shushiCore(request: ShushiRequest<VerticalArithmeticRequest>): AnyVerticalArithm
 
 长除法的结构化参数顺序固定为 `divisor` 在前、`dividend` 在后；表达式入口则遵循用户书写方向，例如 `10230 / 25` 表示被除数 10230、除数 25。
 
-`calculation.maxDecimalDigits` 是长除法补零展开控制项：已有输入小数位会先完整计算；省略时后续默认最多补零十位，传入正整数时覆盖这个上限。若仍未除尽则保留截断小数、过程和当前余数。
+`calculation.maxDecimalDigits` 是长除法补零展开控制项：已有输入小数位会先完整计算；省略时后续默认最多补零十位，传入非负整数时覆盖该上限，传入 `0` 时不追加小数位，整数输入直接返回余数。若仍未除尽则保留截断小数、过程和当前余数。
 
 ### 结构化示例
 

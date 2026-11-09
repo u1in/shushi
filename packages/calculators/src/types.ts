@@ -41,8 +41,8 @@ export interface DivisionComputation {
 
 export interface DivisionOptions {
   /**
-   * 最多继续计算的小数位数。省略时默认计算十位；
-   * 指定后即使余数未归零也保留已经计算出的各位小数。
+   * 最多继续计算的小数位数。省略时默认计算十位；对整数输入传入 0 时只计算整数位并保留余数；
+   * 指定非负整数后，即使余数未归零也保留已经计算出的各位小数。
    */
   maxDecimalDigits?: number
 }
