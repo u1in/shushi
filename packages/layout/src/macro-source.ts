@@ -31,8 +31,10 @@ export const macroBorrowDot = (styleToken: string): string => `MTD(${macroOption
 export const macroRow = (cells: string[], align: 'left' | 'right' = 'right'): string =>
   `ROW(${cells.join(', ')}${align === 'right' ? '' : `, ${macroOption('align', align)}`})`
 
-export const macroLine = (styleToken: string, span: 'previous' | 'longest' | 'full' = 'previous'): string =>
-  `LINE(${macroOption('span', span)}, ${macroOption('style', styleToken)})`
+export const macroLine = (
+  styleToken: string,
+  span: 'previous' | 'adjacent' | 'longest' | 'full' = 'adjacent',
+): string => `LINE(${macroOption('span', span)}, ${macroOption('style', styleToken)})`
 
 /** 同一套场景参数写入宏源码，禁止计算器绕过宏编译器直接构造 GridScene。 */
 export const macroGrid = (

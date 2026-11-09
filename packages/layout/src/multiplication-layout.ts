@@ -212,7 +212,7 @@ export const createMultiplicationMacroSource = (
         ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier'),
       ]),
     )
-    children.push(macroLine('multiplication.input-bar'))
+    children.push(macroLine('multiplication.input-bar', 'adjacent'))
     if (isComplete) children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
     return macroGrid(
       numberColumnCount + 1,
@@ -277,7 +277,7 @@ export const createMultiplicationMacroSource = (
       ...renderNumberCells(multiplier, numberColumnCount, 'multiplication.multiplier'),
     ]),
   )
-  children.push(macroLine('multiplication.input-bar'))
+  children.push(macroLine('multiplication.input-bar', 'adjacent'))
 
   if (hasMultiplePartialProducts) {
     const product = createNumberRow()
@@ -306,7 +306,7 @@ export const createMultiplicationMacroSource = (
       children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.partial-product')))
     })
     if (visibleAdditionStepCount > 0)
-      children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'previous'))
+      children.push(macroLine('multiplication.sum-bar', settings.uniformMultiplicationBars ? 'full' : 'adjacent'))
     if (visibleAdditionStepCount > 0 || isComplete)
       children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
   } else {

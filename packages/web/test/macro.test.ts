@@ -348,6 +348,15 @@ ROW(MM(6), MM(3), MM(4))`)
     })
   })
 
+  test('LINE 默认延伸到上下相邻行的最左图元', () => {
+    const scene = compileMacro('GRID(KV(columns, 5), ROW(MM(1), MM(2)), LINE, ROW(MM(3), MM(4), MM(5)))')
+    const line = scene.elements.find(({ content }) => content.kind === 'line')
+
+    expect(line).toMatchObject({
+      position: { kind: 'edge', column: 2, row: 0, columnSpan: 3, edge: 'bottom' },
+    })
+  })
+
   test('零参数宏可省略括号，显式关闭 autoColor 时 LINE 使用默认黑色基线', () => {
     const scene = compileMacro('GRID(KV(autoColor, false), ROW(MM(5), MM(6)), LINE)')
     const line = scene.elements.find(({ content }) => content.kind === 'line')
@@ -554,11 +563,11 @@ CELL(
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
-  test('最简化会省略多条横线中最长横线冗余的 full 跨度', () => {
+  test('最简化保留显式 previous 跨度以区别默认 adjacent', () => {
     const source = 'GRID(ROW(MM(5)),LINE(KV(span,full)),ROW(MM(6)),LINE(KV(span,previous)),ROW(MM(7)))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('5;LN;6;LN;7;')
+    expect(compact).toBe('5;LN;6;LN(KV(span,previous));7;')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 
@@ -660,7 +669,7 @@ CELL(
     const source = 'GRID(KV(columns, 3), KV(showGrid, true), ROW(MM(5), MM(6), KV(align, left)), LINE(KV(span, full)))'
     const compact = minifyMacro(source)
 
-    expect(compact).toBe('GRID(KV(columns,3),KV(showGrid,true),ROW(MM(5),MM(6),KV(align,left)),LN)')
+    expect(compact).toBe('GRID(KV(columns,3),KV(showGrid,true),ROW(MM(5),MM(6),KV(align,left)),LN(KV(span,full)))')
     expect(compileMacro(compact)).toEqual(compileMacro(source))
   })
 

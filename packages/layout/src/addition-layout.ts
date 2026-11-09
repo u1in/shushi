@@ -129,7 +129,7 @@ export const createAdditionMacroSource = (
     children.push(macroRow(cells))
   })
 
-  children.push(macroLine('addition.sum-bar', 'full'))
+  children.push(macroLine('addition.sum-bar', 'adjacent'))
   const resultCells = Array.from({ length: columns }, macroEmptyCell)
   // 所有补零和逐列计算完成后先显示去点结果，下一步才补上最终和的小数点。
   placeNumber(resultCells, sumToDisplay, 'addition.sum', columns - sumToDisplay.replace('.', '').length)

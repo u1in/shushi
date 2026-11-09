@@ -162,7 +162,7 @@ export const createSubtractionMacroSource = (
   return macroGrid(columns, settings, `${computation.minuendText} 减 ${computation.subtrahendText} 的竖式`, [
     macroRow(minuendCells),
     macroRow(subtrahendCells),
-    macroLine('subtraction.difference-bar', 'full'),
+    macroLine('subtraction.difference-bar', 'adjacent'),
     macroRow(differenceCells),
   ])
 }

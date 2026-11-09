@@ -46,7 +46,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
               ['`STYLE(...)`', '受限样式', '黑色 2px', '颜色与线宽；最多一个。自动配色开启时会被主题覆盖。'],
               [
                 '`KV(span, ...)`',
-                '`previous`、`longest` 或 `full`',
+                '`previous`、`adjacent`、`longest` 或 `full`',
                 '继承 `GRID(lineSpan)`',
                 '仅在当前横线需要覆盖根节点共同跨度时设置；横线跨度可取上一行、所有行最小包围范围或整个已解析列宽。',
               ],
@@ -74,6 +74,12 @@ export const basicPagesPartTwo: MacroDocPage[] = [
                 '上一行最右单元格右边界',
                 '只在当前运算行下方画线，不强制与其他横线等宽。',
               ],
+              [
+                '`adjacent`',
+                '横线上下两行的最左可见图元',
+                '横线上下两行的最右边界',
+                '默认规则；适合结果行动态出现前缀 0 等宽度变化。',
+              ],
               ['`longest`', '所有数字行的最左列', '所有数字行的最右边界', '让多条横线在视觉上尽量等宽。'],
               ['`full`', '第 0 列', '整个场景列宽', '需要贯穿整张网格的运算线。'],
             ],
@@ -81,7 +87,7 @@ export const basicPagesPartTwo: MacroDocPage[] = [
           {
             type: 'list',
             items: [
-              '默认样式是黑色、2px；单条 LINE 默认贯穿整个场景，多条 LINE 默认各自贴合上一行。写 `GRID(KV(lineSpan, full), ...)` 可让多条横线共用全宽；写 `STYLE(KV(thickness, 3))` 可以改粗。',
+              '默认样式是黑色、2px；LINE 默认按 `adjacent` 取其上下两行的最左、最右可见图元边界，适合上下行宽度不同的竖式。需要覆盖整张网格时写 `KV(span, full)` 或 `GRID(KV(lineSpan, full), ...)`；写 `STYLE(KV(thickness, 3))` 可以改粗。',
               '`autoColor` 开启时，LINE 使用主题的 `rule.color` 与 `rule.thickness`，显式 `STYLE` 不参与最终输出。',
               '`LINE` 前面没有 ROW 时会报错；放在两个 ROW 之间时，它贴的是**前一个** ROW。',
               '横线不改变行数：`ROW`、`LINE`、`ROW` 仍然是两行。',
@@ -127,7 +133,11 @@ export const basicPagesPartTwo: MacroDocPage[] = [
                 '传了两个 STYLE 或其他图元。',
                 '只保留一个 STYLE，其他用 `KV`。',
               ],
-              ['`LINE 的 span 只能是 previous、longest 或 full。`', '写了其他跨度值。', '改成三个枚举值之一。'],
+              [
+                '`LINE 的 span 只能是 previous、adjacent、longest 或 full。`',
+                '写了其他跨度值。',
+                '改成四个枚举值之一。',
+              ],
               ['`LINE 找不到可确定跨度的数字行。`', '场景里没有数字行。', '至少加入一个 ROW。'],
             ],
           },

@@ -145,7 +145,7 @@ const putShiftedInput = (
 }
 
 /**
- * 将除法过程转为人类可复制的宏字符串。横线利用 LINE(previous) 的公开对齐规则，
+ * 将除法过程转为人类可复制的宏字符串。横线利用 LINE(adjacent) 的公开对齐规则，
  * 不再直接写 GridElement 边界坐标。
  */
 export const createDivisionMacroSource = (computation: DivisionComputation, settings: RenderSettings): string => {
@@ -243,11 +243,11 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
       putNumber(partialCells, step.partialDividend, dividendStart + step.dividendColumn, 'division.partial-minuend')
       children.push(macroRow(partialCells))
     }
-    // 只写横线起点右侧的宏单元格，LINE(previous) 便得到同一公开跨度。
+    // 只写横线起点右侧的宏单元格，LINE(adjacent) 会结合上下相邻行确定共同跨度。
     const productCells = Array.from({ length: totalColumns - dividendStart - sourceStart }, macroEmptyCell)
     putNumber(productCells, step.product, step.dividendColumn - sourceStart, 'division.partial-subtrahend')
     children.push(macroRow(productCells))
-    children.push(macroLine('division.subtraction-bar', 'previous'))
+    children.push(macroLine('division.subtraction-bar', 'adjacent'))
   })
 
   const remainderCells = Array.from({ length: totalColumns }, macroEmptyCell)

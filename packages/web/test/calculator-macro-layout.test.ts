@@ -170,6 +170,22 @@ describe('计算器宏源码布局', () => {
       const source = createMultiplicationMacroSource(multiplication, settings)
       expectHumanReproducible(source, createMultiplicationGridScene(multiplication, settings))
     })
+
+    const leadingProductZero = computeMultiplication('0.05', '0.25')
+    const leadingProductZeroScene = createMultiplicationGridScene(leadingProductZero, settings)
+    const sumBars = leadingProductZeroScene.elements
+      .filter(({ content }) => content.kind === 'line')
+      .map(({ position, styleToken }) => ({ position, styleToken }))
+    expect(sumBars).toEqual([
+      {
+        position: { kind: 'edge', column: 0, row: 1, columnSpan: 6, edge: 'bottom' },
+        styleToken: 'multiplication.input-bar',
+      },
+      {
+        position: { kind: 'edge', column: 1, row: 3, columnSpan: 5, edge: 'bottom' },
+        styleToken: 'multiplication.sum-bar',
+      },
+    ])
   })
 
   it('加法、减法和乘法不直接构造 GridScene', () => {

@@ -86,9 +86,9 @@ export const basicPagesPartOne: MacroDocPage[] = [
               ['`showGrid`', '`true` 或 `false`', '`false`', '显示辅助网格轨道。旧写法 `showGuideGrid` 仍兼容。'],
               [
                 '`lineSpan`',
-                '`previous`、`longest` 或 `full`',
-                '单条 LINE 为 `full`；多条 LINE 为 `previous`',
-                '为多条横线设置共同跨度；个别横线可用自身的 `span` 覆盖。',
+                '`previous`、`adjacent`、`longest` 或 `full`',
+                '默认 `adjacent`；可显式改为 `previous`、`longest` 或 `full`',
+                '为多条横线设置共同跨度；`adjacent` 会按横线前后两行的可见图元边界取跨度，个别横线可用自身的 `span` 覆盖。',
               ],
               [
                 '`autoColor`',

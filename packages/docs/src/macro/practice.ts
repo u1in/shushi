@@ -261,7 +261,7 @@ export const practicePages: MacroDocPage[] = [
                 '拆成单独 `CELL(BRKT)`。',
               ],
               ['`LINE 前必须先有一个 ROW。`', 'LINE 出现在第一条 ROW 之前。', '移到需要画线的 ROW 之后。'],
-              ['`LINE 的 span 只能是 previous、longest 或 full。`', 'span 拼写错误。', '改成三个枚举之一。'],
+              ['`LINE 的 span 只能是 previous、adjacent、longest 或 full。`', 'span 拼写错误。', '改成四个枚举之一。'],
               ['`短除法每行 VALUE 数值组数量必须一致。`', '过程行与底行组数不同。', '统一每行的 VALUE 数量。'],
               ['`短除法最后一行必须是不含 DIV 的 VALUE 底行。`', '最后一行仍是过程行。', '补一行只含 VALUE 的底行。'],
               [

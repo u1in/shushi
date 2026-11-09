@@ -177,7 +177,7 @@ const pruneMinifyNode = (node: MacroNode, context: GridMinifyContext): MacroNode
       ),
     })
   }
-  // 横线的共同跨度需要在 GRID 层归并，不能在这里按旧的 previous 默认值提前删除。
+  // 横线的共同跨度需要在 GRID 层归并，不能在这里按默认的 adjacent 提前删除。
   if (node.name === 'LINE')
     return { ...node, arguments: node.arguments.map((child) => pruneMinifyNode(child, context)) }
   if (node.name === 'CELL' || node.name === 'EMPTY') {
@@ -262,7 +262,7 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
   const filteredContent = content.map((node) => pruneMinifyNode(node, { trackUnit, hasDivider }))
   const lineNodes = filteredContent.filter((node): node is MacroCall => isMacroCall(node, 'LINE'))
   const configuredLineSpan = getOptionValue(root.arguments, 'lineSpan')
-  const fallbackLineSpan = configuredLineSpan ?? (lineNodes.length === 1 ? 'full' : 'previous')
+  const fallbackLineSpan = configuredLineSpan ?? 'adjacent'
   const resolvedColumns = Math.max(inferredColumns ?? 0, Number(getOptionValue(root.arguments, 'columns') ?? 0))
   const getLineSpan = (line: MacroCall): string => getOptionValue(line.arguments, 'span') ?? fallbackLineSpan
   const replaceLineSpan = (line: MacroCall, span: string | undefined): MacroCall => {
@@ -292,31 +292,46 @@ const pruneGridNode = (root: MacroCall): MacroCall => {
       .find((node): node is MacroCall => isMacroCall(node, 'ROW'))
     return previousRow !== undefined && inferGridColumns([previousRow], trackUnit) === resolvedColumns
   }
+  /** 上下相邻行已覆盖完整列宽时，显式 full 与默认 adjacent 等价。 */
+  const canUseAdjacentSpan = (line: MacroCall): boolean => {
+    const lineIndex = filteredContent.indexOf(line)
+    const adjacentRows = [
+      filteredContent
+        .slice(0, lineIndex)
+        .reverse()
+        .find((node): node is MacroCall => isMacroCall(node, 'ROW')),
+      filteredContent.slice(lineIndex + 1).find((node): node is MacroCall => isMacroCall(node, 'ROW')),
+    ].filter((node): node is MacroCall => node !== undefined)
+    return adjacentRows.some((row) => inferGridColumns([row], trackUnit) === resolvedColumns)
+  }
   const resolvedLineSpans = lineNodes.map(getLineSpan)
   const sharedLineSpan =
     lineNodes.length > 1 &&
     resolvedLineSpans.length > 0 &&
     resolvedLineSpans.every((span) => span === resolvedLineSpans[0]) &&
-    // 只在每条横线都必须使用 full 时提升为根配置，避免最长横线获得冗余跨度配置。
-    !(resolvedLineSpans[0] === 'full' && lineNodes.some(canUsePreviousSpan))
+    // 只在每条横线都必须使用非默认跨度时提升为根配置，避免默认 adjacent 获得冗余配置。
+    !(resolvedLineSpans[0] === 'full' && lineNodes.some(canUseAdjacentSpan))
       ? resolvedLineSpans[0]
       : undefined
   const normalizedContent = filteredContent.map((node) => {
     if (!isMacroCall(node, 'LINE')) return node
     const span = getLineSpan(node)
     if (lineNodes.length === 1) {
-      const canUseSingleLineDefault = span === 'full' || (span === 'previous' && canUsePreviousSpan(node))
+      const canUseSingleLineDefault =
+        span === 'adjacent' ||
+        (span === 'full' && canUseAdjacentSpan(node)) ||
+        (span === 'previous' && canUsePreviousSpan(node))
       return replaceLineSpan(node, canUseSingleLineDefault ? undefined : span)
     }
     if (sharedLineSpan !== undefined) return replaceLineSpan(node, undefined)
-    // 多横线时，最长横线的 previous 已等于 full；只有实际较短的横线才保留 full。
+    // 多横线时，默认 adjacent 可以省略；只有实际较宽的 full 或显式 previous 才保留配置。
     return replaceLineSpan(
       node,
-      span === 'previous' || (span === 'full' && canUsePreviousSpan(node)) ? undefined : span,
+      span === 'adjacent' || (span === 'full' && canUseAdjacentSpan(node)) ? undefined : span,
     )
   })
   const normalizedOptions: MacroNode[] =
-    sharedLineSpan !== undefined && sharedLineSpan !== 'previous'
+    sharedLineSpan !== undefined && sharedLineSpan !== 'adjacent'
       ? [
           ...filteredOptions,
           {

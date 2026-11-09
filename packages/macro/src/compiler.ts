@@ -54,7 +54,7 @@ interface NormalizedRow {
 
 interface NormalizedLine {
   afterRow: number
-  span: 'previous' | 'longest' | 'full'
+  span: 'previous' | 'adjacent' | 'longest' | 'full'
   style: MacroStyle
   styleToken?: string
   /** 保留原始 LINE 节点，供 AST 检查器反查被渲染的横线。 */
@@ -222,8 +222,8 @@ const readLine = (
   const styleNode = content.at(0)
   if (content.length > 1) throw new Error('LINE 最多接受一个 STYLE 参数，其余请用 KV 配置。')
   const span = options.get('span') ?? defaultSpan
-  if (span !== 'previous' && span !== 'longest' && span !== 'full') {
-    throw new Error('LINE 的 span 只能是 previous、longest 或 full。')
+  if (span !== 'previous' && span !== 'adjacent' && span !== 'longest' && span !== 'full') {
+    throw new Error('LINE 的 span 只能是 previous、adjacent、longest 或 full。')
   }
   const styleToken = options.get('style')
   const style = resolveLineStyle(styleNode, styleToken)
@@ -237,10 +237,15 @@ const getLineRange = (
   columns: number,
 ): { start: number; end: number } => {
   if (span === 'full') return { start: 0, end: columns }
-  const rows = span === 'previous' ? [row] : allRows
+  const rows =
+    span === 'previous'
+      ? [row]
+      : span === 'adjacent'
+        ? [row, allRows[allRows.indexOf(row) + 1]].filter((item): item is PositionedCell[] => item !== undefined)
+        : allRows
   const cells = rows.flat()
   if (cells.length === 0) throw new Error('LINE 找不到可确定跨度的数字行。')
-  // 右对齐行的行首 EMPTY 只是补齐列数，不应把 LINE(previous) 的起点向左扩展；
+  // 右对齐行的行首 EMPTY 只是补齐列数，不应把 LINE 的起点向左扩展；
   // 尾部 EMPTY 仍参与终点计算，以保留布局器明确要求的横线长度。
   const startCells = rows.flatMap((rowCells) => {
     const visibleCells = rowCells.filter(({ elements }) => elements.length > 0)
@@ -546,13 +551,14 @@ const compileMacroAstWithObserver = (
   if (
     configuredLineSpan !== undefined &&
     configuredLineSpan !== 'previous' &&
+    configuredLineSpan !== 'adjacent' &&
     configuredLineSpan !== 'longest' &&
     configuredLineSpan !== 'full'
   ) {
-    throw new Error('GRID 的 lineSpan 只能是 previous、longest 或 full。')
+    throw new Error('GRID 的 lineSpan 只能是 previous、adjacent、longest 或 full。')
   }
-  // 单条横线是竖式最常见情形，默认贯穿推导后的完整列宽；多条横线仍默认各自贴合上一行。
-  const defaultLineSpan: NormalizedLine['span'] = configuredLineSpan ?? (lineCalls.length === 1 ? 'full' : 'previous')
+  // 横线默认取上下相邻 ROW 的共同可见边界；full / longest 仍可通过显式配置覆盖。
+  const defaultLineSpan: NormalizedLine['span'] = configuredLineSpan ?? 'adjacent'
   const lines = lineCalls.map(({ call, afterRow, sourceNode }) => readLine(call, afterRow, defaultLineSpan, sourceNode))
 
   const inferredColumns = Math.max(...rows.map(({ cells }) => cells.reduce((sum, cell) => sum + cell.columnSpan, 0)))
