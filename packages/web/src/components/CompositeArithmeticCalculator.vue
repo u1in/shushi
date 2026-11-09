@@ -72,10 +72,9 @@ const answer = computed(() => {
   if ('sumText' in computation) return computation.sumText
   if ('differenceDigits' in computation) return computation.resultText
   if ('productText' in computation) return computation.productText
+  // 预览标题只显示商和未结束标记；余数已在竖式末行展示，不能混入等式右侧。
   if ('quotientText' in computation)
-    return computation.remainder === '0'
-      ? computation.quotientText
-      : `${computation.quotientText} …… ${computation.remainder}`
+    return computation.remainder === '0' ? computation.quotientText : `${computation.quotientText} ……`
   if (computation.mode === 'division') return `${computation.quotient} … ${computation.remainder}`
   if (computation.mode === 'factorization') return computation.factorizationText
   if (computation.mode === 'commonFactor') return `最大公约数是${computation.gcd}，最小公倍数是${computation.lcm}`
