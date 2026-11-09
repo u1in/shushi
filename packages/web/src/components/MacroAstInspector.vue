@@ -122,6 +122,7 @@ const selectedNodeLabel = computed(() => {
 })
 const selectedPath = computed(() => selectedReference.value?.nodePath.join(' → ') || '尚未选择元素')
 const canEditSelectedText = computed(() => selectedReference.value?.literalPath !== undefined)
+const selectedStrikeKind = computed(() => selectedReference.value?.strikeKind)
 
 /** 代码示例跟随当前宏源码和可编辑图元变化；尚未点击图元时展示首个可编辑数字作为示例。 */
 const implementationCode = computed(() => {
@@ -232,6 +233,22 @@ const applyText = (): void => {
   }
 }
 
+/** 删除选中的删除线；STRIKEDOT 保留小数点并回退为 DOT。 */
+const removeSelectedStrike = (): void => {
+  if (!selectedElementId.value || !selectedStrikeKind.value) return
+  try {
+    inspection.value = inspection.value.removeElementStrike(selectedElementId.value)
+    source.value = inspection.value.source
+    selectedElementId.value = ''
+    editedText.value = ''
+    error.value = ''
+    errorTarget.value = null
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '无法删除选中的删除线。'
+    errorTarget.value = null
+  }
+}
+
 /** 选中文字只允许保留一个 Unicode 字符，避免一次修改跨越多个 AST 文本单元。 */
 const handleEditedTextInput = (event: Event): void => {
   const input = event.target
@@ -330,6 +347,14 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
                     aria-label="局部修改 AST 文字"
                     @input="handleEditedTextInput"
                   />
+                  <button
+                    v-if="selectedStrikeKind"
+                    class="ghost-button ast-remove-strike-button"
+                    type="button"
+                    @click="removeSelectedStrike"
+                  >
+                    删除删除线
+                  </button>
                 </dd>
               </div>
             </dl>

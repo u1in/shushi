@@ -11,7 +11,13 @@ export {
   unformatMacro,
 } from './formatter'
 export { createMacroAstInspection } from './ast-inspector'
-export type { MacroAstInspection, MacroElementAstReference, MacroNodePath, MacroSourceStyle } from './ast-inspector'
+export type {
+  MacroAstInspection,
+  MacroElementAstReference,
+  MacroNodePath,
+  MacroSourceStyle,
+  MacroStrikeKind,
+} from './ast-inspector'
 export { BASIC_MACRO_NAMES, BASIC_ZERO_ARGUMENT_MACROS, DEFAULT_LINE_STYLE } from './basic-macros'
 export { AUTO_COLOR_THEME, AUTO_COLOR_THEME_FALLBACK } from './auto-color-theme'
 export type { AutoColorTheme } from './auto-color-theme'

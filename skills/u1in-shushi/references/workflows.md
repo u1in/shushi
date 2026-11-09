@@ -101,9 +101,10 @@ import { createMacroAstInspection } from '@u1in/shushi-core'
 
 const inspection = createMacroAstInspection(source)
 const updated = inspection.updateElementText(elementId, '9')
+const withoutStrike = inspection.removeElementStrike('grid-strike-id')
 ```
 
-把 `updated.source` 写回编辑器，把 `updated.scene` 交给渲染器。`updateElementText` 返回新对象，不修改旧结果；不能继续使用旧 `scene`。
+把新结果的 `source` 写回编辑器，把新结果的 `scene` 交给渲染器。`updateElementText` 和 `removeElementStrike` 都返回新对象，不修改旧结果；`removeElementStrike` 会直接移除 `STRIKE`，并把 `STRIKEDOT` 回退为 `DOT`。
 
 ## 8. 同一场景切换渲染器
 

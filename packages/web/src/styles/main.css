@@ -708,6 +708,8 @@ h1 {
 
 .ast-selection-details .ast-edit-cell dd {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 8px;
   overflow: visible;
 }
@@ -736,6 +738,11 @@ h1 {
 .ast-selection-details input:disabled {
   cursor: not-allowed;
   color: var(--text-faint);
+}
+
+.ast-remove-strike-button {
+  width: auto;
+  white-space: nowrap;
 }
 
 .macro-ast-inspector .macro-source-field input {

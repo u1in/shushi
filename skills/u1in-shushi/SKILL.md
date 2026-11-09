@@ -153,7 +153,7 @@ const element = inspection.scene.elements[0]
 const updated = inspection.updateElementText(element.id, '9')
 ```
 
-`updateElementText` 返回新的检查结果，不修改旧对象。重新渲染时必须使用 `updated.scene`。
+`updateElementText` 和 `removeElementStrike` 返回新的检查结果，不修改旧对象。重新渲染时必须使用新结果的 `scene`；删除线操作会直接删除 `STRIKE`，并把 `STRIKEDOT` 回退为 `DOT`。
 
 ### 4.3 DOM、SVG 和 SSR
 

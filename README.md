@@ -76,6 +76,7 @@ console.log(source) // 可保存、复制或交给宏编辑器继续修改
 console.log(rendered) // HTMLElement；已自动挂载到 host
 const updated = inspection.updateElementText('grid-element-id', '9')
 console.log(updated.source) // AST 更新后的宏源码
+const withoutStrike = inspection.removeElementStrike('grid-strike-id') // STRIKE 删除；STRIKEDOT 回退为 DOT
 ```
 
 `shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。加法、乘法和长除法可使用非负小数（如 `1.2 + 3.04`、`1.2 × 3.4`、`34.5 ÷ 5`）；减法和短除法仍只接受整数。连续加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 并按文本从左到右执行；长除法会先把除数的小数点右移为整数并同步处理被除数，整数部分未除尽时默认展开最多十位商小数。质因数分解使用 `|48`，公因数使用 `|12 24`（算法自动试除），进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。

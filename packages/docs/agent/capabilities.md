@@ -216,7 +216,7 @@ createMacroAstInspection(source)
 - `formatMacro` 只整理空白和缩进，不计算运算结果。
 - `completeMacro` 输出显式的 `GRID`、`ROW`、`CELL` 和完整宏名。
 - `minifyMacro` 输出最简合法宏；计算器生成的宏复制到编辑器时使用 `minifyMacroForCopy`，它会移除页面专属 `ariaLabel` 和 `style`。
-- `createMacroAstInspection` 返回 `scene`、`references`、`source`、`minifiedSource` 和不可变的 `updateElementText`。
+- `createMacroAstInspection` 返回 `scene`、`references`、`source`、`minifiedSource` 和不可变的 `updateElementText`、`removeElementStrike`；`references` 会为带删除线的同格图元记录 `strikeKind`，后者直接删除 `STRIKE`，并把 `STRIKEDOT` 回退为 `DOT`。
 - 小数除法的 `source` 会用 `STRIKE` 标记被消去的数字、用 `STRIKEDOT` 表示带删除线的小数点；编辑这类源码时保留这两个图元，不要改为 CSS 文字删除线或手工坐标。
 
 典型 AST 编辑流程：

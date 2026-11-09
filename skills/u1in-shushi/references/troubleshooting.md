@@ -101,7 +101,7 @@ const inspection = createMacroAstInspection(source)
 const updated = inspection.updateElementText(elementId, text)
 ```
 
-`updateElementText` 是不可变操作。更新后必须替换编辑器中的 `source`，并使用新结果的 `scene`；不能继续引用旧检查结果。
+`updateElementText` 和 `removeElementStrike` 都是不可变操作。更新后必须替换编辑器中的 `source`，并使用新结果的 `scene`；不能继续引用旧检查结果。`removeElementStrike` 对 `STRIKE` 直接移除，对 `STRIKEDOT` 回退为 `DOT`。
 
 如果元素没有可编辑文字，说明它可能是线条、边框或无文字图元，不要强行写入文本。
 

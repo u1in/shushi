@@ -263,6 +263,7 @@ AST 编辑是不可变的：
 ```typescript
 const inspection = createMacroAstInspection(source)
 const updated = inspection.updateElementText(elementId, '9')
+const withoutStrike = inspection.removeElementStrike('grid-strike-id')
 // 使用 updated.scene 和 updated.source，不要继续使用旧结果。
 ```
 

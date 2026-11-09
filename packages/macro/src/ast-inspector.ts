@@ -11,6 +11,9 @@ export type MacroNodePath = readonly number[]
 /** AST 检查器回写源码时支持的两种输入框风格。 */
 export type MacroSourceStyle = 'formatted' | 'minified'
 
+/** 同一 CELL 中可被点击图元继承的删除线类型。 */
+export type MacroStrikeKind = 'STRIKE' | 'STRIKEDOT'
+
 /** 一个可点击网格元素与其来源宏节点的关联；文本存在时可单独编辑。 */
 export interface MacroElementAstReference {
   elementId: string
@@ -18,6 +21,9 @@ export interface MacroElementAstReference {
   nodePath: MacroNodePath
   literalPath?: MacroNodePath
   text?: string
+  /** 当前图元所在 CELL 的删除线路径；数字图元被删除线覆盖时也可操作它。 */
+  strikePath?: MacroNodePath
+  strikeKind?: MacroStrikeKind
 }
 
 /**
@@ -32,6 +38,7 @@ export interface MacroAstInspection {
   minifiedSource: string
   references: Readonly<Record<string, MacroElementAstReference>>
   updateElementText: (elementId: string, text: string) => MacroAstInspection
+  removeElementStrike: (elementId: string) => MacroAstInspection
 }
 
 /** 为整棵 AST 建立对象身份到路径的索引，编译观察器可直接回查来源节点。 */
@@ -62,6 +69,34 @@ const getNodeAtPath = (root: MacroCall, path: MacroNodePath): MacroNode | undefi
   return node
 }
 
+const getStrikeKind = (node: MacroNode | undefined): MacroStrikeKind | undefined => {
+  if (node?.kind === 'call' && node.name === 'STRIKE') return 'STRIKE'
+  if (node?.kind === 'symbol' && (node.name === 'STRIKE' || node.name === 'STRIKEDOT')) return node.name
+  return undefined
+}
+
+/** 查找当前图元自身或同一 CELL 中的删除线，让点击数字时也能显示删除操作。 */
+const findStrikeReference = (
+  root: MacroCall,
+  nodePath: MacroNodePath,
+): { path: MacroNodePath; kind: MacroStrikeKind } | undefined => {
+  const directNode = getNodeAtPath(root, nodePath)
+  const directKind = getStrikeKind(directNode)
+  if (directKind) return { path: nodePath, kind: directKind }
+
+  for (let depth = nodePath.length - 1; depth >= 0; depth -= 1) {
+    const parentPath = nodePath.slice(0, depth)
+    const parent = getNodeAtPath(root, parentPath)
+    if (parent?.kind !== 'call' || parent.name !== 'CELL') continue
+    const strikeIndex = parent.arguments.findIndex((child) => getStrikeKind(child) !== undefined)
+    if (strikeIndex < 0) continue
+    const strikePath = [...parentPath, strikeIndex]
+    const strikeKind = getStrikeKind(parent.arguments[strikeIndex])
+    if (strikeKind) return { path: strikePath, kind: strikeKind }
+  }
+  return undefined
+}
+
 /** 不可变地替换一个文字节点，确保一次点击只修改被选元素对应的数据。 */
 const replaceLiteralAtPath = (root: MacroCall, path: MacroNodePath, text: string): MacroCall => {
   const replace = (node: MacroNode, depth: number): MacroNode => {
@@ -81,6 +116,46 @@ const replaceLiteralAtPath = (root: MacroCall, path: MacroNodePath, text: string
   return replace(root, 0) as MacroCall
 }
 
+/** 不可变地替换 AST 节点；删除线回退为 DOT 时仍沿用同一条回写链路。 */
+const replaceNodeAtPath = (root: MacroCall, path: MacroNodePath, replacement: MacroNode): MacroCall => {
+  const replace = (node: MacroNode, depth: number): MacroNode => {
+    if (depth === path.length) return replacement
+    if (node.kind !== 'call') throw new Error('选中的 AST 路径无效。')
+    const childIndex = path[depth]
+    const child = node.arguments[childIndex]
+    if (!child) throw new Error('选中的 AST 路径无效。')
+    const argumentsList = [...node.arguments]
+    argumentsList[childIndex] = replace(child, depth + 1)
+    return { ...node, arguments: argumentsList }
+  }
+  return replace(root, 0) as MacroCall
+}
+
+/** 从父调用中不可变地移除一个 AST 节点，例如 CELL(MM(5), STRIKE) 中的 STRIKE。 */
+const removeNodeAtPath = (root: MacroCall, path: MacroNodePath): MacroCall => {
+  if (path.length === 0) throw new Error('不能删除宏根节点。')
+  const parentPath = path.slice(0, -1)
+  const childIndex = path[path.length - 1]
+  const parent = getNodeAtPath(root, parentPath)
+  if (parent?.kind !== 'call' || !parent.arguments[childIndex]) throw new Error('选中的 AST 路径无效。')
+  return replaceNodeAtPath(root, parentPath, {
+    ...parent,
+    arguments: parent.arguments.filter((_, index) => index !== childIndex),
+  })
+}
+
+/** 将 STRIKEDOT 转回 DOT，或直接移除 STRIKE；两种操作都返回新的检查结果。 */
+const removeStrikeAtPath = (root: MacroCall, path: MacroNodePath): MacroCall => {
+  const node = getNodeAtPath(root, path)
+  if (node?.kind === 'symbol' && node.name === 'STRIKEDOT') {
+    return replaceNodeAtPath(root, path, { kind: 'symbol', name: 'DOT' })
+  }
+  if ((node?.kind === 'call' && node.name === 'STRIKE') || (node?.kind === 'symbol' && node.name === 'STRIKE')) {
+    return removeNodeAtPath(root, path)
+  }
+  throw new Error('选中的宏元素不是可删除的删除线。')
+}
+
 /** 将 AST 编译为场景，同时记录每一个渲染元素回溯到的宏节点。 */
 const inspectMacroAst = (
   ast: MacroCall,
@@ -98,12 +173,14 @@ const inspectMacroAst = (
       if (!nodePath) return
       const literalPath = findFirstLiteralPath(node, nodePath)
       const literal = literalPath ? getNodeAtPath(ast, literalPath) : undefined
+      const strikeReference = findStrikeReference(ast, nodePath)
       references[element.id] = {
         elementId: element.id,
         node,
         nodePath,
         ...(literalPath ? { literalPath } : {}),
         ...(literal?.kind === 'literal' ? { text: literal.value } : {}),
+        ...(strikeReference ? { strikePath: strikeReference.path, strikeKind: strikeReference.kind } : {}),
       }
     },
     options,
@@ -119,6 +196,16 @@ const inspectMacroAst = (
       const reference = references[elementId]
       if (!reference?.literalPath) throw new Error('选中的宏元素不包含可编辑文字。')
       return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text), sourceStyle, sourceShape, options)
+    },
+    removeElementStrike: (elementId) => {
+      const reference = references[elementId]
+      if (!reference) throw new Error('选中的宏元素不存在。')
+      return inspectMacroAst(
+        removeStrikeAtPath(ast, reference.strikePath ?? reference.nodePath),
+        sourceStyle,
+        sourceShape,
+        options,
+      )
     },
   }
 }

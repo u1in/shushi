@@ -706,4 +706,41 @@ CELL(
     expect(inspection.references[lineElement!.id]?.node).toMatchObject({ kind: 'symbol', name: 'LINE' })
     expect(() => inspection.updateElementText(lineElement!.id, '9')).toThrow(/不包含可编辑文字/)
   })
+
+  test('AST 检查器删除 STRIKE 时只移除删除线图元', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(CELL(MM(5), STRIKE)))')
+    const strikeElement = inspection.scene.elements.find(({ content }) => content.kind === 'strike')
+
+    expect(strikeElement).toBeDefined()
+    const updated = inspection.removeElementStrike(strikeElement!.id)
+
+    expect(updated.minifiedSource).toBe('5;')
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'strike')).toBe(false)
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '5')).toBe(true)
+  })
+
+  test('点击带 STRIKE 的数字图元时也能回查同格删除线', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(CELL(MM(5), STRIKE)))')
+    const textElement = inspection.scene.elements.find(({ content }) => content.kind === 'text' && content.text === '5')
+
+    expect(textElement).toBeDefined()
+    expect(inspection.references[textElement!.id]).toMatchObject({ strikeKind: 'STRIKE' })
+
+    const updated = inspection.removeElementStrike(textElement!.id)
+
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'strike')).toBe(false)
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '5')).toBe(true)
+  })
+
+  test('AST 检查器删除 STRIKEDOT 时回退为 DOT', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(CELL(MM(5), STRIKEDOT)))')
+    const strikeElement = inspection.scene.elements.find(({ content }) => content.kind === 'strike')
+
+    expect(strikeElement).toBeDefined()
+    const updated = inspection.removeElementStrike(strikeElement!.id)
+
+    expect(updated.minifiedSource).toBe('[5,DOT];')
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'strike')).toBe(false)
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '.')).toBe(true)
+  })
 })

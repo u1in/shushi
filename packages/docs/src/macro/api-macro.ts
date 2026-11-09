@@ -819,6 +819,9 @@ const five = inspection.scene.elements.find(
 // 由渲染元素 ID 反查 MM(5) 的 AST 节点，并只替换它的文字字面量。
 const updated = inspection.updateElementText(five!.id, '9')
 
+// 选中 STRIKE 时直接移除删除线；选中 STRIKEDOT 时回退为 DOT。
+const withoutStrike = inspection.removeElementStrike('grid-strike-id')
+
 console.log(updated.source)
 // 仍沿用输入的完整格式`,
         },
@@ -830,7 +833,7 @@ console.log(updated.source)
       blocks: [
         {
           type: 'paragraph',
-          text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量；更新结果会重新编译场景，并提供沿用输入风格的 `source` 与统一最简化的 `minifiedSource`。',
+          text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量，或通过 `removeElementStrike` 移除 `STRIKE`、把 `STRIKEDOT` 回退为 `DOT`；更新结果会重新编译场景，并提供沿用输入风格的 `source` 与统一最简化的 `minifiedSource`。',
         },
       ],
     },
@@ -852,6 +855,17 @@ interface MacroAstInspection {
   minifiedSource: string
   references: Record<string, MacroElementAstReference>
   updateElementText: (elementId: string, text: string) => MacroAstInspection
+  removeElementStrike: (elementId: string) => MacroAstInspection
+}
+
+interface MacroElementAstReference {
+  elementId: string
+  node: MacroNode
+  nodePath: number[]
+  literalPath?: number[]
+  text?: string
+  strikePath?: number[]
+  strikeKind?: 'STRIKE' | 'STRIKEDOT'
 }`,
         },
         {
@@ -862,9 +876,14 @@ interface MacroAstInspection {
             [
               '`references`',
               '`Record<string, MacroElementAstReference>`',
-              '以 `GridElement.id` 为键，包含来源 AST 节点、路径以及可编辑文字路径。',
+              '以 `GridElement.id` 为键，包含来源 AST 节点、路径、可编辑文字路径，以及当前图元所在 `CELL` 的删除线路径和类型。',
             ],
             ['`updateElementText`', '函数', '不可变地替换所选图元的第一个文字字面量，并返回新的检查结果。'],
+            [
+              '`removeElementStrike`',
+              '函数',
+              '不可变地移除所选 `STRIKE`；所选 `STRIKEDOT` 会保留小数点并回退为 `DOT`。',
+            ],
             ['`source`', '`string`', '当前 AST 按输入框原有完整版或最简版风格重新输出的宏源码。'],
             ['`minifiedSource`', '`string`', '当前 AST 统一输出的最简宏源码。'],
           ],
@@ -879,7 +898,7 @@ interface MacroAstInspection {
           type: 'callout',
           tone: 'warn',
           title: '并非所有图元都包含文字',
-          text: '数字、运算符和进位注记通常可以编辑；LINE、BRACKET、边框和 DIV 等图元仍可反查来源节点，但没有文字字面量，调用 `updateElementText` 会抛出 Error。映射不写入 GridScene，因此渲染器仍保持与宏语言无关。',
+          text: '数字、运算符和进位注记通常可以编辑；LINE、BRACKET、边框和 DIV 等图元仍可反查来源节点，但没有文字字面量，调用 `updateElementText` 会抛出 Error。删除线图元可调用 `removeElementStrike`，普通 `STRIKE` 会被移除，`STRIKEDOT` 则回退为 `DOT`。映射不写入 GridScene，因此渲染器仍保持与宏语言无关。',
         },
       ],
     },
