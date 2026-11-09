@@ -19,6 +19,14 @@ export const macroEmptyCell = (): string => 'EMPTY()'
 
 export const macroAnnotationCell = (annotation: string): string => `CELL(${annotation})`
 
+/** 只在完整的小数结果末尾仍为 0 时标记一个可省略的结果零。 */
+export const shouldStrikeMinimalDecimalResult = (
+  value: string,
+  decimalPlaces: number,
+  enabled: boolean | undefined,
+  isComplete: boolean,
+): boolean => enabled === true && isComplete && decimalPlaces > 0 && value.endsWith('0')
+
 export const macroRightBottom = (text: string, styleToken: string): string =>
   `RB(${macroLiteral(text)}, ${macroOption('style', styleToken)})`
 

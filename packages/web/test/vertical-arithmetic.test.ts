@@ -159,6 +159,32 @@ describe('统一竖式门户 API', () => {
     expectPortalResult(leadingFractionalZeros)
   })
 
+  it('按配置在小数结果的最后一个 0 上添加删除线，并与完成步骤同步', () => {
+    const addition = shushi('0.18 + 0.12', { settings: { useMinimalDecimalResult: true } })
+    if (!('sumText' in addition.computation)) throw new Error('应解析为加法。')
+    expect(addition.computation.sumText).toBe('0.30')
+    expect(addition.source).toContain('STRIKE')
+    expect(addition.scene.elements.filter(({ content }) => content.kind === 'strike')).toHaveLength(1)
+
+    const defaultAddition = shushi('0.18 + 0.12')
+    expect(defaultAddition.source).not.toContain('STRIKE')
+
+    const incompleteAddition = shushiCore({
+      operation: 'addition',
+      values: ['0.18', '0.12'],
+      settings: { useMinimalDecimalResult: true, visibleStepCount: getAdditionStepCount(addition.computation) - 1 },
+    })
+    expect(incompleteAddition.source).not.toContain('STRIKE')
+
+    const subtraction = shushi('0.12 - 0.02', { settings: { useMinimalDecimalResult: true } })
+    expect(subtraction.source).toContain('STRIKE')
+    expect(subtraction.scene.elements.filter(({ content }) => content.kind === 'strike')).toHaveLength(1)
+
+    const multiplication = shushi('0.25 × 0.14', { settings: { useMinimalDecimalResult: true } })
+    expect(multiplication.source).toContain('STRIKE')
+    expect(multiplication.scene.elements.filter(({ content }) => content.kind === 'strike')).toHaveLength(1)
+  })
+
   it('长除法将小数等值放大和补零逐帧展示，再进入试商', () => {
     const division = shushi('35.5 / 0.5')
     if (!('sourceDivisorText' in division.computation)) throw new Error('应解析为长除法。')

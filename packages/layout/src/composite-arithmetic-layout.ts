@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: CompositeArithmeticRenderSettings = {
   rowHeight: 46,
   fontSizeRatio: 1,
   showGuideGrid: false,
+  useMinimalDecimalResult: false,
   showCarrySteps: true,
   // 组合竖式默认突出连续计算结果；需要教学借位时由调用方显式开启。
   showBorrowSteps: false,
@@ -153,6 +154,7 @@ const createCompositeArithmeticMacroStages = (
       fontSizeRatio: resolvedSettings.fontSizeRatio,
       showGuideGrid: resolvedSettings.showGuideGrid,
       visibleStepCount,
+      useMinimalDecimalResult: resolvedSettings.useMinimalDecimalResult,
     }
     const source =
       step.operator === '+'

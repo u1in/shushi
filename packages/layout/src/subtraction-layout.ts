@@ -14,14 +14,15 @@ import {
   macroOption,
   macroRow,
   macroTextCell,
+  shouldStrikeMinimalDecimalResult,
 } from './macro-source'
 
 /** 小数点附着在整数末位；绝对值小于 1 的中间帧则用独立点格呈现 `.51`。 */
-const decimalCell = (digit: string, token: string): string =>
+const decimalCell = (digit: string, token: string, annotations: string[] = []): string =>
   `CELL(MM(${macroLiteral(digit)}, ${macroOption('style', token)}), DOT, ${macroOption(
     'style',
     'subtraction.decimal-separator',
-  )})`
+  )}${annotations.length ? `, ${annotations.join(', ')}` : ''})`
 
 const decimalMarkerCell = (): string => `CELL(DOT, ${macroOption('style', 'subtraction.decimal-separator')})`
 
@@ -32,11 +33,15 @@ const placeNumber = (
   decimalPlaces: number,
   showDecimalPoint = true,
   firstColumn?: number,
+  annotationsByDigitIndex: Map<number, string[]> = new Map(),
 ): void => {
   const start = firstColumn ?? cells.length - value.length
   ;[...value].forEach((digit, index) => {
     const isDecimalAnchor = showDecimalPoint && decimalPlaces > 0 && index === value.length - decimalPlaces - 1
-    cells[start + index] = isDecimalAnchor ? decimalCell(digit, token) : macroTextCell(digit, token)
+    const annotations = annotationsByDigitIndex.get(index) ?? []
+    cells[start + index] = isDecimalAnchor
+      ? decimalCell(digit, token, annotations)
+      : macroTextCell(digit, token, annotations)
   })
 }
 
@@ -147,12 +152,22 @@ export const createSubtractionMacroSource = (
 
   const differenceCells = Array.from({ length: columns }, macroEmptyCell)
   if (computation.isNegative && isComplete) differenceCells[0] = macroTextCell('−', 'subtraction.negative-sign')
+  const differenceAnnotations = shouldStrikeMinimalDecimalResult(
+    computation.resultText,
+    computation.decimalPlaces,
+    settings.useMinimalDecimalResult,
+    isComplete,
+  )
+    ? new Map([[displayedDifference.length - 1, ['STRIKE']]])
+    : new Map<number, string[]>()
   placeNumber(
     differenceCells,
     displayedDifference,
     'subtraction.difference',
     computation.decimalPlaces,
     hasVisibleDecimalPoint && decimalAnchorIndex >= 0,
+    undefined,
+    differenceAnnotations,
   )
   // 例如 0.51 的倒数第二帧为 `.51`：点独占预留的整数位，最终帧才写入 0。
   if (hasVisibleDecimalPoint && decimalAnchorIndex < 0) {

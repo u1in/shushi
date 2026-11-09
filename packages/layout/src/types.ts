@@ -6,6 +6,8 @@ export interface GridRenderSettings {
   rowHeight: number
   fontSizeRatio: number
   showGuideGrid: boolean
+  /** 小数结果末位为 0 时，是否用删除线标记这个可省略的 0；默认关闭。 */
+  useMinimalDecimalResult?: boolean
   /** 播放教学过程时显示的已完成步骤数；未设置时显示完整结果。 */
   visibleStepCount?: number
   textHorizontalAlign?: GridTextHorizontalAlign

@@ -21,6 +21,7 @@ const showGuideGrid = ref(false)
 const uniformMultiplicationBars = ref(false)
 const showCarrySteps = ref(true)
 const useTrailingZeroShortcut = ref(true)
+const useMinimalDecimalResult = ref(false)
 const error = ref('')
 const computation = ref<MultiplicationComputation>()
 const scene = ref<GridScene>()
@@ -38,6 +39,7 @@ const renderScene = (): void => {
       showGuideGrid: showGuideGrid.value,
       uniformMultiplicationBars: uniformMultiplicationBars.value,
       showCarrySteps: showCarrySteps.value,
+      useMinimalDecimalResult: useMinimalDecimalResult.value,
       visibleStepCount: visibleStepCount.value,
     },
   }) as MultiplicationVerticalArithmeticResult
@@ -77,6 +79,7 @@ const implementationCode = computed(() =>
       ['showGuideGrid', showGuideGrid.value],
       ['uniformMultiplicationBars', uniformMultiplicationBars.value],
       ['showCarrySteps', showCarrySteps.value],
+      ['useMinimalDecimalResult', useMinimalDecimalResult.value],
       ['visibleStepCount', visibleStepCount.value],
     ],
   }),
@@ -174,6 +177,13 @@ calculate()
                   aria-hidden="true"
                 ></span
                 ><span>启用 10 倍数快捷计算</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="useMinimalDecimalResult" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>小数结果最简式</span></label
               >
             </div>
           </div>

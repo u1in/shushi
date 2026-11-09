@@ -76,6 +76,7 @@ const DEFAULT_GRID_SETTINGS = {
   rowHeight: 46,
   fontSizeRatio: 1,
   showGuideGrid: false,
+  useMinimalDecimalResult: false,
 }
 
 const DEFAULT_SUBTRACTION_SETTINGS: SubtractionRenderSettings = {

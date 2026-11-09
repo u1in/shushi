@@ -25,6 +25,7 @@ const useTrailingZeroShortcut = ref(true)
 const showGuideGrid = ref(false)
 const showCarrySteps = ref(true)
 const showBorrowSteps = ref(false)
+const useMinimalDecimalResult = ref(false)
 const showRemainders = ref(true)
 const showZeroQuotientSteps = ref(false)
 const error = ref('')
@@ -98,6 +99,7 @@ const renderScene = (shouldRenderWithoutComputation = false): void => {
       showGuideGrid: showGuideGrid.value,
       showCarrySteps: showCarrySteps.value,
       showBorrowSteps: showBorrowSteps.value,
+      useMinimalDecimalResult: useMinimalDecimalResult.value,
       showRemainders: showRemainders.value,
       showZeroQuotientSteps: showZeroQuotientSteps.value,
       uniformMultiplicationBars: false,
@@ -147,6 +149,7 @@ const implementationCode = computed(() =>
       ['showGuideGrid', showGuideGrid.value],
       ['showCarrySteps', showCarrySteps.value],
       ['showBorrowSteps', showBorrowSteps.value],
+      ['useMinimalDecimalResult', useMinimalDecimalResult.value],
       ['showRemainders', showRemainders.value],
       ['showZeroQuotientSteps', showZeroQuotientSteps.value],
       ['uniformMultiplicationBars', false],
@@ -277,6 +280,13 @@ calculate()
                   aria-hidden="true"
                 ></span
                 ><span>显示减法借位</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="useMinimalDecimalResult" type="checkbox" @change="renderScene()" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>小数结果最简式</span></label
               >
               <label class="switch-field"
                 ><input v-model="showRemainders" type="checkbox" @change="renderScene()" /><span

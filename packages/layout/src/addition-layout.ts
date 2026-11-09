@@ -14,6 +14,7 @@ import {
   macroRightBottom,
   macroRow,
   macroTextCell,
+  shouldStrikeMinimalDecimalResult,
 } from './macro-source'
 
 /** 小数点附着在整数个位右侧，不额外占用数字列，便于所有加数按点对齐。 */
@@ -56,6 +57,7 @@ const DEFAULT_ADDITION_SETTINGS: AdditionRenderSettings = {
   fontSizeRatio: 1,
   showGuideGrid: false,
   showCarrySteps: true,
+  useMinimalDecimalResult: false,
 }
 
 /** 小数先逐格补零对齐；随后计算，最后再单独标注结果小数点。 */
@@ -132,7 +134,21 @@ export const createAdditionMacroSource = (
   children.push(macroLine('addition.sum-bar', 'adjacent'))
   const resultCells = Array.from({ length: columns }, macroEmptyCell)
   // 所有补零和逐列计算完成后先显示去点结果，下一步才补上最终和的小数点。
-  placeNumber(resultCells, sumToDisplay, 'addition.sum', columns - sumToDisplay.replace('.', '').length)
+  const resultAnnotations = shouldStrikeMinimalDecimalResult(
+    computation.sumText,
+    computation.decimalPlaces,
+    resolvedSettings.useMinimalDecimalResult,
+    isComplete,
+  )
+    ? new Map([[sumToDisplay.replace('.', '').length - 1, ['STRIKE']]])
+    : new Map<number, string[]>()
+  placeNumber(
+    resultCells,
+    sumToDisplay,
+    'addition.sum',
+    columns - sumToDisplay.replace('.', '').length,
+    resultAnnotations,
+  )
   children.push(macroRow(resultCells))
 
   return macroGrid(columns, resolvedSettings, `${computation.addendTexts.join(' 加 ')} 的竖式`, children)

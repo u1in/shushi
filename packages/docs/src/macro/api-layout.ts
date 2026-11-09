@@ -136,7 +136,11 @@ export const createAdditionMacroSourcePage = createLayoutApiPage({
 ) => string`,
   parameters: [
     ['`computation`', '`AdditionComputation`', '加法计算器输出的逐列过程和结果。'],
-    ['`settings`', '`Partial<AdditionRenderSettings>`', '可选的列宽、行高、字号、辅助网格、可见步骤和进位显示配置。'],
+    [
+      '`settings`',
+      '`Partial<AdditionRenderSettings>`',
+      '可选的列宽、行高、字号、辅助网格、可见步骤、进位显示和 `useMinimalDecimalResult` 配置。开启后完整小数和末位的可省略 `0` 会带删除线。',
+    ],
     ['返回值', '`string`', '包含 GRID、ROW、CELL、RB 和 LINE 等公开宏命令的源码。'],
   ],
   caution:
@@ -186,7 +190,11 @@ export const createSubtractionMacroSourcePage = createLayoutApiPage({
 ) => string`,
   parameters: [
     ['`computation`', '`SubtractionComputation`', '减法计算器输出的借位过程和差。'],
-    ['`settings`', '`SubtractionRenderSettings`', '必填的网格尺寸、可见步骤和借位显示配置。'],
+    [
+      '`settings`',
+      '`SubtractionRenderSettings`',
+      '必填的网格尺寸、可见步骤、借位显示和 `useMinimalDecimalResult` 配置；该开关默认关闭。',
+    ],
     ['返回值', '`string`', '包含 MTD 借位点、DOT 小数点、LINE 横线和数字单元格的宏源码。'],
   ],
   caution:
@@ -345,7 +353,11 @@ export const createMultiplicationMacroSourcePage = createLayoutApiPage({
 ) => string`,
   parameters: [
     ['`computation`', '`MultiplicationComputation`', '乘法计算器输出的逐位步骤、部分积和最终积。'],
-    ['`settings`', '`MultiplicationRenderSettings`', '包含辅助网格、进位、横线和可见步骤设置。'],
+    [
+      '`settings`',
+      '`MultiplicationRenderSettings`',
+      '包含辅助网格、进位、横线、可见步骤和 `useMinimalDecimalResult` 设置；开启后完整小数积末位的可省略 `0` 会带删除线。',
+    ],
     ['返回值', '`string`', '包含 ×、RB、部分积和 LINE 的乘法宏源码。'],
   ],
   caution: '布局器只读取计算结果，不重新执行乘法；`showCarrySteps` 和 `visibleStepCount` 应与播放控件保持一致。',
@@ -467,6 +479,11 @@ const scene = compileCalculatorMacro(source)`,
     ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出的各单项过程。'],
     ['`settings.visibleStepCount`', '`number | undefined`', '组合播放的全局可见事件数；未设置时全部完成。'],
     ['`settings.showBorrowSteps`', '`boolean`', '是否显示减法借位点；默认 `false`，传入 `true` 后显示。'],
+    [
+      '`settings.useMinimalDecimalResult`',
+      '`boolean`',
+      '是否在完整小数结果末尾的可省略 `0` 上附加 `STRIKE`；默认 `false`，不增加播放步数。',
+    ],
     ['返回值', '`string`', '包含全部已到达步骤的唯一 GRID 宏源码。'],
   ],
   caution: '返回值是一个连续竖式而非多个场景；布局只合并单项宏的行和横线，不在渲染器中重新解释组合步骤。',
@@ -551,7 +568,11 @@ type VerticalArithmeticResult<T, TRendered> = {
       '`DivisionOptions & MultiplicationOptions`',
       '长除法小数位上限或乘法快捷计算等计算层选项。',
     ],
-    ['`options.settings`', '`ShushiExpressionSettings`', '覆盖默认尺寸、教学标记、辅助网格和播放游标等布局配置。'],
+    [
+      '`options.settings`',
+      '`ShushiExpressionSettings`',
+      '覆盖默认尺寸、教学标记、辅助网格、播放游标和 `useMinimalDecimalResult` 等布局配置；该开关默认关闭。',
+    ],
     [
       '`options.colorTheme`',
       '`AutoColorTheme`',
@@ -607,7 +628,7 @@ console.log(scene.ariaLabel)`,
     [
       '`request.settings` / `calculation`',
       '`Partial<…RenderSettings>` / 专项计算选项',
-      '精确控制教学标记、尺寸、播放与算法选项。',
+      '精确控制教学标记、尺寸、播放、是否标记小数结果末位 0 与算法选项。',
     ],
     ['返回值', '`VerticalArithmeticResult`', '含计算过程、可编辑源码、场景、渲染结果与 AST 检查器。'],
   ],

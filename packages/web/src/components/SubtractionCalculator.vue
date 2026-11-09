@@ -19,6 +19,7 @@ const fontSizeRatio = ref(1)
 const rendererFont = ref<RendererFontFamily>(DEFAULT_RENDERER_FONT)
 const showGuideGrid = ref(false)
 const showBorrowSteps = ref(true)
+const useMinimalDecimalResult = ref(false)
 const error = ref('')
 const computation = ref<SubtractionComputation>()
 const scene = ref<GridScene>()
@@ -34,6 +35,7 @@ const renderScene = (): void => {
       fontSizeRatio: fontSizeRatio.value,
       showGuideGrid: showGuideGrid.value,
       showBorrowSteps: showBorrowSteps.value,
+      useMinimalDecimalResult: useMinimalDecimalResult.value,
       visibleStepCount: visibleStepCount.value,
     },
   }) as SubtractionVerticalArithmeticResult
@@ -66,6 +68,7 @@ const implementationCode = computed(() =>
       ['fontSizeRatio', fontSizeRatio.value],
       ['showGuideGrid', showGuideGrid.value],
       ['showBorrowSteps', showBorrowSteps.value],
+      ['useMinimalDecimalResult', useMinimalDecimalResult.value],
       ['visibleStepCount', visibleStepCount.value],
     ],
   }),
@@ -147,6 +150,13 @@ calculate()
                   aria-hidden="true"
                 ></span
                 ><span>显示借位步骤</span></label
+              >
+              <label class="switch-field"
+                ><input v-model="useMinimalDecimalResult" type="checkbox" @change="calculate" /><span
+                  class="switch-ui"
+                  aria-hidden="true"
+                ></span
+                ><span>小数结果最简式</span></label
               >
             </div>
           </div>

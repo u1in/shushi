@@ -53,6 +53,8 @@ shushiCore(
 
 加法、减法、乘法和长除法表达式可使用非负小数；短除法仍只接受非负整数。小数加减法播放会先按当前可见数位右对齐，再按最长小数位逐个右补零；最后一个零出现后小数点对齐，每补一个 `0` 占用一步；之后才展示结果数位。结果数位完成后单独显示小数点，绝对值小于 `1` 时再补前导 `0`。小数长除法先将除数右移为整数，并同步右移被除数；后者小数位不足时在右侧补 `0` 后再逐位试商。除法不能和 `+`、`-`、`×` 混排；不符合模式时让门户抛出错误，不要在调用方偷偷改写。
 
+加、减、乘布局设置中的 `useMinimalDecimalResult` 默认是 `false`；开启后，完整小数结果末尾的一个 `0` 以 `STRIKE` 标记，`computation` 文本和播放步数保持不变。
+
 ## 3. 门户返回值
 
 ```typescript
@@ -125,6 +127,8 @@ type VerticalArithmeticRequest =
     }
   | { operation: 'composite'; expression: unknown; settings?: Partial<CompositeArithmeticRenderSettings> }
 ```
+
+`settings.useMinimalDecimalResult` 可用于加法、减法、乘法和组合竖式；例如 `{ useMinimalDecimalResult: true }` 会把 `0.30` 的结果行末位 `0` 划掉，但不会把返回的 `sumText` 改成 `0.3`。
 
 ### 5.1 加法
 

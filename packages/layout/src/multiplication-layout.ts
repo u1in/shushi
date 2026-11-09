@@ -14,21 +14,24 @@ import {
   macroRightTop,
   macroRow,
   macroTextCell,
+  shouldStrikeMinimalDecimalResult,
 } from './macro-source'
 
 interface NumberRowContent {
   digits: Map<number, string>
   annotations: Map<number, { text: string; token: string; position: 'rightTop' | 'rightBottom' }[]>
   decimalColumns: Set<number>
+  strikeColumns: Set<number>
 }
 
 const createNumberRow = (): NumberRowContent => ({
   digits: new Map(),
   annotations: new Map(),
   decimalColumns: new Set(),
+  strikeColumns: new Set(),
 })
 
-const putNumber = (row: NumberRowContent, value: string, rightIndex: number): void => {
+const putNumber = (row: NumberRowContent, value: string, rightIndex: number, strikeLastDigit = false): void => {
   const digits = value.replace('.', '')
   const decimalDigitIndex = value.includes('.') ? value.indexOf('.') - 1 : -1
   ;[...digits].forEach((digit, index) => {
@@ -36,6 +39,7 @@ const putNumber = (row: NumberRowContent, value: string, rightIndex: number): vo
     row.digits.set(column, digit)
     if (index === decimalDigitIndex) row.decimalColumns.add(column)
   })
+  if (strikeLastDigit && digits.endsWith('0')) row.strikeColumns.add(rightIndex)
 }
 
 /** 快捷计算中，保留原数的末尾零在有效数字个位的右侧，而不是移到最终积右边界。 */
@@ -72,6 +76,7 @@ const renderNumberCells = (row: NumberRowContent, count: number, token: string):
     const annotations = (row.annotations.get(index) ?? []).map(({ text, token: annotationToken, position }) =>
       position === 'rightTop' ? macroRightTop(text, annotationToken) : macroRightBottom(text, annotationToken),
     )
+    if (row.strikeColumns.has(index)) annotations.push('STRIKE')
     const digit = row.digits.get(index)
     return digit === undefined
       ? annotations.length
@@ -120,6 +125,12 @@ export const createMultiplicationMacroSource = (
   const trailingZeroCount = computation.trailingZeroShortcut?.trailingZeroCount ?? 0
   const hasMultiplePartialProducts = computation.partialProducts.length > 1
   const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount
+  const shouldStrikeProduct = shouldStrikeMinimalDecimalResult(
+    computation.productText,
+    computation.decimalPlaces,
+    settings.useMinimalDecimalResult,
+    isComplete,
+  )
   const visibleProduct = computation.additionSteps
     .slice(0, visibleAdditionStepCount)
     .map(({ resultDigit }) => resultDigit)
@@ -199,6 +210,7 @@ export const createMultiplicationMacroSource = (
         product,
         computation.productText,
         computation.productDigits === '0' ? baseRightmostNumberIndex : rightmostNumberIndex,
+        shouldStrikeProduct,
       )
     children.push(
       macroRow([
@@ -300,6 +312,7 @@ export const createMultiplicationMacroSource = (
       product,
       productToDisplay,
       isComplete && computation.productDigits !== '0' ? rightmostNumberIndex : arithmeticRightmostNumberIndex,
+      shouldStrikeProduct,
     )
     // 求和进位已写入最后部分积后，才序列化该行，避免宏源码遗漏最新标记。
     partialRows.forEach((row) => {
@@ -312,7 +325,7 @@ export const createMultiplicationMacroSource = (
   } else {
     // 只有一条有效部分积时，在小数点步骤用最终文本替换过程数字；全零小数没有部分积。
     const product = createNumberRow()
-    if (isComplete) putNumber(product, computation.productText, arithmeticRightmostNumberIndex)
+    if (isComplete) putNumber(product, computation.productText, arithmeticRightmostNumberIndex, shouldStrikeProduct)
     const row = isComplete ? product : partialRows[0]
     if (row) children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.product')))
   }
