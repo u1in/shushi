@@ -2,6 +2,16 @@
 
 所有重要变更都会记录在此文件中。
 
+## 4.0.0
+
+### Major Changes
+
+- 发布 `@u1in/shushi-core` 4.0.0，确立当前统一计算门户、计算步骤快照与 GridScene 渲染链路的稳定公开版本。
+
+### Minor Changes
+
+- 48a70c2: 计算器结果新增 `calculationSteps`：补零、小数点、等值变换、逐列运算和组合子运算均由计算器按顺序返回为不含未来结果的自洽快照。布局与 `visibleStepCount` 改为消费这些计算器步骤前缀，组合表达式同时提供展平后的完整检查序列。
+
 ## 3.2.0
 
 ### Minor Changes
