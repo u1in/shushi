@@ -2,6 +2,16 @@
 
 所有重要变更都会记录在此文件中。
 
+## 4.1.0
+
+### Minor Changes
+
+- fa089aa: 为 `renderSvgString` 和门户的 `svg-string` 模式新增 `embedFont` 开关，可将场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG，便于独立文件和 Base64 `img` 保持预览字体表现。
+
+### Patch Changes
+
+- fa089aa: 修复 SVG 与 DOM 渲染器的图元样式固化，使导出的 `.svg` 文件或 Base64 `img` 不依赖外部渲染器 CSS 即可保留预览样式。
+
 ## 4.0.0
 
 ### Major Changes
