@@ -151,6 +151,7 @@ interface FixedSymbolPageConfig {
   name: 'SQUARE' | 'TRIANGLE' | 'ROUND'
   shortName: 'SQ' | 'TRI' | 'RND'
   glyph: '☐' | '△' | '◯'
+  fontSizeRatio?: number
   title: string
 }
 
@@ -161,7 +162,9 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
   navLabel: `${config.name} / ${config.shortName}`,
   kicker: 'SYMBOL MACRO · FIXED GLYPH',
   group: 'alias',
-  summary: `${config.name} 是一个零参数单元格符号宏，渲染为 ${config.glyph}；${config.shortName} 是它的首选简写。`,
+  summary: `${config.name} 是一个零参数单元格符号宏，渲染为 ${config.glyph}；${config.shortName} 是它的首选简写。${
+    config.fontSizeRatio ? `默认字号为网格字号的 ${config.fontSizeRatio} 倍。` : ''
+  }`,
   sections: [
     {
       id: 'purpose',
@@ -201,7 +204,9 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
           type: 'list',
           items: [
             '省略空括号与显式空括号会编译为同一个图元。',
-            '默认使用普通中心文字字号；可以通过 CELL 的 KV 配置调整跨度或样式。',
+            config.fontSizeRatio
+              ? `默认使用网格字号的 ${config.fontSizeRatio} 倍，并保持单元格中心对齐；可以通过宏参数覆盖字号，或通过 CELL 的 KV 配置调整跨度与样式。`
+              : '默认使用普通中心文字字号；可以通过 CELL 的 KV 配置调整跨度或样式。',
             '宏本身不参与运算，只负责向 GridScene 添加一个固定文字图元。',
             `旧式或较长写法可直接替换为首选简写：${config.name} → ${config.shortName}。`,
           ],
@@ -266,7 +271,14 @@ const createFixedSymbolPage = (config: FixedSymbolPageConfig): MacroDocPage => (
 })
 
 const fixedSymbolPages: MacroDocPage[] = [
-  createFixedSymbolPage({ slug: 'square', name: 'SQUARE', shortName: 'SQ', glyph: '☐', title: 'SQUARE · 方框符号' }),
+  createFixedSymbolPage({
+    slug: 'square',
+    name: 'SQUARE',
+    shortName: 'SQ',
+    glyph: '☐',
+    fontSizeRatio: 1.25,
+    title: 'SQUARE · 方框符号',
+  }),
   createFixedSymbolPage({
     slug: 'triangle',
     name: 'TRIANGLE',

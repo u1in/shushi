@@ -107,9 +107,14 @@ describe('网格宏编译器', () => {
       '△',
       '◯',
     ])
-    expect(symbolTexts.every(({ content }) => content.kind === 'text' && content.fontSizeRatio === undefined)).toBe(
-      true,
-    )
+    expect(symbolTexts.map(({ content }) => (content.kind === 'text' ? content.fontSizeRatio : undefined))).toEqual([
+      1.25,
+      undefined,
+      undefined,
+      1.25,
+      undefined,
+      undefined,
+    ])
     expect(minifyMacro('SQUARE,TRIANGLE,ROUND')).toBe('SQ,TRI,RND')
   })
 

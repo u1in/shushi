@@ -65,9 +65,13 @@ const POSITION_MACRO_NAMES = new Set([
 const BORDER_MACRO_NAMES = new Set(['TBD', 'RBD', 'BBD', 'LBD'])
 const ANNOTATION_FONT_SIZE_RATIO = 0.42
 const FIXED_SYMBOL_TEXT: Readonly<Record<string, string>> = {
-  SQUARE: '☐',
+  SQUARE: '☐', // U+2610 BALLOT BOX
   TRIANGLE: '△',
   ROUND: '◯',
+}
+const FIXED_SYMBOL_FONT_SIZE_RATIOS: Readonly<Record<string, number>> = {
+  // U+2610 的字形本身偏小，放大后仍以单元格中心为锚点，避免方框落到数字基线下方。
+  SQUARE: 1.25,
 }
 export const BRACKET_TRACK_SIZE = 0.5
 const BRACKET_RADIUS_RATIO = 1
@@ -266,12 +270,14 @@ export const compileSugarCellElement = (
     throw new Error(`${name} 必须包含一个文本参数。`)
   // DOT 的默认颜色由 GRID(autoColor) 统一注入；关闭时不保留旧的蓝色 token，回退为黑色。
   const styleToken = options.get('style') ?? cell.styleToken
+  const fixedSymbolFontSizeRatio = name ? FIXED_SYMBOL_FONT_SIZE_RATIOS[name] : undefined
   const usesDefaultBorrowDot = !options.has('fontSizeRatio') && (isMiddleTopDot || (name === 'MT' && text === '·'))
   const fontSizeRatio = options.has('fontSizeRatio')
     ? getPositiveNumber(options.get('fontSizeRatio'), `${name} 的 fontSizeRatio`, 1)
-    : dot || name === 'MM' || fixedSymbolText !== undefined || usesDefaultBorrowDot
-      ? undefined
-      : ANNOTATION_FONT_SIZE_RATIO
+    : (fixedSymbolFontSizeRatio ??
+      (dot || name === 'MM' || fixedSymbolText !== undefined || usesDefaultBorrowDot
+        ? undefined
+        : ANNOTATION_FONT_SIZE_RATIO))
   if (name === 'RBL') {
     const position: GridPosition = {
       kind: 'edgeMidpoint',
