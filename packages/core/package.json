@@ -23,7 +23,7 @@
     "short-division",
     "typescript"
   ],
-  "version": "4.2.1",
+  "version": "4.2.2",
   "type": "module",
   "engines": {
     "node": ">=16.6"
