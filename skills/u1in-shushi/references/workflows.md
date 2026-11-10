@@ -71,7 +71,7 @@ import { compileMacro, computeAddition, createAdditionMacroSource, renderSvgStri
 const computation = computeAddition('356', '278')
 const source = createAdditionMacroSource(computation)
 const scene = compileMacro(source)
-const svg = renderSvgString(scene)
+const svg = renderSvgString(scene, { embedFont: true })
 ```
 
 只有在需要单独读取过程、改写布局 settings、保存宏源码或切换渲染器时才展开这条链路。
@@ -118,7 +118,7 @@ const svg = renderSvgGrid(scene)
 const text = renderSvgString(scene)
 ```
 
-三个渲染器必须消费同一份 `scene`。浏览器 DOM/SVG 需要 CSS；SSR 使用 `renderSvgString`。
+三个渲染器必须消费同一份 `scene`。DOM/SVG 图元会内联基础视觉属性；浏览器入口仍可导入 CSS 以获得默认字体和宿主主题，`renderSvgString(scene, { embedFont: true })` 的结果则连场景使用的内置字体也会打包，可脱离外部 CSS 保存为 `.svg` 或放入 Base64 `img`。`embedFont` 默认关闭，自定义字体仍需由宿主提供。
 
 ## 9. 交付检查
 

@@ -28,12 +28,13 @@ const installGuides: Record<InstallMethod, InstallGuide> = {
     label: 'Npm',
     install: 'npm install @u1in/shushi-core',
     usage: `import { shushi } from '@u1in/shushi-core'
-import '@u1in/shushi-core/renderer.css'
 
-shushi('356 + 278', {
-  renderMode: 'div',
-  el: document.querySelector('#result'),
-})`,
+const { rendered: svg } = shushi('356 + 278', {
+  renderMode: 'svg-string',
+  embedFont: true,
+})
+
+// svg 可直接保存为 .svg，或编码后放入 <img src="data:image/svg+xml;base64,...">`,
     installHint: '在你的前端项目中安装`@u1in/shushi-core`。',
     usageHint: '导入后用算式字符串调用 shushi；复杂的结构化请求可使用 shushiCore。',
   },

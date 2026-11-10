@@ -2304,6 +2304,35 @@ h2 {
   letter-spacing: 0.1em;
 }
 
+.renderer-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.renderer-export-button {
+  flex: 0 0 auto;
+  border: 2px solid var(--danger);
+  border-radius: 4px;
+  padding: 3px 14px;
+  color: var(--danger);
+  background: transparent;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.renderer-export-button:hover,
+.renderer-export-button:focus-visible {
+  color: #fff;
+  background: var(--danger);
+}
+
 .stage-scroll {
   min-width: 0;
   margin: 12px 0 0;

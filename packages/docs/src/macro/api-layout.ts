@@ -539,6 +539,7 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   el?: TMode extends 'svg-string' ? never : Element
   colorTheme?: AutoColorTheme
   fontFamily?: string
+  embedFont?: boolean
 }
 
 type Shushi = {
@@ -584,13 +585,18 @@ type VerticalArithmeticResult<T, TRendered> = {
       '`string`',
       '在宏编译阶段写入场景默认字体；省略时为 renderer.css 内置的 STIX Two Math，改用其他字体时使用 renderer-without-font.css 加对应字体 CSS。',
     ],
+    [
+      '`options.embedFont`',
+      '`boolean`，默认 `false`',
+      '仅影响 `svg-string`：为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG，适合独立文件或 Base64 `img`；自定义字体仍需由宿主提供。',
+    ],
     ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
     ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
     ['`rendered`', '`HTMLElement | SVGSVGElement | string`', '按渲染模式返回 DOM 舞台、SVG 根节点或 SVG 字符串。'],
     ['`inspection`', '`MacroAstInspection`', '返回 AST、图元引用和 `updateElementText`，用于注入编辑或继续分析。'],
   ],
   caution:
-    '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。',
+    '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。`embedFont` 只对 `svg-string` 输出生效，默认关闭。',
 })
 
 export const shushiCorePage = createLayoutApiPage({
@@ -630,6 +636,11 @@ console.log(scene.ariaLabel)`,
       '`request.settings` / `calculation`',
       '`Partial<…RenderSettings>` / 专项计算选项',
       '精确控制教学标记、尺寸、播放、是否标记小数结果末位 0 与算法选项。',
+    ],
+    [
+      '`request.renderMode` / `request.embedFont`',
+      '`ShushiRenderMode` / `boolean`',
+      '选择 DOM、SVG DOM 或 SVG 字符串；`embedFont: true` 仅在 `svg-string` 模式下把场景使用的内置字体嵌入导出结果，默认关闭。',
     ],
     ['返回值', '`VerticalArithmeticResult`', '含计算过程、可编辑源码、场景、渲染结果与 AST 检查器。'],
   ],

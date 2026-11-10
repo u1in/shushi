@@ -61,4 +61,4 @@ if (!(rendered instanceof HTMLElement)) throw new Error('DOM 渲染验证失败'
 - `npm ls` 为空：确认安装命令在宿主项目根目录执行。
 - `ERR_MODULE_NOT_FOUND`：检查依赖树和锁文件，不要修改 TypeScript 配置绕过导入错误。
 - `document is not defined`：把 DOM/SVG 渲染移到浏览器，或改用 `svg-string`。
-- 页面样式缺失：浏览器入口导入 `@u1in/shushi-core/renderer.css`，它已包含默认 STIX Two Math；如果改用其他字体，改导入 `renderer-without-font.css` 并补充对应字体 CSS。
+- 页面主题或默认字体缺失：浏览器入口导入 `@u1in/shushi-core/renderer.css`，它包含默认 STIX Two Math 和宿主主题入口；基础图元样式已由渲染器内联。若改用其他字体，改导入 `renderer-without-font.css` 并补充对应字体 CSS。

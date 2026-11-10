@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { compileMacro, renderSvgString } from '@u1in/shushi-core'
+import { compileMacro, renderSvgString, shushi } from '@u1in/shushi-core'
 import type { GridScene } from '@u1in/shushi-grid'
 
 describe('renderSvgString', () => {
@@ -83,6 +83,59 @@ describe('renderSvgString', () => {
 
     expect(svg).toContain('--grid-font-family:STIX Two Math')
     expect(svg).toContain('font-family:Noto Sans Math')
+  })
+
+  it('按选项把场景使用的内置字体嵌入 SVG', () => {
+    const scene = compileMacro('GRID(ROW(MM(5)))')
+    const plainSvg = renderSvgString(scene)
+    const embeddedSvg = renderSvgString(scene, { embedFont: true })
+
+    expect(plainSvg).not.toContain('<style>')
+    expect(embeddedSvg).toContain('<style>@font-face{font-family:"STIX Two Math"')
+    expect(embeddedSvg).toContain('data:font/woff2;base64,')
+  })
+
+  it('门户的 svg-string 模式透传字体嵌入开关', () => {
+    const plainResult = shushi('5+0', { renderMode: 'svg-string' })
+    const embeddedResult = shushi('5+0', { renderMode: 'svg-string', embedFont: true })
+
+    expect(plainResult.rendered).not.toContain('<style>')
+    expect(embeddedResult.rendered).toContain('data:font/woff2;base64,')
+  })
+
+  it('把独立 img 所需的最终 SVG 视觉属性写入图元', () => {
+    const scene: GridScene = {
+      columns: [{ id: 'column', size: 1 }],
+      rows: [{ id: 'row', size: 1 }],
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      unitWidth: 30,
+      unitHeight: 40,
+      fontSize: 27,
+      textHorizontalAlign: 'center',
+      textVerticalAlign: 'center',
+      elements: [
+        {
+          id: 'text',
+          position: { kind: 'cell', column: 0, row: 0 },
+          content: { kind: 'text', text: '5', styleToken: 'division.quotient' },
+        },
+        {
+          id: 'line',
+          position: { kind: 'edge', column: 0, row: 0, edge: 'bottom' },
+          content: { kind: 'line' },
+        },
+      ],
+      showGuideGrid: true,
+      ariaLabel: '独立 SVG 样式场景',
+    }
+
+    const svg = renderSvgString(scene)
+
+    expect(svg).toContain('fill:#be4c00;font-family:')
+    expect(svg).toContain('font-size:27px;font-variant-numeric:tabular-nums;font-weight:800')
+    expect(svg).toContain('font-synthesis:none')
+    expect(svg).toContain('fill:none;stroke:#4a5f78;stroke-linecap:butt;stroke-width:2px')
+    expect(svg).toContain('stroke:#a7bbdd;stroke-dasharray:2 5;stroke-linecap:butt;stroke-width:1px;opacity:0.68')
   })
 
   it('把独立删除线作为跨渲染器图元输出', () => {

@@ -470,7 +470,7 @@ const rows: string[] = extractVisibleTextRows(scene)
           type: 'callout',
           tone: 'info',
           title: '纯数据 API 不需要 CSS',
-          text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；`renderSvgString` 同样不需要浏览器 DOM。只有调用 `renderDomGrid` / `renderSvgGrid` 生成浏览器节点时，才需要额外导入内置默认 STIX 字体的 `@u1in/shushi-core/renderer.css`。',
+          text: '`extractVisibleTextRows` 只读取 `GridScene` 并返回字符串数组，不创建 DOM 或 SVG；`renderSvgString` 同样不需要浏览器 DOM，且输出的 SVG 已内联基础图元样式。调用 `renderDomGrid` / `renderSvgGrid` 生成浏览器节点时，可导入 `@u1in/shushi-core/renderer.css` 获取默认 STIX 字体资源和宿主主题。',
         },
       ],
     },

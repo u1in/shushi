@@ -42,7 +42,8 @@ import {
 } from '@u1in/shushi-layout'
 import type { AutoColorTheme, MacroAstInspection } from '@u1in/shushi-macro'
 import { createMacroAstInspection } from '@u1in/shushi-macro'
-import { renderDomGrid, renderSvgGrid, renderSvgString } from '@u1in/shushi-renderers'
+import { renderDomGrid, renderSvgGrid } from '@u1in/shushi-renderers'
+import { renderSvgString } from './svg-string'
 
 export type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
@@ -58,13 +59,15 @@ export type ShushiRendered<TMode extends ShushiRenderMode> = TMode extends 'div'
 export type ShushiAppearanceOptions = {
   /** autoColor 使用的颜色配置；未传入时使用内置 JavaScript 主题。 */
   colorTheme?: AutoColorTheme
-  /** 场景默认字体；字体文件仍需由宿主按需导入。 */
+  /** 场景默认字体；开启 embedFont 时可嵌入内置字体，非内置字体仍需由宿主提供。 */
   fontFamily?: string
 }
 
 export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = ShushiAppearanceOptions & {
   renderMode?: TMode
   el?: TMode extends 'svg-string' ? never : Element
+  /** `svg-string` 导出时是否把场景使用的内置字体嵌入 SVG。 */
+  embedFont?: boolean
 }
 
 export type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> = TRequest &
@@ -232,10 +235,11 @@ const renderPortalResult = (
   scene: GridScene,
   renderMode: ShushiRenderMode,
   el: Element | undefined,
+  embedFont: boolean | undefined,
 ): ShushiRendered<ShushiRenderMode> => {
   if (renderMode === 'svg-string') {
     if (el) throw new Error('renderMode 为 svg-string 时不能传入 el；请使用 div 或 svg 客户端渲染模式。')
-    return renderSvgString(scene)
+    return renderSvgString(scene, { embedFont })
   }
 
   if (typeof document === 'undefined') {
@@ -263,7 +267,7 @@ const createResult = <TComputation>(
     computation,
     source,
     scene,
-    rendered: renderPortalResult(scene, options.renderMode ?? 'svg-string', options.el),
+    rendered: renderPortalResult(scene, options.renderMode ?? 'svg-string', options.el, options.embedFont),
     inspection,
   }
 }
@@ -343,6 +347,7 @@ const createExpressionOptions = <TMode extends ShushiRenderMode>(
   el: options?.el,
   colorTheme: options?.colorTheme,
   fontFamily: options?.fontFamily,
+  embedFont: options?.embedFont,
 })
 
 /**

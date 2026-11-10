@@ -251,10 +251,10 @@ DOM 适合交互页面、元素回查和播放控制；SVG 适合导出、截图
 import { compileMacro, renderSvgString } from '@u1in/shushi-core'
 
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
-const svg = renderSvgString(scene)
+const svg = renderSvgString(scene, { embedFont: true })
 ```
 
-`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。这里保证的是 SVG 语义和视觉结构一致，不保证浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；默认 STIX Two Math 已包含在 `renderer.css`，只有改用其他字体时才需要额外字体 CSS。
+`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。SVG 图元会内联颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性，导出的 `.svg` 或 Base64 `img` 不需要外部 `renderer.css`。`embedFont` 默认为 `false`；设为 `true` 时会把场景实际使用的内置字体以 Base64 `@font-face` 嵌入 SVG，适合需要完全独立渲染的导出文件。自定义字体不由该开关打包，仍需由宿主提供字体资源。
 
 ### 获取视觉文本行
 

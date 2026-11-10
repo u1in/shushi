@@ -9,12 +9,13 @@ import { formatAutoColorThemeObject, type AutoColorThemeColorValues } from './au
 /** 首页第三列展示的核心调用链，保持与各演示组件实际使用的公开 API 对齐。 */
 export const implementationSnippets = {
   macroPlayground: [
-    "import { compileMacro, renderDomGrid } from '@u1in/shushi-core'",
+    "import { compileMacro, renderDomGrid, renderSvgString } from '@u1in/shushi-core'",
     "import '@u1in/shushi-core/renderer.css'",
     '',
     'const render = (source: string) => {',
     '  const scene = compileMacro(source)',
     '  const rendered = renderDomGrid(scene)',
+    '  const svg = renderSvgString(scene, { embedFont: true })',
     "  document.querySelector('#result')?.append(rendered)",
     '}',
     '',
@@ -174,7 +175,7 @@ export const createShushiImplementationSnippet = ({
   const expression = createExpression(operation, fields)
   const useExpressionApi = expression !== undefined
   return [
-    `import { ${useExpressionApi ? 'shushi' : 'shushiCore'} } from '@u1in/shushi-core'`,
+    `import { ${useExpressionApi ? 'shushi' : 'shushiCore'}, renderSvgString } from '@u1in/shushi-core'`,
     ...createRendererStyleImports(fontFamily),
     '',
     'const {',
@@ -202,5 +203,8 @@ export const createShushiImplementationSnippet = ({
     "  renderMode: 'div',",
     "  el: document.querySelector('#result') ?? undefined,",
     '})',
+    '',
+    '// 从同一份 GridScene 导出可独立渲染、已嵌入内置字体的 SVG。',
+    'const svg = renderSvgString(scene, { embedFont: true })',
   ].join('\n')
 }

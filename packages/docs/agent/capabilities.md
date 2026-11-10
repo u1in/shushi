@@ -54,6 +54,7 @@ type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   settings?: ShushiExpressionSettings
   colorTheme?: AutoColorTheme
   fontFamily?: string
+  embedFont?: boolean
 }
 
 shushi(
@@ -186,7 +187,7 @@ const baseConversion = shushiCore({
 | `div`        | DOM 元素     | 浏览器 CSS/DOM 交互    |
 | `svg`        | SVG DOM 元素 | 浏览器 SVG 交互        |
 
-`div` 和 `svg` 需要浏览器 DOM，且浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充对应字体 CSS。文本单元格分为 3×3 九区：减法宏的 `MTD`（及等价的 `MT(·)`）默认使用与 `DOT` 相同的完整字号并进入上中区，核心数字留在中心区，进位 `RB` 位于下右区。DOM 与 SVG 从同一个 `GridScene` 读取该区域锚点。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
+`div` 和 `svg` 需要浏览器 DOM；渲染器会把文字、线条、圆角、删除线和辅助网格的基础视觉值写入每个图元，`renderer.css` 主要用于默认字体资源、兼容主题和宿主扩展。导出的 `svg-string` 可以直接保存为 `.svg` 或编码后放入 `<img>`，不依赖外部 CSS；`embedFont: true` 时还会把场景使用的内置字体以 Base64 `@font-face` 嵌入，默认关闭，改用自定义字体时仍需由宿主提供对应字体 CSS/资源。文本单元格分为 3×3 九区：减法宏的 `MTD`（及等价的 `MT(·)`）默认使用与 `DOT` 相同的完整字号并进入上中区，核心数字留在中心区，进位 `RB` 位于下右区。DOM 与 SVG 从同一个 `GridScene` 读取该区域锚点。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
 ### 品牌图标
 

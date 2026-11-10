@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { resolveGridMetrics } from '@u1in/shushi-grid'
 import { renderDomGrid, renderSvgGrid } from '@u1in/shushi-renderers'
+import { renderSvgString } from '@u1in/shushi-core'
 import type { GridScene } from '@u1in/shushi-grid'
 import {
   DEFAULT_RENDERER_FONT,
@@ -38,6 +39,17 @@ const fontError = ref('')
 let resizeObserver: ResizeObserver | undefined
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+
+const downloadBlob = (blob: Blob, filename: string): void => {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+}
 
 /** 渲染器保持无状态；选中样式由宿主按元素 ID 追加，避免污染 GridScene。 */
 const syncSelectedElement = (): void => {
@@ -163,6 +175,12 @@ const handleElementClick = (event: MouseEvent): void => {
   const elementId = event.target.closest('[data-grid-element-id]')?.getAttribute('data-grid-element-id')
   if (elementId) emit('elementClick', elementId)
 }
+
+/** 导出独立 SVG；不序列化预览容器，避免把页面缩放和选中态带入文件。 */
+const exportSvg = (): void => {
+  const svg = renderSvgString(props.scene, { embedFont: true })
+  downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), 'shushi-preview.svg')
+}
 </script>
 
 <template>
@@ -181,7 +199,10 @@ const handleElementClick = (event: MouseEvent): void => {
       <small v-if="fontError" class="renderer-font-picker__error" role="status">{{ fontError }}</small>
     </div>
     <section v-if="mode !== 'dom'" class="renderer-panel">
-      <h3>SVG</h3>
+      <div class="renderer-panel__heading">
+        <h3>SVG</h3>
+        <button type="button" class="renderer-export-button" @click="exportSvg">导出</button>
+      </div>
       <div ref="svgViewport" class="stage-scroll">
         <!-- 该相对定位容器为渲染器返回的绝对定位图元提供统一坐标系。 -->
         <div

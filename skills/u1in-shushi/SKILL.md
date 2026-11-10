@@ -167,7 +167,7 @@ const updated = inspection.updateElementText(element.id, '9')
 
 - `renderDomGrid(scene)`：浏览器 DOM/CSS；
 - `renderSvgGrid(scene)`：浏览器 SVG DOM；
-- `renderSvgString(scene)`：Node.js、SSR 和导出文件。
+- `renderSvgString(scene, { embedFont: true })`：Node.js、SSR 和独立导出文件；返回的 SVG 已内联基础颜色、字号、字重、线宽、线帽、删除线和辅助网格样式，并把场景使用的内置字体以 Base64 `@font-face` 嵌入，可直接保存为 `.svg` 或编码后放入 `<img>`。`embedFont` 默认关闭，自定义字体仍需由宿主提供。
 
 纯计算、宏解析、编译、几何查询和文本提取不依赖 DOM。
 

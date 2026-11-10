@@ -80,7 +80,7 @@ document.querySelector('#app')?.append(svg)`,
           type: 'callout',
           tone: 'warn',
           title: '只在浏览器环境调用',
-          text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。浏览器入口导入 `@u1in/shushi-core/renderer.css` 即可获得默认 STIX 字体；改用其他字体时改导入 `renderer-without-font.css` 并补充字体 CSS，颜色和线宽由渲染器 CSS 与场景样式 token 提供。',
+          text: '函数依赖全局 `document`，SSR 中必须等客户端挂载后再调用。SVG 图元会内联颜色、字号、字重和线宽等基础视觉值；浏览器入口仍可导入 `@u1in/shushi-core/renderer.css` 获取默认 STIX 字体资源和宿主主题。改用其他字体时改导入 `renderer-without-font.css` 并补充字体 CSS。',
         },
       ],
     },
@@ -113,8 +113,8 @@ export const renderSvgStringPage = renderPage({
 // 编译只生成与渲染器无关的 GridScene，不需要浏览器环境。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 
-// 返回完整的 SVG 字符串，可直接写入 HTTP 响应、模板或 .svg 文件。
-const svg = renderSvgString(scene)
+// 返回完整的 SVG 字符串；embedFont 可把场景使用的内置字体一起打包。
+const svg = renderSvgString(scene, { embedFont: true })
 console.log(svg)`,
         },
       ],
@@ -137,7 +137,16 @@ console.log(svg)`,
           type: 'table',
           columns: ['项目', '值 / 类型', '说明'],
           rows: [
-            ['函数签名', '`(scene: GridScene) => string`', '输入已编译的 GridScene，返回完整 SVG 字符串。'],
+            [
+              '函数签名',
+              '`(scene: GridScene, options?: RenderSvgStringOptions) => string`',
+              '输入已编译的 GridScene，返回完整 SVG 字符串。',
+            ],
+            [
+              '`options.embedFont`',
+              '`boolean`，默认 `false`',
+              '为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG；自定义字体仍需由宿主提供。',
+            ],
             ['根节点', '`<svg class="grid-svg">`', '包含 `width`、`height`、`viewBox`、`role="img"` 和 `aria-label`。'],
             [
               '图层',
@@ -157,7 +166,7 @@ console.log(svg)`,
           type: 'callout',
           tone: 'tip',
           title: '不需要浏览器环境',
-          text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，但不承诺浏览器重新序列化 DOM 后与 SSR 字符串逐字节相同；若 SVG 需要项目公共颜色和默认 STIX 字体，最终 HTML 或 SVG 宿主加载 `@u1in/shushi-core/renderer.css` 即可。',
+          text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，并将颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性写入各个 SVG 图元，因此返回字符串可以直接保存为 `.svg` 文件，或编码后放入 `<img src="data:image/svg+xml;base64,...">`。默认不嵌入字体二进制；需要独立渲染时传入 `{ embedFont: true }`，该选项只打包场景使用的内置字体。自定义字体仍需由宿主提供。',
         },
       ],
     },
@@ -255,7 +264,7 @@ document.querySelector('#app')?.append(stage)`,
           type: 'callout',
           tone: 'warn',
           title: '先导入渲染器 CSS',
-          text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。导入 `@u1in/shushi-core/renderer.css` 获得基础定位、视觉样式和默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加字体 CSS，且不要在自定义 CSS 中重新计算图元坐标。',
+          text: '函数依赖浏览器 `document`，SSR 必须延迟到客户端调用。DOM 图元会内联基础定位和视觉值；导入 `@u1in/shushi-core/renderer.css` 可获得默认 STIX 字体和宿主主题。改用其他字体时使用 `renderer-without-font.css` 加字体 CSS，且不要在自定义 CSS 中重新计算图元坐标。',
         },
       ],
     },

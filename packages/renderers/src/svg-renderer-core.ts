@@ -32,12 +32,93 @@ const elementId = (element: GridElement): Record<string, string> => ({
   'data-grid-element-id': element.id,
 })
 
+const SVG_DEFAULT_TEXT = '#172033'
+const SVG_DEFAULT_RULE = '#4a5f78'
+const SVG_DEFAULT_GUIDE = '#a7bbdd'
+const SVG_DEFAULT_BRACKET = '#4a5f78'
+export const SVG_DEFAULT_FONT_FAMILY =
+  "'STIX Two Math', 'CMU Serif', 'Computer Modern', 'Latin Modern Roman', 'Cambria Math', math, 'Times New Roman', 'Noto Serif SC', serif"
+
+type SvgTextStyle = {
+  color: string
+  fontWeight: number
+}
+
+/** 与 renderer.css 中内置语义 token 对齐，确保 SVG 作为 img 时不依赖外部选择器。 */
+const SVG_TEXT_STYLES: Record<string, SvgTextStyle> = {
+  'macro.default-text': { color: SVG_DEFAULT_TEXT, fontWeight: 700 },
+  'macro.decimal': { color: '#c2185b', fontWeight: 800 },
+  'division.divisor': { color: '#c43e49', fontWeight: 800 },
+  'division.quotient': { color: '#be4c00', fontWeight: 800 },
+  'division.dividend': { color: '#b2468a', fontWeight: 700 },
+  'division.appended-zero': { color: '#c9a3bd', fontWeight: 700 },
+  'division.partial-minuend': { color: '#4f9b3e', fontWeight: 600 },
+  'division.remainder': { color: '#4f9b3e', fontWeight: 600 },
+  'division.partial-subtrahend': { color: '#9752b4', fontWeight: 700 },
+  'division.decimal-separator': { color: '#c2185b', fontWeight: 800 },
+  'division.dividend-decimal-separator': { color: '#c2185b', fontWeight: 800 },
+  'multiplication.multiplicand': { color: '#c43e49', fontWeight: 700 },
+  'addition.addend': { color: '#c43e49', fontWeight: 700 },
+  'subtraction.minuend': { color: '#c43e49', fontWeight: 700 },
+  'multiplication.multiplier': { color: '#0096c9', fontWeight: 800 },
+  'multiplication.operator': { color: '#0096c9', fontWeight: 800 },
+  'multiplication.carry': { color: '#00a079', fontWeight: 800 },
+  'addition.carry': { color: '#00a079', fontWeight: 800 },
+  'subtraction.borrow': { color: '#00a079', fontWeight: 800 },
+  'multiplication.addition-carry': { color: '#9752b4', fontWeight: 800 },
+  'multiplication.partial-product': { color: '#4f9b3e', fontWeight: 700 },
+  'multiplication.product': { color: '#be4c00', fontWeight: 800 },
+  'addition.sum': { color: '#be4c00', fontWeight: 800 },
+  'subtraction.difference': { color: '#be4c00', fontWeight: 800 },
+  'addition.operator': { color: '#7b3fa0', fontWeight: 800 },
+  'subtraction.operator': { color: '#7b3fa0', fontWeight: 800 },
+  'subtraction.negative-sign': { color: '#7b3fa0', fontWeight: 800 },
+  'subtraction.subtrahend': { color: '#0096c9', fontWeight: 700 },
+  'short-division.divisor': { color: '#c43e49', fontWeight: 800 },
+  'short-division.remainder-label': { color: '#c43e49', fontWeight: 800 },
+  'short-division.dividend': { color: '#b2468a', fontWeight: 700 },
+  'short-division.remainder': { color: '#4f9b3e', fontWeight: 800 },
+  'short-division.final': { color: '#be4c00', fontWeight: 800 },
+}
+
+type SvgLineStyle = {
+  color: string
+  lineCap: 'butt' | 'round'
+  strokeWidth?: number
+}
+
+/** 线条 token 的默认值与 renderer.css 保持一致；内容级 color/thickness 会覆盖它们。 */
+const SVG_LINE_STYLES: Record<string, SvgLineStyle> = {
+  'division.bracket': { color: SVG_DEFAULT_BRACKET, lineCap: 'butt', strokeWidth: 2 },
+  'division.bracket-top-line': { color: SVG_DEFAULT_BRACKET, lineCap: 'butt' },
+  'division.subtraction-bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt' },
+  'multiplication.input-bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt' },
+  'multiplication.sum-bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt' },
+  'addition.sum-bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt' },
+  'subtraction.difference-bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt' },
+  'short-division.bar': { color: SVG_DEFAULT_RULE, lineCap: 'butt', strokeWidth: 2 },
+  'short-division.separator': { color: '#3986e4', lineCap: 'butt', strokeWidth: 2 },
+}
+
+export const getTextStyle = (element: GridElement, scene: GridScene): SvgTextStyle => {
+  if (element.content.kind !== 'text') return { color: SVG_DEFAULT_TEXT, fontWeight: 700 }
+  const token = element.content.styleToken ?? scene.defaultTextStyleToken
+  return SVG_TEXT_STYLES[token ?? ''] ?? { color: SVG_DEFAULT_TEXT, fontWeight: 700 }
+}
+
+export const getLineStyle = (element: GridElement): SvgLineStyle => {
+  const token = element.styleToken
+  return SVG_LINE_STYLES[token ?? ''] ?? { color: SVG_DEFAULT_RULE, lineCap: 'round' }
+}
+
 const createElementNode = (element: GridElement, scene: GridScene, metrics: GridMetrics): SvgRenderNode => {
   const rect = getGridElementRect(element, metrics)
   if (element.content.kind === 'line') {
     if (element.position.kind !== 'edge') {
       throw new Error(`线元素 ${element.id} 必须定位在单元格边上。`)
     }
+    const tokenStyle = getLineStyle(element)
+    const isHorizontalEdge = element.position.edge === 'top' || element.position.edge === 'bottom'
     return createNode('line', {
       class: `grid-edge grid-edge--${element.position.edge}`,
       x1: rect.left,
@@ -47,8 +128,10 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
       ...styleToken(element.styleToken),
       ...elementId(element),
       style: serializeStyle([
-        ['stroke', element.content.color],
-        ['stroke-width', element.content.thickness === undefined ? undefined : `${element.content.thickness}px`],
+        ['fill', 'none'],
+        ['stroke', element.content.color ?? tokenStyle.color],
+        ['stroke-linecap', isHorizontalEdge ? 'butt' : tokenStyle.lineCap],
+        ['stroke-width', `${element.content.thickness ?? tokenStyle.strokeWidth ?? (isHorizontalEdge ? 2 : 3)}px`],
       ]),
     })
   }
@@ -57,6 +140,8 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
     const horizontalAlign = element.content.horizontalAlign ?? scene.textHorizontalAlign
     const verticalAlign = element.content.verticalAlign ?? scene.textVerticalAlign
     const anchor = getGridTextAnchor(rect, horizontalAlign, verticalAlign)
+    const textStyle = getTextStyle(element, scene)
+    const fontSize = scene.fontSize * (element.content.fontSizeRatio ?? 1)
     return createNode(
       'text',
       {
@@ -66,15 +151,13 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
         ...styleToken(element.content.styleToken ?? scene.defaultTextStyleToken),
         ...elementId(element),
         style: serializeStyle([
-          ['fill', element.content.color],
+          ['fill', element.content.color ?? textStyle.color],
           // 每个文字图元显式继承场景字体，确保脱离宿主 CSS 的 SVG 也能稳定切换字体。
-          ['font-family', element.content.fontFamily ?? scene.fontFamily],
-          [
-            'font-size',
-            element.content.fontSizeRatio === undefined
-              ? undefined
-              : `${scene.fontSize * element.content.fontSizeRatio}px`,
-          ],
+          ['font-family', element.content.fontFamily ?? scene.fontFamily ?? SVG_DEFAULT_FONT_FAMILY],
+          ['font-size', `${fontSize}px`],
+          ['font-variant-numeric', 'tabular-nums'],
+          ['font-weight', textStyle.fontWeight],
+          ['line-height', 1],
           [
             'text-anchor',
             anchor.horizontalAlign === 'left' ? 'start' : anchor.horizontalAlign === 'right' ? 'end' : 'middle',
@@ -107,8 +190,10 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
       ...styleToken(element.styleToken),
       ...elementId(element),
       style: serializeStyle([
-        ['stroke', element.content.color],
-        ['stroke-width', element.content.thickness === undefined ? undefined : `${element.content.thickness}px`],
+        ['fill', 'none'],
+        ['stroke', element.content.color ?? SVG_DEFAULT_RULE],
+        ['stroke-linecap', 'round'],
+        ['stroke-width', `${element.content.thickness ?? 2}px`],
       ]),
     })
   }
@@ -119,14 +204,17 @@ const createElementNode = (element: GridElement, scene: GridScene, metrics: Grid
   const right = rect.left + rect.width
   const bottom = rect.top + rect.height
   const radius = Math.min(rect.width, rect.height) * element.content.radiusRatio
+  const tokenStyle = getLineStyle(element)
   return createNode('path', {
     class: `grid-corner grid-corner--${element.content.corner}`,
     d: `M ${rect.left} ${bottom} H ${right - radius} Q ${right} ${bottom} ${right} ${bottom - radius} V ${rect.top}`,
     ...styleToken(element.styleToken),
     ...elementId(element),
     style: serializeStyle([
-      ['stroke', element.content.color],
-      ['stroke-width', element.content.thickness === undefined ? undefined : `${element.content.thickness}px`],
+      ['fill', 'none'],
+      ['stroke', element.content.color ?? tokenStyle.color],
+      ['stroke-linecap', tokenStyle.lineCap],
+      ['stroke-width', `${element.content.thickness ?? tokenStyle.strokeWidth ?? 3}px`],
     ]),
   })
 }
@@ -147,6 +235,14 @@ const createGuideGridNodes = (scene: GridScene, metrics: GridMetrics): SvgRender
         y1: top,
         x2: x,
         y2: bottom,
+        style: serializeStyle([
+          ['fill', 'none'],
+          ['stroke', SVG_DEFAULT_GUIDE],
+          ['stroke-dasharray', '2 5'],
+          ['stroke-linecap', 'butt'],
+          ['stroke-width', '1px'],
+          ['opacity', 0.68],
+        ]),
       }),
     ),
     ...rowOffsets.map((y) =>
@@ -156,6 +252,14 @@ const createGuideGridNodes = (scene: GridScene, metrics: GridMetrics): SvgRender
         y1: y,
         x2: right,
         y2: y,
+        style: serializeStyle([
+          ['fill', 'none'],
+          ['stroke', SVG_DEFAULT_GUIDE],
+          ['stroke-dasharray', '2 5'],
+          ['stroke-linecap', 'butt'],
+          ['stroke-width', '1px'],
+          ['opacity', 0.68],
+        ]),
       }),
     ),
   ]
@@ -182,7 +286,9 @@ export const createSvgRenderTree = (scene: GridScene): SvgRenderNode => {
         ['--grid-font-size', `${scene.fontSize}px`],
         ['--grid-font-family', scene.fontFamily],
         // SVG 字符串可脱离公共 CSS 单独嵌入，直接写入属性以保留场景字体继承。
-        ['font-family', scene.fontFamily],
+        ['font-family', scene.fontFamily ?? SVG_DEFAULT_FONT_FAMILY],
+        // 页面全局会关闭浏览器的合成加粗；独立 SVG 也必须固化该规则，避免嵌入字体后字重变粗。
+        ['font-synthesis', 'none'],
       ]),
       viewBox: `0 0 ${metrics.width} ${metrics.height}`,
       width: metrics.width,
