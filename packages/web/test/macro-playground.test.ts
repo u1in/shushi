@@ -74,6 +74,14 @@ describe('首页宏调试示例', () => {
     )
   })
 
+  test('宏调试可通过编译 API 显示网格而不改写最简源码', () => {
+    const inspection = createMacroAstInspection('5,6;', { showGuideGrid: true })
+
+    expect(inspection.scene.showGuideGrid).toBe(true)
+    expect(inspection.source).toBe('5,6;')
+    expect(inspection.minifiedSource).toBe('5,6;')
+  })
+
   test('全部算式示例都可以直接载入 AST 检查器', () => {
     arithmeticExamples.forEach(({ expression }) => {
       const inspection = createMacroAstInspection(generateSource(expression))

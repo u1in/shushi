@@ -36,9 +36,15 @@ const previewTheme = ref<AutoColorThemeColorValues>({
   rule: AUTO_COLOR_THEME_FALLBACK.rule.color!,
   bracketRule: AUTO_COLOR_THEME_FALLBACK.bracketRule.color!,
 })
-const getCompileOptions = (): { fontFamily: RendererFontFamily; colorTheme: ReturnType<typeof toAutoColorTheme> } => ({
+const getCompileOptions = (): {
+  fontFamily: RendererFontFamily
+  colorTheme: ReturnType<typeof toAutoColorTheme>
+  showGuideGrid: boolean
+} => ({
   fontFamily: rendererFont.value,
   colorTheme: toAutoColorTheme(previewTheme.value),
+  // 网格是调试器的 API 级显示偏好，不写入用户正在编辑的最简宏源码。
+  showGuideGrid: true,
 })
 
 /** 示例按钮使用正式门户生成宏源码；调试区本身只负责接收、编译和修改宏。 */
@@ -156,8 +162,8 @@ const loadExample = (exampleExpression: string): void => {
 const compileSource = (fontFamily = rendererFont.value): boolean => {
   try {
     inspection.value = createMacroAstInspection(source.value, {
+      ...getCompileOptions(),
       fontFamily,
-      colorTheme: toAutoColorTheme(previewTheme.value),
     })
     selectedElementId.value = ''
     editedText.value = ''
@@ -295,7 +301,7 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
         <label class="macro-source-field">
           <span>宏源码</span>
           <textarea :value="source" aria-label="宏源码" spellcheck="false" @input="handleSourceInput" />
-          <p v-if="errorTarget === 'source' || (!errorTarget && error)" class="error-message" role="alert">
+          <p v-if="errorTarget === 'source'" class="error-message" role="alert">
             {{ error }}
           </p>
         </label>
@@ -324,6 +330,9 @@ const handleFontChange = (fontFamily: RendererFontFamily): void => {
           </div>
           <section class="ast-inspection-panel" aria-label="图元 AST 定位修改">
             <p class="ast-inspection-panel__hint">点击任一宏图元，可查看 AST 并单独修改。</p>
+            <p v-if="!errorTarget && error" class="error-message" role="alert">
+              {{ error }}
+            </p>
             <dl class="ast-selection-details">
               <div>
                 <dt>渲染元素</dt>

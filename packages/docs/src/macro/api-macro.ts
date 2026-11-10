@@ -70,6 +70,7 @@ console.log(scene.elements.length, themedScene.elements.length) // 文本与线�
           code: `type CompileMacro = (source: string, options?: {
   colorTheme?: AutoColorTheme
   fontFamily?: string
+  showGuideGrid?: boolean
 }) => GridScene`,
         },
         {
@@ -86,6 +87,11 @@ console.log(scene.elements.length, themedScene.elements.length) // 文本与线�
               '`options.fontFamily`',
               '`string`',
               '写入 `GridScene.fontFamily` 的默认字体名称；省略时为 STIX Two Math，随 `renderer.css` 内置。改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。',
+            ],
+            [
+              '`options.showGuideGrid`',
+              '`boolean`',
+              'API 级覆盖辅助网格显示状态；设置后只影响返回的 `GridScene`，不会把 `KV(showGrid, ...)` 写回宏源码。',
             ],
             [
               '返回值',
@@ -162,7 +168,7 @@ console.log(scene.rows.length)`,
           language: 'typescript',
           code: `type CompileMacroAst = (
   root: MacroCall,
-  options?: { colorTheme?: AutoColorTheme; fontFamily?: string },
+  options?: { colorTheme?: AutoColorTheme; fontFamily?: string; showGuideGrid?: boolean },
 ) => GridScene`,
         },
         {
@@ -811,7 +817,7 @@ export const createMacroAstInspectionPage = compilePage({
           language: 'typescript',
           code: `import { createMacroAstInspection } from '@u1in/shushi-core'
 
-const inspection = createMacroAstInspection('GRID(ROW(MM(3), MM(5)), LINE, ROW(MM(8)))')
+const inspection = createMacroAstInspection('3,5;LN;8;', { showGuideGrid: true })
 const five = inspection.scene.elements.find(
   ({ content }) => content.kind === 'text' && content.text === '5',
 )
@@ -845,7 +851,11 @@ console.log(updated.source)
           type: 'code',
           title: '函数签名',
           language: 'typescript',
-          code: `type CreateMacroAstInspection = (source: string) => MacroAstInspection
+          code: `type CreateMacroAstInspection = (source: string, options?: {
+  colorTheme?: AutoColorTheme
+  fontFamily?: string
+  showGuideGrid?: boolean
+}) => MacroAstInspection
 
 interface MacroAstInspection {
   ast: MacroCall
@@ -873,6 +883,11 @@ interface MacroElementAstReference {
           columns: ['项目', '类型', '说明'],
           rows: [
             ['`sourceStyle`', '`"formatted" | "minified"`', '记录当前输入框使用的完整版或最简版风格。'],
+            [
+              '`options.showGuideGrid`',
+              '`boolean`',
+              'API 级覆盖辅助网格显示状态；只改变 `scene.showGuideGrid`，不会改变 `source` 或 `minifiedSource`。',
+            ],
             [
               '`references`',
               '`Record<string, MacroElementAstReference>`',

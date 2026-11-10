@@ -355,6 +355,7 @@ const compileShortDivisionMacro = (
   options: Map<string, string>,
   autoColor: boolean,
   colorTheme: AutoColorTheme,
+  showGuideGrid?: boolean,
   onElement?: MacroElementObserver,
 ): GridScene => {
   const normalizedRows = rows.map(readShortDivisionRow)
@@ -487,11 +488,9 @@ const compileShortDivisionMacro = (
     textHorizontalAlign: 'center',
     textVerticalAlign: 'center',
     elements,
-    showGuideGrid: getBoolean(
-      options.get('showGrid') ?? options.get('showGuideGrid'),
-      'GRID 的 showGrid',
-      DEFAULTS.showGuideGrid,
-    ),
+    showGuideGrid:
+      showGuideGrid ??
+      getBoolean(options.get('showGrid') ?? options.get('showGuideGrid'), 'GRID 的 showGrid', DEFAULTS.showGuideGrid),
     ariaLabel: options.get('ariaLabel') ?? '短除法宏公式预览',
   }
 }
@@ -505,6 +504,8 @@ export interface MacroCompileOptions {
   colorTheme?: AutoColorTheme
   /** 写入 GridScene 的默认字体；渲染器只读取场景，不再额外接收字体配置。 */
   fontFamily?: string
+  /** API 级辅助网格覆盖；设置后不改写宏源码中的 GRID 配置。 */
+  showGuideGrid?: boolean
 }
 
 const compileMacroAstWithObserver = (
@@ -527,7 +528,14 @@ const compileMacroAstWithObserver = (
     if (!content.every((node) => getCall(node, 'ROW') || getCall(node, 'KV'))) {
       throw new Error('包含 DIV 或 VALUE 的短除法 GRID 只能包含 ROW 与 KV。')
     }
-    const scene = compileShortDivisionMacro(rowCalls, options, autoColor, colorTheme, onElement)
+    const scene = compileShortDivisionMacro(
+      rowCalls,
+      options,
+      autoColor,
+      colorTheme,
+      compileOptions.showGuideGrid,
+      onElement,
+    )
     return { ...scene, fontFamily: compileOptions.fontFamily ?? DEFAULT_GRID_FONT_FAMILY }
   }
   const rows: NormalizedRow[] = []
@@ -634,11 +642,9 @@ const compileMacroAstWithObserver = (
     textHorizontalAlign: 'center',
     textVerticalAlign: 'center',
     elements,
-    showGuideGrid: getBoolean(
-      options.get('showGrid') ?? options.get('showGuideGrid'),
-      'GRID 的 showGrid',
-      DEFAULTS.showGuideGrid,
-    ),
+    showGuideGrid:
+      compileOptions.showGuideGrid ??
+      getBoolean(options.get('showGrid') ?? options.get('showGuideGrid'), 'GRID 的 showGrid', DEFAULTS.showGuideGrid),
     ariaLabel: options.get('ariaLabel') ?? '宏公式预览',
   }
 }
