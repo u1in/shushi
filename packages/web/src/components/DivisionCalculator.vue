@@ -158,7 +158,7 @@ calculate()
                 ><input v-model.number="fontSizeRatio" type="range" min="0.5" max="1.5" step="0.01" @input="calculate"
               /></label>
               <label class="field"
-                ><span>最大小数位（0 表示到个位取余，留空默认 10 位）</span
+                ><span>结果保留小数位数（0 表示仅保留到个位，留空默认 10 位）</span
                 ><input
                   v-model="maxDecimalDigits"
                   type="number"

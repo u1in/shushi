@@ -207,7 +207,7 @@ calculate()
         </div>
         <div v-if="isLongDivisionExpression" class="input-grid input-grid--single decimal-limit-input-grid">
           <label class="field">
-            <span>最大小数位（0 表示到个位取余）</span>
+            <span>结果保留小数位数（0 表示仅保留到个位）</span>
             <input
               v-model.number="maxDecimalDigits"
               type="number"
