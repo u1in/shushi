@@ -254,7 +254,7 @@ const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 const svg = renderSvgString(scene, { embedFont: true })
 ```
 
-`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。SVG 图元会内联颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性，导出的 `.svg` 或 Base64 `img` 不需要外部 `renderer.css`。`embedFont` 默认为 `false`；设为 `true` 时会把场景实际使用的内置字体以 Base64 `@font-face` 嵌入 SVG，适合需要完全独立渲染的导出文件。自定义字体不由该开关打包，仍需由宿主提供字体资源。
+`renderSvgGrid` 与 `renderSvgString` 共享同一棵无 DOM SVG 渲染树，因此相同 `GridScene` 的坐标、图层、属性和图元顺序一致。SVG 图元会内联颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性，导出的 `.svg` 或 Base64 `img` 不需要外部 `renderer.css`。`embedFont` 默认为 `false`；设为 `true` 时会把场景实际使用的内置字体以 Base64 `@font-face` 嵌入 SVG，默认只嵌入竖式字符子集；场景出现子集之外的文字时自动回退完整字体，也可以传入 `fontSubset: 'full'` 强制使用完整字体。自定义字体不由该开关打包，仍需由宿主提供字体资源。
 
 ### 获取视觉文本行
 

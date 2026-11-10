@@ -97,7 +97,7 @@ const { rendered, source, scene, inspection } = shushi('356 + 278', {
 console.log(rendered, source, scene, inspection)
 ```
 
-`fontFamily` 与 `colorTheme` 都会在宏编译阶段写入 `scene`；渲染器会把基础视觉属性写入每个 DOM/SVG 图元，导入 `renderer.css` 主要用于默认 STIX Two Math 字体资源和宿主主题。改用其他字体时导入 `renderer-without-font.css`，再导入对应的字体 CSS，例如 `fonts/cmu-serif.css`。`svg-string` 导出的 `.svg` 或 Base64 `img` 不依赖外部渲染器 CSS；传入 `embedFont: true` 可把场景使用的内置字体打包进 SVG，默认关闭，自定义字体仍需由宿主提供。
+`fontFamily` 与 `colorTheme` 都会在宏编译阶段写入 `scene`；渲染器会把基础视觉属性写入每个 DOM/SVG 图元，导入 `renderer.css` 主要用于默认 STIX Two Math 字体资源和宿主主题。改用其他字体时导入 `renderer-without-font.css`，再导入对应的字体 CSS，例如 `fonts/cmu-serif.css`。`svg-string` 导出的 `.svg` 或 Base64 `img` 不依赖外部渲染器 CSS；传入 `embedFont: true` 可把场景使用的内置字体打包进 SVG，默认使用竖式字符子集，未知字符自动回退完整字体，也可用 `fontSubset: 'full'` 强制使用完整字体；该选项默认关闭，自定义字体仍需由宿主提供。
 
 渲染模式：
 

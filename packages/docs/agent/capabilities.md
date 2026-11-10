@@ -55,6 +55,7 @@ type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   colorTheme?: AutoColorTheme
   fontFamily?: string
   embedFont?: boolean
+  fontSubset?: 'arithmetic' | 'full'
 }
 
 shushi(
@@ -187,7 +188,7 @@ const baseConversion = shushiCore({
 | `div`        | DOM 元素     | 浏览器 CSS/DOM 交互    |
 | `svg`        | SVG DOM 元素 | 浏览器 SVG 交互        |
 
-`div` 和 `svg` 需要浏览器 DOM；渲染器会把文字、线条、圆角、删除线和辅助网格的基础视觉值写入每个图元，`renderer.css` 主要用于默认字体资源、兼容主题和宿主扩展。导出的 `svg-string` 可以直接保存为 `.svg` 或编码后放入 `<img>`，不依赖外部 CSS；`embedFont: true` 时还会把场景使用的内置字体以 Base64 `@font-face` 嵌入，默认关闭，改用自定义字体时仍需由宿主提供对应字体 CSS/资源。文本单元格分为 3×3 九区：减法宏的 `MTD`（及等价的 `MT(·)`）默认使用与 `DOT` 相同的完整字号并进入上中区，核心数字留在中心区，进位 `RB` 位于下右区。DOM 与 SVG 从同一个 `GridScene` 读取该区域锚点。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
+`div` 和 `svg` 需要浏览器 DOM；渲染器会把文字、线条、圆角、删除线和辅助网格的基础视觉值写入每个图元，`renderer.css` 主要用于默认字体资源、兼容主题和宿主扩展。导出的 `svg-string` 可以直接保存为 `.svg` 或编码后放入 `<img>`，不依赖外部 CSS；`embedFont: true` 时还会把场景使用的内置字体以 Base64 `@font-face` 嵌入，默认使用竖式字符子集，未知字符自动回退完整字体，也可通过 `fontSubset: 'full'` 强制使用完整字体。改用自定义字体时仍需由宿主提供对应字体 CSS/资源。文本单元格分为 3×3 九区：减法宏的 `MTD`（及等价的 `MT(·)`）默认使用与 `DOT` 相同的完整字号并进入上中区，核心数字留在中心区，进位 `RB` 位于下右区。DOM 与 SVG 从同一个 `GridScene` 读取该区域锚点。所有渲染器都只消费同一个 `GridScene`，不要在渲染器中计算进位、借位、部分积、商或余数。
 
 ### 品牌图标
 
@@ -229,12 +230,13 @@ completeMacro(source)
 minifyMacro(source)
 minifyMacroForCopy(source)
 compileMacro(source, { colorTheme?, fontFamily? })
+renderSvgString(scene, { embedFont?, fontSubset? })
 createMacroAstInspection(source)
 ```
 
 - `formatMacro` 只整理空白和缩进，不计算运算结果。
 - `completeMacro` 输出显式的 `GRID`、`ROW`、`CELL` 和完整宏名。
-- `minifyMacro` 输出最简合法宏；计算器生成的宏复制到编辑器时使用 `minifyMacroForCopy`，它会移除页面专属 `ariaLabel` 和 `style`。
+- `minifyMacro` 输出最简合法宏；计算器生成的宏以内容和布局为主，复制到编辑器时仍使用 `minifyMacroForCopy`，它会移除旧版本或人工源码中的页面专属 `ariaLabel` 和 `style`。
 - `createMacroAstInspection` 返回 `scene`、`references`、`source`、`minifiedSource` 和不可变的 `updateElementText`、`removeElementStrike`；`references` 会为带删除线的同格图元记录 `strikeKind`，后者直接删除 `STRIKE`，并把 `STRIKEDOT` 回退为 `DOT`。
 - 小数除法的 `source` 会把除数与被除数的同步右移拆成逐帧 `DOT` 小数点；每帧以 `STRIKEDOT` 保留旧小数点，并以 `STRIKE` 划去被略去的前导零，完成等值变换后才出现试商过程。
 

@@ -106,7 +106,7 @@ renderSvgString(scene, { embedFont: true })
 | 浏览器 SVG       | `renderSvgGrid` 或门户 `renderMode: 'svg'` |
 | Node.js/SSR/导出 | `renderSvgString` 或门户默认 `svg-string`  |
 
-浏览器入口可导入 `@u1in/shushi-core/renderer.css` 获取默认 STIX Two Math 字体资源和宿主主题；DOM/SVG 图元自身已带基础视觉属性。自定义字体时使用 `@u1in/shushi-core/renderer-without-font.css` 再导入自己的或对应字体 CSS。纯计算、宏处理和 `renderSvgString` 不需要 DOM，后者输出可直接保存为独立 SVG 或放入 Base64 `img`；传入 `{ embedFont: true }` 可额外嵌入场景使用的内置字体，默认关闭。
+浏览器入口可导入 `@u1in/shushi-core/renderer.css` 获取默认 STIX Two Math 字体资源和宿主主题；DOM/SVG 图元自身已带基础视觉属性。自定义字体时使用 `@u1in/shushi-core/renderer-without-font.css` 再导入自己的或对应字体 CSS。纯计算、宏处理和 `renderSvgString` 不需要 DOM，后者输出可直接保存为独立 SVG 或放入 Base64 `img`；传入 `{ embedFont: true }` 可额外嵌入场景使用的内置字体，默认使用竖式字符子集，未知字符自动回退完整字体，也可传 `fontSubset: 'full'`，该选项默认关闭。
 
 ## 7. 类型和常量
 

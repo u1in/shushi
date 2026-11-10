@@ -266,12 +266,7 @@ export const createDivisionMacroSource = (computation: DivisionComputation, sett
     putNumber(remainderCells, visibleRemainder, dividendStart + remainderEnd, 'division.remainder')
   children.push(macroRow(remainderCells))
 
-  return macroGrid(
-    totalColumns,
-    settings,
-    `${computation.dividendText} 除以 ${computation.divisorText} 的竖式`,
-    children,
-  )
+  return macroGrid(totalColumns, settings, children)
 }
 
 /** @deprecated 使用宏源码编译；保留名称以兼容既有调用方。 */

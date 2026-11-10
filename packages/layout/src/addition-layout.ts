@@ -158,7 +158,7 @@ export const createAdditionMacroSource = (
   )
   children.push(macroRow(resultCells))
 
-  return macroGrid(columns, resolvedSettings, `${computation.addendTexts.join(' 加 ')} 的竖式`, children)
+  return macroGrid(columns, resolvedSettings, children)
 }
 
 /** @deprecated 使用宏源码编译；保留名称以兼容既有调用方。 */

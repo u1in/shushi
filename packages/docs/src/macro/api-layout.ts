@@ -540,6 +540,7 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   colorTheme?: AutoColorTheme
   fontFamily?: string
   embedFont?: boolean
+  fontSubset?: 'arithmetic' | 'full'
 }
 
 type Shushi = {
@@ -588,7 +589,12 @@ type VerticalArithmeticResult<T, TRendered> = {
     [
       '`options.embedFont`',
       '`boolean`，默认 `false`',
-      '仅影响 `svg-string`：为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG，适合独立文件或 Base64 `img`；自定义字体仍需由宿主提供。',
+      '仅影响 `svg-string`：为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG；默认优先使用竖式字符子集，未知字符自动回退完整字体。自定义字体仍需由宿主提供。',
+    ],
+    [
+      '`options.fontSubset`',
+      '`"arithmetic" | "full"`，默认 `"arithmetic"`',
+      '选择内置字体资源；`arithmetic` 适合自动生成的加减乘除和短除法，`full` 强制嵌入完整字体。',
     ],
     ['`options.renderMode`', '`ShushiRenderMode`', '选择 `div`、`svg` 或 `svg-string`；省略时默认为 `svg-string`。'],
     ['`options.el`', '`Element`', '仅客户端 `div` / `svg` 模式可用；渲染结果会 append 到该元素下。'],
@@ -596,7 +602,7 @@ type VerticalArithmeticResult<T, TRendered> = {
     ['`inspection`', '`MacroAstInspection`', '返回 AST、图元引用和 `updateElementText`，用于注入编辑或继续分析。'],
   ],
   caution:
-    '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。`embedFont` 只对 `svg-string` 输出生效，默认关闭。',
+    '解析器不执行通常的乘法优先级，而是按文本从左到右生成组合竖式；`÷`、`/` 不能与加减乘混用。`div` 和 `svg` 需要客户端 DOM，服务端调用会抛出错误；`svg-string` 不能传 el。浏览器 DOM 模式导入 `@u1in/shushi-core/renderer.css` 即可使用默认 STIX 字体；改用其他字体时使用 `renderer-without-font.css` 加对应字体 CSS。`embedFont` 只对 `svg-string` 输出生效，默认关闭；开启后默认嵌入竖式字符子集，未知字符自动回退完整字体。',
 })
 
 export const shushiCorePage = createLayoutApiPage({
@@ -638,9 +644,9 @@ console.log(scene.ariaLabel)`,
       '精确控制教学标记、尺寸、播放、是否标记小数结果末位 0 与算法选项。',
     ],
     [
-      '`request.renderMode` / `request.embedFont`',
-      '`ShushiRenderMode` / `boolean`',
-      '选择 DOM、SVG DOM 或 SVG 字符串；`embedFont: true` 仅在 `svg-string` 模式下把场景使用的内置字体嵌入导出结果，默认关闭。',
+      '`request.renderMode` / `request.embedFont` / `request.fontSubset`',
+      '`ShushiRenderMode` / `boolean` / `"arithmetic" | "full"`',
+      '选择 DOM、SVG DOM 或 SVG 字符串；字体选项仅在 `svg-string` 模式下生效，默认嵌入竖式字符子集，未知字符自动回退完整字体。',
     ],
     ['返回值', '`VerticalArithmeticResult`', '含计算过程、可编辑源码、场景、渲染结果与 AST 检查器。'],
   ],

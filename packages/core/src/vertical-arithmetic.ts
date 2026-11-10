@@ -43,7 +43,7 @@ import {
 import type { AutoColorTheme, MacroAstInspection } from '@u1in/shushi-macro'
 import { createMacroAstInspection } from '@u1in/shushi-macro'
 import { renderDomGrid, renderSvgGrid } from '@u1in/shushi-renderers'
-import { renderSvgString } from './svg-string'
+import { renderSvgString, type SvgFontSubset } from './svg-string'
 
 export type ShushiRenderMode = 'div' | 'svg' | 'svg-string'
 
@@ -68,6 +68,8 @@ export type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> =
   el?: TMode extends 'svg-string' ? never : Element
   /** `svg-string` 导出时是否把场景使用的内置字体嵌入 SVG。 */
   embedFont?: boolean
+  /** 内置字体默认使用竖式字符子集；未知字符会自动回退完整字体。 */
+  fontSubset?: SvgFontSubset
 }
 
 export type ShushiRequest<TRequest, TMode extends ShushiRenderMode = 'svg-string'> = TRequest &
@@ -236,10 +238,11 @@ const renderPortalResult = (
   renderMode: ShushiRenderMode,
   el: Element | undefined,
   embedFont: boolean | undefined,
+  fontSubset: SvgFontSubset | undefined,
 ): ShushiRendered<ShushiRenderMode> => {
   if (renderMode === 'svg-string') {
     if (el) throw new Error('renderMode 为 svg-string 时不能传入 el；请使用 div 或 svg 客户端渲染模式。')
-    return renderSvgString(scene, { embedFont })
+    return renderSvgString(scene, { embedFont, fontSubset })
   }
 
   if (typeof document === 'undefined') {
@@ -267,7 +270,13 @@ const createResult = <TComputation>(
     computation,
     source,
     scene,
-    rendered: renderPortalResult(scene, options.renderMode ?? 'svg-string', options.el, options.embedFont),
+    rendered: renderPortalResult(
+      scene,
+      options.renderMode ?? 'svg-string',
+      options.el,
+      options.embedFont,
+      options.fontSubset,
+    ),
     inspection,
   }
 }
@@ -348,6 +357,7 @@ const createExpressionOptions = <TMode extends ShushiRenderMode>(
   colorTheme: options?.colorTheme,
   fontFamily: options?.fontFamily,
   embedFont: options?.embedFont,
+  fontSubset: options?.fontSubset,
 })
 
 /**

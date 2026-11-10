@@ -113,7 +113,7 @@ export const renderSvgStringPage = renderPage({
 // 编译只生成与渲染器无关的 GridScene，不需要浏览器环境。
 const scene = compileMacro('3,5,6;+,[2,RB(1)],[7,RB(1)],8;LN;6,3,4;')
 
-// 返回完整的 SVG 字符串；embedFont 可把场景使用的内置字体一起打包。
+// 返回完整的 SVG 字符串；embedFont 默认使用竖式字符子集打包字体。
 const svg = renderSvgString(scene, { embedFont: true })
 console.log(svg)`,
         },
@@ -145,7 +145,12 @@ console.log(svg)`,
             [
               '`options.embedFont`',
               '`boolean`，默认 `false`',
-              '为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG；自定义字体仍需由宿主提供。',
+              '为 `true` 时把场景使用的内置字体以 Base64 `@font-face` 嵌入 SVG；默认优先使用竖式字符子集，场景出现未知字符时自动回退完整字体。自定义字体仍需由宿主提供。',
+            ],
+            [
+              '`options.fontSubset`',
+              '`"arithmetic" | "full"`，默认 `"arithmetic"`',
+              '选择内置字体资源；`arithmetic` 只包含数字、运算符、小数点和借位点，未知字符会自动回退为 `full`。',
             ],
             ['根节点', '`<svg class="grid-svg">`', '包含 `width`、`height`、`viewBox`、`role="img"` 和 `aria-label`。'],
             [
@@ -166,7 +171,7 @@ console.log(svg)`,
           type: 'callout',
           tone: 'tip',
           title: '不需要浏览器环境',
-          text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，并将颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性写入各个 SVG 图元，因此返回字符串可以直接保存为 `.svg` 文件，或编码后放入 `<img src="data:image/svg+xml;base64,...">`。默认不嵌入字体二进制；需要独立渲染时传入 `{ embedFont: true }`，该选项只打包场景使用的内置字体。自定义字体仍需由宿主提供。',
+          text: '该函数可在 Node.js、SSR 和构建脚本中调用，不需要 jsdom，也不需要先导入 CSS。它与 `renderSvgGrid` 保证 SVG 语义结构一致，并将颜色、字号、字重、线宽、线帽、删除线和辅助网格等最终视觉属性写入各个 SVG 图元，因此返回字符串可以直接保存为 `.svg` 文件，或编码后放入 `<img src="data:image/svg+xml;base64,...">`。默认不嵌入字体二进制；需要独立渲染时传入 `{ embedFont: true }`，默认只打包竖式字符子集，未知字符会回退完整字体。自定义字体仍需由宿主提供。',
         },
       ],
     },

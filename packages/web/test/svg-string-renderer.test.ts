@@ -92,15 +92,35 @@ describe('renderSvgString', () => {
 
     expect(plainSvg).not.toContain('<style>')
     expect(embeddedSvg).toContain('<style>@font-face{font-family:"STIX Two Math"')
+    expect(embeddedSvg).toContain('font-weight:400')
     expect(embeddedSvg).toContain('data:font/woff2;base64,')
+    const embeddedFontPayload = embeddedSvg.match(/data:font\/woff2;base64,([^)]*)/)?.[1]
+    // 防止空 cmap 的错误子集被打包；该资源必须包含数字字形，而不是只有字体壳。
+    expect(embeddedFontPayload?.length ?? 0).toBeGreaterThan(5_000)
+    // 自动竖式只嵌入数字与运算符子集，不再把约 400 KB 的完整字体写入每个 SVG。
+    expect(embeddedSvg.length).toBeLessThan(100_000)
+  })
+
+  it('场景出现子集之外的文字时回退到完整内置字体', () => {
+    const scene = compileMacro('GRID(ROW(MM("A")))')
+    const arithmeticSubsetSvg = renderSvgString(scene, { embedFont: true })
+    const fullSvg = renderSvgString(scene, { embedFont: true, fontSubset: 'full' })
+
+    expect(arithmeticSubsetSvg).toBe(fullSvg)
+    expect(arithmeticSubsetSvg.length).toBeGreaterThan(100_000)
   })
 
   it('门户的 svg-string 模式透传字体嵌入开关', () => {
     const plainResult = shushi('5+0', { renderMode: 'svg-string' })
-    const embeddedResult = shushi('5+0', { renderMode: 'svg-string', embedFont: true })
+    const embeddedResult = shushi('5+0', {
+      renderMode: 'svg-string',
+      embedFont: true,
+      fontSubset: 'arithmetic',
+    })
 
     expect(plainResult.rendered).not.toContain('<style>')
     expect(embeddedResult.rendered).toContain('data:font/woff2;base64,')
+    expect(embeddedResult.rendered.length).toBeLessThan(100_000)
   })
 
   it('把独立 img 所需的最终 SVG 视觉属性写入图元', () => {
@@ -132,7 +152,7 @@ describe('renderSvgString', () => {
     const svg = renderSvgString(scene)
 
     expect(svg).toContain('fill:#be4c00;font-family:')
-    expect(svg).toContain('font-size:27px;font-variant-numeric:tabular-nums;font-weight:800')
+    expect(svg).toContain('font-size:27px;font-variant-numeric:tabular-nums;font-weight:400')
     expect(svg).toContain('font-synthesis:none')
     expect(svg).toContain('fill:none;stroke:#4a5f78;stroke-linecap:butt;stroke-width:2px')
     expect(svg).toContain('stroke:#a7bbdd;stroke-dasharray:2 5;stroke-linecap:butt;stroke-width:1px;opacity:0.68')

@@ -175,7 +175,7 @@ export const createCompositeArithmeticMacroSource = (
 
   const columns = Math.max(...includedStages.map(({ source }) => getGridColumnCount(source)))
   // 复用公共 GRID 选项，确保组合场景与各单项场景的尺寸、颜色和辅助网格一致。
-  const root = parseMacro(macroGrid(columns, resolvedSettings, `${computation.expression} 的组合竖式`, []))
+  const root = parseMacro(macroGrid(columns, resolvedSettings, []))
   const options = root.arguments.filter((node) => isCall(node, 'KV'))
   const children: MacroNode[] = []
   includedStages.forEach((stage, stageIndex) => {

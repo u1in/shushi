@@ -221,12 +221,7 @@ export const createMultiplicationMacroSource = (
     )
     children.push(macroLine('multiplication.input-bar', 'adjacent'))
     if (isComplete) children.push(macroRow(renderNumberCells(product, numberColumnCount, 'multiplication.product')))
-    return macroGrid(
-      numberColumnCount + 1,
-      settings,
-      `${computation.multiplicandText} 乘以 ${computation.multiplierText} 的十倍数快捷竖式`,
-      children,
-    )
+    return macroGrid(numberColumnCount + 1, settings, children)
   }
 
   let remainingVisibleSteps = visibleMultiplicationStepCount
@@ -325,12 +320,7 @@ export const createMultiplicationMacroSource = (
     if (row) children.push(macroRow(renderNumberCells(row, numberColumnCount, 'multiplication.product')))
   }
 
-  return macroGrid(
-    numberColumnCount + 1,
-    settings,
-    `${computation.multiplicandText} 乘以 ${computation.multiplierText} 的竖式`,
-    children,
-  )
+  return macroGrid(numberColumnCount + 1, settings, children)
 }
 
 /** @deprecated 使用宏源码编译；保留名称以兼容既有调用方。 */

@@ -56,7 +56,7 @@
   );
   font-size: var(--grid-font-size, 27px);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -163,7 +163,7 @@
   );
   font-size: var(--grid-font-size, 27px);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1;
   text-anchor: middle;
 }
@@ -239,14 +239,14 @@
 /* styleToken 是可扩展的语义钩子；这些默认色板覆盖内置宏和五种运算的 token。 */
 .grid-dom-stage .grid-text[data-style-token='macro.default-text'] {
   color: var(--grid-default-text);
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='macro.default-text'] {
   fill: var(--grid-default-text);
 }
 .grid-dom-stage .grid-text[data-style-token='macro.decimal'] {
   color: #c2185b;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='macro.decimal'] {
   fill: #c2185b;
@@ -254,28 +254,28 @@
 
 .grid-dom-stage .grid-text[data-style-token='division.divisor'] {
   color: #c43e49;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.divisor'] {
   fill: #c43e49;
 }
 .grid-dom-stage .grid-text[data-style-token='division.quotient'] {
   color: #be4c00;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.quotient'] {
   fill: #be4c00;
 }
 .grid-dom-stage .grid-text[data-style-token='division.dividend'] {
   color: #b2468a;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.dividend'] {
   fill: #b2468a;
 }
 .grid-dom-stage .grid-text[data-style-token='division.appended-zero'] {
   color: #c9a3bd;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.appended-zero'] {
   fill: #c9a3bd;
@@ -283,7 +283,7 @@
 .grid-dom-stage .grid-text[data-style-token='division.partial-minuend'],
 .grid-dom-stage .grid-text[data-style-token='division.remainder'] {
   color: #4f9b3e;
-  font-weight: 600;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.partial-minuend'],
 .grid-svg .grid-text[data-style-token='division.remainder'] {
@@ -291,7 +291,7 @@
 }
 .grid-dom-stage .grid-text[data-style-token='division.partial-subtrahend'] {
   color: #9752b4;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.partial-subtrahend'] {
   fill: #9752b4;
@@ -299,7 +299,7 @@
 .grid-dom-stage .grid-text[data-style-token='division.decimal-separator'],
 .grid-dom-stage .grid-text[data-style-token='division.dividend-decimal-separator'] {
   color: #c2185b;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='division.decimal-separator'],
 .grid-svg .grid-text[data-style-token='division.dividend-decimal-separator'] {
@@ -310,7 +310,7 @@
 .grid-dom-stage .grid-text[data-style-token='addition.addend'],
 .grid-dom-stage .grid-text[data-style-token='subtraction.minuend'] {
   color: #c43e49;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.multiplicand'],
 .grid-svg .grid-text[data-style-token='addition.addend'],
@@ -320,7 +320,7 @@
 .grid-dom-stage .grid-text[data-style-token='multiplication.multiplier'],
 .grid-dom-stage .grid-text[data-style-token='multiplication.operator'] {
   color: #0096c9;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.multiplier'],
 .grid-svg .grid-text[data-style-token='multiplication.operator'] {
@@ -330,7 +330,7 @@
 .grid-dom-stage .grid-text[data-style-token='addition.carry'],
 .grid-dom-stage .grid-text[data-style-token='subtraction.borrow'] {
   color: #00a079;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.carry'],
 .grid-svg .grid-text[data-style-token='addition.carry'],
@@ -339,14 +339,14 @@
 }
 .grid-dom-stage .grid-text[data-style-token='multiplication.addition-carry'] {
   color: #9752b4;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.addition-carry'] {
   fill: #9752b4;
 }
 .grid-dom-stage .grid-text[data-style-token='multiplication.partial-product'] {
   color: #4f9b3e;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.partial-product'] {
   fill: #4f9b3e;
@@ -355,7 +355,7 @@
 .grid-dom-stage .grid-text[data-style-token='addition.sum'],
 .grid-dom-stage .grid-text[data-style-token='subtraction.difference'] {
   color: #be4c00;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='multiplication.product'],
 .grid-svg .grid-text[data-style-token='addition.sum'],
@@ -366,7 +366,7 @@
 .grid-dom-stage .grid-text[data-style-token='subtraction.operator'],
 .grid-dom-stage .grid-text[data-style-token='subtraction.negative-sign'] {
   color: #7b3fa0;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='addition.operator'],
 .grid-svg .grid-text[data-style-token='subtraction.operator'],
@@ -375,7 +375,7 @@
 }
 .grid-dom-stage .grid-text[data-style-token='subtraction.subtrahend'] {
   color: #0096c9;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='subtraction.subtrahend'] {
   fill: #0096c9;
@@ -384,7 +384,7 @@
 .grid-dom-stage .grid-text[data-style-token='short-division.divisor'],
 .grid-dom-stage .grid-text[data-style-token='short-division.remainder-label'] {
   color: #c43e49;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='short-division.divisor'],
 .grid-svg .grid-text[data-style-token='short-division.remainder-label'] {
@@ -392,21 +392,21 @@
 }
 .grid-dom-stage .grid-text[data-style-token='short-division.dividend'] {
   color: #b2468a;
-  font-weight: 700;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='short-division.dividend'] {
   fill: #b2468a;
 }
 .grid-dom-stage .grid-text[data-style-token='short-division.remainder'] {
   color: #4f9b3e;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='short-division.remainder'] {
   fill: #4f9b3e;
 }
 .grid-dom-stage .grid-text[data-style-token='short-division.final'] {
   color: #be4c00;
-  font-weight: 800;
+  font-weight: 400;
 }
 .grid-svg .grid-text[data-style-token='short-division.final'] {
   fill: #be4c00;

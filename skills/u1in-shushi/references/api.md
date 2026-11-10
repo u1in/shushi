@@ -15,6 +15,7 @@ type ShushiExpressionOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   colorTheme?: AutoColorTheme
   fontFamily?: string
   embedFont?: boolean
+  fontSubset?: 'arithmetic' | 'full'
 }
 
 shushi(
@@ -85,6 +86,7 @@ type ShushiRenderOptions<TMode extends ShushiRenderMode = 'svg-string'> = {
   colorTheme?: AutoColorTheme
   fontFamily?: string
   embedFont?: boolean
+  fontSubset?: 'arithmetic' | 'full'
 }
 ```
 
@@ -281,14 +283,14 @@ const withoutStrike = inspection.removeElementStrike('grid-strike-id')
 ```typescript
 renderDomGrid(scene)
 renderSvgGrid(scene)
-renderSvgString(scene, { embedFont: true })
+renderSvgString(scene, { embedFont: true, fontSubset: 'arithmetic' })
 resolveGridMetrics(scene)
 getGridPositionRect(scene, position)
 getGridElementRect(scene, elementId)
 extractVisibleTextRows(scene)
 ```
 
-渲染器只消费 `GridScene`；计算和宏编译不依赖 DOM。需要 SSR、Node.js 或独立导出时优先使用 `renderSvgString`，其输出已内联基础 SVG 视觉属性，可直接作为 `.svg` 文件或 Base64 `img` 使用。传入 `renderSvgString(scene, { embedFont: true })` 可把场景使用的内置字体以 Base64 `@font-face` 嵌入；默认关闭，自定义字体仍需由宿主提供。
+渲染器只消费 `GridScene`；计算和宏编译不依赖 DOM。需要 SSR、Node.js 或独立导出时优先使用 `renderSvgString`，其输出已内联基础 SVG 视觉属性，可直接作为 `.svg` 文件或 Base64 `img` 使用。传入 `renderSvgString(scene, { embedFont: true })` 可把场景使用的内置字体以 Base64 `@font-face` 嵌入；默认关闭，开启后默认使用竖式字符子集，未知字符自动回退完整字体，也可传 `fontSubset: 'full'` 强制使用完整字体。自定义字体仍需由宿主提供。
 
 ## 9. 入口选择结论
 

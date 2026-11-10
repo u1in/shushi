@@ -118,7 +118,7 @@ const svg = renderSvgGrid(scene)
 const text = renderSvgString(scene)
 ```
 
-三个渲染器必须消费同一份 `scene`。DOM/SVG 图元会内联基础视觉属性；浏览器入口仍可导入 CSS 以获得默认字体和宿主主题，`renderSvgString(scene, { embedFont: true })` 的结果则连场景使用的内置字体也会打包，可脱离外部 CSS 保存为 `.svg` 或放入 Base64 `img`。`embedFont` 默认关闭，自定义字体仍需由宿主提供。
+三个渲染器必须消费同一份 `scene`。DOM/SVG 图元会内联基础视觉属性；浏览器入口仍可导入 CSS 以获得默认字体和宿主主题，`renderSvgString(scene, { embedFont: true })` 的结果则连场景使用的内置字体也会打包，可脱离外部 CSS 保存为 `.svg` 或放入 Base64 `img`。开启后默认只嵌入竖式字符子集，未知字符自动回退完整字体，也可传 `fontSubset: 'full'` 强制使用完整字体；`embedFont` 默认关闭，自定义字体仍需由宿主提供。
 
 ## 9. 交付检查
 

@@ -169,7 +169,7 @@ export const createSubtractionMacroSource = (
     differenceCells[columns - displayedDifference.length - 1] = decimalMarkerCell()
   }
 
-  return macroGrid(columns, settings, `${computation.minuendText} 减 ${computation.subtrahendText} 的竖式`, [
+  return macroGrid(columns, settings, [
     macroRow(minuendCells),
     macroRow(subtrahendCells),
     macroLine('subtraction.difference-bar', 'adjacent'),

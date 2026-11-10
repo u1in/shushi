@@ -47,7 +47,8 @@ const expectCopiedMacroReproducible = (source: string, scene: GridScene): void =
 
 /** 计算器宏必须把最终颜色写进 GridScene，两个渲染器才能消费同一份颜色数据。 */
 const expectAutoColorScene = (source: string, scene: GridScene): void => {
-  expect(source).toContain('KV(autoColor, true)')
+  // 自动配色是编译选项，不属于布局宏源码；复制源码后仍由编译器默认注入。
+  expect(source).not.toContain('autoColor')
   expect(scene.elements.some(({ content }) => content.color !== undefined)).toBe(true)
 }
 

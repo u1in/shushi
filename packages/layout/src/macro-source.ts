@@ -44,24 +44,16 @@ export const macroLine = (
   span: 'previous' | 'adjacent' | 'longest' | 'full' = 'adjacent',
 ): string => `LINE(${macroOption('span', span)}, ${macroOption('style', styleToken)})`
 
-/** 同一套场景参数写入宏源码，禁止计算器绕过宏编译器直接构造 GridScene。 */
-export const macroGrid = (
-  columns: number,
-  settings: GridRenderSettings,
-  ariaLabel: string,
-  children: string[],
-): string => {
+/** 只把可复现布局所需的场景参数写入宏源码，外观主题由重新编译时的调用方决定。 */
+export const macroGrid = (columns: number, settings: GridRenderSettings, children: string[]): string => {
   const options = [
     macroOption('columns', columns),
-    // 让计算器生成的 GridScene 携带与 SVG 相同的最终颜色，DOM/CSS 只负责呈现。
-    macroOption('autoColor', true),
     macroOption('unitWidth', settings.cellWidth),
     macroOption('unitHeight', settings.rowHeight),
     macroOption('fontSizeRatio', settings.fontSizeRatio),
     macroOption('paddingX', 20),
     macroOption('paddingY', 12),
     macroOption('showGrid', settings.showGuideGrid),
-    macroOption('ariaLabel', ariaLabel),
   ]
   return `GRID(${[...options, ...children].join(', ')})`
 }

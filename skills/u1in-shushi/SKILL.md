@@ -149,7 +149,7 @@ addition | subtraction | multiplication | division | shortDivision | composite
 const { computation, source, scene, rendered, inspection } = shushi('10230 / 25')
 ```
 
-`source` 是可编辑宏源码；需要复制到宏编辑器时使用 `minifyMacroForCopy(source)`，不要手工删除 `style`、`ariaLabel` 或其他宏参数。
+`source` 是可编辑宏源码；自动生成的源码以内容和布局为主，字体与颜色主题由重新编译时的调用方选择。需要复制到宏编辑器时仍使用 `minifyMacroForCopy(source)`，不要手工删除 `style`、`ariaLabel` 或其他宏参数。
 
 小数除法会将除数和被除数的同步右移拆成逐帧源码，每帧用 `DOT` 标记当前小数点，并用 `STRIKEDOT` 保留旧小数点、用 `STRIKE` 划去被略去的前导零；完成等值变换后才开始试商。不要用 CSS `text-decoration` 或像素坐标替代这些宏图元。
 
@@ -167,7 +167,7 @@ const updated = inspection.updateElementText(element.id, '9')
 
 - `renderDomGrid(scene)`：浏览器 DOM/CSS；
 - `renderSvgGrid(scene)`：浏览器 SVG DOM；
-- `renderSvgString(scene, { embedFont: true })`：Node.js、SSR 和独立导出文件；返回的 SVG 已内联基础颜色、字号、字重、线宽、线帽、删除线和辅助网格样式，并把场景使用的内置字体以 Base64 `@font-face` 嵌入，可直接保存为 `.svg` 或编码后放入 `<img>`。`embedFont` 默认关闭，自定义字体仍需由宿主提供。
+- `renderSvgString(scene, { embedFont: true })`：Node.js、SSR 和独立导出文件；返回的 SVG 已内联基础颜色、字号、字重、线宽、线帽、删除线和辅助网格样式，并把场景使用的内置字体以 Base64 `@font-face` 嵌入。默认使用竖式字符子集，未知字符自动回退完整字体，也可传 `fontSubset: 'full'` 强制使用完整字体；可直接保存为 `.svg` 或编码后放入 `<img>`。`embedFont` 默认关闭，自定义字体仍需由宿主提供。
 
 纯计算、宏解析、编译、几何查询和文本提取不依赖 DOM。
 

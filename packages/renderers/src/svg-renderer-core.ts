@@ -41,44 +41,47 @@ export const SVG_DEFAULT_FONT_FAMILY =
 
 type SvgTextStyle = {
   color: string
-  fontWeight: number
+  fontWeight: 400
 }
+
+/** 竖式字体统一使用常规字重；颜色仍由语义 token 区分。 */
+const svgTextStyle = (color: string): SvgTextStyle => ({ color, fontWeight: 400 })
 
 /** 与 renderer.css 中内置语义 token 对齐，确保 SVG 作为 img 时不依赖外部选择器。 */
 const SVG_TEXT_STYLES: Record<string, SvgTextStyle> = {
-  'macro.default-text': { color: SVG_DEFAULT_TEXT, fontWeight: 700 },
-  'macro.decimal': { color: '#c2185b', fontWeight: 800 },
-  'division.divisor': { color: '#c43e49', fontWeight: 800 },
-  'division.quotient': { color: '#be4c00', fontWeight: 800 },
-  'division.dividend': { color: '#b2468a', fontWeight: 700 },
-  'division.appended-zero': { color: '#c9a3bd', fontWeight: 700 },
-  'division.partial-minuend': { color: '#4f9b3e', fontWeight: 600 },
-  'division.remainder': { color: '#4f9b3e', fontWeight: 600 },
-  'division.partial-subtrahend': { color: '#9752b4', fontWeight: 700 },
-  'division.decimal-separator': { color: '#c2185b', fontWeight: 800 },
-  'division.dividend-decimal-separator': { color: '#c2185b', fontWeight: 800 },
-  'multiplication.multiplicand': { color: '#c43e49', fontWeight: 700 },
-  'addition.addend': { color: '#c43e49', fontWeight: 700 },
-  'subtraction.minuend': { color: '#c43e49', fontWeight: 700 },
-  'multiplication.multiplier': { color: '#0096c9', fontWeight: 800 },
-  'multiplication.operator': { color: '#0096c9', fontWeight: 800 },
-  'multiplication.carry': { color: '#00a079', fontWeight: 800 },
-  'addition.carry': { color: '#00a079', fontWeight: 800 },
-  'subtraction.borrow': { color: '#00a079', fontWeight: 800 },
-  'multiplication.addition-carry': { color: '#9752b4', fontWeight: 800 },
-  'multiplication.partial-product': { color: '#4f9b3e', fontWeight: 700 },
-  'multiplication.product': { color: '#be4c00', fontWeight: 800 },
-  'addition.sum': { color: '#be4c00', fontWeight: 800 },
-  'subtraction.difference': { color: '#be4c00', fontWeight: 800 },
-  'addition.operator': { color: '#7b3fa0', fontWeight: 800 },
-  'subtraction.operator': { color: '#7b3fa0', fontWeight: 800 },
-  'subtraction.negative-sign': { color: '#7b3fa0', fontWeight: 800 },
-  'subtraction.subtrahend': { color: '#0096c9', fontWeight: 700 },
-  'short-division.divisor': { color: '#c43e49', fontWeight: 800 },
-  'short-division.remainder-label': { color: '#c43e49', fontWeight: 800 },
-  'short-division.dividend': { color: '#b2468a', fontWeight: 700 },
-  'short-division.remainder': { color: '#4f9b3e', fontWeight: 800 },
-  'short-division.final': { color: '#be4c00', fontWeight: 800 },
+  'macro.default-text': svgTextStyle(SVG_DEFAULT_TEXT),
+  'macro.decimal': svgTextStyle('#c2185b'),
+  'division.divisor': svgTextStyle('#c43e49'),
+  'division.quotient': svgTextStyle('#be4c00'),
+  'division.dividend': svgTextStyle('#b2468a'),
+  'division.appended-zero': svgTextStyle('#c9a3bd'),
+  'division.partial-minuend': svgTextStyle('#4f9b3e'),
+  'division.remainder': svgTextStyle('#4f9b3e'),
+  'division.partial-subtrahend': svgTextStyle('#9752b4'),
+  'division.decimal-separator': svgTextStyle('#c2185b'),
+  'division.dividend-decimal-separator': svgTextStyle('#c2185b'),
+  'multiplication.multiplicand': svgTextStyle('#c43e49'),
+  'addition.addend': svgTextStyle('#c43e49'),
+  'subtraction.minuend': svgTextStyle('#c43e49'),
+  'multiplication.multiplier': svgTextStyle('#0096c9'),
+  'multiplication.operator': svgTextStyle('#0096c9'),
+  'multiplication.carry': svgTextStyle('#00a079'),
+  'addition.carry': svgTextStyle('#00a079'),
+  'subtraction.borrow': svgTextStyle('#00a079'),
+  'multiplication.addition-carry': svgTextStyle('#9752b4'),
+  'multiplication.partial-product': svgTextStyle('#4f9b3e'),
+  'multiplication.product': svgTextStyle('#be4c00'),
+  'addition.sum': svgTextStyle('#be4c00'),
+  'subtraction.difference': svgTextStyle('#be4c00'),
+  'addition.operator': svgTextStyle('#7b3fa0'),
+  'subtraction.operator': svgTextStyle('#7b3fa0'),
+  'subtraction.negative-sign': svgTextStyle('#7b3fa0'),
+  'subtraction.subtrahend': svgTextStyle('#0096c9'),
+  'short-division.divisor': svgTextStyle('#c43e49'),
+  'short-division.remainder-label': svgTextStyle('#c43e49'),
+  'short-division.dividend': svgTextStyle('#b2468a'),
+  'short-division.remainder': svgTextStyle('#4f9b3e'),
+  'short-division.final': svgTextStyle('#be4c00'),
 }
 
 type SvgLineStyle = {
@@ -101,9 +104,9 @@ const SVG_LINE_STYLES: Record<string, SvgLineStyle> = {
 }
 
 export const getTextStyle = (element: GridElement, scene: GridScene): SvgTextStyle => {
-  if (element.content.kind !== 'text') return { color: SVG_DEFAULT_TEXT, fontWeight: 700 }
+  if (element.content.kind !== 'text') return svgTextStyle(SVG_DEFAULT_TEXT)
   const token = element.content.styleToken ?? scene.defaultTextStyleToken
-  return SVG_TEXT_STYLES[token ?? ''] ?? { color: SVG_DEFAULT_TEXT, fontWeight: 700 }
+  return SVG_TEXT_STYLES[token ?? ''] ?? svgTextStyle(SVG_DEFAULT_TEXT)
 }
 
 export const getLineStyle = (element: GridElement): SvgLineStyle => {

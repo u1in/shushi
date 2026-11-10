@@ -2,6 +2,12 @@
 
 所有重要变更都会记录在此文件中。
 
+## 4.2.0
+
+### Minor Changes
+
+- 优化 SVG 字符串导出的内置字体体积：默认嵌入竖式字符子集，遇到未覆盖字符时自动回退完整字体，并新增 `fontSubset` 选项。计算器生成的 Macro 同时不再固化 `autoColor` 和页面专属 `ariaLabel`。
+
 ## 4.1.0
 
 ### Minor Changes

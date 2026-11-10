@@ -44,15 +44,12 @@ export const createShortDivisionMacroSource = (
   children.push(`ROW(${finalGroups.join(', ')})`)
   // DIV 宏自行决定半格轨道和阶梯；columns 对它没有意义，因此不写入普通 GRID 配置。
   const options = [
-    // 短除法也沿用同一套内容级颜色，确保 DOM 与 SVG 不再分叉。
-    macroOption('autoColor', true),
     macroOption('unitWidth', settings.cellWidth),
     macroOption('unitHeight', settings.rowHeight),
     macroOption('fontSizeRatio', settings.fontSizeRatio),
     macroOption('paddingX', 20),
     macroOption('paddingY', 12),
     macroOption('showGrid', settings.showGuideGrid),
-    macroOption('ariaLabel', `短除法：${computation.inputValues.join('、')}`),
   ]
   return `GRID(${[...options, ...children].join(', ')})`
 }

@@ -96,7 +96,7 @@ import '@u1in/shushi-core/renderer.css'
 
 这些函数都会先解析源码。源码不完整时应把解析错误反馈给用户，不要用正则删除逗号、分号、`KV` 或括号。
 
-计算器生成的源码可能包含网页专属 `ariaLabel` 和 `style`；复制到宏编辑器前必须使用 `minifyMacroForCopy`，不要手工裁剪。
+旧版本或人工整理的计算器源码可能包含网页专属 `ariaLabel` 和 `style`；复制到宏编辑器前仍应使用 `minifyMacroForCopy`，不要手工裁剪。当前自动生成源码不再固化 `ariaLabel` 和 `autoColor`。
 
 小数长除法的等值变换会逐帧同步右移除数和被除数，并用 `DOT` 显示每帧的当前小数点；旧小数点以 `STRIKEDOT`、被略去的前导零以 `STRIKE` 保留，若被除数位数不足，补零也会单独显示。不要用 `text-decoration`、字符串替换或渲染器坐标逻辑代替这些宏图元。
 
