@@ -922,6 +922,8 @@ h1 {
   display: grid;
   grid-template-columns: minmax(360px, 0.86fr) minmax(0, 2fr) 600px;
   gap: 18px;
+  min-width: 0;
+  width: 100%;
 }
 
 /* 表达式入口和宏调试共享工作区比例，保持第一列与代码示例列对齐。 */
@@ -1214,6 +1216,13 @@ button:disabled {
   color: #62708b;
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.step-playback__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .step-playback__button {
@@ -1795,6 +1804,18 @@ button:disabled {
   white-space: nowrap;
 }
 
+.result-heading__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.result-heading__actions .copy-macro-button {
+  margin-left: 0;
+}
+
 .copy-macro-button:focus-visible {
   outline: 3px solid var(--accent-focus);
   outline-offset: 2px;
@@ -1851,7 +1872,7 @@ h2 {
 }
 
 .macro-ast-inspector .result-heading > .visible-text-rows {
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .visible-text-rows__output {
@@ -1920,6 +1941,17 @@ h2 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.auto-color-theme-modal .ocr-modal__actions {
+  flex-wrap: nowrap;
+}
+
+.auto-color-theme-modal .ocr-modal__actions button {
+  padding-right: 10px;
+  padding-left: 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .auto-color-theme-modal__hint {
@@ -2858,15 +2890,13 @@ h2 {
   }
 
   .site-header {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     gap: 10px;
     padding-right: 12px;
     padding-left: 12px;
   }
 
   .site-header__nav {
-    grid-column: 1 / -1;
-    grid-row: 2;
     justify-content: flex-start;
   }
 
@@ -2904,6 +2934,12 @@ h2 {
     height: max-content;
   }
 
+  /* 窄屏时工作区改为单列，代码面板不能继续用桌面端的固定宽度撑大父级。 */
+  .operation-demo--composite .code-panel,
+  .macro-ast-inspector .code-panel {
+    width: 100%;
+  }
+
   .macro-ast-inspector .result-card {
     grid-column: auto;
   }
@@ -2922,6 +2958,11 @@ h2 {
 
   .renderer-comparison {
     grid-template-columns: 1fr;
+  }
+
+  /* 双渲染器的基础规则有更高选择器优先级，移动端需显式覆盖为上下排列。 */
+  .renderer-comparison.renderer-comparison--both {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .result-content-grid {
@@ -2958,6 +2999,8 @@ h2 {
   .site-header {
     padding-right: 14px;
     padding-left: 14px;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 6px;
   }
 
   .site-header__github {
@@ -2972,8 +3015,18 @@ h2 {
     padding: 7px 8px;
   }
 
-  .theme-control__button span {
+  .theme-control__button span[aria-hidden='true'] {
     display: none;
+  }
+
+  .site-header__nav {
+    gap: 0;
+  }
+
+  .site-header__nav a {
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 0.72rem;
   }
 
   .install-guide {
@@ -3026,6 +3079,10 @@ h2 {
     flex-direction: column;
   }
 
+  .result-heading__actions {
+    margin-left: 0;
+  }
+
   .copy-macro-button {
     margin-left: 0;
   }
@@ -3036,6 +3093,36 @@ h2 {
 
   .macro-ast-inspector .ast-selection-details {
     grid-template-columns: 1fr;
+  }
+
+  .auto-color-theme-modal .ocr-modal__actions {
+    gap: 6px;
+  }
+
+  .auto-color-theme-modal .ocr-modal__actions button {
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 0.72rem;
+  }
+
+  .step-playback {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .step-playback__label {
+    margin-right: 0;
+  }
+
+  .step-playback__actions {
+    width: 100%;
+  }
+
+  .step-playback__actions .step-playback__button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-right: 6px;
+    padding-left: 6px;
   }
 }
 

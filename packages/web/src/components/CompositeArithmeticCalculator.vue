@@ -325,9 +325,10 @@ calculate()
                 <output>{{ answer }}</output>
               </h2>
             </div>
-            <template v-if="scene"
-              ><CopyMacroButton :source="macroSource" /><VisibleTextRowsPanel :scene="scene"
-            /></template>
+            <div v-if="scene" class="result-heading__actions">
+              <CopyMacroButton :source="macroSource" />
+              <VisibleTextRowsPanel :scene="scene" />
+            </div>
           </div>
           <p class="normalization">
             {{
