@@ -1,5 +1,5 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shushi">
+  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Shushi">
     <rect width="64" height="64" rx="14" fill="var(--surface-raised)" />
     <path
       d="M50 22H18V38Q18 48 10 48"

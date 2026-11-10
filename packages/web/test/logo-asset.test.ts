@@ -5,6 +5,11 @@ const logoSource = readFileSync(new URL('../../core/assets/shushi-logo.svg', imp
 const darkLogoSource = readFileSync(new URL('../../core/assets/shushi-logo-dark.svg', import.meta.url), 'utf8')
 
 describe('Shushi logo asset', () => {
+  it('声明 64x64 的固有尺寸', () => {
+    expect(logoSource).toContain('width="64" height="64"')
+    expect(darkLogoSource).toContain('width="64" height="64"')
+  })
+
   it('固定使用 Shushi 品牌色', () => {
     expect(logoSource).toContain('fill="#ffffff"')
     expect(logoSource).toContain('stroke="#0f172a"')
