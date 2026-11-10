@@ -83,7 +83,7 @@ console.log(updated.source) // AST 更新后的宏源码
 const withoutStrike = inspection.removeElementStrike('grid-strike-id') // STRIKE 删除；STRIKEDOT 回退为 DOT
 ```
 
-`shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。加法、减法、乘法和长除法可使用非负小数（如 `1.2 + 3.04`、`8.7 - 0.89`、`1.2 × 3.4`、`34.5 ÷ 5`）；短除法仍只接受整数。小数加减法播放会从原输入开始，先按当前可见数位右对齐，再逐个右补零；数位补齐后小数点对齐。每补一个零占用一步，之后才展示计算结果。结果数字完成后单独标记小数点；绝对值小于 `1` 时下一帧补前导 `0`。连续加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 并按文本从左到右执行；长除法会把除数与被除数的每一步同步右移拆成播放帧，位数不足时在被除数右侧补零，完成等值变换后才试商；整数部分未除尽时默认展开最多十位商小数。质因数分解使用 `|48`，公因数使用 `|12 24`（算法自动试除），进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
+`shushi` 会先解析表达式，再调用结构化高级入口 `shushiCore` 完成“计算 → 宏源码 → GridScene → 渲染”，并返回 `computation`、`source`、`scene`、`rendered` 和 `inspection`。每个计算器结果都包含按执行顺序产生的 `calculationSteps`：补零、等值移动、小数点、进/借位、部分积和试商都是计算器步骤；每项仅包含当下可验证的前缀数据。播放的 `visibleStepCount` 只投影该数组前缀，布局不会另行生成计算事件。加法、减法、乘法和长除法可使用非负小数（如 `1.2 + 3.04`、`8.7 - 0.89`、`1.2 × 3.4`、`34.5 ÷ 5`）；短除法仍只接受整数。连续加、减、乘支持 `+`、`-`、`×`、`*` 和 `x` 并按文本从左到右执行；组合计算会扁平返回所有单项步骤供检查。质因数分解使用 `|48`，公因数使用 `|12 24`（算法自动试除），进制转换使用 `(124)2`。`renderMode` 支持 `div`、`svg`、`svg-string`，省略时默认为 `svg-string`；`div` / `svg` 只适用于客户端 DOM，`svg-string` 可用于客户端和服务端。传入 `el` 时，客户端渲染结果会自动挂载到该元素下。
 
 加、减、乘的布局设置支持 `useMinimalDecimalResult`，默认关闭；开启后，完整小数结果末尾的一个 `0` 会以 `STRIKE` 删除线标记。例如 `shushi('0.18 + 0.12', { settings: { useMinimalDecimalResult: true } })` 仍返回 `sumText === '0.30'`，只改变结果行的教学标记，不增加播放步数。
 
@@ -133,7 +133,7 @@ $u1in-shushi 请开始交互式竖式实现。
 | 只计算答案和过程                     | `computeAddition`、`computeSubtraction`、`computeMultiplication`、`computeDivision`、`computeShortDivision` 或 `computeCompositeArithmetic` |
 | 根据数值生成标准竖式                 | `compute*` → `create*MacroSource` → `compileMacro` → `renderDomGrid` / `renderSvgGrid` / `renderSvgString`                                  |
 | 让用户继续编辑竖式                   | 保留 `create*MacroSource` 返回的源码，修改后再次调用 `compileMacro`                                                                         |
-| 逐步展示计算过程                     | 使用布局 API 的 `visibleStepCount`，每次生成新的宏源码和 `GridScene`                                                                        |
+| 逐步展示计算过程                     | 读取 `computation.calculationSteps`，用其长度或前缀作为 `visibleStepCount`，每次生成新的宏源码和 `GridScene`                                |
 | 按书写顺序组合加、减、乘             | `computeCompositeArithmetic` → `createCompositeArithmeticMacroSource` → `compileMacro`                                                      |
 | 用户已经提供宏源码                   | `parseMacro` / `formatMacro` / `createMacroAstInspection` → `compileMacro`                                                                  |
 | 做 OCR、文本比对或无障碍摘要         | `compileMacro` → `extractVisibleTextRows`                                                                                                   |
@@ -150,7 +150,7 @@ $u1in-shushi 请开始交互式竖式实现。
 
 ### 组合加、减、乘竖式
 
-组合表达式以书写顺序执行，不采用通常的乘法优先级。所有步骤会连续编排为**同一份**可编辑宏源码与同一个 `GridScene`；上一步结果直接复用为下一步第一操作数，不重复抄写。播放时，下一步的运算符和第二操作数会在上一步完成后的独立一步才出现。组合乘法会自动关闭十倍数快捷计算，并保留表达式中操作数的上下顺序。减法借位默认隐藏；需要教学标记时传入 `showBorrowSteps: true`。
+组合表达式以书写顺序执行，不采用通常的乘法优先级。所有步骤会连续编排为**同一份**可编辑宏源码与同一个 `GridScene`；上一步结果直接复用为下一步第一操作数，不重复抄写。组合计算器会将每个单项的 `calculationSteps` 和后续操作数引入快照扁平返回，播放时仅投影该前缀。组合乘法会自动关闭十倍数快捷计算，并保留表达式中操作数的上下顺序。减法借位默认隐藏；需要教学标记时传入 `showBorrowSteps: true`。
 
 ```ts
 import {

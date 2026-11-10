@@ -2,7 +2,7 @@
 import type { GridScene } from '@u1in/shushi-grid'
 import type { AdditionComputation } from '@u1in/shushi-calculators'
 import type { AdditionRenderSettings } from './types'
-import { appendDecimalZeros, createDecimalPaddingEvents, getVisibleDecimalPaddingCounts } from './decimal-padding'
+import { appendDecimalZeros } from './decimal-padding'
 import {
   compileCalculatorMacro,
   macroAnnotationCell,
@@ -61,10 +61,7 @@ const DEFAULT_ADDITION_SETTINGS: AdditionRenderSettings = {
 }
 
 /** 小数先逐格补零对齐；随后计算，最后再单独标注结果小数点。 */
-export const getAdditionStepCount = (computation: AdditionComputation): number =>
-  createDecimalPaddingEvents(computation.addendDecimalPlaces, computation.decimalPlaces).length +
-  computation.steps.length +
-  (computation.decimalPlaces > 0 ? 1 : 0)
+export const getAdditionStepCount = (computation: AdditionComputation): number => computation.calculationSteps.length
 
 /**
  * 将加法过程翻译为人工也能直接编辑的宏源码。
@@ -75,19 +72,29 @@ export const createAdditionMacroSource = (
   settings: Partial<AdditionRenderSettings> = {},
 ): string => {
   const resolvedSettings: AdditionRenderSettings = { ...DEFAULT_ADDITION_SETTINGS, ...settings }
-  const paddingEvents = createDecimalPaddingEvents(computation.addendDecimalPlaces, computation.decimalPlaces)
   const totalStepCount = getAdditionStepCount(computation)
   const visibleStepCount = Math.min(Math.max(resolvedSettings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
-  const visiblePaddingCounts = getVisibleDecimalPaddingCounts(
-    computation.addendTexts.length,
-    paddingEvents,
-    visibleStepCount,
-  )
-  const visibleCalculationStepCount = Math.min(
-    Math.max(0, visibleStepCount - paddingEvents.length),
-    computation.steps.length,
-  )
-  const visibleSteps = computation.steps.slice(0, visibleCalculationStepCount)
+  const visibleCalculationSteps = computation.calculationSteps.slice(0, visibleStepCount)
+  const visiblePaddingCounts = Array.from({ length: computation.addendTexts.length }, () => 0)
+  visibleCalculationSteps
+    .filter(({ action }) => action === 'pad-decimal')
+    .forEach(({ operandIndex }) => {
+      if (typeof operandIndex === 'number') visiblePaddingCounts[operandIndex] += 1
+    })
+  const visibleSteps = visibleCalculationSteps.flatMap((step) => {
+    if (step.action !== 'add-column' || step.column === undefined || step.result === undefined) return []
+    return [
+      {
+        columnFromRight: step.column,
+        addendDigits: step.inputs ?? [],
+        carryIn: step.carryIn ?? 0,
+        total: 0,
+        // 逐列从右向左推进，新产生的数位始终位于当前结果文本首位。
+        resultDigit: step.result[0] ?? '0',
+        carryOut: step.carryOut ?? 0,
+      },
+    ]
+  })
   const displayedAddends = computation.addendTexts.map((addend, index) =>
     appendDecimalZeros(addend, visiblePaddingCounts[index]),
   )

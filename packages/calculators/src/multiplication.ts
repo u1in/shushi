@@ -1,6 +1,7 @@
 /** Multiplication calculator: validates inputs and produces a layout-free long-multiplication process. */
 import type {
   MultiplicationAdditionStep,
+  CalculationStepSnapshot,
   MultiplicationComputation,
   MultiplicationDigitStep,
   MultiplicationOptions,
@@ -27,6 +28,7 @@ const calculatePartialProduct = (
   multiplierDigit: string,
   multiplierDigitIndex: number,
   shift: number,
+  onDigitStep?: (step: MultiplicationDigitStep, partialProductDigits: string) => void,
 ): MultiplicationPartialProduct => {
   let carry = 0
   let value = ''
@@ -38,7 +40,7 @@ const calculatePartialProduct = (
     const resultDigit = String(total % 10)
     carry = Math.floor(total / 10)
     value = `${resultDigit}${value}`
-    digitSteps.unshift({
+    const step = {
       // 小数计算会略过被乘数左侧仅作小数占位的零，索引仍指向原数字串。
       multiplicandDigitIndex: multiplicandDigitOffset + index,
       multiplicandDigit: multiplicandDigits[index],
@@ -47,7 +49,9 @@ const calculatePartialProduct = (
       total,
       resultDigit,
       carryOut: carry,
-    })
+    }
+    digitSteps.unshift(step)
+    onDigitStep?.(step, value)
   }
 
   if (carry > 0) value = `${carry}${value}`
@@ -63,6 +67,7 @@ const calculatePartialProduct = (
 
 const calculateAddition = (
   partialProducts: MultiplicationPartialProduct[],
+  onColumnStep?: (step: MultiplicationAdditionStep, productDigits: string) => void,
 ): Pick<MultiplicationComputation, 'productDigits' | 'additionSteps'> => {
   // 两个小数操作数中任一个为零时，没有需要展示的有效逐位计算。
   if (partialProducts.length === 0) return { productDigits: '0', additionSteps: [] }
@@ -81,7 +86,9 @@ const calculateAddition = (
     const resultDigit = String(total % 10)
     carry = Math.floor(total / 10)
     resultDigits.unshift(resultDigit)
-    additionSteps.push({ columnFromRight, addendDigits, carryIn, total, resultDigit, carryOut: carry })
+    const step = { columnFromRight, addendDigits, carryIn, total, resultDigit, carryOut: carry }
+    additionSteps.push(step)
+    onColumnStep?.(step, resultDigits.join(''))
   }
 
   return { productDigits: trimLeadingZeros(resultDigits.join('')), additionSteps }
@@ -143,12 +150,14 @@ export const computeMultiplication = (
     : 0
   const multiplierDigitOffset = hasDecimalOperand ? multiplierDigits.length - calculationMultiplierDigits.length : 0
   const partialProducts: MultiplicationPartialProduct[] = []
+  const calculationSteps: CalculationStepSnapshot[] = []
 
   // 乘数或被乘数去点后全为零时，只保留最终积和小数点定位，不展示零乘法。
   const hasEffectiveDecimalCalculation =
     !hasDecimalOperand || (calculationMultiplicandDigits !== '0' && calculationMultiplierDigits !== '0')
   for (let index = calculationMultiplierDigits.length - 1; hasEffectiveDecimalCalculation && index >= 0; index -= 1) {
     const multiplierDigitIndex = multiplierDigitOffset + index
+    const partialProductIndex = partialProducts.length
     partialProducts.push(
       calculatePartialProduct(
         calculationMultiplicandDigits,
@@ -158,17 +167,60 @@ export const computeMultiplication = (
         hasDecimalOperand
           ? multiplierDigits.length - 1 - multiplierDigitIndex
           : calculationMultiplierDigits.length - 1 - multiplierDigitIndex,
+        (digit, partialProductDigits) => {
+          calculationSteps.push({
+            action: 'multiply-digit',
+            operands: [multiplicand.text, multiplier.text],
+            result: partialProductDigits,
+            inputs: [digit.multiplicandDigit, digit.multiplierDigit],
+            partialProductIndex,
+            multiplicandDigitIndex: digit.multiplicandDigitIndex,
+            carryIn: digit.carryIn,
+            carryOut: digit.carryOut,
+            shift: hasDecimalOperand
+              ? multiplierDigits.length - 1 - multiplierDigitIndex
+              : calculationMultiplierDigits.length - 1 - multiplierDigitIndex,
+          })
+        },
       ),
     )
   }
 
-  const { productDigits: baseProductDigits, additionSteps } = calculateAddition(partialProducts)
+  const { productDigits: baseProductDigits, additionSteps } = calculateAddition(
+    partialProducts,
+    (column, productDigits) => {
+      if (partialProducts.length <= 1) return
+      calculationSteps.push({
+        action: 'add-partial-products',
+        operands: partialProducts.map(({ value, shift }) => `${value}${'0'.repeat(shift)}`),
+        result: productDigits,
+        column: column.columnFromRight,
+        inputs: column.addendDigits,
+        carryIn: column.carryIn,
+        carryOut: column.carryOut,
+      })
+    },
+  )
   const productDigits =
     trailingZeroShortcut && baseProductDigits !== '0'
       ? `${baseProductDigits}${'0'.repeat(trailingZeroShortcut.trailingZeroCount)}`
       : baseProductDigits
 
   const decimalPlaces = multiplicand.decimalPlaces + multiplier.decimalPlaces
+  const productText = formatDecimal(productDigits, decimalPlaces)
+  if (decimalPlaces > 0)
+    calculationSteps.push({
+      action: 'place-decimal',
+      operands: [multiplicand.text, multiplier.text],
+      result: productText,
+    })
+  if (trailingZeroShortcut?.trailingZeroCount)
+    calculationSteps.push({
+      action: 'restore-trailing-zeros',
+      operands: [multiplicand.text, multiplier.text],
+      result: productText,
+      zeroCount: trailingZeroShortcut.trailingZeroCount,
+    })
   return {
     multiplicandDigits,
     multiplierDigits,
@@ -179,9 +231,10 @@ export const computeMultiplication = (
     decimalPlaces,
     operandsSwapped,
     productDigits,
-    productText: formatDecimal(productDigits, decimalPlaces),
+    productText,
     trailingZeroShortcut,
     partialProducts,
     additionSteps,
+    calculationSteps,
   }
 }

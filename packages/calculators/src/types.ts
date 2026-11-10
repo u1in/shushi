@@ -1,4 +1,34 @@
 /** Semantic process contracts emitted by operation calculators. */
+/**
+ * 计算器、布局和检查面板共用的最小过程契约。数组下标就是步骤序号，字段只在本步需要时出现；
+ * 不含布局坐标、DOM、嵌套的原始步骤对象或未来计算结果。
+ */
+export interface CalculationStepSnapshot {
+  action: string
+  operands?: string[]
+  result?: string
+  operationIndex?: number
+  operator?: '+' | '-' | '×'
+  operandIndex?: number
+  column?: number
+  /** 本步直接参与运算的值；加法可有多个，二元运算通常为两个。 */
+  inputs?: string[]
+  carryIn?: number
+  carryOut?: number
+  borrowIn?: number
+  borrowOut?: number
+  partialProductIndex?: number
+  multiplicandDigitIndex?: number
+  shift?: number
+  /** 短除法行的左侧除数；长除法步骤改由 inputs[1] 表示。 */
+  divisor?: string
+  product?: string
+  remainder?: string
+  zeroCount?: number
+  quotients?: string[]
+  remainders?: string[]
+}
+
 export type QuotientToken =
   { kind: 'digit'; digit: string; column: number } | { kind: 'decimalSeparator'; digit: '.'; column: number }
 
@@ -37,6 +67,8 @@ export interface DivisionComputation {
   decimalTruncated: boolean
   integerStartColumn: number
   digitColumnCount: number
+  /** 从等值变换到每轮试商的完整教学快照；播放游标只截取此数组前缀。 */
+  calculationSteps: CalculationStepSnapshot[]
 }
 
 export interface DivisionOptions {
@@ -64,6 +96,8 @@ interface ShortDivisionBaseComputation {
   inputValues: string[]
   steps: ShortDivisionStep[]
   finalValues: string[]
+  /** 每一行短除法完成后的可验证快照。 */
+  calculationSteps: CalculationStepSnapshot[]
 }
 
 /** 指定左侧除数的一次短除法；通过结构化 `division` mode 调用。 */
@@ -181,6 +215,8 @@ export interface MultiplicationComputation {
   trailingZeroShortcut: MultiplicationTrailingZeroShortcut | null
   partialProducts: MultiplicationPartialProduct[]
   additionSteps: MultiplicationAdditionStep[]
+  /** 逐位部分积、列加法与结果定位的完整教学快照。 */
+  calculationSteps: CalculationStepSnapshot[]
 }
 
 /** 一列加法的输入、进位和输出；列号从个位（0）向左计数。 */
@@ -204,6 +240,8 @@ export interface AdditionComputation {
   sumDigits: string
   sumText: string
   steps: AdditionColumnStep[]
+  /** 小数补零、逐列求和与结果小数点的完整教学快照。 */
+  calculationSteps: CalculationStepSnapshot[]
 }
 
 /** 一列减法的借位过程；`minuendDisplay` 是中间计算时实际参与相减的数。 */
@@ -241,6 +279,8 @@ export interface SubtractionComputation {
   resultText: string
   isNegative: boolean
   steps: SubtractionColumnStep[]
+  /** 小数补零、逐列借位、结果小数点与前导零的完整教学快照。 */
+  calculationSteps: CalculationStepSnapshot[]
 }
 
 /** 组合竖式目前由加、减、乘三种已有的单项规则按从左到右串联。 */
@@ -264,4 +304,6 @@ export interface CompositeArithmeticComputation {
   initialValueDigits: string
   steps: CompositeArithmeticStep[]
   resultDigits: string
+  /** 按书写顺序展平每个子运算的计算步骤；不含尚未发生的后续运算结果。 */
+  calculationSteps: CalculationStepSnapshot[]
 }

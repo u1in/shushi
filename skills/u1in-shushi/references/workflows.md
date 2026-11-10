@@ -94,7 +94,7 @@ const source = createCompositeArithmeticMacroSource(computation, {
 const scene = compileMacro(source)
 ```
 
-改变 `visibleStepCount` 时重新生成源码并编译。不要把多个单项布局器的宏字符串手工拼接成组合竖式。
+改变 `visibleStepCount` 时，以 `computation.calculationSteps` 的前缀重新生成源码并编译。组合结果的该数组已扁平包含所有单项步骤和操作数引入快照；不要把多个单项布局器的宏字符串手工拼接成组合竖式。
 
 ## 7. 宏编辑和 AST 交互
 

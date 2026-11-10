@@ -4,8 +4,8 @@ import type { GridScene } from '@u1in/shushi-grid'
 import { minifyMacroForCopyAst, parseMacro } from '@u1in/shushi-macro'
 import type { MacroCall, MacroNode } from '@u1in/shushi-macro'
 import { createAdditionMacroSource } from './addition-layout'
-import { createMultiplicationMacroSource, getMultiplicationStepCount } from './multiplication-layout'
-import { createSubtractionMacroSource, getSubtractionStepCount } from './subtraction-layout'
+import { createMultiplicationMacroSource } from './multiplication-layout'
+import { createSubtractionMacroSource } from './subtraction-layout'
 import type { CompositeArithmeticRenderSettings } from './types'
 import { compileCalculatorMacro, macroGrid } from './macro-source'
 
@@ -14,8 +14,8 @@ interface CompositeArithmeticMacroStep {
   operator: CompositeArithmeticStep['operator']
   label: string
   source: string
-  stepCount: number
   visibleStepCount: number | undefined
+  isReached: boolean
 }
 
 const DEFAULT_SETTINGS: CompositeArithmeticRenderSettings = {
@@ -28,30 +28,6 @@ const DEFAULT_SETTINGS: CompositeArithmeticRenderSettings = {
   // 组合竖式默认突出连续计算结果；需要教学借位时由调用方显式开启。
   showBorrowSteps: false,
   uniformMultiplicationBars: false,
-}
-
-/** 返回单项规则本身定义的教学事件数，组合播放器据此映射全局游标。 */
-const getOperationStepCount = (step: CompositeArithmeticStep): number => {
-  switch (step.operator) {
-    case '+':
-      return step.computation.steps.length
-    case '-':
-      return getSubtractionStepCount(step.computation)
-    case '×':
-      return getMultiplicationStepCount(step.computation)
-  }
-}
-
-/** 后续步骤先单独引入“运算符 + 第二操作数”，下一帧才开始该步骤自己的逐位过程。 */
-const getLocalVisibleStepCount = (
-  completedCount: number,
-  stepCount: number,
-  globalVisibleStepCount: number | undefined,
-  needsOperandIntroduction: boolean,
-): number | undefined => {
-  if (globalVisibleStepCount === undefined) return undefined
-  const introductionStepCount = needsOperandIntroduction ? 1 : 0
-  return Math.min(Math.max(globalVisibleStepCount - completedCount - introductionStepCount, 0), stepCount)
 }
 
 const isCall = (node: MacroNode, name: string): node is MacroCall => node.kind === 'call' && node.name === name
@@ -125,7 +101,7 @@ const mergeBorrowMarkersIntoPreviousResult = (children: MacroNode[], minuendRow:
 }
 
 export const getCompositeArithmeticStepCount = (computation: CompositeArithmeticComputation): number =>
-  computation.steps.reduce((count, step, index) => count + getOperationStepCount(step) + (index === 0 ? 0 : 1), 0)
+  computation.calculationSteps.length
 
 /**
  * 组合宏不是一段伪造的超级 GRID：每一步都产生可独立复制回宏调试的宏源码框的源码。
@@ -136,18 +112,21 @@ const createCompositeArithmeticMacroStages = (
   settings: Partial<CompositeArithmeticRenderSettings> = {},
 ): CompositeArithmeticMacroStep[] => {
   const resolvedSettings: CompositeArithmeticRenderSettings = { ...DEFAULT_SETTINGS, ...settings }
-  let completedCount = 0
+  const visibleCalculationSteps =
+    resolvedSettings.visibleStepCount === undefined
+      ? undefined
+      : computation.calculationSteps.slice(0, Math.max(0, resolvedSettings.visibleStepCount))
 
   return computation.steps.map((step, index) => {
-    const stepCount = getOperationStepCount(step)
-    const needsOperandIntroduction = index > 0
-    const visibleStepCount = getLocalVisibleStepCount(
-      completedCount,
-      stepCount,
-      resolvedSettings.visibleStepCount,
-      needsOperandIntroduction,
-    )
-    completedCount += stepCount + (needsOperandIntroduction ? 1 : 0)
+    const localCalculationSteps = visibleCalculationSteps?.filter(({ operationIndex }) => operationIndex === index)
+    const isReached =
+      visibleCalculationSteps === undefined ||
+      index === 0 ||
+      Boolean(localCalculationSteps?.some(({ action }) => action === 'start-operation'))
+    const visibleStepCount =
+      localCalculationSteps === undefined
+        ? undefined
+        : localCalculationSteps.filter(({ action }) => action !== 'start-operation').length
     const common = {
       cellWidth: resolvedSettings.cellWidth,
       rowHeight: resolvedSettings.rowHeight,
@@ -175,8 +154,8 @@ const createCompositeArithmeticMacroStages = (
       operator: step.operator,
       label: `${step.leftOperandDigits} ${step.operator} ${step.rightOperandDigits} = ${step.resultDigits}`,
       source,
-      stepCount,
       visibleStepCount,
+      isReached,
     }
   })
 }
@@ -191,16 +170,7 @@ export const createCompositeArithmeticMacroSource = (
 ): string => {
   const resolvedSettings: CompositeArithmeticRenderSettings = { ...DEFAULT_SETTINGS, ...settings }
   const stages = createCompositeArithmeticMacroStages(computation, resolvedSettings)
-  const globalVisibleStepCount = resolvedSettings.visibleStepCount
-  let completedCount = 0
-  const includedStages: CompositeArithmeticMacroStep[] = []
-
-  stages.forEach((stage, index) => {
-    // 第 0 帧显示第一步两个操作数；后续段必须等到额外的引入事件，才出现第二操作数行。
-    const isReached = globalVisibleStepCount === undefined || index === 0 || globalVisibleStepCount > completedCount
-    if (isReached) includedStages.push(stage)
-    completedCount += stage.stepCount + (index === 0 ? 0 : 1)
-  })
+  const includedStages = stages.filter(({ isReached }) => isReached)
   if (includedStages.length === 0) throw new Error('组合竖式至少需要一个运算步骤。')
 
   const columns = Math.max(...includedStages.map(({ source }) => getGridColumnCount(source)))

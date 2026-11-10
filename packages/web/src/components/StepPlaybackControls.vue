@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import CalculationStepsPanel from './CalculationStepsPanel.vue'
+
 defineProps<{
   currentStep: number
   stepCount: number
   canStart: boolean
   canPrevious: boolean
   canNext: boolean
+  computation: unknown
 }>()
 
 defineEmits<{
@@ -41,6 +44,7 @@ defineEmits<{
       >
         跳到最后
       </button>
+      <CalculationStepsPanel :computation="computation" />
     </div>
   </div>
 </template>

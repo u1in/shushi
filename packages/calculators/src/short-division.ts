@@ -1,6 +1,7 @@
 /** Short-division calculator: explicit division, factorization, common factors, and base conversion. */
 import type {
   BaseConversionShortDivisionComputation,
+  CalculationStepSnapshot,
   CommonFactorShortDivisionComputation,
   DivisionShortDivisionComputation,
   FactorizationShortDivisionComputation,
@@ -85,6 +86,16 @@ const powerDecimal = (base: string, exponent: number): string => {
   return result
 }
 
+/** 每一行短除法都是完整的当前状态；只保留已完成的行，不提前暴露后续商。 */
+const createCalculationSteps = (steps: ShortDivisionStep[]): CalculationStepSnapshot[] =>
+  steps.map((step) => ({
+    action: 'divide-row',
+    divisor: step.divisor,
+    inputs: step.dividends,
+    quotients: step.quotients,
+    remainders: step.remainders,
+  }))
+
 /** 用小学长除法计算“超长十进制数 ÷ 小进制数”。 */
 const divideDecimalByBase = (digits: string, base: number): { quotient: string; remainder: number } => {
   let remainder = 0
@@ -113,6 +124,9 @@ const createDivision = (value: unknown, divisorValue: unknown): DivisionShortDiv
     divisor: String(divisor),
     quotient,
     remainder: String(remainder),
+    calculationSteps: createCalculationSteps([
+      { divisor: String(divisor), dividends: [dividend], quotients: [quotient], remainders: [String(remainder)] },
+    ]),
   }
 }
 
@@ -158,6 +172,7 @@ const createFactorization = (value: unknown): FactorizationShortDivisionComputat
     factorizationText,
     divisorCount,
     divisorSum,
+    calculationSteps: createCalculationSteps(steps),
   }
 }
 
@@ -197,6 +212,7 @@ const createCommonFactor = (values: unknown[]): CommonFactorShortDivisionComputa
     divisors,
     gcd,
     lcm,
+    calculationSteps: createCalculationSteps(steps),
   }
 }
 
@@ -230,6 +246,7 @@ const createBaseConversion = (value: unknown, targetBaseValue: unknown): BaseCon
     targetBase,
     remaindersBottomUp,
     convertedText: remaindersBottomUp.join('') || '0',
+    calculationSteps: createCalculationSteps(steps),
   }
 }
 

@@ -1,5 +1,5 @@
 /** Addition calculator: emits a decimal-string, renderer-independent column process. */
-import type { AdditionColumnStep, AdditionComputation } from './types'
+import type { AdditionColumnStep, AdditionComputation, CalculationStepSnapshot } from './types'
 import { formatDecimal, parseDecimal, scaleDecimalDigits, trimLeadingZeros } from './decimal'
 
 /**
@@ -16,6 +16,21 @@ export const computeAddition = (...values: unknown[]): AdditionComputation => {
   const maximumLength = Math.max(...scaledAddends.map(({ length }) => length))
   const resultDigits: string[] = []
   const steps: AdditionColumnStep[] = []
+  const calculationSteps: CalculationStepSnapshot[] = []
+  const displayedAddends = addends.map(({ text }) => text)
+
+  // 小数补零属于算术对齐的一部分，必须由计算器作为独立可检查步骤产出。
+  addends.forEach(({ decimalPlaces: addendDecimalPlaces }, operandIndex) => {
+    for (let count = addendDecimalPlaces; count < decimalPlaces; count += 1) {
+      displayedAddends[operandIndex] =
+        `${displayedAddends[operandIndex].includes('.') ? displayedAddends[operandIndex] : `${displayedAddends[operandIndex]}.`}0`
+      calculationSteps.push({
+        action: 'pad-decimal',
+        operandIndex,
+        operands: [...displayedAddends],
+      })
+    }
+  })
   let carry = 0
 
   for (let columnFromRight = 0; columnFromRight < maximumLength || carry > 0; columnFromRight += 1) {
@@ -25,17 +40,35 @@ export const computeAddition = (...values: unknown[]): AdditionComputation => {
     const resultDigit = String(total % 10)
     carry = Math.floor(total / 10)
     resultDigits.unshift(resultDigit)
-    steps.push({ columnFromRight, addendDigits: addendDigitsInColumn, carryIn, total, resultDigit, carryOut: carry })
+    const step = { columnFromRight, addendDigits: addendDigitsInColumn, carryIn, total, resultDigit, carryOut: carry }
+    steps.push(step)
+    calculationSteps.push({
+      action: 'add-column',
+      operands: [...displayedAddends],
+      result: resultDigits.join(''),
+      column: step.columnFromRight,
+      inputs: step.addendDigits,
+      carryIn: step.carryIn,
+      carryOut: step.carryOut,
+    })
   }
 
   const sumDigits = trimLeadingZeros(resultDigits.join(''))
+  const sumText = formatDecimal(sumDigits, decimalPlaces)
+  if (decimalPlaces > 0)
+    calculationSteps.push({
+      action: 'place-decimal',
+      operands: [...displayedAddends],
+      result: sumText,
+    })
   return {
     addendDigits: addends.map(({ digits }) => digits),
     addendTexts: addends.map(({ text }) => text),
     addendDecimalPlaces: addends.map(({ decimalPlaces: count }) => count),
     decimalPlaces,
     sumDigits,
-    sumText: formatDecimal(sumDigits, decimalPlaces),
+    sumText,
     steps,
+    calculationSteps,
   }
 }

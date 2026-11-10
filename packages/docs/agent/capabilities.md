@@ -95,7 +95,7 @@ type AnyVerticalArithmeticResult = {
 
 加、减、乘布局设置支持 `useMinimalDecimalResult`，默认值为 `false`。开启后，完整小数结果末尾的一个 `0` 会用 `STRIKE` 标记；计算结果字符串和播放步数不变，完成前的播放帧不会提前显示删除线。
 
-所有运算的 `visibleStepCount` 都是独立前缀快照：当前场景只能依据原输入及本步以前已发生的计算事件决定数位、横线和轨道，不能预留未来结果、补零、部分积或循环商位。
+所有运算的 `visibleStepCount` 都是计算器 `calculationSteps` 的前缀快照：当前场景只能依据原输入及本步以前已发生的计算器事件决定数位、横线和轨道，不能预留未来结果、补零、部分积或循环商位。每项快照由计算器直接返回，布局层只负责投影。
 
 ### 常用示例
 
@@ -216,7 +216,7 @@ createShortDivisionMacroSource(computation, settings)
 createCompositeArithmeticMacroSource(computation, settings?)
 ```
 
-逐步播放时使用对应的 `get*StepCount`，每次改变 `visibleStepCount` 都重新生成宏源码并编译，不要直接修改 `GridScene` 的坐标。
+逐步播放时使用对应的 `get*StepCount` 或直接读取 `computation.calculationSteps.length`，每次改变 `visibleStepCount` 都重新生成宏源码并编译，不要直接修改 `GridScene` 的坐标。
 
 ## 6. 宏源码和 AST
 

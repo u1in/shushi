@@ -1,5 +1,5 @@
 /** Division calculator: validates inputs and produces the renderer-independent long-division process. */
-import type { DivisionComputation, DivisionOptions, LongDivisionStep } from './types'
+import type { CalculationStepSnapshot, DivisionComputation, DivisionOptions, LongDivisionStep } from './types'
 import { formatDecimal, parseDecimal, trimLeadingZeros } from './decimal'
 
 interface PositionedQuotientDigit {
@@ -131,6 +131,13 @@ export const computeDivision = (
 
   const quotientDigits: PositionedQuotientDigit[] = []
   const steps: LongDivisionStep[] = []
+  const calculationSteps: CalculationStepSnapshot[] = []
+  for (let shift = 1; shift <= divisor.decimalPlaces; shift += 1)
+    calculationSteps.push({
+      action: 'shift-decimal',
+      operands: [divisor.text, dividend.text],
+      shift,
+    })
   const integerQuotientDigits: string[] = []
   let remainder = '0'
   let quotientStarted = false
@@ -151,14 +158,34 @@ export const computeDivision = (
     remainder = subtractDigitStrings(partialDividend, product)
     quotientDigits.push({ column: dividendColumn, digit: quotientDigit })
     integerQuotientDigits.push(quotientDigit)
-    steps.push(createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, product, remainder))
+    const step = createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, product, remainder)
+    steps.push(step)
+    calculationSteps.push({
+      action: 'divide-column',
+      operands: [divisorText, dividendText],
+      result: quotientDigits.map(({ digit }) => digit).join(''),
+      column: dividendColumn,
+      inputs: [partialDividend, divisorDigits],
+      product,
+      remainder,
+    })
   }
 
   // R5/R6: a zero integer quotient still has one visible `partialDividend - 0` step.
   if (!quotientStarted) {
     const dividendColumn = integerDividendDigitCount - 1
     quotientDigits.push({ column: dividendColumn, digit: '0' })
-    steps.push(createStep(dividendColumn, divisorDigits, '0', remainder, '0', remainder))
+    const step = createStep(dividendColumn, divisorDigits, '0', remainder, '0', remainder)
+    steps.push(step)
+    calculationSteps.push({
+      action: 'divide-column',
+      operands: [divisorText, dividendText],
+      result: '0',
+      column: dividendColumn,
+      inputs: [remainder, divisorDigits],
+      product: '0',
+      remainder,
+    })
   }
 
   const integerText = quotientStarted ? integerQuotientDigits.join('') : '0'
@@ -173,12 +200,29 @@ export const computeDivision = (
     const quotientDigit = String(trial.digit)
     fractionalDigits.push(quotientDigit)
     quotientDigits.push({ column: dividendColumn, digit: quotientDigit })
-    steps.push(createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, trial.product, remainder))
+    const step = createStep(dividendColumn, divisorDigits, quotientDigit, partialDividend, trial.product, remainder)
+    steps.push(step)
+    calculationSteps.push({
+      action: 'divide-column',
+      operands: [divisorText, dividendText],
+      result: `${integerText}.${fractionalDigits.join('')}`,
+      column: dividendColumn,
+      inputs: [partialDividend, divisorDigits],
+      product: trial.product,
+      remainder,
+    })
   }
 
   // 原被除数带小数时，点后每一位都属于商的小数过程；否则只在有余数时补零展开。
   const needsFractionalCalculation = decimalPlaces > 0 || remainder !== '0'
+  const willHaveFraction = decimalPlaces > 0 || (remainder !== '0' && decimalLimit > 0)
   if (needsFractionalCalculation) {
+    if (willHaveFraction)
+      calculationSteps.push({
+        action: 'place-decimal',
+        operands: [divisorText, dividendText],
+        result: `${integerText}.`,
+      })
     for (let dividendColumn = integerDividendDigitCount; dividendColumn < dividendDigits.length; dividendColumn += 1) {
       calculateFractionalDigit(dividendColumn, dividendDigits[dividendColumn])
     }
@@ -198,9 +242,11 @@ export const computeDivision = (
       : [token]
   })
 
+  const sourceDivisorText = divisor.text
+  const sourceDividendText = dividend.text
   return {
-    sourceDivisorText: divisor.text,
-    sourceDividendText: dividend.text,
+    sourceDivisorText,
+    sourceDividendText,
     normalizationShift: divisor.decimalPlaces,
     divisorDigits,
     divisorText,
@@ -216,5 +262,6 @@ export const computeDivision = (
     decimalTruncated,
     integerStartColumn,
     digitColumnCount: dividendDigits.length + fractionalDigitCount,
+    calculationSteps,
   }
 }

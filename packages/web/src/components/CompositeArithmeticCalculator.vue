@@ -344,6 +344,7 @@ calculate()
             :can-start="canStart"
             :can-previous="canPrevious"
             :can-next="canNext"
+            :computation="result?.computation"
             @start="playback.start"
             @previous="playback.previous"
             @next="playback.next"

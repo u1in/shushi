@@ -92,11 +92,7 @@ const renderNumberCells = (row: NumberRowContent, count: number, token: string):
 
 /** 逐位乘法与列加法总步数；播放控制和宏快照共用该定义。 */
 export const getMultiplicationStepCount = (computation: MultiplicationComputation): number => {
-  const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
-  const arithmeticStepCount =
-    multiplicationStepCount + (computation.partialProducts.length > 1 ? computation.additionSteps.length : 0)
-  // 所有数字过程完成后，额外用一帧把最终积的小数点补回。
-  return arithmeticStepCount + (computation.decimalPlaces > 0 ? 1 : 0)
+  return computation.calculationSteps.length
 }
 
 /**
@@ -112,16 +108,15 @@ export const createMultiplicationMacroSource = (
     computation.trailingZeroShortcut?.significantMultiplicandDigits ?? computation.multiplicandDigits
   const significantMultiplierDigits =
     computation.trailingZeroShortcut?.significantMultiplierDigits ?? computation.multiplierDigits
-  const multiplicationStepCount = computation.partialProducts.reduce((count, item) => count + item.digitSteps.length, 0)
-  const arithmeticStepCount =
-    multiplicationStepCount + (computation.partialProducts.length > 1 ? computation.additionSteps.length : 0)
   const totalStepCount = getMultiplicationStepCount(computation)
   const visibleStepCount = Math.min(Math.max(settings.visibleStepCount ?? totalStepCount, 0), totalStepCount)
-  const visibleMultiplicationStepCount = Math.min(visibleStepCount, multiplicationStepCount)
-  const visibleAdditionStepCount = Math.min(
-    Math.max(0, visibleStepCount - multiplicationStepCount),
-    arithmeticStepCount - multiplicationStepCount,
-  )
+  const visibleCalculationSteps = computation.calculationSteps.slice(0, visibleStepCount)
+  const visibleMultiplicationStepCount = visibleCalculationSteps.filter(
+    ({ action }) => action === 'multiply-digit',
+  ).length
+  const visibleAdditionStepCount = visibleCalculationSteps.filter(
+    ({ action }) => action === 'add-partial-products',
+  ).length
   const trailingZeroCount = computation.trailingZeroShortcut?.trailingZeroCount ?? 0
   const hasMultiplePartialProducts = computation.partialProducts.length > 1
   const isComplete = settings.visibleStepCount === undefined || visibleStepCount >= totalStepCount

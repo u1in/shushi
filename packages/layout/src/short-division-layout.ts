@@ -17,10 +17,16 @@ export const createShortDivisionMacroSource = (
   settings: ShortDivisionRenderSettings,
 ): string => {
   const visibleStepCount = Math.min(
-    Math.max(settings.visibleStepCount ?? computation.steps.length, 0),
-    computation.steps.length,
+    Math.max(settings.visibleStepCount ?? computation.calculationSteps.length, 0),
+    computation.calculationSteps.length,
   )
-  const visibleSteps = computation.steps.slice(0, visibleStepCount)
+  const visibleSteps = computation.calculationSteps
+    .slice(0, visibleStepCount)
+    .flatMap((step) =>
+      step.action === 'divide-row' && step.divisor && step.inputs && step.quotients && step.remainders
+        ? [{ divisor: step.divisor, dividends: step.inputs, quotients: step.quotients, remainders: step.remainders }]
+        : [],
+    )
   const showRemainders = computation.mode === 'baseConversion' && settings.showRemainders
   const groupCount = computation.inputValues.length + (showRemainders ? 2 : 0)
   const children = visibleSteps.map((step) => {
@@ -30,7 +36,7 @@ export const createShortDivisionMacroSource = (
     return `ROW(${divisor(step.divisor)}, DIV(${macroOption('separatorStyle', 'short-division.separator')}, ${macroOption('barStyle', 'short-division.bar')}), ${groups.join(', ')})`
   })
   const resultValues =
-    settings.visibleStepCount === undefined || visibleStepCount >= computation.steps.length
+    settings.visibleStepCount === undefined || visibleStepCount >= computation.calculationSteps.length
       ? computation.finalValues
       : (visibleSteps.at(-1)?.quotients ?? [])
   const finalGroups = resultValues.map((item) => value(item, 'short-division.final'))

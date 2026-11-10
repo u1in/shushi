@@ -1,5 +1,5 @@
 /** Subtraction calculator: emits borrowing data without leaking rows, columns, or rendering details. */
-import type { SubtractionColumnStep, SubtractionComputation } from './types'
+import type { CalculationStepSnapshot, SubtractionColumnStep, SubtractionComputation } from './types'
 import { formatDecimal, parseDecimal, scaleDecimalDigits, trimLeadingZeros } from './decimal'
 
 const compareDigitStrings = (left: string, right: string): number => {
@@ -15,6 +15,7 @@ const compareDigitStrings = (left: string, right: string): number => {
 const calculateNonNegativeDifference = (
   minuend: string,
   subtrahend: string,
+  onStep?: (step: SubtractionColumnStep, visibleDifferenceDigits: string) => void,
 ): Pick<SubtractionComputation, 'differenceDigits' | 'steps'> => {
   const resultDigits: string[] = []
   const steps: SubtractionColumnStep[] = []
@@ -34,7 +35,7 @@ const calculateNonNegativeDifference = (
     }
     const resultDigit = String(workingDigit - subtrahendValue)
     resultDigits.unshift(resultDigit)
-    steps.push({
+    const step = {
       columnFromRight,
       minuendDigit,
       subtrahendDigit,
@@ -42,7 +43,9 @@ const calculateNonNegativeDifference = (
       minuendDisplay: String(workingDigit),
       resultDigit,
       borrowOut: borrow,
-    })
+    }
+    steps.push(step)
+    onStep?.(step, resultDigits.join(''))
   }
 
   return { differenceDigits: trimLeadingZeros(resultDigits.join('')), steps }
@@ -61,7 +64,62 @@ export const computeSubtraction = (minuendValue: unknown, subtrahendValue: unkno
   const isNegative = compareDigitStrings(minuendDigits, subtrahendDigits) < 0
   const workingMinuendDigits = isNegative ? subtrahendDigits : minuendDigits
   const workingSubtrahendDigits = isNegative ? minuendDigits : subtrahendDigits
-  const { differenceDigits, steps } = calculateNonNegativeDifference(workingMinuendDigits, workingSubtrahendDigits)
+  const workingOperandTexts = isNegative ? [subtrahend.text, minuend.text] : [minuend.text, subtrahend.text]
+  const workingOperandDecimalPlaces = isNegative
+    ? [subtrahend.decimalPlaces, minuend.decimalPlaces]
+    : [minuend.decimalPlaces, subtrahend.decimalPlaces]
+  const displayedOperands = [...workingOperandTexts]
+  const calculationSteps: CalculationStepSnapshot[] = []
+
+  // 先逐一公开小数补零，后续借位步骤只读取已对齐的当前操作数。
+  workingOperandDecimalPlaces.forEach((operandDecimalPlaces, operandIndex) => {
+    for (let count = operandDecimalPlaces; count < decimalPlaces; count += 1) {
+      displayedOperands[operandIndex] =
+        `${displayedOperands[operandIndex].includes('.') ? displayedOperands[operandIndex] : `${displayedOperands[operandIndex]}.`}0`
+      calculationSteps.push({
+        action: 'pad-decimal',
+        operandIndex,
+        operands: [...displayedOperands],
+      })
+    }
+  })
+
+  const columnSnapshots: Array<{ step: SubtractionColumnStep; visibleDifferenceDigits: string }> = []
+  const { differenceDigits, steps } = calculateNonNegativeDifference(
+    workingMinuendDigits,
+    workingSubtrahendDigits,
+    (step, visibleDifferenceDigits) => {
+      columnSnapshots.push({ step, visibleDifferenceDigits })
+    },
+  )
+  const resultDigitStepCount = decimalPlaces === 0 ? steps.length : Math.max(differenceDigits.length, decimalPlaces)
+  // 小于 1 的最终整数零由专用步骤补齐，避免在过程和结果中重复一次。
+  columnSnapshots.slice(0, resultDigitStepCount).forEach(({ step, visibleDifferenceDigits }) => {
+    calculationSteps.push({
+      action: 'subtract-column',
+      operands: [...displayedOperands],
+      result: visibleDifferenceDigits,
+      column: step.columnFromRight,
+      inputs: [step.minuendDisplay, step.subtrahendDigit],
+      borrowIn: step.borrowIn,
+      borrowOut: step.borrowOut,
+    })
+  })
+
+  const resultText = `${isNegative && differenceDigits !== '0' ? '-' : ''}${formatDecimal(differenceDigits, decimalPlaces)}`
+  if (decimalPlaces > 0) {
+    calculationSteps.push({
+      action: 'place-decimal',
+      operands: [...displayedOperands],
+      result: resultText,
+    })
+    if (differenceDigits.length <= decimalPlaces)
+      calculationSteps.push({
+        action: 'place-leading-zero',
+        operands: [...displayedOperands],
+        result: resultText,
+      })
+  }
 
   return {
     minuendDigits,
@@ -76,8 +134,9 @@ export const computeSubtraction = (minuendValue: unknown, subtrahendValue: unkno
     workingMinuendText: formatDecimal(workingMinuendDigits, decimalPlaces),
     workingSubtrahendText: formatDecimal(workingSubtrahendDigits, decimalPlaces),
     differenceDigits,
-    resultText: `${isNegative && differenceDigits !== '0' ? '-' : ''}${formatDecimal(differenceDigits, decimalPlaces)}`,
+    resultText,
     isNegative,
     steps,
+    calculationSteps,
   }
 }

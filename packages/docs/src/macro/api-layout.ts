@@ -232,7 +232,7 @@ console.log(scene.elements.length)`,
 
 export const getSubtractionStepCountPage = createLayoutApiPage({
   slug: 'getSubtractionStepCount',
-  summary: '计算减法小数补零、借位、结果小数点和前导零合计的教学播放步数。',
+  summary: '返回减法计算器 `calculationSteps` 的前缀快照数量。',
   example: `import { computeSubtraction, getSubtractionStepCount } from '@u1in/shushi-core'
 
 const computation = computeSubtraction('0.8', '0.29')
@@ -241,19 +241,19 @@ const count = getSubtractionStepCount(computation)
 
 console.log(count) // 5`,
   purpose:
-    '它以计算器的逐列步骤为基础；先为每个需要对齐的小数零加入一个事件，再加入结果标点，绝对值小于 1 时最后加入前导零事件，保证播放控件与减法宏源码使用同一序列。',
+    '计算器在执行时已经写入小数补零、借位列、结果小数点和前导零快照；此函数只返回该数组长度。布局按 `visibleStepCount` 取同一数组的前缀，不再自行创建播放事件。',
   signature: `type GetSubtractionStepCount = (computation: SubtractionComputation) => number`,
   parameters: [
-    ['`computation`', '`SubtractionComputation`', '减法计算器输出的借位过程与公共小数位。'],
-    ['返回值', '`number`', '减法布局播放所需的总步骤数。'],
+    ['`computation`', '`SubtractionComputation`', '含 `calculationSteps` 的减法计算器输出。'],
+    ['返回值', '`number`', '`computation.calculationSteps.length`。'],
   ],
   caution:
-    '返回值不总是等于 `computation.steps.length`：每个为小数位对齐补入的零、结果小数点和可能的前导零都会额外增加事件。',
+    '不要使用 `steps.length` 代替本函数；`steps` 是逐列算法摘要，而 `calculationSteps` 才是可播放、可检查的完整前缀序列。',
 })
 
 export const getDivisionPlaybackStepCountPage = createLayoutApiPage({
   slug: 'getDivisionPlaybackStepCount',
-  summary: '计算长除法等值右移、零商显示策略下的播放事件数量。',
+  summary: '返回长除法计算器 `calculationSteps` 的前缀快照数量。',
   example: `import { computeDivision, getDivisionPlaybackStepCount } from '@u1in/shushi-core'
 
 const computation = computeDivision('25', '10230')
@@ -262,17 +262,17 @@ const count = getDivisionPlaybackStepCount(computation, false)
 
 console.log(count)`,
   purpose:
-    '它把除数与被除数的每一步同步右移、整数步骤、小数分隔符和可选零商步骤折算成布局播放帧数，保证进度控件与 `createDivisionMacroSource` 使用相同的事件序列。',
+    '除数和被除数的等值右移、补零、商小数点与每次试商均由计算器在执行时写入 `calculationSteps`；此函数只返回数组长度，布局只投影该前缀。',
   signature: `type GetDivisionPlaybackStepCount = (
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
 ) => number`,
   parameters: [
-    ['`computation`', '`DivisionComputation`', '除法计算器输出的逐轮试商过程。'],
-    ['`showZeroQuotientSteps`', '`boolean`', '是否把商位为 0 的过程也作为可见播放事件。'],
-    ['返回值', '`number`', '当前显示策略下的播放事件总数。'],
+    ['`computation`', '`DivisionComputation`', '含 `calculationSteps` 的除法计算器输出。'],
+    ['`showZeroQuotientSteps`', '`boolean`', '为兼容旧签名保留；不影响计算器步骤总数，布局仅控制零商的显示。'],
+    ['返回值', '`number`', '`computation.calculationSteps.length`。'],
   ],
-  caution: '该值是播放事件数量，不等于 `computation.steps.length`；等值右移、小数分隔符和零商策略都可能增加最终数量。',
+  caution: '不要用 `steps.length` 代替本函数；`steps` 是试商摘要，`calculationSteps` 包含完整的可验证计算前缀。',
 })
 
 export const createDivisionMacroSourcePage = createLayoutApiPage({
@@ -325,7 +325,7 @@ console.log(scene.ariaLabel)`,
 
 export const getMultiplicationStepCountPage = createLayoutApiPage({
   slug: 'getMultiplicationStepCount',
-  summary: '计算逐位乘法和列加法合计的教学播放步数。',
+  summary: '返回乘法计算器 `calculationSteps` 的前缀快照数量。',
   example: `import { computeMultiplication, getMultiplicationStepCount } from '@u1in/shushi-core'
 
 const computation = computeMultiplication('97', '89')
@@ -333,13 +333,14 @@ const computation = computeMultiplication('97', '89')
 const count = getMultiplicationStepCount(computation)
 
 console.log(count)`,
-  purpose: '它根据部分积的逐位步骤和多位乘数的列加法步骤计算总帧数，保证播放控件与乘法宏源码的可见步骤一致。',
+  purpose:
+    '部分积逐位相乘、部分积列加法、小数点与末尾零恢复都在计算器执行时写入 `calculationSteps`；此函数只返回数组长度，保证播放器与宏源码读取同一前缀。',
   signature: `type GetMultiplicationStepCount = (computation: MultiplicationComputation) => number`,
   parameters: [
-    ['`computation`', '`MultiplicationComputation`', '乘法计算器输出的部分积与列加法过程。'],
-    ['返回值', '`number`', '乘法布局播放所需的总步骤数。'],
+    ['`computation`', '`MultiplicationComputation`', '含 `calculationSteps` 的乘法计算器输出。'],
+    ['返回值', '`number`', '`computation.calculationSteps.length`。'],
   ],
-  caution: '单个有效乘数位和末尾零快捷计算会影响步骤数量；不要直接用部分积数组长度替代此 API。',
+  caution: '不要用部分积数组长度代替本函数；部分积只是算法摘要，`calculationSteps` 才包含全部可播放的计算器事件。',
 })
 
 export const createMultiplicationMacroSourcePage = createLayoutApiPage({
@@ -491,7 +492,7 @@ const scene = compileCalculatorMacro(source)`,
 
 export const getCompositeArithmeticStepCountPage = createLayoutApiPage({
   slug: 'getCompositeArithmeticStepCount',
-  summary: '返回组合表达式所有单项规则串接后的全局播放步数。',
+  summary: '返回组合计算器扁平 `calculationSteps` 的全局前缀快照数量。',
   example: `import { computeCompositeArithmetic, getCompositeArithmeticStepCount } from '@u1in/shushi-core'
 
 const computation = computeCompositeArithmetic('12 + 8 - 5 × 4')
@@ -499,16 +500,16 @@ const stepCount = getCompositeArithmeticStepCount(computation)
 
 console.log(stepCount)`,
   purpose:
-    '它将加法/减法列步骤与乘法逐位、列加法步骤相加，并为第二步及后续步骤各加入一个“引入第二操作数”事件，使播放器的全局游标和组合宏源码的局部游标使用同一规则。',
+    '组合计算器按书写顺序执行每个单项，并把每项计算器步骤及后续运算的操作数引入快照扁平写入 `calculationSteps`；此函数只返回该数组长度。',
   signature: `type GetCompositeArithmeticStepCount = (
   computation: CompositeArithmeticComputation,
 ) => number`,
   parameters: [
-    ['`computation`', '`CompositeArithmeticComputation`', '组合计算器输出。'],
-    ['返回值', '`number`', '组合播放事件总数。'],
+    ['`computation`', '`CompositeArithmeticComputation`', '含扁平 `calculationSteps` 的组合计算器输出。'],
+    ['返回值', '`number`', '`computation.calculationSteps.length`。'],
   ],
   caution:
-    '该数不是表达式运算符个数；多位单项竖式会贡献多个教学步骤，且除第一步外的每一段还会额外贡献一次第二操作数引入事件。',
+    '该数不是表达式运算符个数；它包括每项计算器内部步骤及后续运算的操作数引入快照，且每个快照都不能引用未来步骤的数据。',
 })
 
 export const shushiPage = createLayoutApiPage({

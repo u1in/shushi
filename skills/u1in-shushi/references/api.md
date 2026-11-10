@@ -55,6 +55,8 @@ shushiCore(
 
 加、减、乘布局设置中的 `useMinimalDecimalResult` 默认是 `false`；开启后，完整小数结果末尾的一个 `0` 以 `STRIKE` 标记，`computation` 文本和播放步数保持不变。
 
+每个 `compute*` 结果都带有 `calculationSteps`。补零、等值移动、小数点、逐位计算和结果恢复均在计算器执行时按顺序写入；每项只能引用原输入及此前步骤已经产生的数据。设置 `visibleStepCount` 时，布局只投影这个数组的前缀；组合计算则把所有单项步骤和后续操作数引入快照扁平返回。
+
 ## 3. 门户返回值
 
 ```typescript

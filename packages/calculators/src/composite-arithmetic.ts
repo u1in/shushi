@@ -2,7 +2,12 @@
 import { computeAddition } from './addition'
 import { computeMultiplication } from './multiplication'
 import { computeSubtraction } from './subtraction'
-import type { CompositeArithmeticComputation, CompositeArithmeticOperator, CompositeArithmeticStep } from './types'
+import type {
+  CalculationStepSnapshot,
+  CompositeArithmeticComputation,
+  CompositeArithmeticOperator,
+  CompositeArithmeticStep,
+} from './types'
 
 /** 组合表达式有意不采用通常的乘法优先级；文本顺序就是教学步骤顺序。 */
 const parseExpression = (
@@ -62,5 +67,24 @@ export const computeCompositeArithmetic = (expression: unknown): CompositeArithm
     accumulator = computation.productText
   })
 
-  return { expression: String(expression), initialValueDigits, steps, resultDigits: accumulator }
+  const calculationSteps: CalculationStepSnapshot[] = steps.flatMap((operation, operationIndex) => {
+    const prefix = {
+      operationIndex,
+      operator: operation.operator,
+      operands: [operation.leftOperandDigits, operation.rightOperandDigits],
+    }
+    const introduction =
+      operationIndex === 0
+        ? []
+        : [
+            {
+              action: 'start-operation',
+              ...prefix,
+            },
+          ]
+    const childSteps = operation.computation.calculationSteps.map((step) => ({ ...step, ...prefix }))
+    return [...introduction, ...childSteps]
+  })
+
+  return { expression: String(expression), initialValueDigits, steps, resultDigits: accumulator, calculationSteps }
 }

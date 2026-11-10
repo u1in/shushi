@@ -22,32 +22,39 @@ type DivisionPlaybackEvent =
 const createDivisionPlaybackEvents = (
   computation: DivisionComputation,
   showZeroQuotientSteps: boolean,
-): DivisionPlaybackEvent[] => {
-  const integerSteps = computation.steps.filter(
-    ({ dividendColumn }) => dividendColumn < computation.integerDividendDigitCount,
-  )
-  const fractionalSteps = computation.steps.filter(
-    ({ dividendColumn }) => dividendColumn >= computation.integerDividendDigitCount,
-  )
-  const eventForStep = (step: LongDivisionStep): DivisionPlaybackEvent[] =>
-    showZeroQuotientSteps || step.quotientDigit !== '0'
-      ? [{ kind: 'calculation', step }]
-      : [{ kind: 'zero-quotient', step }]
-  // 除数与被除数的每一位同步右移都是独立教学帧，完成等值变换后才开始试商。
-  const events: DivisionPlaybackEvent[] = Array.from(
-    { length: computation.normalizationShift },
-    (_, index): DivisionPlaybackEvent => ({ kind: 'normalization', shift: index + 1 }),
-  )
-  events.push(...integerSteps.flatMap(eventForStep))
-  if (computation.hasFraction) events.push({ kind: 'decimal-separator' }, ...fractionalSteps.flatMap(eventForStep))
-  return events
-}
+): DivisionPlaybackEvent[] =>
+  computation.calculationSteps.flatMap<DivisionPlaybackEvent>((snapshot) => {
+    if (snapshot.action === 'shift-decimal' && typeof snapshot.shift === 'number')
+      return [{ kind: 'normalization', shift: snapshot.shift }]
+    if (snapshot.action === 'place-decimal') return [{ kind: 'decimal-separator' }]
+    if (
+      snapshot.action !== 'divide-column' ||
+      snapshot.column === undefined ||
+      !snapshot.inputs?.[0] ||
+      !snapshot.inputs[1] ||
+      !snapshot.result ||
+      !snapshot.product ||
+      snapshot.remainder === undefined
+    )
+      return []
+    const divisionStep: LongDivisionStep = {
+      dividendColumn: snapshot.column,
+      divisor: snapshot.inputs[1],
+      quotientDigit: snapshot.result.at(-1) ?? '0',
+      partialDividend: snapshot.inputs[0],
+      product: snapshot.product,
+      remainder: snapshot.remainder,
+    }
+    return showZeroQuotientSteps || divisionStep.quotientDigit !== '0'
+      ? [{ kind: 'calculation', step: divisionStep }]
+      : [{ kind: 'zero-quotient', step: divisionStep }]
+  })
 
 /** 供播放控件读取；与宏快照生成使用同一事件序列。 */
 export const getDivisionPlaybackStepCount = (
   computation: DivisionComputation,
-  showZeroQuotientSteps: boolean,
-): number => createDivisionPlaybackEvents(computation, showZeroQuotientSteps).length
+  _showZeroQuotientSteps: boolean,
+): number => computation.calculationSteps.length
 
 const createDotCell = (digit: string, digitToken: string, dotToken: string): string =>
   `CELL(MM(${macroLiteral(digit)}, ${macroOption('style', digitToken)}), DOT, ${macroOption('style', dotToken)})`
