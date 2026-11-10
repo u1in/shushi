@@ -1198,7 +1198,7 @@ button:disabled {
 .step-playback {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
   margin: 20px 0 4px;
 }
@@ -1211,7 +1211,16 @@ button:disabled {
   background: var(--surface-soft);
 }
 
+.step-playback__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
 .step-playback__label {
+  flex: 0 0 auto;
   margin-right: auto;
   color: #62708b;
   font-size: 0.82rem;
@@ -1222,7 +1231,30 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
   min-width: 0;
+}
+
+.step-playback__details {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: stretch;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.step-playback__details .calculation-steps-panel {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.step-playback__details .step-playback__button {
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .step-playback__button {
@@ -1258,7 +1290,6 @@ button:disabled {
 
 .field input,
 .division-operator,
-.range-field output,
 .answer {
   font-family: var(--numeric-font-family);
   font-variant-numeric: tabular-nums;
@@ -2976,13 +3007,15 @@ h2 {
   }
 
   .site-header {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 10px;
     padding-right: 12px;
     padding-left: 12px;
   }
 
   .site-header__nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
     justify-content: flex-start;
   }
 
@@ -3085,8 +3118,8 @@ h2 {
   .site-header {
     padding-right: 14px;
     padding-left: 14px;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
   }
 
   .site-header__github {
@@ -3141,6 +3174,11 @@ h2 {
     gap: 8px;
   }
 
+  /* 单字段输入不能继承多字段网格，否则输入框只会占用左半列。 */
+  .input-grid.input-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .division-operator {
     margin-bottom: 17px;
     font-size: 1.5rem;
@@ -3193,6 +3231,10 @@ h2 {
 
   .step-playback {
     align-items: stretch;
+  }
+
+  .step-playback__toolbar {
+    align-items: stretch;
     flex-direction: column;
   }
 
@@ -3201,6 +3243,7 @@ h2 {
   }
 
   .step-playback__actions {
+    margin-left: 0;
     width: 100%;
   }
 
