@@ -216,12 +216,12 @@ const handleSourceInput = (event: Event): void => {
   compileSource()
 }
 
-/** 点击渲染元素后读取其 AST 引用；没有文字参数的线条和厂字弯仍可查看但不能改文本。 */
+/** 点击渲染元素后读取其 AST 引用；DOT、线条和厂字弯仍可查看但不能改文本。 */
 const selectElement = (elementId: string): void => {
   selectedElementId.value = elementId
   editedText.value = inspection.value.references[elementId]?.text ?? ''
   errorTarget.value = null
-  error.value = canEditSelectedText.value ? '' : '该元素没有可单独修改的文字参数。'
+  error.value = canEditSelectedText.value ? '' : '该元素没有可单独修改的文字内容。'
 }
 
 /** 只替换所选元素的第一个文字字面量，再按输入框当前风格回写源码并重新渲染。 */

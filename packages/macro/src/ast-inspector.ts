@@ -14,7 +14,7 @@ export type MacroSourceStyle = 'formatted' | 'minified'
 /** 同一 CELL 中可被点击图元继承的删除线类型。 */
 export type MacroStrikeKind = 'STRIKE' | 'STRIKEDOT'
 
-/** 一个可点击网格元素与其来源宏节点的关联；文本存在时可单独编辑。 */
+/** 一个可点击网格元素与其来源宏节点的关联；文字和固定符号都可以单独编辑。 */
 export interface MacroElementAstReference {
   elementId: string
   node: MacroNode
@@ -47,9 +47,15 @@ const indexNodePaths = (node: MacroNode, path: number[], paths: Map<MacroNode, M
   if (node.kind === 'call') node.arguments.forEach((child, index) => indexNodePaths(child, [...path, index], paths))
 }
 
-/** 从位置宏中找到第一段可编辑文字；LINE、BRACKET 等无文字图元会返回 undefined。 */
+const EDITABLE_FIXED_SYMBOL_NAMES = new Set(['SQUARE', 'TRIANGLE', 'ROUND'])
+
+const isEditableFixedSymbol = (node: MacroNode): boolean =>
+  node.kind === 'symbol' && EDITABLE_FIXED_SYMBOL_NAMES.has(node.name)
+
+/** 从位置宏中找到第一段可编辑文字；固定符号使用自身节点作为可编辑路径。 */
 const findFirstLiteralPath = (node: MacroNode, path: MacroNodePath): MacroNodePath | undefined => {
   if (node.kind === 'literal') return path
+  if (isEditableFixedSymbol(node)) return path
   if (node.kind !== 'call') return undefined
   for (const [index, child] of node.arguments.entries()) {
     const literalPath = findFirstLiteralPath(child, [...path, index])
@@ -116,6 +122,31 @@ const replaceLiteralAtPath = (root: MacroCall, path: MacroNodePath, text: string
   return replace(root, 0) as MacroCall
 }
 
+/** 只有在当前语法位置允许裸文字时，固定符号才直接替换为文字字面量。 */
+const canUseLiteralAtPath = (root: MacroCall, path: MacroNodePath): boolean => {
+  if (path.length === 0) return false
+  const parent = getNodeAtPath(root, path.slice(0, -1))
+  if (parent?.kind !== 'call') return false
+  if (parent.name === 'ROW') return true
+  // 方括号 CELL 的后续项仍不能省略 MM；首项可以直接写成裸文字。
+  return parent.name === 'CELL' && path[path.length - 1] === 0
+}
+
+/** 固定符号优先直接写成文字；方括号 CELL 的后续项保留 MM 以维持简写语法合法。 */
+const replaceEditableTextAtPath = (root: MacroCall, path: MacroNodePath, text: string): MacroCall => {
+  const node = getNodeAtPath(root, path)
+  if (node && isEditableFixedSymbol(node)) {
+    return replaceNodeAtPath(
+      root,
+      path,
+      canUseLiteralAtPath(root, path)
+        ? { kind: 'literal', value: text }
+        : { kind: 'call', name: 'MM', arguments: [{ kind: 'literal', value: text }] },
+    )
+  }
+  return replaceLiteralAtPath(root, path, text)
+}
+
 /** 不可变地替换 AST 节点；删除线回退为 DOT 时仍沿用同一条回写链路。 */
 const replaceNodeAtPath = (root: MacroCall, path: MacroNodePath, replacement: MacroNode): MacroCall => {
   const replace = (node: MacroNode, depth: number): MacroNode => {
@@ -179,7 +210,11 @@ const inspectMacroAst = (
         node,
         nodePath,
         ...(literalPath ? { literalPath } : {}),
-        ...(literal?.kind === 'literal' ? { text: literal.value } : {}),
+        ...(literal?.kind === 'literal'
+          ? { text: literal.value }
+          : element.content.kind === 'text' && isEditableFixedSymbol(node)
+            ? { text: element.content.text }
+            : {}),
         ...(strikeReference ? { strikePath: strikeReference.path, strikeKind: strikeReference.kind } : {}),
       }
     },
@@ -195,7 +230,12 @@ const inspectMacroAst = (
     updateElementText: (elementId, text) => {
       const reference = references[elementId]
       if (!reference?.literalPath) throw new Error('选中的宏元素不包含可编辑文字。')
-      return inspectMacroAst(replaceLiteralAtPath(ast, reference.literalPath, text), sourceStyle, sourceShape, options)
+      return inspectMacroAst(
+        replaceEditableTextAtPath(ast, reference.literalPath, text),
+        sourceStyle,
+        sourceShape,
+        options,
+      )
     },
     removeElementStrike: (elementId) => {
       const reference = references[elementId]

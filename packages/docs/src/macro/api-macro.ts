@@ -839,7 +839,7 @@ console.log(updated.source)
       blocks: [
         {
           type: 'paragraph',
-          text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 仅修改该节点的第一个文字字面量，或通过 `removeElementStrike` 移除 `STRIKE`、把 `STRIKEDOT` 回退为 `DOT`；更新结果会重新编译场景，并提供沿用输入风格的 `source` 与统一最简化的 `minifiedSource`。',
+          text: '它把 `GridScene` 与一份元素 ID → AST 节点路径映射并列返回。调用方可以用渲染器节点上的 `data-grid-element-id` 找到对应的 `references[elementId]`，再通过 `updateElementText` 修改文字字面量；`SQUARE`、`TRIANGLE`、`ROUND` 等固定符号会直接写回文字字面量，而 `DOT`、`BRACKET`、`LINE` 等无可编辑文字的图元会拒绝修改。若固定符号位于方括号 CELL 的后续项，为保持方括号语法合法，回写结果会保留 `MM(新文字)` 包装。也可以通过 `removeElementStrike` 移除 `STRIKE`、把 `STRIKEDOT` 回退为 `DOT`；更新结果会重新编译场景，并提供沿用输入风格的 `source` 与统一最简化的 `minifiedSource`。',
         },
       ],
     },
@@ -913,7 +913,7 @@ interface MacroElementAstReference {
           type: 'callout',
           tone: 'warn',
           title: '并非所有图元都包含文字',
-          text: '数字、运算符和进位注记通常可以编辑；LINE、BRACKET、边框和 DIV 等图元仍可反查来源节点，但没有文字字面量，调用 `updateElementText` 会抛出 Error。删除线图元可调用 `removeElementStrike`，普通 `STRIKE` 会被移除，`STRIKEDOT` 则回退为 `DOT`。映射不写入 GridScene，因此渲染器仍保持与宏语言无关。',
+          text: '数字、运算符、进位注记和固定符号通常可以编辑；`DOT`、`LINE`、`BRACKET`、边框和 DIV 等图元仍可反查来源节点，但没有可编辑文字，调用 `updateElementText` 会抛出 Error。固定符号通常直接改写成文字字面量；位于方括号 CELL 后续项时保留 `MM(文字)` 包装。删除线图元可调用 `removeElementStrike`，普通 `STRIKE` 会被移除，`STRIKEDOT` 则回退为 `DOT`。映射不写入 GridScene，因此渲染器仍保持与宏语言无关。',
         },
       ],
     },

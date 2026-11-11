@@ -176,10 +176,11 @@ export const compileSugarCellElement = (
   row: number,
   id: number,
 ): GridElement | GridElement[] => {
+  const literal = node.kind === 'literal' ? node : undefined
   const dot = isDotMacro(node)
   const strikeDot = isStrikeDotMacro(node)
-  const call = dot || strikeDot ? undefined : getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
-  if (!dot && !strikeDot && !call) throw new Error('单元格包含无法编译的内容。')
+  const call = literal || dot || strikeDot ? undefined : getMacroCall(node, undefined, SUGAR_ZERO_ARGUMENT_MACROS)
+  if (!literal && !dot && !strikeDot && !call) throw new Error('单元格包含无法编译的内容。')
   if (strikeDot) {
     return [
       {
@@ -253,12 +254,14 @@ export const compileSugarCellElement = (
       styleToken,
     }
   }
-  const name = dot ? 'RBL' : call?.name
+  const name = dot ? 'RBL' : literal ? 'MM' : call?.name
   const isMiddleTopDot = name === 'MTD'
   const fixedSymbolText = name ? FIXED_SYMBOL_TEXT[name] : undefined
-  const { content, options } = call
-    ? splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS)
-    : { content: [], options: new Map<string, string>() }
+  const { content, options } = literal
+    ? { content: [literal], options: new Map<string, string>() }
+    : call
+      ? splitMacroOptions(call.arguments, SUGAR_ZERO_ARGUMENT_MACROS)
+      : { content: [], options: new Map<string, string>() }
   if (isMiddleTopDot && content.length > 0) throw new Error('MTD 是 MT(·) 的零参数简写，不接受文字参数。')
   if (fixedSymbolText !== undefined && content.length > 0) throw new Error(`${name} 是零参数符号宏，不接受文字参数。`)
   const text = dot

@@ -99,6 +99,7 @@ const splitOptions = (nodes: MacroNode[]): { content: MacroNode[]; options: Map<
   splitMacroOptions(nodes, ZERO_ARGUMENT_MACROS)
 
 const readCell = (node: MacroNode, defaultColumnSpan = 1): NormalizedCell => {
+  if (node.kind === 'literal') return { elements: [node], columnSpan: defaultColumnSpan }
   const cellCall = getCall(node, 'CELL')
   const emptyCall = getCall(node, 'EMPTY')
   const valueNodes = cellCall?.arguments ?? emptyCall?.arguments
@@ -120,6 +121,7 @@ const readCell = (node: MacroNode, defaultColumnSpan = 1): NormalizedCell => {
   content.forEach((child) => {
     if (
       !isPositionMacro(child) &&
+      child.kind !== 'literal' &&
       !isBorderMacro(child) &&
       !getBracketMacro(child) &&
       !isDotMacro(child) &&

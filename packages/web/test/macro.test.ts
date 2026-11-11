@@ -735,6 +735,51 @@ CELL(
     expect(() => inspection.updateElementText(lineElement!.id, '9')).toThrow(/不包含可编辑文字/)
   })
 
+  test('AST 检查器允许编辑固定符号，并直接写回文字字面量', () => {
+    const inspection = createMacroAstInspection('SQ;')
+    const squareElement = inspection.scene.elements.find(
+      ({ content }) => content.kind === 'text' && content.text === '☐',
+    )
+
+    expect(squareElement).toBeDefined()
+    const reference = inspection.references[squareElement!.id]
+    expect(reference).toMatchObject({ node: { kind: 'symbol', name: 'SQUARE' }, text: '☐' })
+    expect(reference.literalPath).toBeDefined()
+
+    const updated = inspection.updateElementText(squareElement!.id, '□')
+
+    expect(updated.minifiedSource).toBe('□;')
+    expect(updated.source).toBe('□;')
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '□')).toBe(true)
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '☐')).toBe(false)
+  })
+
+  test('显式 ROW 中编辑固定符号时不再生成 MM 包装', () => {
+    const inspection = createMacroAstInspection('GRID(ROW(SQ))')
+    const squareElement = inspection.scene.elements.find(
+      ({ content }) => content.kind === 'text' && content.text === '☐',
+    )
+
+    expect(squareElement).toBeDefined()
+    const updated = inspection.updateElementText(squareElement!.id, '□')
+
+    expect(updated.source).toContain('ROW(□)')
+    expect(updated.source).not.toContain('MM(□)')
+    expect(updated.scene.elements.some(({ content }) => content.kind === 'text' && content.text === '□')).toBe(true)
+  })
+
+  test('DOT、厂字弯和横线仍然不可单独修改文字', () => {
+    const inspection = createMacroAstInspection('DOT,BRKT;LN;')
+    const nonEditableElements = inspection.scene.elements.filter(({ content }) =>
+      content.kind === 'text' ? content.text === '.' : content.kind === 'corner' || content.kind === 'line',
+    )
+
+    expect(nonEditableElements).toHaveLength(3)
+    nonEditableElements.forEach((element) => {
+      expect(() => inspection.updateElementText(element.id, '9')).toThrow(/不包含可编辑文字/)
+    })
+  })
+
   test('AST 检查器删除 STRIKE 时只移除删除线图元', () => {
     const inspection = createMacroAstInspection('GRID(ROW(CELL(MM(5), STRIKE)))')
     const strikeElement = inspection.scene.elements.find(({ content }) => content.kind === 'strike')
